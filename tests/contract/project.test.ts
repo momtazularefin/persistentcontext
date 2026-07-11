@@ -21,4 +21,13 @@ describe('public project contract', () => {
     expect(readme).toContain('Do not use this revision to migrate a live context layer.');
     expect(readme).toContain('intentionally fail closed');
   });
+
+  it('normalizes text for deterministic cross-platform checks', async () => {
+    const attributes = await readFile(new URL('.gitattributes', projectRoot), 'utf8');
+    const workflow = await readFile(new URL('.github/workflows/ci.yml', projectRoot), 'utf8');
+
+    expect(attributes.trim()).toBe('* text=auto eol=lf');
+    expect(workflow).toContain('uses: actions/checkout@v5');
+    expect(workflow).not.toContain('uses: actions/checkout@v4');
+  });
 });
