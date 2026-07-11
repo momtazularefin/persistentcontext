@@ -2,6 +2,7 @@ import { pathToFileURL } from 'node:url';
 
 import { Command } from 'commander';
 
+import { inspectRepository } from '../application/inspect-repository.js';
 import {
   PCP_COMMANDS,
   PCP_NAME,
@@ -9,6 +10,8 @@ import {
   PCP_VERSION,
   type PcpCommandName,
 } from '../domain/release.js';
+import { InspectionError } from '../domain/inspection.js';
+import { formatInspection } from '../presentation/format-inspection.js';
 
 const commandDescriptions: Record<PcpCommandName, string> = {
   inspect: 'Inspect and classify a candidate project without mutation',
@@ -28,12 +31,43 @@ function reportUnavailable(commandName: PcpCommandName): void {
     code: 'PCP_OPERATION_UNAVAILABLE',
     command: commandName,
     releaseStage: PCP_RELEASE_STAGE,
-    message: `${commandName} is intentionally unavailable in the verified scaffold milestone.`,
+    message: `${commandName} has not reached a verified release milestone.`,
     mutated: false,
   };
 
   process.stderr.write(`${JSON.stringify(message)}\n`);
   process.exitCode = 2;
+}
+
+interface InspectOptions {
+  candidate?: string;
+  json?: boolean;
+}
+
+function reportInspectionError(error: unknown): void {
+  const code = error instanceof InspectionError ? error.code : 'PCP_INSPECTION_FAILED';
+  const message = error instanceof Error ? error.message : String(error);
+  process.stderr.write(`${JSON.stringify({ code, message, mutated: false })}\n`);
+  process.exitCode = 2;
+}
+
+function addInspectCommand(program: Command): Command {
+  return program
+    .command('inspect')
+    .description(commandDescriptions.inspect)
+    .argument('[directory]', 'candidate project root')
+    .option('--candidate <directory>', 'candidate project root')
+    .option('--json', 'emit stable structured JSON')
+    .action(async (directory: string | undefined, options: InspectOptions) => {
+      try {
+        const result = await inspectRepository(options.candidate ?? directory ?? '.');
+        process.stdout.write(
+          options.json === true ? `${JSON.stringify(result, null, 2)}\n` : formatInspection(result),
+        );
+      } catch (error) {
+        reportInspectionError(error);
+      }
+    });
 }
 
 function addUnavailableCommand(program: Command, commandName: PcpCommandName): Command {
@@ -78,7 +112,11 @@ export function createProgram(): Command {
     .showHelpAfterError();
 
   for (const commandName of PCP_COMMANDS) {
-    addUnavailableCommand(program, commandName);
+    if (commandName === 'inspect') {
+      addInspectCommand(program);
+    } else {
+      addUnavailableCommand(program, commandName);
+    }
   }
 
   return program;

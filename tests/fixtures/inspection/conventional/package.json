@@ -1,0 +1,5 @@
+{
+  "name": "sample-service",
+  "private": true,
+  "type": "module"
+}

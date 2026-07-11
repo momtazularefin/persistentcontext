@@ -2,7 +2,13 @@
 
 ## Classify first
 
-Run read-only inspection and review the evidence before selecting an adoption path.
+Run the bundled or installed engine's read-only inspection and review its structured evidence before selecting an adoption path:
+
+```text
+node <pcp-engine> inspect <candidate-directory> --json
+```
+
+Inspection must report `mutated: false`. Review its state, confidence, signals, exclusions, foreign candidates, ambiguities, normalized fingerprints, nested-repository boundaries, symlink boundaries, and inventory digest. Do not override a classification from a filename alone.
 
 1. Route a valid existing PCP manifest to managed status, validation, repair, or upgrade.
 2. Select State C when persistent non-PCP agent instructions, memory, identity, history, planning, workflow, or orchestration exists.

@@ -3,7 +3,13 @@ import tseslint from 'typescript-eslint';
 
 export default tseslint.config(
   {
-    ignores: ['coverage/**', 'dist/**', 'node_modules/**', 'skills/build-pcp/scripts/pcp.mjs'],
+    ignores: [
+      'coverage/**',
+      'dist/**',
+      'node_modules/**',
+      'skills/build-pcp/scripts/pcp.mjs',
+      'tests/fixtures/**',
+    ],
   },
   eslint.configs.recommended,
   ...tseslint.configs.recommendedTypeChecked,

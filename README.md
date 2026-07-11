@@ -1,14 +1,14 @@
 # Persistent Context Protocol
 
-Persistent Context Protocol (PCP) is a repository-native protocol for preserving useful project context across AI agents, coding tools, sessions, machines, and operating-system changes.
+Persistent Context Protocol (PCP): repository-native context, safe handoffs, and multi-agent continuity for AI coding agents across tools and machines.
 
 Most coding agents can complete a task. The harder problem is helping the next agent understand what changed, why it changed, which rules still apply, and what work can safely continue. PCP is designed to make that context portable plain-text project state instead of leaving it trapped in conversations or one machine.
 
 ## Development status
 
-PCP is under active `0.1.0` development. This first scaffold proves the TypeScript toolchain, open-skill packaging, deterministic engine bundle, CI contract, and private-data safeguards. Lifecycle commands are exposed in help output but intentionally fail closed until their corresponding verified milestone is implemented.
+PCP is under active `0.1.0` development. The engine now performs read-only repository inventory and explainable intake classification. It fingerprints files with SHA-256, honors ignore and nested-repository boundaries, records symlinks without following them, and distinguishes a managed PCP project from State A, B, or C.
 
-Do not use this revision to migrate a live context layer.
+Do not use this revision to adopt or migrate a live context layer. All mutating lifecycle commands remain fail-closed until their corresponding safety milestone is verified.
 
 ## Intended model
 
@@ -55,7 +55,14 @@ pcp upgrade
 pcp repair
 ```
 
-At the current scaffold milestone, use only `--help` and `--version`. Other commands explain that their implementation is not yet available and exit without modifying the target.
+`pcp inspect` is the first implemented lifecycle operation:
+
+```powershell
+node dist/pcp.mjs inspect path/to/project
+node dist/pcp.mjs inspect path/to/project --json
+```
+
+The result includes classification state and confidence, semantic signals, excluded paths, possible foreign-context roots, ambiguities, normalized file fingerprints, and an inventory digest. It always reports `mutated: false`. All other lifecycle commands explain that their implementation is not yet available and exit without modifying the target.
 
 ## Develop
 

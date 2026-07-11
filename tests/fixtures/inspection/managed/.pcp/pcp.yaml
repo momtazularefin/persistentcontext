@@ -1,0 +1,3 @@
+protocol:
+  name: persistent-context-protocol
+  version: 0.1.0

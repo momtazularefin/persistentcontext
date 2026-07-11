@@ -45,7 +45,7 @@ Never delete foreign context while any file, history entry, collision, or confli
 
 ## Fail closed during development
 
-If the engine returns `PCP_OPERATION_UNAVAILABLE`, report that the requested lifecycle operation has not reached a verified release milestone. Do not simulate the operation or mutate the target. `--help` and `--version` remain safe.
+Read-only `inspect` is available. If the engine returns `PCP_OPERATION_UNAVAILABLE` for another lifecycle command, report that the operation has not reached a verified release milestone. Do not simulate the operation or mutate the target. `--help`, `--version`, and `inspect` remain safe.
 
 ## Report evidence
 

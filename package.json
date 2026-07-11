@@ -2,7 +2,7 @@
   "name": "persistentcontext",
   "version": "0.1.0",
   "private": true,
-  "description": "A repository-native protocol for persistent context across agents, tools, sessions, and machines.",
+  "description": "Persistent Context Protocol (PCP): repository-native context, safe handoffs, and multi-agent continuity for AI coding agents across tools and machines.",
   "type": "module",
   "license": "Apache-2.0",
   "engines": {
@@ -32,6 +32,7 @@
     "ajv": "8.20.0",
     "ajv-formats": "3.0.1",
     "commander": "15.0.0",
+    "ignore": "7.0.6",
     "ulid": "3.0.2",
     "yaml": "2.9.0"
   },
