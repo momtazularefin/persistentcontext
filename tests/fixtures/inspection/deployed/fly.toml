@@ -1,0 +1,4 @@
+app = "sample-deployment"
+
+[http_service]
+internal_port = 8080

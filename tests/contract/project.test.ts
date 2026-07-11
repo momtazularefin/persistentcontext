@@ -16,10 +16,11 @@ describe('public project contract', () => {
     expect(packageJson).not.toHaveProperty('bin');
   });
 
-  it('documents the scaffold limitation honestly', async () => {
+  it('documents the inspection milestone limitation honestly', async () => {
     const readme = await readFile(new URL('README.md', projectRoot), 'utf8');
-    expect(readme).toContain('Do not use this revision to migrate a live context layer.');
-    expect(readme).toContain('intentionally fail closed');
+    expect(readme).toContain('node dist/pcp.mjs inspect path/to/project --json');
+    expect(readme).toContain('Do not use this revision to adopt or migrate a live context layer.');
+    expect(readme).toContain('All mutating lifecycle commands remain fail-closed');
   });
 
   it('normalizes text for deterministic cross-platform checks', async () => {

@@ -1,4 +1,5 @@
 import { describe, expect, it, vi } from 'vitest';
+import { fileURLToPath } from 'node:url';
 
 import { createProgram, runCli } from '../../src/cli/main.js';
 import { PCP_COMMANDS } from '../../src/domain/release.js';
@@ -30,7 +31,7 @@ describe('pcp command surface', () => {
     process.exitCode = undefined;
 
     try {
-      await createProgram().parseAsync(['node', 'pcp', 'inspect']);
+      await createProgram().parseAsync(['node', 'pcp', 'adopt']);
       expect(process.exitCode).toBe(2);
       expect(errorOutput).toHaveBeenCalledWith(
         expect.stringContaining('"code":"PCP_OPERATION_UNAVAILABLE"'),
@@ -39,6 +40,23 @@ describe('pcp command surface', () => {
     } finally {
       process.exitCode = previousExitCode;
       errorOutput.mockRestore();
+    }
+  });
+
+  it('runs read-only inspect with structured JSON output', async () => {
+    const output = vi.spyOn(process.stdout, 'write').mockImplementation(() => true);
+    const previousExitCode = process.exitCode;
+    process.exitCode = undefined;
+    const fixture = fileURLToPath(new URL('../fixtures/inspection/conventional/', import.meta.url));
+
+    try {
+      await createProgram().parseAsync(['node', 'pcp', 'inspect', fixture, '--json']);
+      const serialized = String(output.mock.calls.at(-1)?.[0]);
+      expect(JSON.parse(serialized)).toMatchObject({ state: 'B', mutated: false });
+      expect(process.exitCode).toBeUndefined();
+    } finally {
+      process.exitCode = previousExitCode;
+      output.mockRestore();
     }
   });
 });
