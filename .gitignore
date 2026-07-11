@@ -1,0 +1,17 @@
+node_modules/
+dist/
+coverage/
+.tmp/
+*.log
+.env
+.env.*
+!.env.example
+
+# PCP runtime state is always local.
+.pcp/runtime/
+
+# Editors and operating systems.
+.idea/
+.vscode/
+.DS_Store
+Thumbs.db

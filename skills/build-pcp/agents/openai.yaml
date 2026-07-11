@@ -1,0 +1,7 @@
+interface:
+  display_name: 'Build PCP'
+  short_description: 'Build and maintain persistent project context'
+  default_prompt: 'Use $build-pcp to adopt Persistent Context Protocol in this repository.'
+
+policy:
+  allow_implicit_invocation: true
