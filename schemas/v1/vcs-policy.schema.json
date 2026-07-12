@@ -1,0 +1,228 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:pcp:schema:v1:vcs-policy",
+  "title": "PCP version-control authority policy",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "mode", "provider", "repository", "responsibilities", "workflow"],
+  "properties": {
+    "schema_version": {
+      "$ref": "urn:pcp:schema:v1:common#/$defs/schemaVersion"
+    },
+    "mode": {
+      "enum": ["none", "human-owned", "agent-managed", "custom"]
+    },
+    "provider": {
+      "enum": ["none", "github", "gitlab", "bitbucket", "other"]
+    },
+    "repository": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["remote_name", "default_branch"],
+      "properties": {
+        "remote_name": {
+          "$ref": "urn:pcp:schema:v1:common#/$defs/slug"
+        },
+        "default_branch": {
+          "$ref": "urn:pcp:schema:v1:common#/$defs/slug"
+        }
+      }
+    },
+    "responsibilities": {
+      "$ref": "#/$defs/responsibilities"
+    },
+    "workflow": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "branch_pattern",
+        "commit_convention",
+        "push_cadence",
+        "pull_request_required",
+        "human_merge_required",
+        "post_merge"
+      ],
+      "properties": {
+        "branch_pattern": {
+          "$ref": "urn:pcp:schema:v1:common#/$defs/nonEmptyString"
+        },
+        "commit_convention": {
+          "enum": ["conventional", "custom", "none"]
+        },
+        "push_cadence": {
+          "enum": ["milestone", "unit", "manual", "never"]
+        },
+        "pull_request_required": {
+          "type": "boolean"
+        },
+        "human_merge_required": {
+          "type": "boolean"
+        },
+        "post_merge": {
+          "type": "array",
+          "items": {
+            "enum": [
+              "verify-pr",
+              "verify-checks",
+              "fetch-prune",
+              "switch-default",
+              "pull-ff-only",
+              "verify-clean",
+              "delete-local-branch",
+              "verify-merged-tree",
+              "create-next-branch"
+            ]
+          },
+          "uniqueItems": true
+        }
+      }
+    }
+  },
+  "$defs": {
+    "actor": {
+      "enum": ["agent", "human", "external", "prohibited"]
+    },
+    "responsibilities": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "initialize",
+        "create_repository",
+        "configure_remote",
+        "configure_protection",
+        "sync_default",
+        "create_branch",
+        "stage",
+        "commit",
+        "push",
+        "open_pull_request",
+        "repair_ci",
+        "review_pull_request",
+        "merge_pull_request",
+        "cleanup_branch",
+        "tag",
+        "release",
+        "force_push",
+        "rewrite_history",
+        "destructive_recovery",
+        "manage_credentials"
+      ],
+      "properties": {
+        "initialize": { "$ref": "#/$defs/actor" },
+        "create_repository": { "$ref": "#/$defs/actor" },
+        "configure_remote": { "$ref": "#/$defs/actor" },
+        "configure_protection": { "$ref": "#/$defs/actor" },
+        "sync_default": { "$ref": "#/$defs/actor" },
+        "create_branch": { "$ref": "#/$defs/actor" },
+        "stage": { "$ref": "#/$defs/actor" },
+        "commit": { "$ref": "#/$defs/actor" },
+        "push": { "$ref": "#/$defs/actor" },
+        "open_pull_request": { "$ref": "#/$defs/actor" },
+        "repair_ci": { "$ref": "#/$defs/actor" },
+        "review_pull_request": { "$ref": "#/$defs/actor" },
+        "merge_pull_request": { "$ref": "#/$defs/actor" },
+        "cleanup_branch": { "$ref": "#/$defs/actor" },
+        "tag": { "$ref": "#/$defs/actor" },
+        "release": { "$ref": "#/$defs/actor" },
+        "force_push": { "$ref": "#/$defs/actor" },
+        "rewrite_history": { "$ref": "#/$defs/actor" },
+        "destructive_recovery": { "$ref": "#/$defs/actor" },
+        "manage_credentials": { "$ref": "#/$defs/actor" }
+      }
+    }
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": { "mode": { "const": "none" } },
+        "required": ["mode"]
+      },
+      "then": {
+        "properties": {
+          "provider": { "const": "none" },
+          "responsibilities": {
+            "type": "object",
+            "additionalProperties": { "const": "prohibited" }
+          },
+          "workflow": {
+            "type": "object",
+            "properties": {
+              "commit_convention": { "const": "none" },
+              "push_cadence": { "const": "never" },
+              "pull_request_required": { "const": false },
+              "human_merge_required": { "const": false },
+              "post_merge": { "type": "array", "maxItems": 0 }
+            }
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": { "mode": { "const": "agent-managed" } },
+        "required": ["mode"]
+      },
+      "then": {
+        "properties": {
+          "provider": { "not": { "const": "none" } },
+          "responsibilities": {
+            "type": "object",
+            "properties": {
+              "sync_default": { "const": "agent" },
+              "create_branch": { "const": "agent" },
+              "stage": { "const": "agent" },
+              "commit": { "const": "agent" },
+              "push": { "const": "agent" },
+              "open_pull_request": { "const": "agent" },
+              "repair_ci": { "const": "agent" },
+              "review_pull_request": { "const": "human" },
+              "merge_pull_request": { "const": "human" },
+              "cleanup_branch": { "const": "agent" },
+              "force_push": { "const": "prohibited" },
+              "rewrite_history": { "const": "prohibited" }
+            }
+          },
+          "workflow": {
+            "type": "object",
+            "properties": {
+              "commit_convention": { "const": "conventional" },
+              "push_cadence": { "const": "milestone" },
+              "pull_request_required": { "const": true },
+              "human_merge_required": { "const": true },
+              "post_merge": {
+                "type": "array",
+                "prefixItems": [
+                  { "const": "verify-pr" },
+                  { "const": "verify-checks" },
+                  { "const": "fetch-prune" },
+                  { "const": "switch-default" },
+                  { "const": "pull-ff-only" },
+                  { "const": "verify-clean" },
+                  { "const": "delete-local-branch" },
+                  { "const": "verify-merged-tree" },
+                  { "const": "create-next-branch" }
+                ],
+                "minItems": 9,
+                "maxItems": 9
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": { "mode": { "const": "human-owned" } },
+        "required": ["mode"]
+      },
+      "then": {
+        "properties": {
+          "responsibilities": {
+            "type": "object",
+            "additionalProperties": { "enum": ["human", "prohibited"] }
+          }
+        }
+      }
+    }
+  ]
+}

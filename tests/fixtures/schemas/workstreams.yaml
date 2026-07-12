@@ -1,0 +1,22 @@
+schema: workstreams
+valid:
+  schema_version: 1
+  workstreams:
+    - workstream_id: canonical-layer
+      name: Canonical layer
+      kind: sequential
+      status: active
+      paths: [schemas, templates, src]
+      areas: [protocol, validation]
+      dependencies: []
+      completion:
+        criteria: [All canonical schemas and templates validate.]
+        evidence: []
+invalid:
+  - name: unsupported workstream state
+    operation: set
+    path: workstreams.0.status
+    value: almost-done
+  - name: missing completion criteria
+    operation: delete
+    path: workstreams.0.completion.criteria

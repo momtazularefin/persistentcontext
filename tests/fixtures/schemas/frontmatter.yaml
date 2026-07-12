@@ -1,0 +1,17 @@
+schema: frontmatter
+valid:
+  doc: .pcp/knowledge/10-overview.md
+  type: knowledge
+  status: living
+  version: 1.0.0
+  last_updated: 2026-07-12T00:00:00Z
+  ownership: project
+invalid:
+  - name: absolute document path
+    operation: set
+    path: doc
+    value: /project/.pcp/knowledge/10-overview.md
+  - name: generated content without provenance
+    operation: set
+    path: ownership
+    value: generated

@@ -1,0 +1,22 @@
+schema: project-registry
+valid:
+  schema_version: 1
+  projects:
+    - schema_version: 1
+      project_id: sample-service
+      name: Sample Service
+      purpose: Demonstrate a project registry.
+      project_type: software
+      lifecycle: active
+      artifact_roots: [src]
+      context_roots: [.pcp]
+      repositories: []
+      tags: [sample]
+invalid:
+  - name: missing nested project name
+    operation: delete
+    path: projects.0.name
+  - name: nested project has unknown field
+    operation: set
+    path: projects.0.unknown
+    value: true

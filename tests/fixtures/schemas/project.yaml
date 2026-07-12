@@ -1,0 +1,25 @@
+schema: project
+valid:
+  schema_version: 1
+  project_id: sample-service
+  name: Sample Service
+  purpose: Demonstrate a grounded project-state record.
+  project_type: software
+  lifecycle: active
+  artifact_roots: [src, tests]
+  context_roots: [.pcp]
+  repositories:
+    - provider: github
+      url: https://github.com/example/sample-service
+      default_branch: main
+      visibility: public
+  tags: [typescript, sample]
+invalid:
+  - name: nonportable project id
+    operation: set
+    path: project_id
+    value: Sample_Service
+  - name: insecure repository URL
+    operation: set
+    path: repositories.0.url
+    value: http://example.com/sample-service
