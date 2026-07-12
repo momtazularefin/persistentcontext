@@ -15,3 +15,7 @@ Files ending in `.generated.md` are deterministic projections from canonical YAM
 - Regenerate them with PCP instead of editing them by hand.
 - `pcp render --check` fails when a projection is stale.
 - This index is protocol-owned and is not itself a generated projection.
+
+## Reading order
+
+1. [10-status.generated.md](10-status.generated.md) — current project, managed-project, workstream, and VCS status.

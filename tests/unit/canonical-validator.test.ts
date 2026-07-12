@@ -253,9 +253,9 @@ ownership: project
     const layer = path.join(root, '.pcp');
     const digest = await canonicalSourceDigest(layer, ['state/project.yaml']);
     await writeFile(
-      path.join(layer, 'views', '10-project.generated.md'),
+      path.join(layer, 'views', '20-project.generated.md'),
       `---
-doc: views/10-project.generated.md
+doc: views/20-project.generated.md
 type: generated
 status: generated
 version: 1.0.0
@@ -274,7 +274,7 @@ source_digest: ${digest}
     );
     await appendFile(
       path.join(layer, 'views', '00-index.md'),
-      '\n1. [10-project.generated.md](10-project.generated.md) — current project view.\n',
+      '\n2. [20-project.generated.md](20-project.generated.md) — current project view.\n',
       'utf8',
     );
 
@@ -292,9 +292,9 @@ source_digest: ${digest}
     const root = await createProject();
     const layer = path.join(root, '.pcp');
     await writeFile(
-      path.join(layer, 'views', '10-project.generated.md'),
+      path.join(layer, 'views', '20-project.generated.md'),
       `---
-doc: views/10-project.generated.md
+doc: views/20-project.generated.md
 type: generated
 status: generated
 version: 1.0.0
@@ -311,7 +311,7 @@ source_digest: aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
     );
     await appendFile(
       path.join(layer, 'views', '00-index.md'),
-      '\n1. [10-project.generated.md](10-project.generated.md) — current project view.\n',
+      '\n2. [20-project.generated.md](20-project.generated.md) — current project view.\n',
       'utf8',
     );
 

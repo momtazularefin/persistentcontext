@@ -128,7 +128,7 @@ describe('canonical template sources', () => {
     for (const file of files) {
       const relativePath = relativeFrom(coreRoot, file);
       const fileName = path.basename(file);
-      const number = /^(\d+)-[a-z0-9]+(?:-[a-z0-9]+)*\.md$/.exec(fileName)?.[1];
+      const number = /^(\d+)-[a-z0-9]+(?:-[a-z0-9]+)*(?:\.generated)?\.md$/.exec(fileName)?.[1];
       expect(number, relativePath).toBeDefined();
       expect(Number(number) % 10, relativePath).toBe(0);
 

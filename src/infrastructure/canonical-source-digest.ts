@@ -15,11 +15,16 @@ function resolveContained(root: string, relativePath: string): string {
   return resolved;
 }
 
-export async function canonicalSourceDigest(root: string, sources: string[]): Promise<string> {
+export interface CanonicalSourceContent {
+  path: string;
+  contents: string;
+}
+
+export function canonicalSourceDigestFromContents(sources: CanonicalSourceContent[]): string {
   const hash = createHash('sha256');
-  for (const source of [...sources].sort()) {
-    const contents = normalizeSource(await readFile(resolveContained(root, source), 'utf8'));
-    hash.update(source);
+  for (const source of [...sources].sort((left, right) => left.path.localeCompare(right.path))) {
+    const contents = normalizeSource(source.contents);
+    hash.update(source.path);
     hash.update('\0');
     hash.update(String(Buffer.byteLength(contents)));
     hash.update('\0');
@@ -27,4 +32,14 @@ export async function canonicalSourceDigest(root: string, sources: string[]): Pr
     hash.update('\0');
   }
   return hash.digest('hex');
+}
+
+export async function canonicalSourceDigest(root: string, sources: string[]): Promise<string> {
+  const contents = await Promise.all(
+    sources.map(async (source) => ({
+      path: source,
+      contents: await readFile(resolveContained(root, source), 'utf8'),
+    })),
+  );
+  return canonicalSourceDigestFromContents(contents);
 }
