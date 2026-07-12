@@ -21,8 +21,9 @@ Load only the references required for the requested lifecycle operation.
 1. Prefer `<project-root>/.pcp/tools/pcp.mjs` when a valid managed installation exists.
 2. Otherwise use `scripts/pcp.mjs` from this skill.
 3. Verify the adjacent `pcp.sha256` before structural work when the bundled engine is used.
-4. Run the engine with Node.js 24 or a compatible version declared by the installed manifest.
-5. Stop if no verified engine is available. Do not reproduce structural operations with improvised shell commands.
+4. Verify `assets/pcp-assets.sha256` before using bundled schemas or templates.
+5. Run the engine with Node.js 24 or a compatible version declared by the installed manifest.
+6. Stop if no verified engine is available. Do not reproduce structural operations with improvised shell commands.
 
 ## Preserve responsibility boundaries
 
@@ -45,7 +46,7 @@ Never delete foreign context while any file, history entry, collision, or confli
 
 ## Fail closed during development
 
-Read-only `inspect` is available. If the engine returns `PCP_OPERATION_UNAVAILABLE` for another lifecycle command, report that the operation has not reached a verified release milestone. Do not simulate the operation or mutate the target. `--help`, `--version`, and `inspect` remain safe.
+Read-only `inspect`, `validate`, and `render --check` are available. `render` may replace only the declared generated status view from schema-valid canonical YAML. If the engine returns `PCP_OPERATION_UNAVAILABLE` for another lifecycle command, report that the operation has not reached a verified release milestone. Do not simulate it or mutate the target.
 
 ## Report evidence
 

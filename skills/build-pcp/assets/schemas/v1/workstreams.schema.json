@@ -1,0 +1,81 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:pcp:schema:v1:workstreams",
+  "title": "PCP workstream registry",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "workstreams"],
+  "properties": {
+    "schema_version": {
+      "$ref": "urn:pcp:schema:v1:common#/$defs/schemaVersion"
+    },
+    "workstreams": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/workstream"
+      },
+      "uniqueItems": true
+    }
+  },
+  "$defs": {
+    "workstream": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "workstream_id",
+        "name",
+        "kind",
+        "status",
+        "paths",
+        "areas",
+        "dependencies",
+        "completion"
+      ],
+      "properties": {
+        "workstream_id": {
+          "$ref": "urn:pcp:schema:v1:common#/$defs/slug"
+        },
+        "name": {
+          "$ref": "urn:pcp:schema:v1:common#/$defs/nonEmptyString"
+        },
+        "kind": {
+          "enum": ["sequential", "concurrent", "ceb"]
+        },
+        "status": {
+          "enum": ["planned", "active", "blocked", "complete", "cancelled"]
+        },
+        "paths": {
+          "$ref": "urn:pcp:schema:v1:common#/$defs/pathArray"
+        },
+        "areas": {
+          "$ref": "urn:pcp:schema:v1:common#/$defs/slugArray"
+        },
+        "dependencies": {
+          "$ref": "urn:pcp:schema:v1:common#/$defs/slugArray"
+        },
+        "completion": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["criteria", "evidence"],
+          "properties": {
+            "criteria": {
+              "type": "array",
+              "items": {
+                "$ref": "urn:pcp:schema:v1:common#/$defs/nonEmptyString"
+              },
+              "minItems": 1,
+              "uniqueItems": true
+            },
+            "evidence": {
+              "type": "array",
+              "items": {
+                "$ref": "urn:pcp:schema:v1:common#/$defs/nonEmptyString"
+              },
+              "uniqueItems": true
+            }
+          }
+        }
+      }
+    }
+  }
+}

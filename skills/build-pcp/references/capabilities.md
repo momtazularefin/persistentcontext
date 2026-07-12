@@ -15,7 +15,9 @@
 - Spec-driven project records: analysis, specification, design, tasks, decisions, and evaluation.
 - Scratch-space policy.
 - Progressive walkthrough creation.
-- Project-specific Git and human-approval policy.
+- Explicit `none`, `human-owned`, recommended `agent-managed`, or complete `custom` VCS responsibility policy.
+
+The recommended agent-managed flow keeps verified unit commits local, pushes and opens one PR at a substantial milestone, leaves review and merge to the human, then gives the agent responsibility for verified post-merge synchronization and the next branch.
 
 Enable only modules that fit the project. Installing PCP must not force a software topology or Git workflow on non-software and existing projects.
 

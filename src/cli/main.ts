@@ -3,6 +3,8 @@ import { pathToFileURL } from 'node:url';
 import { Command } from 'commander';
 
 import { inspectRepository } from '../application/inspect-repository.js';
+import { renderCanonicalViews } from '../application/render-canonical-views.js';
+import { validateCanonicalLayer } from '../application/validate-canonical-layer.js';
 import {
   PCP_COMMANDS,
   PCP_NAME,
@@ -11,6 +13,10 @@ import {
   type PcpCommandName,
 } from '../domain/release.js';
 import { InspectionError } from '../domain/inspection.js';
+import {
+  formatCanonicalRender,
+  formatCanonicalValidation,
+} from '../presentation/format-canonical.js';
 import { formatInspection } from '../presentation/format-inspection.js';
 
 const commandDescriptions: Record<PcpCommandName, string> = {
@@ -20,7 +26,7 @@ const commandDescriptions: Record<PcpCommandName, string> = {
   status: 'Report project state and scoped reconciliation changes',
   record: 'Append one meaningful immutable journal event',
   validate: 'Validate an installed PCP layer and its projections',
-  render: 'Render generated views and platform adapters',
+  render: 'Render generated canonical views',
   workstream: 'Create, update, validate, or complete a workstream',
   upgrade: 'Preview or apply an ownership-aware PCP upgrade',
   repair: 'Preview or apply a mechanically safe PCP repair',
@@ -41,6 +47,16 @@ function reportUnavailable(commandName: PcpCommandName): void {
 
 interface InspectOptions {
   candidate?: string;
+  json?: boolean;
+}
+
+interface ValidateOptions {
+  cleanGenesis?: boolean;
+  json?: boolean;
+}
+
+interface RenderOptions {
+  check?: boolean;
   json?: boolean;
 }
 
@@ -70,6 +86,61 @@ function addInspectCommand(program: Command): Command {
     });
 }
 
+function addValidateCommand(program: Command): Command {
+  return program
+    .command('validate')
+    .description(commandDescriptions.validate)
+    .argument('[directory]', 'managed project root', '.')
+    .option('--clean-genesis', 'require zero agent profiles and zero journal events')
+    .option('--json', 'emit stable structured JSON')
+    .action(async (directory: string, options: ValidateOptions) => {
+      try {
+        const report = await validateCanonicalLayer(directory, {
+          clean_genesis: options.cleanGenesis === true,
+        });
+        const output = { ...report, command: 'validate', mutated: false };
+        process.stdout.write(
+          options.json === true
+            ? `${JSON.stringify(output, null, 2)}\n`
+            : formatCanonicalValidation(report),
+        );
+        if (!report.valid) process.exitCode = 1;
+      } catch (error) {
+        reportOperationError('PCP_VALIDATION_FAILED', error, false);
+      }
+    });
+}
+
+function addRenderCommand(program: Command): Command {
+  return program
+    .command('render')
+    .description(commandDescriptions.render)
+    .argument('[directory]', 'managed project root', '.')
+    .option('--check', 'check generated output without writing')
+    .option('--json', 'emit stable structured JSON')
+    .action(async (directory: string, options: RenderOptions) => {
+      try {
+        const report = await renderCanonicalViews(directory, { check: options.check === true });
+        const mutated = report.mode === 'write' && report.changed_paths.length > 0;
+        const output = { ...report, command: 'render', mutated };
+        process.stdout.write(
+          options.json === true
+            ? `${JSON.stringify(output, null, 2)}\n`
+            : formatCanonicalRender(report),
+        );
+        if (!report.valid) process.exitCode = 1;
+      } catch (error) {
+        reportOperationError('PCP_RENDER_FAILED', error, options.check !== true);
+      }
+    });
+}
+
+function reportOperationError(code: string, error: unknown, mutationPossible: boolean): void {
+  const message = error instanceof Error ? error.message : String(error);
+  process.stderr.write(`${JSON.stringify({ code, message, mutated: false, mutationPossible })}\n`);
+  process.exitCode = 2;
+}
+
 function addUnavailableCommand(program: Command, commandName: PcpCommandName): Command {
   const command = program.command(commandName).description(commandDescriptions[commandName]);
 
@@ -81,9 +152,6 @@ function addUnavailableCommand(program: Command, commandName: PcpCommandName): C
       break;
     case 'record':
       command.requiredOption('--input <event.yaml>', 'event candidate to validate and record');
-      break;
-    case 'render':
-      command.option('--check', 'check generated output without writing');
       break;
     case 'upgrade':
     case 'repair':
@@ -114,6 +182,10 @@ export function createProgram(): Command {
   for (const commandName of PCP_COMMANDS) {
     if (commandName === 'inspect') {
       addInspectCommand(program);
+    } else if (commandName === 'validate') {
+      addValidateCommand(program);
+    } else if (commandName === 'render') {
+      addRenderCommand(program);
     } else {
       addUnavailableCommand(program, commandName);
     }

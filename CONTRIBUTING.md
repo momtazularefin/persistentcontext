@@ -13,6 +13,8 @@ npm run verify
 
 Keep changes focused. Add or update direct tests for every protocol invariant, mutation path, and safe refusal that changes. Do not commit generated dependency folders, credentials, local project context, migration preimages, or private fixture data.
 
+Edit release schemas and templates only in top-level `schemas/` and `templates/`. `npm run package:skill` regenerates the byte-identical skill assets and their checksum manifest.
+
 ## Pull requests
 
 - Explain the problem and the protocol behavior being changed.

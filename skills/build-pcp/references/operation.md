@@ -17,7 +17,22 @@ Record one immutable event for a durable project change. Include actor, origin, 
 
 ## Rendering
 
-Render human views and platform adapters from canonical state. Treat a digest mismatch as stale generated output. Do not make generated Markdown an independent source of truth.
+Validate before relying on managed state:
+
+```text
+node <pcp-engine> validate <project-root> --json
+```
+
+Use `--clean-genesis` only for an adoption candidate that must contain zero profiles and events.
+
+Check projections without mutation, then render when the policy permits generated-file replacement:
+
+```text
+node <pcp-engine> render <project-root> --check --json
+node <pcp-engine> render <project-root> --json
+```
+
+Treat a digest mismatch as stale output. Generated Markdown is never an independent source of truth. Platform-adapter rendering remains unavailable until its compatibility milestone is verified.
 
 ## Workstreams and CEBs
 

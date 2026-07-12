@@ -1,0 +1,123 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:pcp:schema:v1:mutation-plan",
+  "title": "PCP normalized mutation plan",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "plan_id",
+    "generated_at",
+    "classification",
+    "candidate_inventory_digest",
+    "operations",
+    "validations",
+    "plan_digest"
+  ],
+  "properties": {
+    "schema_version": {
+      "$ref": "urn:pcp:schema:v1:common#/$defs/schemaVersion"
+    },
+    "plan_id": {
+      "$ref": "urn:pcp:schema:v1:common#/$defs/ulid"
+    },
+    "generated_at": {
+      "$ref": "urn:pcp:schema:v1:common#/$defs/dateTime"
+    },
+    "classification": {
+      "enum": ["A", "B", "C", "managed"]
+    },
+    "candidate_inventory_digest": {
+      "$ref": "urn:pcp:schema:v1:common#/$defs/sha256"
+    },
+    "operations": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/operation"
+      },
+      "uniqueItems": true
+    },
+    "validations": {
+      "type": "array",
+      "items": {
+        "$ref": "urn:pcp:schema:v1:common#/$defs/slug"
+      },
+      "minItems": 1,
+      "uniqueItems": true
+    },
+    "plan_digest": {
+      "$ref": "urn:pcp:schema:v1:common#/$defs/sha256"
+    }
+  },
+  "$defs": {
+    "operation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["operation_id", "action", "path"],
+      "properties": {
+        "operation_id": {
+          "$ref": "urn:pcp:schema:v1:common#/$defs/ulid"
+        },
+        "action": {
+          "enum": ["mkdir", "write", "replace", "remove", "move"]
+        },
+        "path": {
+          "$ref": "urn:pcp:schema:v1:common#/$defs/relativePath"
+        },
+        "source_path": {
+          "$ref": "urn:pcp:schema:v1:common#/$defs/relativePath"
+        },
+        "content_digest": {
+          "$ref": "urn:pcp:schema:v1:common#/$defs/sha256"
+        },
+        "preimage_digest": {
+          "$ref": "urn:pcp:schema:v1:common#/$defs/sha256"
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": { "action": { "enum": ["write", "replace"] } },
+            "required": ["action"]
+          },
+          "then": {
+            "required": ["content_digest"],
+            "properties": {
+              "content_digest": {
+                "$ref": "urn:pcp:schema:v1:common#/$defs/sha256"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": { "action": { "const": "move" } },
+            "required": ["action"]
+          },
+          "then": {
+            "required": ["source_path"],
+            "properties": {
+              "source_path": {
+                "$ref": "urn:pcp:schema:v1:common#/$defs/relativePath"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": { "action": { "enum": ["replace", "remove", "move"] } },
+            "required": ["action"]
+          },
+          "then": {
+            "required": ["preimage_digest"],
+            "properties": {
+              "preimage_digest": {
+                "$ref": "urn:pcp:schema:v1:common#/$defs/sha256"
+              }
+            }
+          }
+        }
+      ]
+    }
+  }
+}

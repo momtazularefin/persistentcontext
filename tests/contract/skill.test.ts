@@ -26,4 +26,16 @@ describe('build-pcp skill contract', () => {
       await expect(access(new URL(`references/${reference}`, skillRoot))).resolves.toBeUndefined();
     }
   });
+
+  it('packages the canonical schemas and templates as checked assets', async () => {
+    const assets = [
+      'assets/pcp-assets.sha256',
+      'assets/schemas/v1/pcp-manifest.schema.json',
+      'assets/templates/core/.pcp/pcp.yaml',
+      'assets/templates/core/.pcp/views/10-status.generated.md',
+    ];
+    for (const asset of assets) {
+      await expect(access(new URL(asset, skillRoot))).resolves.toBeUndefined();
+    }
+  });
 });

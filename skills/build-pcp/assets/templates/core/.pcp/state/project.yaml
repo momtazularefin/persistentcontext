@@ -1,0 +1,12 @@
+schema_version: 1
+project_id: pending-project
+name: Pending project
+purpose: Replace this baseline with grounded project purpose before adoption is applied.
+project_type: other
+lifecycle: seed
+artifact_roots:
+  - .
+context_roots:
+  - .pcp
+repositories: []
+tags: []

@@ -12,4 +12,4 @@ Do not open a public issue containing credentials, private project context, migr
 
 PCP is designed to fail closed around structural mutation. A valid preview, unchanged source fingerprints, safe path boundaries, and successful validation are required before an apply operation. PCP must never store secrets in canonical context, journal events, generated adapters, fixtures, or diagnostic logs.
 
-The default policy does not authorize Git writes or external-system mutations.
+PCP does not infer Git authority. Its explicit VCS profiles are `none`, `human-owned`, recommended `agent-managed`, and complete `custom`; before selection the effective policy is read-only. The recommended profile still prohibits agent credential management, force-push, history rewriting, protection weakening, and self-merge.
