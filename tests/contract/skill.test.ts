@@ -30,6 +30,7 @@ describe('build-pcp skill contract', () => {
   it('packages the canonical schemas and templates as checked assets', async () => {
     const assets = [
       'assets/pcp-assets.sha256',
+      'assets/schemas/v1/adoption-input.schema.json',
       'assets/schemas/v1/pcp-manifest.schema.json',
       'assets/templates/core/.pcp/pcp.yaml',
       'assets/templates/core/.pcp/views/10-status.generated.md',

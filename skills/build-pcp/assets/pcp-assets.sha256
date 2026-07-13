@@ -1,4 +1,5 @@
 cbd8e3a9344ac2ed81a98abbf2de0538d40031ff0453c4bdcde316084c8f16e7  schemas/v1/adapter.schema.json
+6d80df8bc5c371acc43831abcab6be9f79486f63a1d9bd351b97abc14e72300d  schemas/v1/adoption-input.schema.json
 d05077a328e50f386f41660adf0a6529ebec7310bb0fb389cf946686a6f547e0  schemas/v1/agent-profile.schema.json
 4299b2487eea1f3a0a7b16757130ff7e7db5fc485c0814b1af7ff4df2c9a475e  schemas/v1/checkpoint.schema.json
 169958acd1aca243fc76806be9f4ac3425af361fae624ce1a76bf1795f5ce4ba  schemas/v1/common.schema.json
@@ -61,4 +62,4 @@ aa5a834b11a7e6e8f85f11f00fa3677dab92e116aad66cd08bfc3217a8c737be  templates/core
 1d158713752acdd9e02f26500d281de485b4d7e242efea2035672e3c1e88ba71  templates/core/.pcp/tools/00-index.md
 0b988b9acb2676c0462ab0ce4baed703e82a4539218e6a46006d9d8f8e26907c  templates/core/.pcp/views/00-index.md
 0241b3f9746340aa2232050dbe24bec677af21361b020cf55d2489dc06c404be  templates/core/.pcp/views/10-status.generated.md
-5eaddc3801d2b35ac13a181bedc7de2172ccbccd63a28450b54ca8ad5b0c2bdb  templates/README.md
+eb927202d2a3bdbbd4196986c90e56305c72735d1f70bca5f2861f73973b6b23  templates/README.md

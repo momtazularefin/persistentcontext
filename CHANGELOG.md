@@ -9,3 +9,4 @@ All notable public protocol changes will be documented here after the first rele
 - Added versioned canonical schemas, a clean-genesis `.pcp/` baseline, four optional capability overlays, and explicit configurable VCS responsibility profiles.
 - Added installed-layer validation for structure, YAML, numbered Markdown, links, portability, privacy, ownership, identities, workstreams, journal events, checkpoints, generated digests, and clean genesis.
 - Added deterministic `pcp validate` and `pcp render [--check]` commands plus self-contained skill schema/template assets.
+- Added preview-first State A/B adoption with external grounded semantic inputs, normalized plan digests, source-drift rejection, project locks, write-ahead transactions, exact rollback, and clean-genesis validation.

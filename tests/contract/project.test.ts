@@ -19,10 +19,11 @@ describe('public project contract', () => {
   it('documents implemented and unavailable milestone behavior honestly', async () => {
     const readme = await readFile(new URL('README.md', projectRoot), 'utf8');
     expect(readme).toContain('node dist/pcp.mjs inspect path/to/project --json');
+    expect(readme).toContain('node dist/pcp.mjs adopt --candidate path/to/project --input');
     expect(readme).toContain('node dist/pcp.mjs validate path/to/managed-project');
     expect(readme).toContain('node dist/pcp.mjs render path/to/managed-project --check');
-    expect(readme).toContain('Do not use this revision to adopt or migrate a live context layer.');
-    expect(readme).toContain('Structural adoption, migration, registration, journaling');
+    expect(readme).toContain('State A/B adoption is preview-first');
+    expect(readme).toContain('State C foreign-layer translation, registration, journaling');
   });
 
   it('normalizes text for deterministic cross-platform checks', async () => {

@@ -1,0 +1,116 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:pcp:schema:v1:adoption-input",
+  "title": "PCP State A or State B semantic adoption input",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "baseline_at",
+    "persistence",
+    "project",
+    "projects",
+    "workstreams",
+    "vcs_policy",
+    "documents",
+    "scaffold_files"
+  ],
+  "properties": {
+    "schema_version": {
+      "$ref": "urn:pcp:schema:v1:common#/$defs/schemaVersion"
+    },
+    "baseline_at": {
+      "$ref": "urn:pcp:schema:v1:common#/$defs/dateTime"
+    },
+    "persistence": {
+      "enum": ["tracked", "local"]
+    },
+    "project": {
+      "$ref": "urn:pcp:schema:v1:project"
+    },
+    "projects": {
+      "$ref": "urn:pcp:schema:v1:project-registry"
+    },
+    "workstreams": {
+      "$ref": "urn:pcp:schema:v1:workstreams"
+    },
+    "vcs_policy": {
+      "$ref": "urn:pcp:schema:v1:vcs-policy"
+    },
+    "documents": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/document"
+      },
+      "minItems": 8,
+      "maxItems": 8
+    },
+    "scaffold_files": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/scaffoldFile"
+      },
+      "uniqueItems": true
+    }
+  },
+  "$defs": {
+    "document": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["path", "type", "status", "basis", "evidence_paths", "body"],
+      "properties": {
+        "path": {
+          "enum": [
+            "knowledge/10-overview.md",
+            "knowledge/20-architecture.md",
+            "knowledge/30-source-map.md",
+            "knowledge/40-build-and-tooling.md",
+            "knowledge/50-domain-and-invariants.md",
+            "operations/10-working-agreement.md",
+            "operations/20-plan.md",
+            "operations/30-decisions.md"
+          ]
+        },
+        "type": {
+          "enum": ["knowledge", "policy", "plan"]
+        },
+        "status": {
+          "enum": ["static", "living"]
+        },
+        "basis": {
+          "enum": ["repository", "user", "repository-and-user", "not-applicable"]
+        },
+        "evidence_paths": {
+          "$ref": "urn:pcp:schema:v1:common#/$defs/pathArray"
+        },
+        "body": {
+          "type": "string",
+          "minLength": 3
+        }
+      }
+    },
+    "scaffoldFile": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["path", "content"],
+      "properties": {
+        "path": {
+          "allOf": [
+            {
+              "$ref": "urn:pcp:schema:v1:common#/$defs/relativePath"
+            },
+            {
+              "not": {
+                "type": "string",
+                "pattern": "^\\.pcp(?:/|$)"
+              }
+            }
+          ]
+        },
+        "content": {
+          "type": "string"
+        }
+      }
+    }
+  }
+}
