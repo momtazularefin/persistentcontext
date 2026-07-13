@@ -1,8 +1,11 @@
 import { spawnSync } from 'node:child_process';
 import { createHash } from 'node:crypto';
-import { readFile, readdir } from 'node:fs/promises';
-import { relative, resolve } from 'node:path';
+import { mkdir, mkdtemp, readFile, readdir, rm, writeFile } from 'node:fs/promises';
+import { tmpdir } from 'node:os';
+import { join, relative, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
+
+import { parse } from 'yaml';
 
 const projectRoot = new URL('../', import.meta.url);
 const distBundle = new URL('dist/pcp.mjs', projectRoot);
@@ -91,6 +94,94 @@ if (
   result.inventory?.digest !== '26d153af0f3f4649f49db109cef381d63e75ade5f2216d9b124ba5705b29a536'
 ) {
   throw new Error('Bundled pcp inspect returned an unexpected golden result.');
+}
+
+const adoptionRoot = await mkdtemp(join(tmpdir(), 'pcp-dist-adoption-'));
+try {
+  const adoptionCandidate = join(adoptionRoot, 'candidate');
+  const adoptionInput = join(adoptionRoot, 'adoption.json');
+  await mkdir(adoptionCandidate);
+  await writeFile(
+    join(adoptionCandidate, 'README.md'),
+    '# Sample project\n\nA small software seed with an explicit purpose.\n',
+    'utf8',
+  );
+  const fixtureWrapper = parse(
+    await readFile(new URL('tests/fixtures/schemas/adoption-input.yaml', projectRoot), 'utf8'),
+  );
+  await writeFile(adoptionInput, `${JSON.stringify(fixtureWrapper.valid, null, 2)}\n`, 'utf8');
+
+  const adoptionPreview = spawnSync(
+    process.execPath,
+    [
+      fileURLToPath(skillBundle),
+      'adopt',
+      '--candidate',
+      adoptionCandidate,
+      '--input',
+      adoptionInput,
+      '--json',
+    ],
+    { encoding: 'utf8', windowsHide: true },
+  );
+  if (adoptionPreview.status !== 0) {
+    throw new Error(
+      `Bundled pcp adoption preview failed: ${adoptionPreview.stderr || adoptionPreview.stdout}`,
+    );
+  }
+  const previewResult = JSON.parse(adoptionPreview.stdout);
+  if (
+    previewResult.classification !== 'A' ||
+    previewResult.applicable !== true ||
+    previewResult.mutated !== false ||
+    !/^[a-f0-9]{64}$/.test(previewResult.plan?.plan_digest ?? '')
+  ) {
+    throw new Error('Bundled pcp adoption preview returned an unexpected result.');
+  }
+
+  const adoptionApply = spawnSync(
+    process.execPath,
+    [
+      fileURLToPath(skillBundle),
+      'adopt',
+      '--candidate',
+      adoptionCandidate,
+      '--input',
+      adoptionInput,
+      '--apply',
+      previewResult.plan.plan_digest,
+      '--json',
+    ],
+    { encoding: 'utf8', windowsHide: true },
+  );
+  if (adoptionApply.status !== 0) {
+    throw new Error(
+      `Bundled pcp adoption apply failed: ${adoptionApply.stderr || adoptionApply.stdout}`,
+    );
+  }
+  const applyResult = JSON.parse(adoptionApply.stdout);
+  if (
+    applyResult.classification !== 'A' ||
+    applyResult.mutated !== true ||
+    applyResult.clean_genesis?.agent_profiles !== 0 ||
+    applyResult.clean_genesis?.journal_events !== 0 ||
+    applyResult.recovery_cleaned !== true
+  ) {
+    throw new Error('Bundled pcp adoption apply returned an unexpected result.');
+  }
+
+  const managedInspection = spawnSync(
+    process.execPath,
+    [fileURLToPath(skillBundle), 'inspect', adoptionCandidate, '--json'],
+    { encoding: 'utf8', windowsHide: true },
+  );
+  if (managedInspection.status !== 0 || JSON.parse(managedInspection.stdout).state !== 'managed') {
+    throw new Error(
+      `Bundled adopted-project inspection failed: ${managedInspection.stderr || managedInspection.stdout}`,
+    );
+  }
+} finally {
+  await rm(adoptionRoot, { recursive: true, force: true });
 }
 
 const canonicalFixture = fileURLToPath(new URL('templates/core/', assetRoot));

@@ -327,7 +327,7 @@ var require_ignore = __commonJS({
       //   path matching.
       // - check `string` either `MODE_IGNORE` or `MODE_CHECK_IGNORE`
       // @returns {TestResult} true if a file is ignored
-      test(path8, checkUnignored, mode) {
+      test(path11, checkUnignored, mode) {
         let ignored = false;
         let unignored = false;
         let matchedRule;
@@ -336,7 +336,7 @@ var require_ignore = __commonJS({
           if (unignored === negative && ignored !== unignored || negative && !ignored && !unignored && !checkUnignored) {
             return;
           }
-          const matched = rule[mode].test(path8);
+          const matched = rule[mode].test(path11);
           if (!matched) {
             return;
           }
@@ -357,17 +357,17 @@ var require_ignore = __commonJS({
     var throwError = (message, Ctor) => {
       throw new Ctor(message);
     };
-    var checkPath = (path8, originalPath, doThrow) => {
-      if (!isString(path8)) {
+    var checkPath = (path11, originalPath, doThrow) => {
+      if (!isString(path11)) {
         return doThrow(
           `path must be a string, but got \`${originalPath}\``,
           TypeError
         );
       }
-      if (!path8) {
+      if (!path11) {
         return doThrow(`path must not be empty`, TypeError);
       }
-      if (checkPath.isNotRelative(path8)) {
+      if (checkPath.isNotRelative(path11)) {
         const r = "`path.relative()`d";
         return doThrow(
           `path should be a ${r} string, but got "${originalPath}"`,
@@ -376,7 +376,7 @@ var require_ignore = __commonJS({
       }
       return true;
     };
-    var isNotRelative = (path8) => REGEX_TEST_INVALID_PATH.test(path8);
+    var isNotRelative = (path11) => REGEX_TEST_INVALID_PATH.test(path11);
     checkPath.isNotRelative = isNotRelative;
     checkPath.convert = (p) => p;
     var Ignore = class {
@@ -406,19 +406,19 @@ var require_ignore = __commonJS({
       }
       // @returns {TestResult}
       _test(originalPath, cache, checkUnignored, slices) {
-        const path8 = originalPath && checkPath.convert(originalPath);
+        const path11 = originalPath && checkPath.convert(originalPath);
         checkPath(
-          path8,
+          path11,
           originalPath,
           this._strictPathCheck ? throwError : RETURN_FALSE
         );
-        return this._t(path8, cache, checkUnignored, slices);
+        return this._t(path11, cache, checkUnignored, slices);
       }
-      checkIgnore(path8) {
-        if (!REGEX_TEST_TRAILING_SLASH.test(path8)) {
-          return this.test(path8);
+      checkIgnore(path11) {
+        if (!REGEX_TEST_TRAILING_SLASH.test(path11)) {
+          return this.test(path11);
         }
-        const slices = path8.split(SLASH).filter(Boolean);
+        const slices = path11.split(SLASH).filter(Boolean);
         slices.pop();
         if (slices.length) {
           const parent = this._t(
@@ -431,18 +431,18 @@ var require_ignore = __commonJS({
             return parent;
           }
         }
-        return this._rules.test(path8, false, MODE_CHECK_IGNORE);
+        return this._rules.test(path11, false, MODE_CHECK_IGNORE);
       }
-      _t(path8, cache, checkUnignored, slices) {
-        if (path8 in cache) {
-          return cache[path8];
+      _t(path11, cache, checkUnignored, slices) {
+        if (path11 in cache) {
+          return cache[path11];
         }
         if (!slices) {
-          slices = path8.split(SLASH).filter(Boolean);
+          slices = path11.split(SLASH).filter(Boolean);
         }
         slices.pop();
         if (!slices.length) {
-          return cache[path8] = this._rules.test(path8, checkUnignored, MODE_IGNORE);
+          return cache[path11] = this._rules.test(path11, checkUnignored, MODE_IGNORE);
         }
         const parent = this._t(
           slices.join(SLASH) + SLASH,
@@ -450,29 +450,29 @@ var require_ignore = __commonJS({
           checkUnignored,
           slices
         );
-        return cache[path8] = parent.ignored ? parent : this._rules.test(path8, checkUnignored, MODE_IGNORE);
+        return cache[path11] = parent.ignored ? parent : this._rules.test(path11, checkUnignored, MODE_IGNORE);
       }
-      ignores(path8) {
-        return this._test(path8, this._ignoreCache, false).ignored;
+      ignores(path11) {
+        return this._test(path11, this._ignoreCache, false).ignored;
       }
       createFilter() {
-        return (path8) => !this.ignores(path8);
+        return (path11) => !this.ignores(path11);
       }
       filter(paths) {
         return makeArray(paths).filter(this.createFilter());
       }
       // @returns {TestResult}
-      test(path8) {
-        return this._test(path8, this._testCache, true);
+      test(path11) {
+        return this._test(path11, this._testCache, true);
       }
     };
     var factory = (options) => new Ignore(options);
-    var isPathValid = (path8) => checkPath(path8 && checkPath.convert(path8), path8, RETURN_FALSE);
+    var isPathValid = (path11) => checkPath(path11 && checkPath.convert(path11), path11, RETURN_FALSE);
     var setupWindows = () => {
       const makePosix = (str) => /^\\\\\?\\/.test(str) || /["<>|\u0000-\u001F]+/u.test(str) ? str : str.replace(/\\/g, "/");
       checkPath.convert = makePosix;
       const REGEX_TEST_WINDOWS_PATH_ABSOLUTE = /^[a-z]:\//i;
-      checkPath.isNotRelative = (path8) => REGEX_TEST_WINDOWS_PATH_ABSOLUTE.test(path8) || isNotRelative(path8);
+      checkPath.isNotRelative = (path11) => REGEX_TEST_WINDOWS_PATH_ABSOLUTE.test(path11) || isNotRelative(path11);
     };
     if (
       // Detect `process` so that it can run in browsers.
@@ -700,13 +700,13 @@ var require_scope = __commonJS({
       }
     };
     exports.ValueScopeName = ValueScopeName;
-    var line = (0, code_1._)`\n`;
+    var line2 = (0, code_1._)`\n`;
     var ValueScope = class extends Scope {
       constructor(opts) {
         super(opts);
         this._values = {};
         this._scope = opts.scope;
-        this.opts = { ...opts, _n: opts.lines ? line : code_1.nil };
+        this.opts = { ...opts, _n: opts.lines ? line2 : code_1.nil };
       }
       get() {
         return this._scope;
@@ -864,11 +864,11 @@ var require_codegen = __commonJS({
         const rhs = this.rhs === void 0 ? "" : ` = ${this.rhs}`;
         return `${varKind} ${this.name}${rhs};` + _n;
       }
-      optimizeNames(names, constants) {
+      optimizeNames(names, constants2) {
         if (!names[this.name.str])
           return;
         if (this.rhs)
-          this.rhs = optimizeExpr(this.rhs, names, constants);
+          this.rhs = optimizeExpr(this.rhs, names, constants2);
         return this;
       }
       get names() {
@@ -885,10 +885,10 @@ var require_codegen = __commonJS({
       render({ _n }) {
         return `${this.lhs} = ${this.rhs};` + _n;
       }
-      optimizeNames(names, constants) {
+      optimizeNames(names, constants2) {
         if (this.lhs instanceof code_1.Name && !names[this.lhs.str] && !this.sideEffects)
           return;
-        this.rhs = optimizeExpr(this.rhs, names, constants);
+        this.rhs = optimizeExpr(this.rhs, names, constants2);
         return this;
       }
       get names() {
@@ -949,8 +949,8 @@ var require_codegen = __commonJS({
       optimizeNodes() {
         return `${this.code}` ? this : void 0;
       }
-      optimizeNames(names, constants) {
-        this.code = optimizeExpr(this.code, names, constants);
+      optimizeNames(names, constants2) {
+        this.code = optimizeExpr(this.code, names, constants2);
         return this;
       }
       get names() {
@@ -979,12 +979,12 @@ var require_codegen = __commonJS({
         }
         return nodes.length > 0 ? this : void 0;
       }
-      optimizeNames(names, constants) {
+      optimizeNames(names, constants2) {
         const { nodes } = this;
         let i = nodes.length;
         while (i--) {
           const n = nodes[i];
-          if (n.optimizeNames(names, constants))
+          if (n.optimizeNames(names, constants2))
             continue;
           subtractNames(names, n.names);
           nodes.splice(i, 1);
@@ -1037,12 +1037,12 @@ var require_codegen = __commonJS({
           return void 0;
         return this;
       }
-      optimizeNames(names, constants) {
+      optimizeNames(names, constants2) {
         var _a;
-        this.else = (_a = this.else) === null || _a === void 0 ? void 0 : _a.optimizeNames(names, constants);
-        if (!(super.optimizeNames(names, constants) || this.else))
+        this.else = (_a = this.else) === null || _a === void 0 ? void 0 : _a.optimizeNames(names, constants2);
+        if (!(super.optimizeNames(names, constants2) || this.else))
           return;
-        this.condition = optimizeExpr(this.condition, names, constants);
+        this.condition = optimizeExpr(this.condition, names, constants2);
         return this;
       }
       get names() {
@@ -1065,10 +1065,10 @@ var require_codegen = __commonJS({
       render(opts) {
         return `for(${this.iteration})` + super.render(opts);
       }
-      optimizeNames(names, constants) {
-        if (!super.optimizeNames(names, constants))
+      optimizeNames(names, constants2) {
+        if (!super.optimizeNames(names, constants2))
           return;
-        this.iteration = optimizeExpr(this.iteration, names, constants);
+        this.iteration = optimizeExpr(this.iteration, names, constants2);
         return this;
       }
       get names() {
@@ -1104,10 +1104,10 @@ var require_codegen = __commonJS({
       render(opts) {
         return `for(${this.varKind} ${this.name} ${this.loop} ${this.iterable})` + super.render(opts);
       }
-      optimizeNames(names, constants) {
-        if (!super.optimizeNames(names, constants))
+      optimizeNames(names, constants2) {
+        if (!super.optimizeNames(names, constants2))
           return;
-        this.iterable = optimizeExpr(this.iterable, names, constants);
+        this.iterable = optimizeExpr(this.iterable, names, constants2);
         return this;
       }
       get names() {
@@ -1149,11 +1149,11 @@ var require_codegen = __commonJS({
         (_b = this.finally) === null || _b === void 0 ? void 0 : _b.optimizeNodes();
         return this;
       }
-      optimizeNames(names, constants) {
+      optimizeNames(names, constants2) {
         var _a, _b;
-        super.optimizeNames(names, constants);
-        (_a = this.catch) === null || _a === void 0 ? void 0 : _a.optimizeNames(names, constants);
-        (_b = this.finally) === null || _b === void 0 ? void 0 : _b.optimizeNames(names, constants);
+        super.optimizeNames(names, constants2);
+        (_a = this.catch) === null || _a === void 0 ? void 0 : _a.optimizeNames(names, constants2);
+        (_b = this.finally) === null || _b === void 0 ? void 0 : _b.optimizeNames(names, constants2);
         return this;
       }
       get names() {
@@ -1454,7 +1454,7 @@ var require_codegen = __commonJS({
     function addExprNames(names, from) {
       return from instanceof code_1._CodeOrName ? addNames(names, from.names) : names;
     }
-    function optimizeExpr(expr, names, constants) {
+    function optimizeExpr(expr, names, constants2) {
       if (expr instanceof code_1.Name)
         return replaceName(expr);
       if (!canOptimize(expr))
@@ -1469,14 +1469,14 @@ var require_codegen = __commonJS({
         return items;
       }, []));
       function replaceName(n) {
-        const c = constants[n.str];
+        const c = constants2[n.str];
         if (c === void 0 || names[n.str] !== 1)
           return n;
         delete names[n.str];
         return c;
       }
       function canOptimize(e) {
-        return e instanceof code_1._Code && e._items.some((c) => c instanceof code_1.Name && names[c.str] === 1 && constants[c.str] !== void 0);
+        return e instanceof code_1._Code && e._items.some((c) => c instanceof code_1.Name && names[c.str] === 1 && constants2[c.str] !== void 0);
       }
     }
     function subtractNames(names, from) {
@@ -1531,12 +1531,12 @@ var require_util = __commonJS({
     }
     exports.alwaysValidSchema = alwaysValidSchema;
     function checkUnknownRules(it, schema4 = it.schema) {
-      const { opts, self } = it;
+      const { opts, self: self2 } = it;
       if (!opts.strictSchema)
         return;
       if (typeof schema4 === "boolean")
         return;
-      const rules = self.RULES.keywords;
+      const rules = self2.RULES.keywords;
       for (const key in schema4) {
         if (!rules[key])
           checkStrictMode(it, `unknown keyword: "${key}"`);
@@ -1922,8 +1922,8 @@ var require_applicability = __commonJS({
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.shouldUseRule = exports.shouldUseGroup = exports.schemaHasRulesForType = void 0;
-    function schemaHasRulesForType({ schema: schema4, self }, type) {
-      const group = self.RULES.types[type];
+    function schemaHasRulesForType({ schema: schema4, self: self2 }, type) {
+      const group = self2.RULES.types[type];
       return group && group !== true && shouldUseGroup(schema4, group);
     }
     exports.schemaHasRulesForType = schemaHasRulesForType;
@@ -2388,7 +2388,7 @@ var require_keyword = __commonJS({
       return !schemaType.length || schemaType.some((st) => st === "array" ? Array.isArray(schema4) : st === "object" ? schema4 && typeof schema4 == "object" && !Array.isArray(schema4) : typeof schema4 == st || allowUndefined && typeof schema4 == "undefined");
     }
     exports.validSchemaType = validSchemaType;
-    function validateKeywordUsage({ schema: schema4, opts, self, errSchemaPath }, def, keyword) {
+    function validateKeywordUsage({ schema: schema4, opts, self: self2, errSchemaPath }, def, keyword) {
       if (Array.isArray(def.keyword) ? !def.keyword.includes(keyword) : def.keyword !== keyword) {
         throw new Error("ajv implementation error");
       }
@@ -2399,9 +2399,9 @@ var require_keyword = __commonJS({
       if (def.validateSchema) {
         const valid = def.validateSchema(schema4[keyword]);
         if (!valid) {
-          const msg = `keyword "${keyword}" value is invalid at path "${errSchemaPath}": ` + self.errorsText(def.validateSchema.errors);
+          const msg = `keyword "${keyword}" value is invalid at path "${errSchemaPath}": ` + self2.errorsText(def.validateSchema.errors);
           if (opts.validateSchema === "log")
-            self.logger.error(msg);
+            self2.logger.error(msg);
           else
             throw new Error(msg);
         }
@@ -2868,11 +2868,11 @@ var require_validate = __commonJS({
       }
       (0, boolSchema_1.boolOrEmptySchema)(it, valid);
     }
-    function schemaCxtHasRules({ schema: schema4, self }) {
+    function schemaCxtHasRules({ schema: schema4, self: self2 }) {
       if (typeof schema4 == "boolean")
         return !schema4;
       for (const key in schema4)
-        if (self.RULES.all[key])
+        if (self2.RULES.all[key])
           return true;
       return false;
     }
@@ -2901,9 +2901,9 @@ var require_validate = __commonJS({
       schemaKeywords(it, types, !checkedTypes, errsCount);
     }
     function checkRefsAndKeywords(it) {
-      const { schema: schema4, errSchemaPath, opts, self } = it;
-      if (schema4.$ref && opts.ignoreKeywordsWithRef && (0, util_1.schemaHasRulesButRef)(schema4, self.RULES)) {
-        self.logger.warn(`$ref: keywords ignored in schema at path "${errSchemaPath}"`);
+      const { schema: schema4, errSchemaPath, opts, self: self2 } = it;
+      if (schema4.$ref && opts.ignoreKeywordsWithRef && (0, util_1.schemaHasRulesButRef)(schema4, self2.RULES)) {
+        self2.logger.warn(`$ref: keywords ignored in schema at path "${errSchemaPath}"`);
       }
     }
     function checkNoDefault(it) {
@@ -2949,8 +2949,8 @@ var require_validate = __commonJS({
         gen.assign((0, codegen_1._)`${evaluated}.items`, items);
     }
     function schemaKeywords(it, types, typeErrors, errsCount) {
-      const { gen, schema: schema4, data, allErrors, opts, self } = it;
-      const { RULES } = self;
+      const { gen, schema: schema4, data, allErrors, opts, self: self2 } = it;
+      const { RULES } = self2;
       if (schema4.$ref && (opts.ignoreKeywordsWithRef || !(0, util_1.schemaHasRulesButRef)(schema4, RULES))) {
         gen.block(() => keywordCode(it, "$ref", RULES.all.$ref.definition));
         return;
@@ -3683,8 +3683,8 @@ var require_utils = __commonJS({
       }
       return ind;
     }
-    function removeDotSegments(path8) {
-      let input = path8;
+    function removeDotSegments(path11) {
+      let input = path11;
       const output = [];
       let nextSlash = -1;
       let len = 0;
@@ -3936,8 +3936,8 @@ var require_schemes = __commonJS({
         wsComponent.secure = void 0;
       }
       if (wsComponent.resourceName) {
-        const [path8, query] = wsComponent.resourceName.split("?");
-        wsComponent.path = path8 && path8 !== "/" ? path8 : void 0;
+        const [path11, query] = wsComponent.resourceName.split("?");
+        wsComponent.path = path11 && path11 !== "/" ? path11 : void 0;
         wsComponent.query = query;
         wsComponent.resourceName = void 0;
       }
@@ -5020,11 +5020,11 @@ var require_ref = __commonJS({
       schemaType: "string",
       code(cxt) {
         const { gen, schema: $ref, it } = cxt;
-        const { baseId, schemaEnv: env, validateName, opts, self } = it;
+        const { baseId, schemaEnv: env, validateName, opts, self: self2 } = it;
         const { root } = env;
         if (($ref === "#" || $ref === "#/") && baseId === root.baseId)
           return callRootRef();
-        const schOrEnv = compile_1.resolveRef.call(self, root, baseId, $ref);
+        const schOrEnv = compile_1.resolveRef.call(self2, root, baseId, $ref);
         if (schOrEnv === void 0)
           throw new ref_error_1.default(it.opts.uriResolver, baseId, $ref);
         if (schOrEnv instanceof compile_1.SchemaEnv)
@@ -6558,11 +6558,11 @@ var require_dynamicAnchor = __commonJS({
     }
     exports.dynamicAnchor = dynamicAnchor;
     function _getValidate(cxt) {
-      const { schemaEnv, schema: schema4, self } = cxt.it;
+      const { schemaEnv, schema: schema4, self: self2 } = cxt.it;
       const { root, baseId, localRefs, meta } = schemaEnv.root;
-      const { schemaId: schemaId2 } = self.opts;
+      const { schemaId: schemaId2 } = self2.opts;
       const sch = new compile_1.SchemaEnv({ schema: schema4, schemaId: schemaId2, root, baseId, localRefs, meta });
-      compile_1.compileSchema.call(self, sch);
+      compile_1.compileSchema.call(self2, sch);
       return (0, ref_1.getValidate)(cxt, sch);
     }
     exports.default = def;
@@ -6871,7 +6871,7 @@ var require_format = __commonJS({
       error: error2,
       code(cxt, ruleType) {
         const { gen, data, $data, schema: schema4, schemaCode, it } = cxt;
-        const { opts, errSchemaPath, schemaEnv, self } = it;
+        const { opts, errSchemaPath, schemaEnv, self: self2 } = it;
         if (!opts.validateFormats)
           return;
         if ($data)
@@ -6880,7 +6880,7 @@ var require_format = __commonJS({
           validateFormat();
         function validate$DataFormat() {
           const fmts = gen.scopeValue("formats", {
-            ref: self.formats,
+            ref: self2.formats,
             code: opts.code.formats
           });
           const fDef = gen.const("fDef", (0, codegen_1._)`${fmts}[${schemaCode}]`);
@@ -6900,7 +6900,7 @@ var require_format = __commonJS({
           }
         }
         function validateFormat() {
-          const formatDef = self.formats[schema4];
+          const formatDef = self2.formats[schema4];
           if (!formatDef) {
             unknownFormat();
             return;
@@ -6912,7 +6912,7 @@ var require_format = __commonJS({
             cxt.pass(validCondition());
           function unknownFormat() {
             if (opts.strictSchema === false) {
-              self.logger.warn(unknownMsg());
+              self2.logger.warn(unknownMsg());
               return;
             }
             throw new Error(unknownMsg());
@@ -8080,17 +8080,17 @@ var require_limit = __commonJS({
       error: error2,
       code(cxt) {
         const { gen, data, schemaCode, keyword, it } = cxt;
-        const { opts, self } = it;
+        const { opts, self: self2 } = it;
         if (!opts.validateFormats)
           return;
-        const fCxt = new ajv_1.KeywordCxt(it, self.RULES.all.format.definition, "format");
+        const fCxt = new ajv_1.KeywordCxt(it, self2.RULES.all.format.definition, "format");
         if (fCxt.$data)
           validate$DataFormat();
         else
           validateFormat();
         function validate$DataFormat() {
           const fmts = gen.scopeValue("formats", {
-            ref: self.formats,
+            ref: self2.formats,
             code: opts.code.formats
           });
           const fmt = gen.const("fmt", (0, codegen_1._)`${fmts}[${fCxt.schemaCode}]`);
@@ -8098,7 +8098,7 @@ var require_limit = __commonJS({
         }
         function validateFormat() {
           const format = fCxt.schema;
-          const fmtDef = self.formats[format];
+          const fmtDef = self2.formats[format];
           if (!fmtDef || fmtDef === true)
             return;
           if (typeof fmtDef != "object" || fmtDef instanceof RegExp || typeof fmtDef.compare != "function") {
@@ -8894,8 +8894,8 @@ ${itemIndentStr}`);
     const rawLines = str.split(/\r\n|\n/);
     const chunkPattern = /[\s]*[^\s]+/g;
     const wrappedLines = [];
-    rawLines.forEach((line) => {
-      const chunks = line.match(chunkPattern);
+    rawLines.forEach((line2) => {
+      const chunks = line2.match(chunkPattern);
       if (chunks === null) {
         wrappedLines.push("");
         return;
@@ -11281,9 +11281,9 @@ Expecting one of '${allowedValues.join("', '")}'`);
    * @param {string} [path]
    * @return {(string|null|Command)}
    */
-  executableDir(path8) {
-    if (path8 === void 0) return this._executableDir;
-    this._executableDir = path8;
+  executableDir(path11) {
+    if (path11 === void 0) return this._executableDir;
+    this._executableDir = path11;
     return this;
   }
   /**
@@ -11538,10 +11538,983 @@ function useColor() {
 // node_modules/commander/index.js
 var program = new Command();
 
-// src/application/inspect-repository.ts
+// src/application/adopt-project.ts
+import { timingSafeEqual } from "node:crypto";
+
+// src/domain/adoption.ts
+import { createHash } from "node:crypto";
+
+// node_modules/ulid/dist/node/index.js
+import crypto from "node:crypto";
+var ENCODING = "0123456789ABCDEFGHJKMNPQRSTVWXYZ";
+var ENCODING_LEN = 32;
+var RANDOM_LEN = 16;
+var TIME_LEN = 10;
+var TIME_MAX = 281474976710655;
+var ULIDErrorCode;
+(function(ULIDErrorCode2) {
+  ULIDErrorCode2["Base32IncorrectEncoding"] = "B32_ENC_INVALID";
+  ULIDErrorCode2["DecodeTimeInvalidCharacter"] = "DEC_TIME_CHAR";
+  ULIDErrorCode2["DecodeTimeValueMalformed"] = "DEC_TIME_MALFORMED";
+  ULIDErrorCode2["EncodeTimeNegative"] = "ENC_TIME_NEG";
+  ULIDErrorCode2["EncodeTimeSizeExceeded"] = "ENC_TIME_SIZE_EXCEED";
+  ULIDErrorCode2["EncodeTimeValueMalformed"] = "ENC_TIME_MALFORMED";
+  ULIDErrorCode2["PRNGDetectFailure"] = "PRNG_DETECT";
+  ULIDErrorCode2["ULIDInvalid"] = "ULID_INVALID";
+  ULIDErrorCode2["Unexpected"] = "UNEXPECTED";
+  ULIDErrorCode2["UUIDInvalid"] = "UUID_INVALID";
+})(ULIDErrorCode || (ULIDErrorCode = {}));
+var ULIDError = class extends Error {
+  constructor(errorCode, message) {
+    super(`${message} (${errorCode})`);
+    this.name = "ULIDError";
+    this.code = errorCode;
+  }
+};
+function randomChar(prng) {
+  const randomPosition = Math.floor(prng() * ENCODING_LEN) % ENCODING_LEN;
+  return ENCODING.charAt(randomPosition);
+}
+function detectPRNG(root) {
+  const rootLookup = detectRoot();
+  const globalCrypto = rootLookup && (rootLookup.crypto || rootLookup.msCrypto) || (typeof crypto !== "undefined" ? crypto : null);
+  if (typeof globalCrypto?.getRandomValues === "function") {
+    return () => {
+      const buffer = new Uint8Array(1);
+      globalCrypto.getRandomValues(buffer);
+      return buffer[0] / 256;
+    };
+  } else if (typeof globalCrypto?.randomBytes === "function") {
+    return () => globalCrypto.randomBytes(1).readUInt8() / 256;
+  } else if (crypto?.randomBytes) {
+    return () => crypto.randomBytes(1).readUInt8() / 256;
+  }
+  throw new ULIDError(ULIDErrorCode.PRNGDetectFailure, "Failed to find a reliable PRNG");
+}
+function detectRoot() {
+  if (inWebWorker())
+    return self;
+  if (typeof window !== "undefined") {
+    return window;
+  }
+  if (typeof global !== "undefined") {
+    return global;
+  }
+  if (typeof globalThis !== "undefined") {
+    return globalThis;
+  }
+  return null;
+}
+function encodeRandom(len, prng) {
+  let str = "";
+  for (; len > 0; len--) {
+    str = randomChar(prng) + str;
+  }
+  return str;
+}
+function encodeTime(now, len = TIME_LEN) {
+  if (isNaN(now)) {
+    throw new ULIDError(ULIDErrorCode.EncodeTimeValueMalformed, `Time must be a number: ${now}`);
+  } else if (now > TIME_MAX) {
+    throw new ULIDError(ULIDErrorCode.EncodeTimeSizeExceeded, `Cannot encode a time larger than ${TIME_MAX}: ${now}`);
+  } else if (now < 0) {
+    throw new ULIDError(ULIDErrorCode.EncodeTimeNegative, `Time must be positive: ${now}`);
+  } else if (Number.isInteger(now) === false) {
+    throw new ULIDError(ULIDErrorCode.EncodeTimeValueMalformed, `Time must be an integer: ${now}`);
+  }
+  let mod, str = "";
+  for (let currentLen = len; currentLen > 0; currentLen--) {
+    mod = now % ENCODING_LEN;
+    str = ENCODING.charAt(mod) + str;
+    now = (now - mod) / ENCODING_LEN;
+  }
+  return str;
+}
+function inWebWorker() {
+  return typeof WorkerGlobalScope !== "undefined" && self instanceof WorkerGlobalScope;
+}
+function ulid(seedTime, prng) {
+  const currentPRNG = prng || detectPRNG();
+  const seed = !seedTime || isNaN(seedTime) ? Date.now() : seedTime;
+  return encodeTime(seed, TIME_LEN) + encodeRandom(RANDOM_LEN, currentPRNG);
+}
+
+// src/domain/adoption.ts
+var ADOPTION_SCHEMA_VERSION = 1;
+var REQUIRED_ADOPTION_DOCUMENTS = [
+  "knowledge/10-overview.md",
+  "knowledge/20-architecture.md",
+  "knowledge/30-source-map.md",
+  "knowledge/40-build-and-tooling.md",
+  "knowledge/50-domain-and-invariants.md",
+  "operations/10-working-agreement.md",
+  "operations/20-plan.md",
+  "operations/30-decisions.md"
+];
+var AdoptionError = class extends Error {
+  constructor(code2, message, mutated = false, recoveryRoot) {
+    super(message);
+    this.code = code2;
+    this.mutated = mutated;
+    this.recoveryRoot = recoveryRoot;
+    this.name = "AdoptionError";
+  }
+  code;
+  mutated;
+  recoveryRoot;
+};
+function normalizeText(value) {
+  return value.replaceAll("\r\n", "\n").replaceAll("\r", "\n");
+}
+function sha256(value) {
+  return createHash("sha256").update(value).digest("hex");
+}
+function normalizedJsonValue(value) {
+  if (Array.isArray(value)) return value.map((item) => normalizedJsonValue(item));
+  if (typeof value === "object" && value !== null) {
+    return Object.fromEntries(
+      Object.entries(value).filter(([, item]) => item !== void 0).sort(([left], [right]) => left < right ? -1 : left > right ? 1 : 0).map(([key, item]) => [key, normalizedJsonValue(item)])
+    );
+  }
+  return value;
+}
+function canonicalJson(value) {
+  return JSON.stringify(normalizedJsonValue(value));
+}
+function deterministicUlid(seed) {
+  const bytes = createHash("sha256").update(seed).digest();
+  let index = 0;
+  return ulid(1, () => {
+    const value = bytes[index % bytes.length];
+    index += 1;
+    return (value ?? 0) / 256;
+  });
+}
+function createMutationPlan(input) {
+  const operationSeed = canonicalJson(input.operations);
+  const operations = input.operations.map((operation) => ({
+    operation_id: deterministicUlid(
+      canonicalJson([
+        input.inventory.digest,
+        operation.action,
+        operation.path,
+        operation.source_path,
+        operation.content_digest,
+        operation.preimage_digest
+      ])
+    ),
+    ...operation
+  }));
+  const planWithoutDigest = {
+    schema_version: ADOPTION_SCHEMA_VERSION,
+    plan_id: deterministicUlid(`${input.inventory.digest}:${operationSeed}`),
+    generated_at: input.generatedAt,
+    classification: input.classification,
+    candidate_inventory_digest: input.inventory.digest,
+    operations,
+    validations: [...input.validations].sort()
+  };
+  return {
+    ...planWithoutDigest,
+    plan_digest: sha256(canonicalJson(planWithoutDigest))
+  };
+}
+
+// src/infrastructure/filesystem-inventory.ts
+var import_ignore = __toESM(require_ignore(), 1);
 import { createHash as createHash2 } from "node:crypto";
-import { readFile as readFile2 } from "node:fs/promises";
-import path4 from "node:path";
+import { createReadStream } from "node:fs";
+import { lstat, opendir, readFile, readlink, realpath, stat } from "node:fs/promises";
+import path2 from "node:path";
+
+// src/domain/inspection.ts
+var INSPECTION_SCHEMA_VERSION = 1;
+function comparePortablePaths(left, right) {
+  if (left < right) return -1;
+  if (left > right) return 1;
+  return 0;
+}
+var InspectionError = class extends Error {
+  constructor(code2, message) {
+    super(message);
+    this.code = code2;
+    this.name = "InspectionError";
+  }
+  code;
+};
+
+// src/infrastructure/filesystem-inventory.ts
+var generatedDirectoryNames = /* @__PURE__ */ new Set([
+  ".cache",
+  ".gradle",
+  ".next",
+  ".nuxt",
+  ".parcel-cache",
+  ".pytest_cache",
+  ".terraform",
+  ".turbo",
+  ".venv",
+  "__pycache__",
+  "bin",
+  "build",
+  "coverage",
+  "dist",
+  "node_modules",
+  "obj",
+  "out",
+  "target",
+  "vendor",
+  "venv"
+]);
+var versionControlDirectoryNames = /* @__PURE__ */ new Set([".git", ".hg", ".svn"]);
+var generatedFileNames = /* @__PURE__ */ new Set([".ds_store", "thumbs.db"]);
+function toPortablePath(value) {
+  return value.split(path2.sep).join("/");
+}
+function isWithinRoot(root, candidate) {
+  const relative = path2.relative(root, candidate);
+  return relative === "" || !relative.startsWith(`..${path2.sep}`) && relative !== ".." && !path2.isAbsolute(relative);
+}
+async function resolveCandidateRoot(candidate) {
+  const resolved = path2.resolve(candidate);
+  if (path2.parse(resolved).root === resolved) {
+    throw new InspectionError(
+      "PCP_UNSAFE_ROOT",
+      "Refusing to inspect an entire filesystem root; select a project directory instead."
+    );
+  }
+  let metadata;
+  try {
+    metadata = await lstat(resolved);
+  } catch (error2) {
+    const detail = error2 instanceof Error ? error2.message : String(error2);
+    throw new InspectionError("PCP_CANDIDATE_UNREADABLE", `Cannot inspect candidate: ${detail}`);
+  }
+  if (metadata.isSymbolicLink()) {
+    throw new InspectionError(
+      "PCP_UNSAFE_ROOT",
+      "The candidate root is a symbolic link; select its real directory explicitly."
+    );
+  }
+  if (!metadata.isDirectory()) {
+    throw new InspectionError("PCP_CANDIDATE_NOT_DIRECTORY", "The candidate must be a directory.");
+  }
+  return resolved;
+}
+function exclusionForName(name, isDirectory) {
+  const normalized = name.toLowerCase();
+  if (isDirectory && versionControlDirectoryNames.has(normalized)) {
+    return "version-control-metadata";
+  }
+  if (isDirectory && generatedDirectoryNames.has(normalized)) {
+    return "generated-or-vendor";
+  }
+  if (!isDirectory && generatedFileNames.has(normalized)) {
+    return "generated-or-vendor";
+  }
+  return void 0;
+}
+function mutationPathExclusion(candidatePath) {
+  const segments = candidatePath.split("/");
+  if (segments.some((segment) => versionControlDirectoryNames.has(segment.toLowerCase()))) {
+    return "version-control-metadata";
+  }
+  for (const segment of segments.slice(0, -1)) {
+    const reason = exclusionForName(segment, true);
+    if (reason !== void 0) return reason;
+  }
+  const finalSegment = segments.at(-1);
+  return finalSegment === void 0 ? void 0 : exclusionForName(finalSegment, false);
+}
+function relativeFromBase(candidate, base) {
+  if (base === "") return candidate;
+  if (candidate === base) return "";
+  const prefix = `${base}/`;
+  return candidate.startsWith(prefix) ? candidate.slice(prefix.length) : void 0;
+}
+function isIgnored(candidate, isDirectory, contexts) {
+  let ignored = false;
+  const portableCandidate = isDirectory ? `${candidate}/` : candidate;
+  for (const context of contexts) {
+    const relative = relativeFromBase(portableCandidate, context.base);
+    if (relative === void 0 || relative === "") continue;
+    const result = context.matcher.test(relative);
+    if (result.ignored) ignored = true;
+    if (result.unignored) ignored = false;
+  }
+  return ignored;
+}
+async function loadIgnoreContext(absoluteDirectory, relativeDirectory) {
+  const ignorePath = path2.join(absoluteDirectory, ".gitignore");
+  try {
+    const contents = await readFile(ignorePath, "utf8");
+    return {
+      base: relativeDirectory,
+      matcher: (0, import_ignore.default)({ allowRelativePaths: true, ignorecase: false }).add(contents)
+    };
+  } catch (error2) {
+    const code2 = error2.code;
+    if (code2 === "ENOENT" || code2 === "EISDIR") return void 0;
+    throw error2;
+  }
+}
+async function mutationIgnoreContexts(root, candidatePath) {
+  const contexts = [];
+  let absoluteDirectory = root;
+  let relativeDirectory = "";
+  const rootContext = await loadIgnoreContext(absoluteDirectory, relativeDirectory);
+  if (rootContext !== void 0) contexts.push(rootContext);
+  for (const segment of candidatePath.split("/").slice(0, -1)) {
+    absoluteDirectory = path2.join(absoluteDirectory, segment);
+    relativeDirectory = relativeDirectory === "" ? segment : `${relativeDirectory}/${segment}`;
+    let metadata;
+    try {
+      metadata = await lstat(absoluteDirectory);
+    } catch (error2) {
+      if (error2.code === "ENOENT") break;
+      throw error2;
+    }
+    if (!metadata.isDirectory() || metadata.isSymbolicLink()) break;
+    const context = await loadIgnoreContext(absoluteDirectory, relativeDirectory);
+    if (context !== void 0) contexts.push(context);
+  }
+  return contexts;
+}
+async function isMutationPathIgnored(root, candidatePath) {
+  const contexts = await mutationIgnoreContexts(root, candidatePath);
+  return isIgnored(candidatePath, false, contexts);
+}
+async function isMutationDirectoryIgnored(root, candidatePath) {
+  const contexts = await mutationIgnoreContexts(root, candidatePath);
+  return isIgnored(candidatePath, true, contexts);
+}
+async function hasNestedRepositoryMarker(absoluteDirectory) {
+  try {
+    await lstat(path2.join(absoluteDirectory, ".git"));
+    return true;
+  } catch (error2) {
+    if (error2.code === "ENOENT") return false;
+    throw error2;
+  }
+}
+async function sha256File(absolutePath) {
+  const before = await stat(absolutePath);
+  const hash = createHash2("sha256");
+  await new Promise((resolve, reject) => {
+    const stream = createReadStream(absolutePath);
+    stream.on("data", (chunk) => {
+      hash.update(chunk);
+    });
+    stream.on("error", reject);
+    stream.on("end", resolve);
+  });
+  const after = await stat(absolutePath);
+  if (before.size !== after.size || before.mtimeMs !== after.mtimeMs) {
+    throw new InspectionError(
+      "PCP_SOURCE_CHANGED",
+      `A file changed while it was being inspected: ${toPortablePath(absolutePath)}`
+    );
+  }
+  return hash.digest("hex");
+}
+async function inspectSymlink(root, absolutePath, relativePath) {
+  const rawTarget = await readlink(absolutePath);
+  const targetSha256 = createHash2("sha256").update(rawTarget).digest("hex");
+  let boundary;
+  try {
+    const realTarget = await realpath(absolutePath);
+    boundary = isWithinRoot(root, realTarget) ? "internal" : "external";
+  } catch (error2) {
+    if (error2.code === "ENOENT") {
+      boundary = "broken";
+    } else {
+      throw error2;
+    }
+  }
+  return {
+    path: relativePath,
+    target: path2.isAbsolute(rawTarget) ? "<absolute>" : toPortablePath(rawTarget),
+    targetSha256,
+    boundary
+  };
+}
+async function scanDirectory(root, absoluteDirectory, relativeDirectory, inheritedContexts, inventory) {
+  const localContext = await loadIgnoreContext(absoluteDirectory, relativeDirectory);
+  const contexts = localContext === void 0 ? inheritedContexts : [...inheritedContexts, localContext];
+  const directory = await opendir(absoluteDirectory);
+  for await (const entry of directory) {
+    const absoluteEntry = path2.join(absoluteDirectory, entry.name);
+    const relativeEntry = relativeDirectory === "" ? entry.name : `${relativeDirectory}/${entry.name}`;
+    const portableEntry = toPortablePath(relativeEntry);
+    const metadata = await lstat(absoluteEntry);
+    const isDirectory = metadata.isDirectory();
+    const staticReason = exclusionForName(entry.name, isDirectory);
+    if (staticReason !== void 0) {
+      inventory.exclusions.push({ path: portableEntry, reason: staticReason });
+      continue;
+    }
+    if (isIgnored(portableEntry, isDirectory, contexts)) {
+      inventory.exclusions.push({ path: portableEntry, reason: "gitignore" });
+      continue;
+    }
+    if (metadata.isSymbolicLink()) {
+      inventory.symlinks.push(await inspectSymlink(root, absoluteEntry, portableEntry));
+      continue;
+    }
+    if (isDirectory) {
+      if (await hasNestedRepositoryMarker(absoluteEntry)) {
+        inventory.nestedRepositories.push(portableEntry);
+        inventory.exclusions.push({ path: portableEntry, reason: "nested-repository" });
+        continue;
+      }
+      inventory.directories.push(portableEntry);
+      await scanDirectory(root, absoluteEntry, portableEntry, contexts, inventory);
+      continue;
+    }
+    if (metadata.isFile()) {
+      const sha2562 = await sha256File(absoluteEntry);
+      inventory.files.push({ path: portableEntry, size: metadata.size, sha256: sha2562 });
+      inventory.bytes += metadata.size;
+    }
+  }
+}
+function inventoryDigest(inventory) {
+  const hash = createHash2("sha256");
+  for (const directory of inventory.directories) {
+    hash.update(`${JSON.stringify(["directory", directory])}
+`);
+  }
+  for (const file of inventory.files) {
+    hash.update(`${JSON.stringify(["file", file.path, file.size, file.sha256])}
+`);
+  }
+  for (const link of inventory.symlinks) {
+    hash.update(
+      `${JSON.stringify(["symlink", link.path, link.target, link.targetSha256, link.boundary])}
+`
+    );
+  }
+  for (const nestedRepository of inventory.nestedRepositories) {
+    hash.update(`${JSON.stringify(["nested-repository", nestedRepository])}
+`);
+  }
+  return hash.digest("hex");
+}
+async function inventoryRepository(root) {
+  const inventory = {
+    directories: ["."],
+    files: [],
+    symlinks: [],
+    exclusions: [],
+    nestedRepositories: [],
+    bytes: 0
+  };
+  await scanDirectory(root, root, "", [], inventory);
+  inventory.directories.sort(comparePortablePaths);
+  inventory.files.sort((left, right) => comparePortablePaths(left.path, right.path));
+  inventory.symlinks.sort((left, right) => comparePortablePaths(left.path, right.path));
+  inventory.exclusions.sort((left, right) => comparePortablePaths(left.path, right.path));
+  inventory.nestedRepositories.sort(comparePortablePaths);
+  return {
+    digest: inventoryDigest(inventory),
+    counts: {
+      files: inventory.files.length,
+      directories: inventory.directories.length,
+      symlinks: inventory.symlinks.length,
+      bytes: inventory.bytes,
+      excluded: inventory.exclusions.length,
+      nestedRepositories: inventory.nestedRepositories.length
+    },
+    directories: inventory.directories,
+    files: inventory.files,
+    symlinks: inventory.symlinks,
+    exclusions: inventory.exclusions,
+    nestedRepositories: inventory.nestedRepositories
+  };
+}
+
+// src/infrastructure/filesystem-transaction.ts
+import { createHash as createHash3 } from "node:crypto";
+import { constants } from "node:fs";
+import {
+  chmod,
+  copyFile,
+  lstat as lstat2,
+  mkdir,
+  mkdtemp,
+  open,
+  readFile as readFile2,
+  rename,
+  rm,
+  rmdir,
+  statfs,
+  unlink,
+  utimes,
+  writeFile
+} from "node:fs/promises";
+import { tmpdir } from "node:os";
+import path3 from "node:path";
+function rootHash(root) {
+  const resolved = path3.resolve(root);
+  return createHash3("sha256").update(process.platform === "win32" ? resolved.toLowerCase() : resolved).digest("hex");
+}
+function isInside(root, candidate) {
+  const relative = path3.relative(root, candidate);
+  return relative === "" || !relative.startsWith(`..${path3.sep}`) && relative !== ".." && !path3.isAbsolute(relative);
+}
+function resolveApprovedPath(root, portablePath) {
+  const normalized = path3.posix.normalize(portablePath);
+  if (portablePath === "." || normalized !== portablePath || portablePath.startsWith("/") || portablePath.includes("\\")) {
+    throw new AdoptionError("PCP_ADOPTION_PATH_UNSAFE", `Unsafe transaction path: ${portablePath}`);
+  }
+  const resolved = path3.resolve(root, ...portablePath.split("/"));
+  if (!isInside(root, resolved) || resolved === path3.resolve(root)) {
+    throw new AdoptionError(
+      "PCP_ADOPTION_PATH_UNSAFE",
+      `Path escapes the candidate: ${portablePath}`
+    );
+  }
+  return resolved;
+}
+async function metadataOrUndefined(target) {
+  try {
+    return await lstat2(target);
+  } catch (error2) {
+    if (error2.code === "ENOENT") return void 0;
+    throw error2;
+  }
+}
+async function assertNoSymlinkAncestor(root, target) {
+  let current = path3.dirname(target);
+  while (current !== root) {
+    const metadata = await metadataOrUndefined(current);
+    if (metadata?.isSymbolicLink() === true) {
+      throw new AdoptionError(
+        "PCP_ADOPTION_PATH_BOUNDARY",
+        `A transaction target acquired a symbolic-link ancestor: ${path3.relative(root, target)}`
+      );
+    }
+    current = path3.dirname(current);
+  }
+}
+async function appendWal(walPath, sequence, operation, status, preimage) {
+  const record = {
+    sequence,
+    operation_id: operation.operation_id,
+    action: operation.action,
+    path: operation.path,
+    source_path: operation.source_path,
+    status,
+    preimage: preimage === void 0 ? void 0 : `preimages/${operation.operation_id}`
+  };
+  const handle = await open(walPath, "a");
+  try {
+    await handle.writeFile(`${JSON.stringify(record)}
+`);
+    await handle.sync();
+  } finally {
+    await handle.close();
+  }
+}
+async function syncFile(target) {
+  const handle = await open(target, "r+");
+  try {
+    await handle.sync();
+  } finally {
+    await handle.close();
+  }
+}
+async function captureFilePreimage(target, operation, preimageRoot) {
+  const metadata = await lstat2(target);
+  if (!metadata.isFile() || metadata.isSymbolicLink()) {
+    throw new AdoptionError(
+      "PCP_ADOPTION_PREIMAGE_UNSUPPORTED",
+      `This release can mutate only regular-file preimages: ${operation.path}`
+    );
+  }
+  const bytes = await readFile2(target);
+  if (operation.preimage_digest !== sha256(bytes)) {
+    throw new AdoptionError(
+      "PCP_SOURCE_CHANGED",
+      `Preimage digest changed before transaction: ${operation.path}`
+    );
+  }
+  const backupPath = path3.join(preimageRoot, operation.operation_id);
+  await copyFile(target, backupPath, constants.COPYFILE_EXCL);
+  await syncFile(backupPath);
+  return {
+    backupPath,
+    mode: metadata.mode,
+    atime: metadata.atime,
+    mtime: metadata.mtime
+  };
+}
+async function restoreFilePreimage(target, preimage) {
+  const existing = await metadataOrUndefined(target);
+  if (existing !== void 0) {
+    if (!existing.isFile() || existing.isSymbolicLink()) {
+      throw new Error(`Rollback target changed type: ${target}`);
+    }
+    await unlink(target);
+  }
+  await copyFile(preimage.backupPath, target, constants.COPYFILE_EXCL);
+  await chmod(target, preimage.mode);
+  await utimes(target, preimage.atime, preimage.mtime);
+}
+async function durableTemporaryFile(target, stagedPath, operation) {
+  const temporaryPath = path3.join(
+    path3.dirname(target),
+    `.${path3.basename(target)}.pcp-${operation.operation_id}.tmp`
+  );
+  const handle = await open(temporaryPath, "wx");
+  try {
+    await handle.writeFile(await readFile2(stagedPath));
+    await handle.sync();
+    return temporaryPath;
+  } catch (error2) {
+    await handle.close();
+    await unlink(temporaryPath).catch((cleanupError) => {
+      if (cleanupError.code !== "ENOENT") throw cleanupError;
+    });
+    throw error2;
+  } finally {
+    if (await metadataOrUndefined(temporaryPath) !== void 0) {
+      await handle.close().catch(() => void 0);
+    }
+  }
+}
+async function atomicWrite(target, stagedPath, operation, replaceExisting) {
+  const temporaryPath = await durableTemporaryFile(target, stagedPath, operation);
+  try {
+    if (!replaceExisting && await metadataOrUndefined(target) !== void 0) {
+      throw new AdoptionError(
+        "PCP_SOURCE_CHANGED",
+        `A planned write target appeared before apply: ${operation.path}`
+      );
+    }
+    try {
+      await rename(temporaryPath, target);
+    } catch (error2) {
+      const code2 = error2.code;
+      if (!replaceExisting || code2 !== "EEXIST" && code2 !== "EPERM") throw error2;
+      const heldPath = `${temporaryPath}.previous`;
+      await rename(target, heldPath);
+      try {
+        await rename(temporaryPath, target);
+        await unlink(heldPath);
+      } catch (replacementError) {
+        if (await metadataOrUndefined(target) !== void 0) await unlink(target);
+        await rename(heldPath, target);
+        throw replacementError;
+      }
+    }
+  } finally {
+    if (await metadataOrUndefined(temporaryPath) !== void 0) await unlink(temporaryPath);
+  }
+}
+async function stageContent(plan, contentByPath, stagingRoot) {
+  const result = /* @__PURE__ */ new Map();
+  const contentOperations = plan.operations.filter(
+    (operation) => operation.action === "write" || operation.action === "replace"
+  );
+  if (contentOperations.length !== contentByPath.size) {
+    throw new AdoptionError(
+      "PCP_ADOPTION_PLAN_CONTENT_MISMATCH",
+      "The approved plan and staged content do not cover the same paths."
+    );
+  }
+  for (const operation of contentOperations) {
+    const content = contentByPath.get(operation.path);
+    if (content === void 0 || operation.content_digest !== sha256(content)) {
+      throw new AdoptionError(
+        "PCP_ADOPTION_PLAN_CONTENT_MISMATCH",
+        `Staged content does not match the approved digest: ${operation.path}`
+      );
+    }
+    const target = path3.join(stagingRoot, operation.operation_id);
+    await writeFile(target, content, { flag: "wx" });
+    result.set(operation.operation_id, target);
+  }
+  return result;
+}
+async function checkSpace(root, plan, content) {
+  const required = [...content.values()].reduce((total, bytes) => total + bytes.length, 0) * 3 + plan.operations.length * 4096;
+  const filesystem = await statfs(root);
+  const available = Number(filesystem.bavail) * Number(filesystem.bsize);
+  if (Number.isFinite(available) && available < required) {
+    throw new AdoptionError(
+      "PCP_ADOPTION_SPACE_INSUFFICIENT",
+      `The candidate filesystem does not have the ${required} bytes required for staged apply and recovery.`
+    );
+  }
+}
+async function applyOperation(root, operation, stagedContent, preimageRoot) {
+  const target = resolveApprovedPath(root, operation.path);
+  await assertNoSymlinkAncestor(root, target);
+  let preimage;
+  if (operation.action === "replace" || operation.action === "remove") {
+    preimage = await captureFilePreimage(target, operation, preimageRoot);
+  } else if (operation.action === "move") {
+    if (operation.source_path === void 0)
+      throw new Error("Move operation is missing source_path.");
+    preimage = await captureFilePreimage(
+      resolveApprovedPath(root, operation.source_path),
+      operation,
+      preimageRoot
+    );
+  }
+  switch (operation.action) {
+    case "mkdir":
+      await mkdir(target);
+      break;
+    case "write": {
+      const stagedPath = stagedContent.get(operation.operation_id);
+      if (stagedPath === void 0) throw new Error(`Missing staged content: ${operation.path}`);
+      await atomicWrite(target, stagedPath, operation, false);
+      break;
+    }
+    case "replace": {
+      const stagedPath = stagedContent.get(operation.operation_id);
+      if (stagedPath === void 0) throw new Error(`Missing staged content: ${operation.path}`);
+      await atomicWrite(target, stagedPath, operation, true);
+      break;
+    }
+    case "remove":
+      await unlink(target);
+      break;
+    case "move": {
+      if (operation.source_path === void 0)
+        throw new Error("Move operation is missing source_path.");
+      const source = resolveApprovedPath(root, operation.source_path);
+      await assertNoSymlinkAncestor(root, source);
+      const sourceMetadata = await lstat2(source);
+      if (!sourceMetadata.isFile() || sourceMetadata.isSymbolicLink()) {
+        throw new AdoptionError(
+          "PCP_ADOPTION_PREIMAGE_UNSUPPORTED",
+          `This release can move only regular files: ${operation.source_path}`
+        );
+      }
+      if (operation.preimage_digest !== sha256(await readFile2(source))) {
+        throw new AdoptionError(
+          "PCP_SOURCE_CHANGED",
+          `Move source changed before transaction: ${operation.source_path}`
+        );
+      }
+      if (await metadataOrUndefined(target) !== void 0) {
+        throw new AdoptionError(
+          "PCP_ADOPTION_PATH_COLLISION",
+          `A move target already exists: ${operation.path}`
+        );
+      }
+      await rename(source, target);
+      break;
+    }
+  }
+  return preimage === void 0 ? { operation } : { operation, preimage };
+}
+async function rollbackOperation(root, applied) {
+  const { operation, preimage } = applied;
+  const target = resolveApprovedPath(root, operation.path);
+  switch (operation.action) {
+    case "mkdir":
+      await rmdir(target);
+      break;
+    case "write":
+      await unlink(target);
+      break;
+    case "replace":
+    case "remove":
+      if (preimage === void 0) throw new Error(`Missing rollback preimage: ${operation.path}`);
+      await restoreFilePreimage(target, preimage);
+      break;
+    case "move": {
+      if (operation.source_path === void 0)
+        throw new Error("Move operation is missing source_path.");
+      const source = resolveApprovedPath(root, operation.source_path);
+      if (await metadataOrUndefined(target) !== void 0) {
+        await rename(target, source);
+      } else if (await metadataOrUndefined(source) === void 0 && preimage !== void 0) {
+        await restoreFilePreimage(source, preimage);
+      }
+      break;
+    }
+  }
+}
+async function verifyDesiredContent(root, plan) {
+  for (const operation of plan.operations) {
+    const target = resolveApprovedPath(root, operation.path);
+    if (operation.action === "write" || operation.action === "replace") {
+      const bytes = await readFile2(target);
+      if (operation.content_digest !== sha256(bytes)) {
+        throw new AdoptionError(
+          "PCP_ADOPTION_LIVE_MISMATCH",
+          `Applied content differs from the approved plan: ${operation.path}`,
+          true
+        );
+      }
+    } else if (operation.action === "remove" && await metadataOrUndefined(target) !== void 0) {
+      throw new AdoptionError(
+        "PCP_ADOPTION_LIVE_MISMATCH",
+        `A removed target still exists: ${operation.path}`,
+        true
+      );
+    } else if (operation.action === "move") {
+      const source = operation.source_path === void 0 ? void 0 : resolveApprovedPath(root, operation.source_path);
+      if (source === void 0 || await metadataOrUndefined(source) !== void 0 || await metadataOrUndefined(target) === void 0) {
+        throw new AdoptionError(
+          "PCP_ADOPTION_LIVE_MISMATCH",
+          `A move does not match the approved source and target state: ${operation.path}`,
+          true
+        );
+      }
+    }
+  }
+}
+async function acquireLock(root) {
+  const lockRoot = path3.join(tmpdir(), "pcp-project-locks");
+  await mkdir(lockRoot, { recursive: true });
+  const lockPath = path3.join(lockRoot, `${rootHash(root)}.lock`);
+  let handle;
+  try {
+    handle = await open(lockPath, "wx");
+  } catch (error2) {
+    if (error2.code === "EEXIST") {
+      throw new AdoptionError(
+        "PCP_ADOPTION_LOCKED",
+        "Another PCP structural transaction already holds the project lock."
+      );
+    }
+    throw error2;
+  }
+  await handle.writeFile(
+    `${JSON.stringify({ pid: process.pid, created_at: (/* @__PURE__ */ new Date()).toISOString() })}
+`
+  );
+  await handle.sync();
+  return {
+    path: lockPath,
+    close: async () => {
+      await handle.close();
+      await unlink(lockPath).catch((error2) => {
+        if (error2.code !== "ENOENT") throw error2;
+      });
+    }
+  };
+}
+async function executeFilesystemTransaction(root, plan, contentByPath, options) {
+  const resolvedRoot = path3.resolve(root);
+  const lock = await acquireLock(resolvedRoot);
+  let recoveryRoot;
+  const applied = [];
+  let mutationStarted = false;
+  try {
+    const currentInventory = await inventoryRepository(resolvedRoot);
+    if (currentInventory.digest !== plan.candidate_inventory_digest) {
+      throw new AdoptionError(
+        "PCP_SOURCE_CHANGED",
+        "Candidate inventory changed after the approved adoption preview."
+      );
+    }
+    await checkSpace(resolvedRoot, plan, contentByPath);
+    recoveryRoot = await mkdtemp(
+      path3.join(tmpdir(), `pcp-transaction-${rootHash(root).slice(0, 12)}-`)
+    );
+    const stagingRoot = path3.join(recoveryRoot, "staging");
+    const preimageRoot = path3.join(recoveryRoot, "preimages");
+    const walPath = path3.join(recoveryRoot, "operations.jsonl");
+    await mkdir(stagingRoot);
+    await mkdir(preimageRoot);
+    await writeFile(walPath, "", { flag: "wx" });
+    const stagedContent = await stageContent(plan, contentByPath, stagingRoot);
+    for (const [index, operation] of plan.operations.entries()) {
+      const sequence = index + 1;
+      await appendWal(walPath, sequence, operation, "prepared");
+      mutationStarted = true;
+      const completed = await applyOperation(resolvedRoot, operation, stagedContent, preimageRoot);
+      applied.push(completed);
+      await appendWal(walPath, sequence, operation, "applied", completed.preimage);
+      if (options.fail_after_operation === sequence) {
+        throw new AdoptionError(
+          "PCP_FAULT_INJECTED",
+          `Injected failure after operation ${sequence}.`,
+          true
+        );
+      }
+    }
+    if (options.fail_after_operation === plan.operations.length + 1) {
+      throw new AdoptionError(
+        "PCP_FAULT_INJECTED",
+        "Injected failure at the post-apply validation boundary.",
+        true
+      );
+    }
+    await verifyDesiredContent(resolvedRoot, plan);
+    await options.verify_source_stability?.();
+    await options.validate_live();
+    await options.verify_source_stability?.();
+    await rm(recoveryRoot, { recursive: true, force: false });
+    recoveryRoot = void 0;
+    return { applied_operations: applied.length, recovery_cleaned: true };
+  } catch (error2) {
+    if (mutationStarted) {
+      const rollbackErrors = [];
+      for (const [reverseIndex, completed] of [...applied].reverse().entries()) {
+        try {
+          await rollbackOperation(resolvedRoot, completed);
+          if (recoveryRoot !== void 0) {
+            const walPath = path3.join(recoveryRoot, "operations.jsonl");
+            await appendWal(
+              walPath,
+              applied.length - reverseIndex,
+              completed.operation,
+              "rolled-back",
+              completed.preimage
+            );
+          }
+        } catch (rollbackError) {
+          rollbackErrors.push(
+            rollbackError instanceof Error ? rollbackError.message : String(rollbackError)
+          );
+        }
+      }
+      const restored = await inventoryRepository(resolvedRoot);
+      if (restored.digest !== plan.candidate_inventory_digest) {
+        const remaining = [
+          ...restored.directories.filter((item) => item !== "."),
+          ...restored.files.map((item) => item.path),
+          ...restored.symlinks.map((item) => item.path)
+        ];
+        rollbackErrors.push(
+          `The restored candidate inventory digest does not match the preimage; remaining paths: ${remaining.join(", ") || "none"}.`
+        );
+      }
+      if (rollbackErrors.length > 0) {
+        const originalMessage = error2 instanceof Error ? error2.message : String(error2);
+        throw new AdoptionError(
+          "PCP_ROLLBACK_VERIFICATION_FAILED",
+          `Adoption failed (${originalMessage}) and exact rollback could not be verified: ${rollbackErrors.join("; ")}`,
+          true,
+          recoveryRoot
+        );
+      }
+    } else if (recoveryRoot !== void 0) {
+      await rm(recoveryRoot, { recursive: true, force: true });
+      recoveryRoot = void 0;
+    }
+    const original = error2 instanceof AdoptionError ? error2 : new AdoptionError(
+      "PCP_ADOPTION_TRANSACTION_FAILED",
+      error2 instanceof Error ? error2.message : String(error2)
+    );
+    throw new AdoptionError(original.code, original.message, false, recoveryRoot);
+  } finally {
+    await lock.close();
+  }
+}
+
+// src/application/plan-adoption.ts
+import { lstat as lstat4, mkdir as mkdir2, mkdtemp as mkdtemp2, readFile as readFile8, readdir as readdir3, rm as rm2, writeFile as writeFile3 } from "node:fs/promises";
+import { tmpdir as tmpdir2 } from "node:os";
+import path10 from "node:path";
 
 // node_modules/yaml/browser/dist/nodes/identity.js
 var ALIAS = /* @__PURE__ */ Symbol.for("yaml.alias");
@@ -11595,17 +12568,17 @@ function visit(node, visitor) {
 visit.BREAK = BREAK;
 visit.SKIP = SKIP;
 visit.REMOVE = REMOVE;
-function visit_(key, node, visitor, path8) {
-  const ctrl = callVisitor(key, node, visitor, path8);
+function visit_(key, node, visitor, path11) {
+  const ctrl = callVisitor(key, node, visitor, path11);
   if (isNode(ctrl) || isPair(ctrl)) {
-    replaceNode(key, path8, ctrl);
-    return visit_(key, ctrl, visitor, path8);
+    replaceNode(key, path11, ctrl);
+    return visit_(key, ctrl, visitor, path11);
   }
   if (typeof ctrl !== "symbol") {
     if (isCollection(node)) {
-      path8 = Object.freeze(path8.concat(node));
+      path11 = Object.freeze(path11.concat(node));
       for (let i = 0; i < node.items.length; ++i) {
-        const ci = visit_(i, node.items[i], visitor, path8);
+        const ci = visit_(i, node.items[i], visitor, path11);
         if (typeof ci === "number")
           i = ci - 1;
         else if (ci === BREAK)
@@ -11616,13 +12589,13 @@ function visit_(key, node, visitor, path8) {
         }
       }
     } else if (isPair(node)) {
-      path8 = Object.freeze(path8.concat(node));
-      const ck = visit_("key", node.key, visitor, path8);
+      path11 = Object.freeze(path11.concat(node));
+      const ck = visit_("key", node.key, visitor, path11);
       if (ck === BREAK)
         return BREAK;
       else if (ck === REMOVE)
         node.key = null;
-      const cv = visit_("value", node.value, visitor, path8);
+      const cv = visit_("value", node.value, visitor, path11);
       if (cv === BREAK)
         return BREAK;
       else if (cv === REMOVE)
@@ -11643,17 +12616,17 @@ async function visitAsync(node, visitor) {
 visitAsync.BREAK = BREAK;
 visitAsync.SKIP = SKIP;
 visitAsync.REMOVE = REMOVE;
-async function visitAsync_(key, node, visitor, path8) {
-  const ctrl = await callVisitor(key, node, visitor, path8);
+async function visitAsync_(key, node, visitor, path11) {
+  const ctrl = await callVisitor(key, node, visitor, path11);
   if (isNode(ctrl) || isPair(ctrl)) {
-    replaceNode(key, path8, ctrl);
-    return visitAsync_(key, ctrl, visitor, path8);
+    replaceNode(key, path11, ctrl);
+    return visitAsync_(key, ctrl, visitor, path11);
   }
   if (typeof ctrl !== "symbol") {
     if (isCollection(node)) {
-      path8 = Object.freeze(path8.concat(node));
+      path11 = Object.freeze(path11.concat(node));
       for (let i = 0; i < node.items.length; ++i) {
-        const ci = await visitAsync_(i, node.items[i], visitor, path8);
+        const ci = await visitAsync_(i, node.items[i], visitor, path11);
         if (typeof ci === "number")
           i = ci - 1;
         else if (ci === BREAK)
@@ -11664,13 +12637,13 @@ async function visitAsync_(key, node, visitor, path8) {
         }
       }
     } else if (isPair(node)) {
-      path8 = Object.freeze(path8.concat(node));
-      const ck = await visitAsync_("key", node.key, visitor, path8);
+      path11 = Object.freeze(path11.concat(node));
+      const ck = await visitAsync_("key", node.key, visitor, path11);
       if (ck === BREAK)
         return BREAK;
       else if (ck === REMOVE)
         node.key = null;
-      const cv = await visitAsync_("value", node.value, visitor, path8);
+      const cv = await visitAsync_("value", node.value, visitor, path11);
       if (cv === BREAK)
         return BREAK;
       else if (cv === REMOVE)
@@ -11697,23 +12670,23 @@ function initVisitor(visitor) {
   }
   return visitor;
 }
-function callVisitor(key, node, visitor, path8) {
+function callVisitor(key, node, visitor, path11) {
   if (typeof visitor === "function")
-    return visitor(key, node, path8);
+    return visitor(key, node, path11);
   if (isMap(node))
-    return visitor.Map?.(key, node, path8);
+    return visitor.Map?.(key, node, path11);
   if (isSeq(node))
-    return visitor.Seq?.(key, node, path8);
+    return visitor.Seq?.(key, node, path11);
   if (isPair(node))
-    return visitor.Pair?.(key, node, path8);
+    return visitor.Pair?.(key, node, path11);
   if (isScalar(node))
-    return visitor.Scalar?.(key, node, path8);
+    return visitor.Scalar?.(key, node, path11);
   if (isAlias(node))
-    return visitor.Alias?.(key, node, path8);
+    return visitor.Alias?.(key, node, path11);
   return void 0;
 }
-function replaceNode(key, path8, node) {
-  const parent = path8[path8.length - 1];
+function replaceNode(key, path11, node) {
+  const parent = path11[path11.length - 1];
   if (isCollection(parent)) {
     parent.items[key] = node;
   } else if (isPair(parent)) {
@@ -11776,13 +12749,13 @@ var Directives = class _Directives {
    * @param onError - May be called even if the action was successful
    * @returns `true` on success
    */
-  add(line, onError) {
+  add(line2, onError) {
     if (this.atNextDocument) {
       this.yaml = { explicit: _Directives.defaultYaml.explicit, version: "1.1" };
       this.tags = Object.assign({}, _Directives.defaultTags);
       this.atNextDocument = false;
     }
-    const parts = line.trim().split(/[ \t]+/);
+    const parts = line2.trim().split(/[ \t]+/);
     const name = parts.shift();
     switch (name) {
       case "%TAG": {
@@ -12242,10 +13215,10 @@ function createNode(value, tagName, ctx) {
 }
 
 // node_modules/yaml/browser/dist/nodes/Collection.js
-function collectionFromPath(schema4, path8, value) {
+function collectionFromPath(schema4, path11, value) {
   let v = value;
-  for (let i = path8.length - 1; i >= 0; --i) {
-    const k = path8[i];
+  for (let i = path11.length - 1; i >= 0; --i) {
+    const k = path11[i];
     if (typeof k === "number" && Number.isInteger(k) && k >= 0) {
       const a = [];
       a[k] = v;
@@ -12264,7 +13237,7 @@ function collectionFromPath(schema4, path8, value) {
     sourceObjects: /* @__PURE__ */ new Map()
   });
 }
-var isEmptyPath = (path8) => path8 == null || typeof path8 === "object" && !!path8[Symbol.iterator]().next().done;
+var isEmptyPath = (path11) => path11 == null || typeof path11 === "object" && !!path11[Symbol.iterator]().next().done;
 var Collection = class extends NodeBase {
   constructor(type, schema4) {
     super(type);
@@ -12294,11 +13267,11 @@ var Collection = class extends NodeBase {
    * be a Pair instance or a `{ key, value }` object, which may not have a key
    * that already exists in the map.
    */
-  addIn(path8, value) {
-    if (isEmptyPath(path8))
+  addIn(path11, value) {
+    if (isEmptyPath(path11))
       this.add(value);
     else {
-      const [key, ...rest] = path8;
+      const [key, ...rest] = path11;
       const node = this.get(key, true);
       if (isCollection(node))
         node.addIn(rest, value);
@@ -12312,8 +13285,8 @@ var Collection = class extends NodeBase {
    * Removes a value from the collection.
    * @returns `true` if the item was found and removed.
    */
-  deleteIn(path8) {
-    const [key, ...rest] = path8;
+  deleteIn(path11) {
+    const [key, ...rest] = path11;
     if (rest.length === 0)
       return this.delete(key);
     const node = this.get(key, true);
@@ -12327,8 +13300,8 @@ var Collection = class extends NodeBase {
    * scalar values from their surrounding node; to disable set `keepScalar` to
    * `true` (collections are always returned intact).
    */
-  getIn(path8, keepScalar) {
-    const [key, ...rest] = path8;
+  getIn(path11, keepScalar) {
+    const [key, ...rest] = path11;
     const node = this.get(key, true);
     if (rest.length === 0)
       return !keepScalar && isScalar(node) ? node.value : node;
@@ -12346,8 +13319,8 @@ var Collection = class extends NodeBase {
   /**
    * Checks if the collection includes a value with the key `key`.
    */
-  hasIn(path8) {
-    const [key, ...rest] = path8;
+  hasIn(path11) {
+    const [key, ...rest] = path11;
     if (rest.length === 0)
       return this.has(key);
     const node = this.get(key, true);
@@ -12357,8 +13330,8 @@ var Collection = class extends NodeBase {
    * Sets a value in this collection. For `!!set`, `value` needs to be a
    * boolean to add/remove the item from the set.
    */
-  setIn(path8, value) {
-    const [key, ...rest] = path8;
+  setIn(path11, value) {
+    const [key, ...rest] = path11;
     if (rest.length === 0) {
       this.set(key, value);
     } else {
@@ -13201,9 +14174,9 @@ function stringifyBlockCollection({ comment, items }, ctx, { blockItemPrefix, fl
   } else {
     str = lines[0];
     for (let i = 1; i < lines.length; ++i) {
-      const line = lines[i];
-      str += line ? `
-${indent}${line}` : "\n";
+      const line2 = lines[i];
+      str += line2 ? `
+${indent}${line2}` : "\n";
     }
   }
   if (comment) {
@@ -13261,7 +14234,7 @@ function stringifyFlowCollection({ items }, ctx, { flowChars, itemIndent }) {
       str += ",";
     } else if (ctx.options.trailingComma) {
       if (ctx.options.lineWidth > 0) {
-        reqNewline || (reqNewline = lines.reduce((sum, line) => sum + line.length + 2, 2) + (str.length + 2) > ctx.options.lineWidth);
+        reqNewline || (reqNewline = lines.reduce((sum, line2) => sum + line2.length + 2, 2) + (str.length + 2) > ctx.options.lineWidth);
       }
       if (reqNewline) {
         str += ",";
@@ -13277,14 +14250,14 @@ function stringifyFlowCollection({ items }, ctx, { flowChars, itemIndent }) {
     return start + end;
   } else {
     if (!reqNewline) {
-      const len = lines.reduce((sum, line) => sum + line.length + 2, 2);
+      const len = lines.reduce((sum, line2) => sum + line2.length + 2, 2);
       reqNewline = ctx.options.lineWidth > 0 && len > ctx.options.lineWidth;
     }
     if (reqNewline) {
       let str = start;
-      for (const line of lines)
-        str += line ? `
-${indentStep}${indent}${line}` : "\n";
+      for (const line2 of lines)
+        str += line2 ? `
+${indentStep}${indent}${line2}` : "\n";
       return `${str}
 ${indent}${end}`;
     } else {
@@ -14497,9 +15470,9 @@ var Document = class _Document {
       this.contents.add(value);
   }
   /** Adds a value to the document. */
-  addIn(path8, value) {
+  addIn(path11, value) {
     if (assertCollection(this.contents))
-      this.contents.addIn(path8, value);
+      this.contents.addIn(path11, value);
   }
   /**
    * Create a new `Alias` node, ensuring that the target `node` has the required anchor.
@@ -14574,14 +15547,14 @@ var Document = class _Document {
    * Removes a value from the document.
    * @returns `true` if the item was found and removed.
    */
-  deleteIn(path8) {
-    if (isEmptyPath(path8)) {
+  deleteIn(path11) {
+    if (isEmptyPath(path11)) {
       if (this.contents == null)
         return false;
       this.contents = null;
       return true;
     }
-    return assertCollection(this.contents) ? this.contents.deleteIn(path8) : false;
+    return assertCollection(this.contents) ? this.contents.deleteIn(path11) : false;
   }
   /**
    * Returns item at `key`, or `undefined` if not found. By default unwraps
@@ -14596,10 +15569,10 @@ var Document = class _Document {
    * scalar values from their surrounding node; to disable set `keepScalar` to
    * `true` (collections are always returned intact).
    */
-  getIn(path8, keepScalar) {
-    if (isEmptyPath(path8))
+  getIn(path11, keepScalar) {
+    if (isEmptyPath(path11))
       return !keepScalar && isScalar(this.contents) ? this.contents.value : this.contents;
-    return isCollection(this.contents) ? this.contents.getIn(path8, keepScalar) : void 0;
+    return isCollection(this.contents) ? this.contents.getIn(path11, keepScalar) : void 0;
   }
   /**
    * Checks if the document includes a value with the key `key`.
@@ -14610,10 +15583,10 @@ var Document = class _Document {
   /**
    * Checks if the document includes a value at `path`.
    */
-  hasIn(path8) {
-    if (isEmptyPath(path8))
+  hasIn(path11) {
+    if (isEmptyPath(path11))
       return this.contents !== void 0;
-    return isCollection(this.contents) ? this.contents.hasIn(path8) : false;
+    return isCollection(this.contents) ? this.contents.hasIn(path11) : false;
   }
   /**
    * Sets a value in this document. For `!!set`, `value` needs to be a
@@ -14630,13 +15603,13 @@ var Document = class _Document {
    * Sets a value in this document. For `!!set`, `value` needs to be a
    * boolean to add/remove the item from the set.
    */
-  setIn(path8, value) {
-    if (isEmptyPath(path8)) {
+  setIn(path11, value) {
+    if (isEmptyPath(path11)) {
       this.contents = value;
     } else if (this.contents == null) {
-      this.contents = collectionFromPath(this.schema, Array.from(path8), value);
+      this.contents = collectionFromPath(this.schema, Array.from(path11), value);
     } else if (assertCollection(this.contents)) {
-      this.contents.setIn(path8, value);
+      this.contents.setIn(path11, value);
     }
   }
   /**
@@ -14749,10 +15722,10 @@ var prettifyError = (src, lc) => (error2) => {
   if (error2.pos[0] === -1)
     return;
   error2.linePos = error2.pos.map((pos) => lc.linePos(pos));
-  const { line, col } = error2.linePos[0];
-  error2.message += ` at line ${line}, column ${col}`;
+  const { line: line2, col } = error2.linePos[0];
+  error2.message += ` at line ${line2}, column ${col}`;
   let ci = col - 1;
-  let lineStr = src.substring(lc.lineStarts[line - 1], lc.lineStarts[line]).replace(/[\n\r]+$/, "");
+  let lineStr = src.substring(lc.lineStarts[line2 - 1], lc.lineStarts[line2]).replace(/[\n\r]+$/, "");
   if (ci >= 60 && lineStr.length > 80) {
     const trimStart = Math.min(ci - 39, lineStr.length - 79);
     lineStr = "\u2026" + lineStr.substring(trimStart);
@@ -14760,8 +15733,8 @@ var prettifyError = (src, lc) => (error2) => {
   }
   if (lineStr.length > 80)
     lineStr = lineStr.substring(0, 79) + "\u2026";
-  if (line > 1 && /^ *$/.test(lineStr.substring(0, ci))) {
-    let prev = src.substring(lc.lineStarts[line - 2], lc.lineStarts[line - 1]);
+  if (line2 > 1 && /^ *$/.test(lineStr.substring(0, ci))) {
+    let prev = src.substring(lc.lineStarts[line2 - 2], lc.lineStarts[line2 - 1]);
     if (prev.length > 80)
       prev = prev.substring(0, 79) + "\u2026\n";
     lineStr = prev + lineStr;
@@ -14769,7 +15742,7 @@ var prettifyError = (src, lc) => (error2) => {
   if (/[^ ]/.test(lineStr)) {
     let count = 1;
     const end = error2.linePos[1];
-    if (end?.line === line && end.col > col) {
+    if (end?.line === line2 && end.col > col) {
       count = Math.max(1, Math.min(end.col - col, 80 - ci));
     }
     const pointer = " ".repeat(ci) + "^".repeat(count);
@@ -15620,13 +16593,13 @@ function singleQuotedValue(source, onError) {
   return foldLines(source.slice(1, -1)).replace(/''/g, "'");
 }
 function foldLines(source) {
-  let first, line;
+  let first, line2;
   try {
     first = new RegExp("(.*?)(?<![ 	])[ 	]*\r?\n", "sy");
-    line = new RegExp("[ 	]*(.*?)(?:(?<![ 	])[ 	]*)?\r?\n", "sy");
+    line2 = new RegExp("[ 	]*(.*?)(?:(?<![ 	])[ 	]*)?\r?\n", "sy");
   } catch {
     first = /(.*?)[ \t]*\r?\n/sy;
-    line = /[ \t]*(.*?)[ \t]*\r?\n/sy;
+    line2 = /[ \t]*(.*?)[ \t]*\r?\n/sy;
   }
   let match = first.exec(source);
   if (!match)
@@ -15634,8 +16607,8 @@ function foldLines(source) {
   let res = match[1];
   let sep = " ";
   let pos = first.lastIndex;
-  line.lastIndex = pos;
-  while (match = line.exec(source)) {
+  line2.lastIndex = pos;
+  while (match = line2.exec(source)) {
     if (match[1] === "") {
       if (sep === "\n")
         res += sep;
@@ -15645,7 +16618,7 @@ function foldLines(source) {
       res += sep + match[1];
       sep = " ";
     }
-    pos = line.lastIndex;
+    pos = line2.lastIndex;
   }
   const last = /[ \t]*(.*)/sy;
   last.lastIndex = pos;
@@ -16186,9 +17159,9 @@ function visit2(cst, visitor) {
 visit2.BREAK = BREAK2;
 visit2.SKIP = SKIP2;
 visit2.REMOVE = REMOVE2;
-visit2.itemAtPath = (cst, path8) => {
+visit2.itemAtPath = (cst, path11) => {
   let item = cst;
-  for (const [field, index] of path8) {
+  for (const [field, index] of path11) {
     const tok = item?.[field];
     if (tok && "items" in tok) {
       item = tok.items[index];
@@ -16197,23 +17170,23 @@ visit2.itemAtPath = (cst, path8) => {
   }
   return item;
 };
-visit2.parentCollection = (cst, path8) => {
-  const parent = visit2.itemAtPath(cst, path8.slice(0, -1));
-  const field = path8[path8.length - 1][0];
+visit2.parentCollection = (cst, path11) => {
+  const parent = visit2.itemAtPath(cst, path11.slice(0, -1));
+  const field = path11[path11.length - 1][0];
   const coll = parent?.[field];
   if (coll && "items" in coll)
     return coll;
   throw new Error("Parent collection not found");
 };
-function _visit(path8, item, visitor) {
-  let ctrl = visitor(item, path8);
+function _visit(path11, item, visitor) {
+  let ctrl = visitor(item, path11);
   if (typeof ctrl === "symbol")
     return ctrl;
   for (const field of ["key", "value"]) {
     const token = item[field];
     if (token && "items" in token) {
       for (let i = 0; i < token.items.length; ++i) {
-        const ci = _visit(Object.freeze(path8.concat([[field, i]])), token.items[i], visitor);
+        const ci = _visit(Object.freeze(path11.concat([[field, i]])), token.items[i], visitor);
         if (typeof ci === "number")
           i = ci - 1;
         else if (ci === BREAK2)
@@ -16224,10 +17197,10 @@ function _visit(path8, item, visitor) {
         }
       }
       if (typeof ctrl === "function" && field === "key")
-        ctrl = ctrl(item, path8);
+        ctrl = ctrl(item, path11);
     }
   }
-  return typeof ctrl === "function" ? ctrl(item, path8) : ctrl;
+  return typeof ctrl === "function" ? ctrl(item, path11) : ctrl;
 }
 
 // node_modules/yaml/browser/dist/parse/cst.js
@@ -16425,40 +17398,40 @@ var Lexer = class {
     }
   }
   *parseStream() {
-    let line = this.getLine();
-    if (line === null)
+    let line2 = this.getLine();
+    if (line2 === null)
       return this.setNext("stream");
-    if (line[0] === BOM) {
+    if (line2[0] === BOM) {
       yield* this.pushCount(1);
-      line = line.substring(1);
+      line2 = line2.substring(1);
     }
-    if (line[0] === "%") {
-      let dirEnd = line.length;
-      let cs = line.indexOf("#");
+    if (line2[0] === "%") {
+      let dirEnd = line2.length;
+      let cs = line2.indexOf("#");
       while (cs !== -1) {
-        const ch = line[cs - 1];
+        const ch = line2[cs - 1];
         if (ch === " " || ch === "	") {
           dirEnd = cs - 1;
           break;
         } else {
-          cs = line.indexOf("#", cs + 1);
+          cs = line2.indexOf("#", cs + 1);
         }
       }
       while (true) {
-        const ch = line[dirEnd - 1];
+        const ch = line2[dirEnd - 1];
         if (ch === " " || ch === "	")
           dirEnd -= 1;
         else
           break;
       }
       const n = (yield* this.pushCount(dirEnd)) + (yield* this.pushSpaces(true));
-      yield* this.pushCount(line.length - n);
+      yield* this.pushCount(line2.length - n);
       this.pushNewline();
       return "stream";
     }
     if (this.atLineEnd()) {
       const sp = yield* this.pushSpaces(true);
-      yield* this.pushCount(line.length - sp);
+      yield* this.pushCount(line2.length - sp);
       yield* this.pushNewline();
       return "stream";
     }
@@ -16499,13 +17472,13 @@ var Lexer = class {
   }
   *parseDocument() {
     yield* this.pushSpaces(true);
-    const line = this.getLine();
-    if (line === null)
+    const line2 = this.getLine();
+    if (line2 === null)
       return this.setNext("doc");
     let n = yield* this.pushIndicators();
-    switch (line[n]) {
+    switch (line2[n]) {
       case "#":
-        yield* this.pushCount(line.length - n);
+        yield* this.pushCount(line2.length - n);
       // fallthrough
       case void 0:
         yield* this.pushNewline();
@@ -16530,7 +17503,7 @@ var Lexer = class {
       case ">":
         n += yield* this.parseBlockScalarHeader();
         n += yield* this.pushSpaces(true);
-        yield* this.pushCount(line.length - n);
+        yield* this.pushCount(line2.length - n);
         yield* this.pushNewline();
         return yield* this.parseBlockScalar();
       default:
@@ -16550,11 +17523,11 @@ var Lexer = class {
       }
       sp += yield* this.pushSpaces(true);
     } while (nl + sp > 0);
-    const line = this.getLine();
-    if (line === null)
+    const line2 = this.getLine();
+    if (line2 === null)
       return this.setNext("flow");
-    if (indent !== -1 && indent < this.indentNext && line[0] !== "#" || indent === 0 && (line.startsWith("---") || line.startsWith("...")) && isEmpty(line[3])) {
-      const atFlowEndMarker = indent === this.indentNext - 1 && this.flowLevel === 1 && (line[0] === "]" || line[0] === "}");
+    if (indent !== -1 && indent < this.indentNext && line2[0] !== "#" || indent === 0 && (line2.startsWith("---") || line2.startsWith("...")) && isEmpty(line2[3])) {
+      const atFlowEndMarker = indent === this.indentNext - 1 && this.flowLevel === 1 && (line2[0] === "]" || line2[0] === "}");
       if (!atFlowEndMarker) {
         this.flowLevel = 0;
         yield FLOW_END;
@@ -16562,17 +17535,17 @@ var Lexer = class {
       }
     }
     let n = 0;
-    while (line[n] === ",") {
+    while (line2[n] === ",") {
       n += yield* this.pushCount(1);
       n += yield* this.pushSpaces(true);
       this.flowKey = false;
     }
     n += yield* this.pushIndicators();
-    switch (line[n]) {
+    switch (line2[n]) {
       case void 0:
         return "flow";
       case "#":
-        yield* this.pushCount(line.length - n);
+        yield* this.pushCount(line2.length - n);
         return "flow";
       case "{":
       case "[":
@@ -17809,945 +18782,85 @@ function parse(src, reviver, options) {
   }
   return doc.toJS(Object.assign({ reviver: _reviver }, options));
 }
+function stringify3(value, replacer, options) {
+  let _replacer = null;
+  if (typeof replacer === "function" || Array.isArray(replacer)) {
+    _replacer = replacer;
+  } else if (options === void 0 && replacer) {
+    options = replacer;
+  }
+  if (typeof options === "string")
+    options = options.length;
+  if (typeof options === "number") {
+    const indent = Math.round(options);
+    options = indent < 1 ? void 0 : indent > 8 ? { indent: 8 } : { indent };
+  }
+  if (value === void 0) {
+    const { keepUndefined } = options ?? replacer ?? {};
+    if (!keepUndefined)
+      return void 0;
+  }
+  if (isDocument(value) && !_replacer)
+    return value.toString(options);
+  return new Document(value, _replacer, options).toString(options);
+}
 
-// src/domain/classification.ts
-import path2 from "node:path";
-
-// src/domain/inspection.ts
-var INSPECTION_SCHEMA_VERSION = 1;
-function comparePortablePaths(left, right) {
-  if (left < right) return -1;
-  if (left > right) return 1;
-  return 0;
-}
-var InspectionError = class extends Error {
-  constructor(code2, message) {
-    super(message);
-    this.code = code2;
-    this.name = "InspectionError";
-  }
-  code;
-};
-
-// src/domain/classification.ts
-var foreignCategories = /* @__PURE__ */ new Set([
-  "agent-instructions",
-  "persistent-memory",
-  "agent-identity",
-  "change-journal",
-  "workflow",
-  "orchestration"
-]);
-var codeExtensions = /* @__PURE__ */ new Set([
-  ".c",
-  ".cc",
-  ".clj",
-  ".cpp",
-  ".cs",
-  ".css",
-  ".dart",
-  ".ex",
-  ".exs",
-  ".fs",
-  ".go",
-  ".h",
-  ".hpp",
-  ".html",
-  ".java",
-  ".jl",
-  ".js",
-  ".jsx",
-  ".kt",
-  ".kts",
-  ".lua",
-  ".m",
-  ".php",
-  ".pl",
-  ".ps1",
-  ".py",
-  ".r",
-  ".rb",
-  ".rs",
-  ".scala",
-  ".sh",
-  ".sol",
-  ".sql",
-  ".svelte",
-  ".swift",
-  ".ts",
-  ".tsx",
-  ".vue"
-]);
-var manifestNames = /* @__PURE__ */ new Set([
-  "build.gradle",
-  "build.gradle.kts",
-  "cargo.toml",
-  "cmakelists.txt",
-  "composer.json",
-  "gemfile",
-  "go.mod",
-  "makefile",
-  "mix.exs",
-  "package.json",
-  "pom.xml",
-  "project.clj",
-  "pyproject.toml",
-  "requirements.txt",
-  "setup.py"
-]);
-var deploymentNames = /* @__PURE__ */ new Set([
-  "app.yaml",
-  "compose.yaml",
-  "docker-compose.yml",
-  "dockerfile",
-  "fly.toml",
-  "netlify.toml",
-  "procfile",
-  "serverless.yml",
-  "vercel.json"
-]);
-var documentationExtensions = /* @__PURE__ */ new Set([".adoc", ".md", ".mdx", ".rst"]);
-var dataExtensions = /* @__PURE__ */ new Set([".arrow", ".csv", ".db", ".jsonl", ".parquet", ".sqlite", ".tsv"]);
-var assetExtensions = /* @__PURE__ */ new Set([
-  ".ai",
-  ".blend",
-  ".eps",
-  ".fig",
-  ".gif",
-  ".jpeg",
-  ".jpg",
-  ".mov",
-  ".mp3",
-  ".mp4",
-  ".pdf",
-  ".png",
-  ".psd",
-  ".svg",
-  ".wav",
-  ".webp"
-]);
-var rootSeedDocumentNames = /* @__PURE__ */ new Set([
-  "changelog.md",
-  "contributing.md",
-  "license.md",
-  "readme.md",
-  "security.md",
-  "spec.md"
-]);
-var knownInstructionBasenames = /* @__PURE__ */ new Set([
-  ".cursorrules",
-  "agents.md",
-  "claude.md",
-  "copilot-instructions.md",
-  "gemini.md",
-  "skill.md"
-]);
-var knownInstructionPrefixes = [
-  ".claude/",
-  ".cursor/rules/",
-  ".github/agents/",
-  ".github/instructions/",
-  ".roo/rules/",
-  ".windsurf/rules/"
-];
-var semanticPatterns = [
-  {
-    category: "agent-instructions",
-    pattern: /\b(before (?:any|each|every) task|agent instructions?|instructions? for (?:an |the )?(?:ai |coding )?agent|must (?:read|follow|register|sync)|you are (?:an |the )?(?:ai |coding )?agent)\b/iu,
-    reason: "Contains operational instructions directed at agents."
-  },
-  {
-    category: "persistent-memory",
-    pattern: /\b(source of truth|persistent (?:project )?(?:context|memory)|continuity|last[- ]synced|checkpoint|reconciliation|handoff)\b/iu,
-    reason: "Defines persistent context, continuity, or reconciliation state."
-  },
-  {
-    category: "agent-identity",
-    pattern: /\b(agent[- ]id|agent identity|agent profile|agent registry|agent repository|machine[- ]name)\b/iu,
-    reason: "Defines durable agent identity or registration."
-  },
-  {
-    category: "change-journal",
-    pattern: /\b(append[- ]only|change ?log|journal event|event log|record (?:each|every|meaningful) change)\b/iu,
-    reason: "Defines a persistent project-change history or journal."
-  },
-  {
-    category: "workflow",
-    pattern: /\b(working agreement|stage plan|completion protocol|task tracker|project workflow|living plan)\b/iu,
-    reason: "Defines a durable workflow, plan, or standing operating rule."
-  },
-  {
-    category: "orchestration",
-    pattern: /\b(multi[- ]agent|parallel agents?|concurrent execution blocks?|dependency mapping|agent orchestration|workstreams?)\b/iu,
-    reason: "Defines multi-agent orchestration or concurrent work boundaries."
-  }
-];
-function basename(value) {
-  const pieces = value.split("/");
-  return (pieces.at(-1) ?? value).toLowerCase();
-}
-function extension(value) {
-  return path2.posix.extname(value).toLowerCase();
-}
-function addSignal(signals, code2, category, candidatePath, reason, strength) {
-  if (signals.some((signal) => signal.code === code2 && signal.path === candidatePath)) return;
-  signals.push({ code: code2, category, path: candidatePath, reason, strength });
-}
-function knownForeignPathSignals(input) {
-  const signals = [];
-  for (const file of input.inventory.files) {
-    const normalizedPath = file.path.toLowerCase();
-    const fileName = basename(file.path);
-    if (knownInstructionBasenames.has(fileName) || knownInstructionPrefixes.some((prefix) => normalizedPath.startsWith(prefix))) {
-      addSignal(
-        signals,
-        "foreign.agent-instructions.known-entry",
-        "agent-instructions",
-        file.path,
-        "Uses a recognized non-PCP agent instruction or skill entry point.",
-        "strong"
-      );
-    }
-    if (/^(?:.+\/)?agent-(?:repository|registry)\.md$/u.test(normalizedPath)) {
-      addSignal(
-        signals,
-        "foreign.agent-identity.registry",
-        "agent-identity",
-        file.path,
-        "Uses a durable non-PCP agent identity registry.",
-        "strong"
-      );
-    }
-    if (/^(?:.+\/)?sync-protocol\.md$/u.test(normalizedPath)) {
-      addSignal(
-        signals,
-        "foreign.persistent-memory.sync-protocol",
-        "persistent-memory",
-        file.path,
-        "Uses a non-PCP synchronization or continuity protocol.",
-        "strong"
-      );
-    }
-    if (/^(?:.+\/)?parallel-orchestration\.md$/u.test(normalizedPath)) {
-      addSignal(
-        signals,
-        "foreign.orchestration.parallel-plan",
-        "orchestration",
-        file.path,
-        "Uses a non-PCP multi-agent orchestration plan.",
-        "strong"
-      );
-    }
-  }
-  for (const document of input.documents) {
-    const normalizedPath = document.path.toLowerCase();
-    if (/(?:^|\/)(?:ai|agents?|context|memory)\/.*change ?log\.ya?ml$/u.test(normalizedPath) && /\bagent\s*:/iu.test(document.contents)) {
-      addSignal(
-        signals,
-        "foreign.change-journal.agent-log",
-        "change-journal",
-        document.path,
-        "Contains an agent-attributed non-PCP change journal.",
-        "strong"
-      );
-    }
-  }
-  return signals;
-}
-function semanticForeignSignals(documents) {
-  const signals = [];
-  const agentAnchor = /\b(ai agents?|coding agents?|assistant|agent[- ]id|multi[- ]agent|parallel agents?)\b/iu;
-  const contextAnchor = /\b(before (?:any|each|every) task|source of truth|continuity|handoff|checkpoint|last[- ]synced|agent[- ]id|agent registry|journal event|change ?log|working agreement|workstream|must (?:read|follow|register|sync))\b/iu;
-  for (const document of documents) {
-    const normalizedPath = document.path.toLowerCase();
-    const isRootReadme = normalizedPath === "readme.md";
-    if (!agentAnchor.test(document.contents) || !contextAnchor.test(document.contents)) continue;
-    const matches = semanticPatterns.filter(({ pattern }) => pattern.test(document.contents));
-    if (isRootReadme && (matches.length < 2 || !matches.some((match) => match.category === "agent-instructions"))) {
-      continue;
-    }
-    for (const match of matches) {
-      addSignal(
-        signals,
-        `foreign.${match.category}.semantic`,
-        match.category,
-        document.path,
-        match.reason,
-        matches.length >= 3 ? "strong" : "moderate"
-      );
-    }
-  }
-  return signals;
-}
-function representativeSignal(signals, code2, category, paths, reason, strength) {
-  const first = [...paths].sort(comparePortablePaths)[0];
-  if (first !== void 0) addSignal(signals, code2, category, first, reason, strength);
-}
-function projectSignals(inventory) {
-  const signals = [];
-  const sourcePaths = [];
-  const testPaths = [];
-  const manifestPaths = [];
-  const deploymentPaths = [];
-  const documentationPaths = [];
-  const dataPaths = [];
-  const assetPaths = [];
-  for (const file of inventory.files) {
-    const normalized = file.path.toLowerCase();
-    const fileName = basename(normalized);
-    const fileExtension = extension(normalized);
-    if (manifestNames.has(fileName) || /\.(?:csproj|fsproj|sln)$/u.test(fileName)) {
-      manifestPaths.push(file.path);
-    }
-    if (deploymentNames.has(fileName) || normalized.startsWith(".github/workflows/") || normalized.startsWith("k8s/") || normalized.startsWith("kubernetes/") || normalized.startsWith("terraform/") || fileExtension === ".tf") {
-      deploymentPaths.push(file.path);
-    }
-    if (codeExtensions.has(fileExtension) || fileExtension === ".ipynb") {
-      if (/(?:^|\/)(?:__tests__|test|tests)\//u.test(normalized) || /\.(?:spec|test)\.[^.]+$/u.test(normalized)) {
-        testPaths.push(file.path);
-      } else {
-        sourcePaths.push(file.path);
-      }
-    }
-    if (documentationExtensions.has(fileExtension)) {
-      const atRoot = !normalized.includes("/");
-      if (!atRoot || !rootSeedDocumentNames.has(fileName)) documentationPaths.push(file.path);
-    }
-    if (dataExtensions.has(fileExtension)) dataPaths.push(file.path);
-    if (assetExtensions.has(fileExtension)) assetPaths.push(file.path);
-  }
-  representativeSignal(
-    signals,
-    "project.manifest",
-    "project-manifest",
-    manifestPaths,
-    `Found ${manifestPaths.length} project or build manifest${manifestPaths.length === 1 ? "" : "s"}.`,
-    "strong"
-  );
-  representativeSignal(
-    signals,
-    "project.source-code",
-    "source-code",
-    sourcePaths,
-    `Found ${sourcePaths.length} source-code file${sourcePaths.length === 1 ? "" : "s"}.`,
-    "strong"
-  );
-  representativeSignal(
-    signals,
-    "project.tests",
-    "tests",
-    testPaths,
-    `Found ${testPaths.length} test file${testPaths.length === 1 ? "" : "s"}.`,
-    "moderate"
-  );
-  representativeSignal(
-    signals,
-    "project.deployment",
-    "deployment",
-    deploymentPaths,
-    `Found ${deploymentPaths.length} deployment or CI file${deploymentPaths.length === 1 ? "" : "s"}.`,
-    "strong"
-  );
-  const documentationBytes = inventory.files.filter((file) => documentationPaths.includes(file.path)).reduce((total, file) => total + file.size, 0);
-  const docsDirectoryCount = documentationPaths.filter(
-    (candidate) => candidate.includes("/")
-  ).length;
-  if (documentationPaths.length >= 3 || docsDirectoryCount >= 2 || documentationPaths.length >= 2 && documentationBytes >= 12e3) {
-    representativeSignal(
-      signals,
-      "project.documentation-set",
-      "documentation",
-      documentationPaths,
-      `Found a substantive documentation set (${documentationPaths.length} files, ${documentationBytes} bytes).`,
-      "moderate"
-    );
-  }
-  representativeSignal(
-    signals,
-    "project.data",
-    "data",
-    dataPaths,
-    `Found ${dataPaths.length} project data file${dataPaths.length === 1 ? "" : "s"}.`,
-    "strong"
-  );
-  representativeSignal(
-    signals,
-    "project.creative-assets",
-    "creative-assets",
-    assetPaths,
-    `Found ${assetPaths.length} creative or media asset${assetPaths.length === 1 ? "" : "s"}.`,
-    "moderate"
-  );
-  const recognized = /* @__PURE__ */ new Set([
-    ...sourcePaths,
-    ...testPaths,
-    ...manifestPaths,
-    ...deploymentPaths,
-    ...documentationPaths,
-    ...dataPaths,
-    ...assetPaths
-  ]);
-  const unclassified = inventory.files.filter(
-    (file) => !recognized.has(file.path) && !rootSeedDocumentNames.has(basename(file.path)) && ![".gitignore", ".gitattributes", ".editorconfig"].includes(basename(file.path))
-  );
-  const unclassifiedBytes = unclassified.reduce((total, file) => total + file.size, 0);
-  if (unclassified.length >= 4 || unclassifiedBytes >= 65536) {
-    representativeSignal(
-      signals,
-      "project.unclassified-assets",
-      "data",
-      unclassified.map((file) => file.path),
-      `Found a substantive set of unclassified project assets (${unclassified.length} files, ${unclassifiedBytes} bytes).`,
-      "weak"
-    );
-  }
-  return signals;
-}
-function candidateRoot(candidatePath) {
-  const separator = candidatePath.indexOf("/");
-  return separator === -1 ? "." : candidatePath.slice(0, separator);
-}
-function foreignCandidates(signals) {
-  const candidates = /* @__PURE__ */ new Map();
-  for (const signal of signals) {
-    if (!foreignCategories.has(signal.category)) continue;
-    const root = candidateRoot(signal.path);
-    const candidate = candidates.get(root) ?? { categories: /* @__PURE__ */ new Set(), paths: /* @__PURE__ */ new Set() };
-    candidate.categories.add(signal.category);
-    candidate.paths.add(signal.path);
-    candidates.set(root, candidate);
-  }
-  return [...candidates.entries()].map(([root, candidate]) => ({
-    root,
-    categories: [...candidate.categories].sort(comparePortablePaths),
-    paths: [...candidate.paths].sort(comparePortablePaths)
-  })).sort((left, right) => comparePortablePaths(left.root, right.root));
-}
-function initialAmbiguities(input) {
-  const ambiguities = [];
-  const unsafeLinks = input.inventory.symlinks.filter((link) => link.boundary !== "internal");
-  if (unsafeLinks.length > 0) {
-    ambiguities.push({
-      code: "unsafe-symlink-boundary",
-      message: "External or broken symlinks were fingerprinted but never followed.",
-      paths: unsafeLinks.map((link) => link.path).sort(comparePortablePaths)
-    });
-  }
-  if (input.inventory.nestedRepositories.length > 0) {
-    ambiguities.push({
-      code: "nested-repositories-excluded",
-      message: "Nested repositories were recorded as independent boundaries and not inspected.",
-      paths: [...input.inventory.nestedRepositories]
-    });
-  }
-  if (input.managedManifest.status === "invalid") {
-    ambiguities.push({
-      code: "invalid-pcp-manifest",
-      message: input.managedManifest.reason,
-      paths: [".pcp/pcp.yaml"]
-    });
-  }
-  return ambiguities;
-}
-function stateBConfidence(signals) {
-  const categories = new Set(signals.map((signal) => signal.category));
-  if (categories.has("source-code") && (categories.has("project-manifest") || categories.has("tests") || categories.has("deployment"))) {
-    return "high";
-  }
-  if (categories.has("source-code") || categories.has("deployment") || categories.has("data")) {
-    return "high";
-  }
-  return "medium";
-}
-function classifyRepository(input) {
-  const signals = [
-    ...knownForeignPathSignals(input),
-    ...semanticForeignSignals(input.documents),
-    ...projectSignals(input.inventory)
+// src/infrastructure/adoption-assets.ts
+import { lstat as lstat3, readdir, readFile as readFile3 } from "node:fs/promises";
+import path4 from "node:path";
+import { fileURLToPath } from "node:url";
+var moduleDirectory = path4.dirname(fileURLToPath(import.meta.url));
+function candidateTemplateRoots() {
+  return [
+    path4.resolve(moduleDirectory, "../../templates/core"),
+    path4.resolve(moduleDirectory, "../templates/core"),
+    path4.resolve(moduleDirectory, "../assets/templates/core")
   ];
-  const ambiguities = initialAmbiguities(input);
-  if (input.managedManifest.status === "valid") {
-    signals.push({
-      code: "managed.valid-manifest",
-      category: "managed-manifest",
-      path: ".pcp/pcp.yaml",
-      reason: input.managedManifest.reason,
-      strength: "strong"
-    });
-    const candidates2 = foreignCandidates(signals);
-    if (candidates2.length > 0) {
-      ambiguities.push({
-        code: "managed-foreign-overlap",
-        message: "A managed PCP project also exposes possible context adapters or foreign remnants; validation must resolve ownership.",
-        paths: candidates2.flatMap((candidate) => candidate.paths).sort(comparePortablePaths)
-      });
-    }
-    return {
-      state: "managed",
-      confidence: "high",
-      signals: signals.sort((left, right) => comparePortablePaths(left.path, right.path)),
-      foreignCandidates: candidates2,
-      ambiguities
-    };
-  }
-  if (input.managedManifest.status === "invalid") {
-    signals.push({
-      code: "foreign.invalid-pcp-manifest",
-      category: "agent-instructions",
-      path: ".pcp/pcp.yaml",
-      reason: "A PCP-like layer exists but its manifest is not a valid managed identity.",
-      strength: "strong"
-    });
-  }
-  const foreignSignals = signals.filter((signal) => foreignCategories.has(signal.category));
-  const candidates = foreignCandidates(signals);
-  if (foreignSignals.length > 0) {
-    const categoryCount = new Set(foreignSignals.map((signal) => signal.category)).size;
-    if (candidates.length > 1) {
-      ambiguities.push({
-        code: "foreign-layer-overlap",
-        message: "Multiple possible context-layer roots overlap and require semantic coverage during State C adoption.",
-        paths: candidates.flatMap((candidate) => candidate.paths).sort(comparePortablePaths)
-      });
-    }
-    return {
-      state: "C",
-      confidence: foreignSignals.some((signal) => signal.strength === "strong") || categoryCount >= 3 ? "high" : "medium",
-      signals: signals.sort((left, right) => comparePortablePaths(left.path, right.path)),
-      foreignCandidates: candidates,
-      ambiguities
-    };
-  }
-  const substantiveSignals = signals.filter((signal) => !foreignCategories.has(signal.category));
-  if (substantiveSignals.length > 0) {
-    if (substantiveSignals.every(
-      (signal) => signal.strength === "weak" || signal.category === "documentation"
-    )) {
-      ambiguities.push({
-        code: "a-b-conservative-fallback",
-        message: "The project is borderline seed/established; PCP defaults ambiguous A/B targets to State B.",
-        paths: substantiveSignals.map((signal) => signal.path).sort(comparePortablePaths)
-      });
-    }
-    return {
-      state: "B",
-      confidence: stateBConfidence(substantiveSignals),
-      signals: signals.sort((left, right) => comparePortablePaths(left.path, right.path)),
-      foreignCandidates: [],
-      ambiguities
-    };
-  }
-  const seedFiles = input.inventory.files.filter(
-    (file) => ![".gitignore", ".gitattributes", ".editorconfig"].includes(basename(file.path))
-  );
-  return {
-    state: "A",
-    confidence: seedFiles.length <= 1 ? "high" : "medium",
-    signals: [],
-    foreignCandidates: [],
-    ambiguities
-  };
 }
-
-// src/infrastructure/filesystem-inventory.ts
-var import_ignore = __toESM(require_ignore(), 1);
-import { createHash } from "node:crypto";
-import { createReadStream } from "node:fs";
-import { lstat, opendir, readFile, readlink, realpath, stat } from "node:fs/promises";
-import path3 from "node:path";
-var generatedDirectoryNames = /* @__PURE__ */ new Set([
-  ".cache",
-  ".gradle",
-  ".next",
-  ".nuxt",
-  ".parcel-cache",
-  ".pytest_cache",
-  ".terraform",
-  ".turbo",
-  ".venv",
-  "__pycache__",
-  "bin",
-  "build",
-  "coverage",
-  "dist",
-  "node_modules",
-  "obj",
-  "out",
-  "target",
-  "vendor",
-  "venv"
-]);
-var versionControlDirectoryNames = /* @__PURE__ */ new Set([".git", ".hg", ".svn"]);
-var generatedFileNames = /* @__PURE__ */ new Set([".ds_store", "thumbs.db"]);
-function toPortablePath(value) {
-  return value.split(path3.sep).join("/");
-}
-function isWithinRoot(root, candidate) {
-  const relative = path3.relative(root, candidate);
-  return relative === "" || !relative.startsWith(`..${path3.sep}`) && relative !== ".." && !path3.isAbsolute(relative);
-}
-async function resolveCandidateRoot(candidate) {
-  const resolved = path3.resolve(candidate);
-  if (path3.parse(resolved).root === resolved) {
-    throw new InspectionError(
-      "PCP_UNSAFE_ROOT",
-      "Refusing to inspect an entire filesystem root; select a project directory instead."
-    );
-  }
-  let metadata;
+async function isCoreTemplateRoot(candidate) {
   try {
-    metadata = await lstat(resolved);
-  } catch (error2) {
-    const detail = error2 instanceof Error ? error2.message : String(error2);
-    throw new InspectionError("PCP_CANDIDATE_UNREADABLE", `Cannot inspect candidate: ${detail}`);
-  }
-  if (metadata.isSymbolicLink()) {
-    throw new InspectionError(
-      "PCP_UNSAFE_ROOT",
-      "The candidate root is a symbolic link; select its real directory explicitly."
-    );
-  }
-  if (!metadata.isDirectory()) {
-    throw new InspectionError("PCP_CANDIDATE_NOT_DIRECTORY", "The candidate must be a directory.");
-  }
-  return resolved;
-}
-function exclusionForName(name, isDirectory) {
-  const normalized = name.toLowerCase();
-  if (isDirectory && versionControlDirectoryNames.has(normalized)) {
-    return "version-control-metadata";
-  }
-  if (isDirectory && generatedDirectoryNames.has(normalized)) {
-    return "generated-or-vendor";
-  }
-  if (!isDirectory && generatedFileNames.has(normalized)) {
-    return "generated-or-vendor";
-  }
-  return void 0;
-}
-function relativeFromBase(candidate, base) {
-  if (base === "") return candidate;
-  if (candidate === base) return "";
-  const prefix = `${base}/`;
-  return candidate.startsWith(prefix) ? candidate.slice(prefix.length) : void 0;
-}
-function isIgnored(candidate, isDirectory, contexts) {
-  let ignored = false;
-  const portableCandidate = isDirectory ? `${candidate}/` : candidate;
-  for (const context of contexts) {
-    const relative = relativeFromBase(portableCandidate, context.base);
-    if (relative === void 0 || relative === "") continue;
-    const result = context.matcher.test(relative);
-    if (result.ignored) ignored = true;
-    if (result.unignored) ignored = false;
-  }
-  return ignored;
-}
-async function loadIgnoreContext(absoluteDirectory, relativeDirectory) {
-  const ignorePath = path3.join(absoluteDirectory, ".gitignore");
-  try {
-    const contents = await readFile(ignorePath, "utf8");
-    return {
-      base: relativeDirectory,
-      matcher: (0, import_ignore.default)({ allowRelativePaths: true, ignorecase: false }).add(contents)
-    };
-  } catch (error2) {
-    const code2 = error2.code;
-    if (code2 === "ENOENT" || code2 === "EISDIR") return void 0;
-    throw error2;
-  }
-}
-async function hasNestedRepositoryMarker(absoluteDirectory) {
-  try {
-    await lstat(path3.join(absoluteDirectory, ".git"));
-    return true;
+    const marker = await lstat3(path4.join(candidate, ".pcp", "pcp.yaml"));
+    return marker.isFile() && !marker.isSymbolicLink();
   } catch (error2) {
     if (error2.code === "ENOENT") return false;
     throw error2;
   }
 }
-async function sha256File(absolutePath) {
-  const before = await stat(absolutePath);
-  const hash = createHash("sha256");
-  await new Promise((resolve, reject) => {
-    const stream = createReadStream(absolutePath);
-    stream.on("data", (chunk) => {
-      hash.update(chunk);
-    });
-    stream.on("error", reject);
-    stream.on("end", resolve);
-  });
-  const after = await stat(absolutePath);
-  if (before.size !== after.size || before.mtimeMs !== after.mtimeMs) {
-    throw new InspectionError(
-      "PCP_SOURCE_CHANGED",
-      `A file changed while it was being inspected: ${toPortablePath(absolutePath)}`
-    );
+async function resolveCoreTemplateRoot() {
+  for (const candidate of candidateTemplateRoots()) {
+    if (await isCoreTemplateRoot(candidate)) return candidate;
   }
-  return hash.digest("hex");
-}
-async function inspectSymlink(root, absolutePath, relativePath) {
-  const rawTarget = await readlink(absolutePath);
-  const targetSha256 = createHash("sha256").update(rawTarget).digest("hex");
-  let boundary;
-  try {
-    const realTarget = await realpath(absolutePath);
-    boundary = isWithinRoot(root, realTarget) ? "internal" : "external";
-  } catch (error2) {
-    if (error2.code === "ENOENT") {
-      boundary = "broken";
-    } else {
-      throw error2;
-    }
-  }
-  return {
-    path: relativePath,
-    target: path3.isAbsolute(rawTarget) ? "<absolute>" : toPortablePath(rawTarget),
-    targetSha256,
-    boundary
-  };
-}
-async function scanDirectory(root, absoluteDirectory, relativeDirectory, inheritedContexts, inventory) {
-  const localContext = await loadIgnoreContext(absoluteDirectory, relativeDirectory);
-  const contexts = localContext === void 0 ? inheritedContexts : [...inheritedContexts, localContext];
-  const directory = await opendir(absoluteDirectory);
-  for await (const entry of directory) {
-    const absoluteEntry = path3.join(absoluteDirectory, entry.name);
-    const relativeEntry = relativeDirectory === "" ? entry.name : `${relativeDirectory}/${entry.name}`;
-    const portableEntry = toPortablePath(relativeEntry);
-    const metadata = await lstat(absoluteEntry);
-    const isDirectory = metadata.isDirectory();
-    const staticReason = exclusionForName(entry.name, isDirectory);
-    if (staticReason !== void 0) {
-      inventory.exclusions.push({ path: portableEntry, reason: staticReason });
-      continue;
-    }
-    if (isIgnored(portableEntry, isDirectory, contexts)) {
-      inventory.exclusions.push({ path: portableEntry, reason: "gitignore" });
-      continue;
-    }
-    if (metadata.isSymbolicLink()) {
-      inventory.symlinks.push(await inspectSymlink(root, absoluteEntry, portableEntry));
-      continue;
-    }
-    if (isDirectory) {
-      if (await hasNestedRepositoryMarker(absoluteEntry)) {
-        inventory.nestedRepositories.push(portableEntry);
-        inventory.exclusions.push({ path: portableEntry, reason: "nested-repository" });
-        continue;
-      }
-      inventory.directories.push(portableEntry);
-      await scanDirectory(root, absoluteEntry, portableEntry, contexts, inventory);
-      continue;
-    }
-    if (metadata.isFile()) {
-      const sha256 = await sha256File(absoluteEntry);
-      inventory.files.push({ path: portableEntry, size: metadata.size, sha256 });
-      inventory.bytes += metadata.size;
-    }
-  }
-}
-function inventoryDigest(inventory) {
-  const hash = createHash("sha256");
-  for (const directory of inventory.directories) {
-    hash.update(`${JSON.stringify(["directory", directory])}
-`);
-  }
-  for (const file of inventory.files) {
-    hash.update(`${JSON.stringify(["file", file.path, file.size, file.sha256])}
-`);
-  }
-  for (const link of inventory.symlinks) {
-    hash.update(
-      `${JSON.stringify(["symlink", link.path, link.target, link.targetSha256, link.boundary])}
-`
-    );
-  }
-  for (const nestedRepository of inventory.nestedRepositories) {
-    hash.update(`${JSON.stringify(["nested-repository", nestedRepository])}
-`);
-  }
-  return hash.digest("hex");
-}
-async function inventoryRepository(root) {
-  const inventory = {
-    directories: ["."],
-    files: [],
-    symlinks: [],
-    exclusions: [],
-    nestedRepositories: [],
-    bytes: 0
-  };
-  await scanDirectory(root, root, "", [], inventory);
-  inventory.directories.sort(comparePortablePaths);
-  inventory.files.sort((left, right) => comparePortablePaths(left.path, right.path));
-  inventory.symlinks.sort((left, right) => comparePortablePaths(left.path, right.path));
-  inventory.exclusions.sort((left, right) => comparePortablePaths(left.path, right.path));
-  inventory.nestedRepositories.sort(comparePortablePaths);
-  return {
-    digest: inventoryDigest(inventory),
-    counts: {
-      files: inventory.files.length,
-      directories: inventory.directories.length,
-      symlinks: inventory.symlinks.length,
-      bytes: inventory.bytes,
-      excluded: inventory.exclusions.length,
-      nestedRepositories: inventory.nestedRepositories.length
-    },
-    directories: inventory.directories,
-    files: inventory.files,
-    symlinks: inventory.symlinks,
-    exclusions: inventory.exclusions,
-    nestedRepositories: inventory.nestedRepositories
-  };
-}
-
-// src/application/inspect-repository.ts
-var maximumSemanticFileBytes = 1048576;
-function isText(buffer) {
-  const sampleLength = Math.min(buffer.length, 8192);
-  for (let index = 0; index < sampleLength; index += 1) {
-    if (buffer[index] === 0) return false;
-  }
-  return true;
-}
-function meritsSemanticReview(candidatePath, contents) {
-  if (candidatePath === ".pcp/pcp.yaml") return true;
-  if (/(?:^|\/)(?:\.claude|\.cursor|\.github\/agents|agents?|ai|context|memory)(?:\/|$)/iu.test(
-    candidatePath
-  )) {
-    return true;
-  }
-  return /\b(agent|assistant|continuity|handoff|checkpoint|workstream|journal|change ?log|working agreement|source of truth)\b/iu.test(
-    contents
+  throw new AdoptionError(
+    "PCP_ADOPTION_ASSETS_MISSING",
+    "The verified core PCP template assets could not be located beside the engine."
   );
 }
-async function loadTextDocuments(root, inventory) {
-  const documents = [];
-  for (const file of inventory.files) {
-    if (file.size > maximumSemanticFileBytes) continue;
-    const buffer = await readFile2(path4.join(root, ...file.path.split("/")));
-    const observedDigest = createHash2("sha256").update(buffer).digest("hex");
-    if (observedDigest !== file.sha256) {
-      throw new InspectionError(
-        "PCP_SOURCE_CHANGED",
-        `Candidate content changed after inventory: ${file.path}`
+async function collectFiles(directory, root, result) {
+  const entries = await readdir(directory, { withFileTypes: true });
+  entries.sort((left, right) => comparePortablePaths(left.name, right.name));
+  for (const entry of entries) {
+    const absolutePath = path4.join(directory, entry.name);
+    const metadata = await lstat3(absolutePath);
+    const relativePath = path4.relative(root, absolutePath).split(path4.sep).join("/");
+    if (metadata.isSymbolicLink()) {
+      throw new AdoptionError(
+        "PCP_ADOPTION_ASSET_SYMLINK",
+        `The core template contains an unsupported symbolic link: ${relativePath}`
       );
     }
-    if (!isText(buffer)) continue;
-    const contents = buffer.toString("utf8");
-    if (meritsSemanticReview(file.path, contents)) {
-      documents.push({ path: file.path, contents });
+    if (metadata.isDirectory()) {
+      await collectFiles(absolutePath, root, result);
+    } else if (metadata.isFile()) {
+      result.push({ path: relativePath, content: await readFile3(absolutePath) });
     }
   }
-  return documents;
 }
-function manifestAssessment(inventory, documents) {
-  const manifest = documents.find((document) => document.path === ".pcp/pcp.yaml");
-  if (manifest === void 0) {
-    const manifestEntryExists = inventory.files.some((file) => file.path === ".pcp/pcp.yaml") || inventory.symlinks.some((link) => link.path === ".pcp/pcp.yaml");
-    if (manifestEntryExists) {
-      return {
-        status: "invalid",
-        reason: "The PCP manifest must be a regular UTF-8 text file no larger than 1 MiB."
-      };
-    }
-    return { status: "absent", reason: "No .pcp/pcp.yaml manifest was found." };
-  }
-  try {
-    const parsed = parse(manifest.contents);
-    if (typeof parsed !== "object" || parsed === null || Array.isArray(parsed)) {
-      return { status: "invalid", reason: "The PCP manifest must be a YAML mapping." };
-    }
-    const protocol = parsed.protocol;
-    if (typeof protocol !== "object" || protocol === null || Array.isArray(protocol)) {
-      return { status: "invalid", reason: "The PCP manifest must define a protocol mapping." };
-    }
-    const identity = protocol;
-    if (identity.name !== "persistent-context-protocol" || typeof identity.version !== "string" || !/^\d+\.\d+\.\d+(?:[-+][0-9A-Za-z.-]+)?$/u.test(identity.version)) {
-      return {
-        status: "invalid",
-        reason: "The PCP manifest protocol must identify persistent-context-protocol and a semantic version."
-      };
-    }
-    return {
-      status: "valid",
-      reason: `Found managed PCP protocol version ${identity.version}.`
-    };
-  } catch (error2) {
-    const detail = error2 instanceof Error ? error2.message : String(error2);
-    return { status: "invalid", reason: `The PCP manifest is not valid YAML: ${detail}` };
-  }
-}
-async function inspectRepository(candidate = ".") {
-  const root = await resolveCandidateRoot(candidate);
-  const inventory = await inventoryRepository(root);
-  const documents = await loadTextDocuments(root, inventory);
-  const classification = classifyRepository({
-    inventory,
-    documents,
-    managedManifest: manifestAssessment(inventory, documents)
-  });
-  return {
-    schemaVersion: INSPECTION_SCHEMA_VERSION,
-    candidate: ".",
-    state: classification.state,
-    confidence: classification.confidence,
-    signals: classification.signals,
-    foreignCandidates: classification.foreignCandidates,
-    ambiguities: classification.ambiguities,
-    inventory,
-    mutated: false
-  };
-}
-
-// src/application/render-canonical-views.ts
-import { readFile as readFile4, writeFile } from "node:fs/promises";
-import path6 from "node:path";
-
-// src/domain/canonical-validation.ts
-function compareCanonicalDiagnostics(left, right) {
-  const leftKey = `${left.path}\0${left.severity}\0${left.code}\0${left.message}`;
-  const rightKey = `${right.path}\0${right.severity}\0${right.code}\0${right.message}`;
-  return leftKey < rightKey ? -1 : leftKey > rightKey ? 1 : 0;
-}
-
-// src/infrastructure/canonical-source-digest.ts
-import { createHash as createHash3 } from "node:crypto";
-import { readFile as readFile3 } from "node:fs/promises";
-import path5 from "node:path";
-function normalizeSource(contents) {
-  return contents.replace(/\r\n?/g, "\n");
-}
-function resolveContained(root, relativePath) {
-  const resolvedRoot = path5.resolve(root);
-  const resolved = path5.resolve(resolvedRoot, relativePath);
-  if (resolved !== resolvedRoot && !resolved.startsWith(`${resolvedRoot}${path5.sep}`)) {
-    throw new Error(`Canonical source escapes the .pcp root: ${relativePath}`);
-  }
-  return resolved;
-}
-function canonicalSourceDigestFromContents(sources) {
-  const hash = createHash3("sha256");
-  for (const source of [...sources].sort((left, right) => left.path.localeCompare(right.path))) {
-    const contents = normalizeSource(source.contents);
-    hash.update(source.path);
-    hash.update("\0");
-    hash.update(String(Buffer.byteLength(contents)));
-    hash.update("\0");
-    hash.update(contents);
-    hash.update("\0");
-  }
-  return hash.digest("hex");
-}
-async function canonicalSourceDigest(root, sources) {
-  const contents = await Promise.all(
-    sources.map(async (source) => ({
-      path: source,
-      contents: await readFile3(resolveContained(root, source), "utf8")
-    }))
-  );
-  return canonicalSourceDigestFromContents(contents);
+async function loadCoreTemplateFiles() {
+  const root = await resolveCoreTemplateRoot();
+  const files = [];
+  await collectFiles(root, root, files);
+  files.sort((left, right) => comparePortablePaths(left.path, right.path));
+  return new Map(files.map((file) => [file.path, file.content]));
 }
 
 // src/infrastructure/schema-validator.ts
@@ -18795,6 +18908,124 @@ var adapter_schema_default = {
     },
     content_digest: {
       $ref: "urn:pcp:schema:v1:common#/$defs/sha256"
+    }
+  }
+};
+
+// schemas/v1/adoption-input.schema.json
+var adoption_input_schema_default = {
+  $schema: "https://json-schema.org/draft/2020-12/schema",
+  $id: "urn:pcp:schema:v1:adoption-input",
+  title: "PCP State A or State B semantic adoption input",
+  type: "object",
+  additionalProperties: false,
+  required: [
+    "schema_version",
+    "baseline_at",
+    "persistence",
+    "project",
+    "projects",
+    "workstreams",
+    "vcs_policy",
+    "documents",
+    "scaffold_files"
+  ],
+  properties: {
+    schema_version: {
+      $ref: "urn:pcp:schema:v1:common#/$defs/schemaVersion"
+    },
+    baseline_at: {
+      $ref: "urn:pcp:schema:v1:common#/$defs/dateTime"
+    },
+    persistence: {
+      enum: ["tracked", "local"]
+    },
+    project: {
+      $ref: "urn:pcp:schema:v1:project"
+    },
+    projects: {
+      $ref: "urn:pcp:schema:v1:project-registry"
+    },
+    workstreams: {
+      $ref: "urn:pcp:schema:v1:workstreams"
+    },
+    vcs_policy: {
+      $ref: "urn:pcp:schema:v1:vcs-policy"
+    },
+    documents: {
+      type: "array",
+      items: {
+        $ref: "#/$defs/document"
+      },
+      minItems: 8,
+      maxItems: 8
+    },
+    scaffold_files: {
+      type: "array",
+      items: {
+        $ref: "#/$defs/scaffoldFile"
+      },
+      uniqueItems: true
+    }
+  },
+  $defs: {
+    document: {
+      type: "object",
+      additionalProperties: false,
+      required: ["path", "type", "status", "basis", "evidence_paths", "body"],
+      properties: {
+        path: {
+          enum: [
+            "knowledge/10-overview.md",
+            "knowledge/20-architecture.md",
+            "knowledge/30-source-map.md",
+            "knowledge/40-build-and-tooling.md",
+            "knowledge/50-domain-and-invariants.md",
+            "operations/10-working-agreement.md",
+            "operations/20-plan.md",
+            "operations/30-decisions.md"
+          ]
+        },
+        type: {
+          enum: ["knowledge", "policy", "plan"]
+        },
+        status: {
+          enum: ["static", "living"]
+        },
+        basis: {
+          enum: ["repository", "user", "repository-and-user", "not-applicable"]
+        },
+        evidence_paths: {
+          $ref: "urn:pcp:schema:v1:common#/$defs/pathArray"
+        },
+        body: {
+          type: "string",
+          minLength: 3
+        }
+      }
+    },
+    scaffoldFile: {
+      type: "object",
+      additionalProperties: false,
+      required: ["path", "content"],
+      properties: {
+        path: {
+          allOf: [
+            {
+              $ref: "urn:pcp:schema:v1:common#/$defs/relativePath"
+            },
+            {
+              not: {
+                type: "string",
+                pattern: "^\\.pcp(?:/|$)"
+              }
+            }
+          ]
+        },
+        content: {
+          type: "string"
+        }
+      }
     }
   }
 };
@@ -19830,6 +20061,7 @@ var workstreams_schema_default = {
 // src/domain/schema-catalog.ts
 var SCHEMA_CATALOG = {
   adapter: adapter_schema_default,
+  "adoption-input": adoption_input_schema_default,
   "agent-profile": agent_profile_schema_default,
   checkpoint: checkpoint_schema_default,
   coverage: coverage_schema_default,
@@ -19906,6 +20138,55 @@ var SchemaRegistry = class {
 };
 
 // src/application/render-canonical-views.ts
+import { readFile as readFile5, writeFile as writeFile2 } from "node:fs/promises";
+import path6 from "node:path";
+
+// src/domain/canonical-validation.ts
+function compareCanonicalDiagnostics(left, right) {
+  const leftKey = `${left.path}\0${left.severity}\0${left.code}\0${left.message}`;
+  const rightKey = `${right.path}\0${right.severity}\0${right.code}\0${right.message}`;
+  return leftKey < rightKey ? -1 : leftKey > rightKey ? 1 : 0;
+}
+
+// src/infrastructure/canonical-source-digest.ts
+import { createHash as createHash4 } from "node:crypto";
+import { readFile as readFile4 } from "node:fs/promises";
+import path5 from "node:path";
+function normalizeSource(contents) {
+  return contents.replace(/\r\n?/g, "\n");
+}
+function resolveContained(root, relativePath) {
+  const resolvedRoot = path5.resolve(root);
+  const resolved = path5.resolve(resolvedRoot, relativePath);
+  if (resolved !== resolvedRoot && !resolved.startsWith(`${resolvedRoot}${path5.sep}`)) {
+    throw new Error(`Canonical source escapes the .pcp root: ${relativePath}`);
+  }
+  return resolved;
+}
+function canonicalSourceDigestFromContents(sources) {
+  const hash = createHash4("sha256");
+  for (const source of [...sources].sort((left, right) => left.path.localeCompare(right.path))) {
+    const contents = normalizeSource(source.contents);
+    hash.update(source.path);
+    hash.update("\0");
+    hash.update(String(Buffer.byteLength(contents)));
+    hash.update("\0");
+    hash.update(contents);
+    hash.update("\0");
+  }
+  return hash.digest("hex");
+}
+async function canonicalSourceDigest(root, sources) {
+  const contents = await Promise.all(
+    sources.map(async (source) => ({
+      path: source,
+      contents: await readFile4(resolveContained(root, source), "utf8")
+    }))
+  );
+  return canonicalSourceDigestFromContents(contents);
+}
+
+// src/application/render-canonical-views.ts
 var VIEW_PATH = "views/10-status.generated.md";
 var PROJECT_VIEW_PATH = `.pcp/${VIEW_PATH}`;
 var GENERATED_MARKER = "<!-- PCP: GENERATED; DO NOT EDIT -->";
@@ -19952,7 +20233,7 @@ function issue(codeValue, pathValue, message) {
 async function loadSource(layerRoot, relativePath, schema4, registry, diagnostics) {
   let contents;
   try {
-    contents = await readFile4(path6.join(layerRoot, relativePath), "utf8");
+    contents = await readFile5(path6.join(layerRoot, relativePath), "utf8");
   } catch (error2) {
     diagnostics.push(
       issue(
@@ -20141,7 +20422,7 @@ async function renderCanonicalViews(projectRoot, options = {}) {
   const absoluteViewPath = path6.join(layerRoot, VIEW_PATH);
   let current;
   try {
-    current = await readFile4(absoluteViewPath, "utf8");
+    current = await readFile5(absoluteViewPath, "utf8");
   } catch (error2) {
     if (error2.code !== "ENOENT") {
       diagnostics.push(
@@ -20181,7 +20462,7 @@ async function renderCanonicalViews(projectRoot, options = {}) {
     };
   }
   try {
-    await writeFile(absoluteViewPath, desired, "utf8");
+    await writeFile2(absoluteViewPath, desired, "utf8");
   } catch (error2) {
     return {
       valid: false,
@@ -20204,9 +20485,634 @@ async function renderCanonicalViews(projectRoot, options = {}) {
   };
 }
 
-// src/application/validate-canonical-layer.ts
-import { readdir, readFile as readFile5, stat as stat2 } from "node:fs/promises";
+// src/application/inspect-repository.ts
+import { createHash as createHash5 } from "node:crypto";
+import { readFile as readFile6 } from "node:fs/promises";
+import path8 from "node:path";
+
+// src/domain/classification.ts
 import path7 from "node:path";
+var foreignCategories = /* @__PURE__ */ new Set([
+  "agent-instructions",
+  "persistent-memory",
+  "agent-identity",
+  "change-journal",
+  "workflow",
+  "orchestration"
+]);
+var codeExtensions = /* @__PURE__ */ new Set([
+  ".c",
+  ".cc",
+  ".clj",
+  ".cpp",
+  ".cs",
+  ".css",
+  ".dart",
+  ".ex",
+  ".exs",
+  ".fs",
+  ".go",
+  ".h",
+  ".hpp",
+  ".html",
+  ".java",
+  ".jl",
+  ".js",
+  ".jsx",
+  ".kt",
+  ".kts",
+  ".lua",
+  ".m",
+  ".php",
+  ".pl",
+  ".ps1",
+  ".py",
+  ".r",
+  ".rb",
+  ".rs",
+  ".scala",
+  ".sh",
+  ".sol",
+  ".sql",
+  ".svelte",
+  ".swift",
+  ".ts",
+  ".tsx",
+  ".vue"
+]);
+var manifestNames = /* @__PURE__ */ new Set([
+  "build.gradle",
+  "build.gradle.kts",
+  "cargo.toml",
+  "cmakelists.txt",
+  "composer.json",
+  "gemfile",
+  "go.mod",
+  "makefile",
+  "mix.exs",
+  "package.json",
+  "pom.xml",
+  "project.clj",
+  "pyproject.toml",
+  "requirements.txt",
+  "setup.py"
+]);
+var deploymentNames = /* @__PURE__ */ new Set([
+  "app.yaml",
+  "compose.yaml",
+  "docker-compose.yml",
+  "dockerfile",
+  "fly.toml",
+  "netlify.toml",
+  "procfile",
+  "serverless.yml",
+  "vercel.json"
+]);
+var documentationExtensions = /* @__PURE__ */ new Set([".adoc", ".md", ".mdx", ".rst"]);
+var dataExtensions = /* @__PURE__ */ new Set([".arrow", ".csv", ".db", ".jsonl", ".parquet", ".sqlite", ".tsv"]);
+var assetExtensions = /* @__PURE__ */ new Set([
+  ".ai",
+  ".blend",
+  ".eps",
+  ".fig",
+  ".gif",
+  ".jpeg",
+  ".jpg",
+  ".mov",
+  ".mp3",
+  ".mp4",
+  ".pdf",
+  ".png",
+  ".psd",
+  ".svg",
+  ".wav",
+  ".webp"
+]);
+var rootSeedDocumentNames = /* @__PURE__ */ new Set([
+  "changelog.md",
+  "contributing.md",
+  "license.md",
+  "readme.md",
+  "security.md",
+  "spec.md"
+]);
+var knownInstructionBasenames = /* @__PURE__ */ new Set([
+  ".cursorrules",
+  "agents.md",
+  "claude.md",
+  "copilot-instructions.md",
+  "gemini.md",
+  "skill.md"
+]);
+var knownInstructionPrefixes = [
+  ".claude/",
+  ".cursor/rules/",
+  ".github/agents/",
+  ".github/instructions/",
+  ".roo/rules/",
+  ".windsurf/rules/"
+];
+var semanticPatterns = [
+  {
+    category: "agent-instructions",
+    pattern: /\b(before (?:any|each|every) task|agent instructions?|instructions? for (?:an |the )?(?:ai |coding )?agent|must (?:read|follow|register|sync)|you are (?:an |the )?(?:ai |coding )?agent)\b/iu,
+    reason: "Contains operational instructions directed at agents."
+  },
+  {
+    category: "persistent-memory",
+    pattern: /\b(source of truth|persistent (?:project )?(?:context|memory)|continuity|last[- ]synced|checkpoint|reconciliation|handoff)\b/iu,
+    reason: "Defines persistent context, continuity, or reconciliation state."
+  },
+  {
+    category: "agent-identity",
+    pattern: /\b(agent[- ]id|agent identity|agent profile|agent registry|agent repository|machine[- ]name)\b/iu,
+    reason: "Defines durable agent identity or registration."
+  },
+  {
+    category: "change-journal",
+    pattern: /\b(append[- ]only|change ?log|journal event|event log|record (?:each|every|meaningful) change)\b/iu,
+    reason: "Defines a persistent project-change history or journal."
+  },
+  {
+    category: "workflow",
+    pattern: /\b(working agreement|stage plan|completion protocol|task tracker|project workflow|living plan)\b/iu,
+    reason: "Defines a durable workflow, plan, or standing operating rule."
+  },
+  {
+    category: "orchestration",
+    pattern: /\b(multi[- ]agent|parallel agents?|concurrent execution blocks?|dependency mapping|agent orchestration|workstreams?)\b/iu,
+    reason: "Defines multi-agent orchestration or concurrent work boundaries."
+  }
+];
+function basename(value) {
+  const pieces = value.split("/");
+  return (pieces.at(-1) ?? value).toLowerCase();
+}
+function extension(value) {
+  return path7.posix.extname(value).toLowerCase();
+}
+function addSignal(signals, code2, category, candidatePath, reason, strength) {
+  if (signals.some((signal) => signal.code === code2 && signal.path === candidatePath)) return;
+  signals.push({ code: code2, category, path: candidatePath, reason, strength });
+}
+function knownForeignPathSignals(input) {
+  const signals = [];
+  for (const file of input.inventory.files) {
+    const normalizedPath = file.path.toLowerCase();
+    const fileName = basename(file.path);
+    if (knownInstructionBasenames.has(fileName) || knownInstructionPrefixes.some((prefix) => normalizedPath.startsWith(prefix))) {
+      addSignal(
+        signals,
+        "foreign.agent-instructions.known-entry",
+        "agent-instructions",
+        file.path,
+        "Uses a recognized non-PCP agent instruction or skill entry point.",
+        "strong"
+      );
+    }
+    if (/^(?:.+\/)?agent-(?:repository|registry)\.md$/u.test(normalizedPath)) {
+      addSignal(
+        signals,
+        "foreign.agent-identity.registry",
+        "agent-identity",
+        file.path,
+        "Uses a durable non-PCP agent identity registry.",
+        "strong"
+      );
+    }
+    if (/^(?:.+\/)?sync-protocol\.md$/u.test(normalizedPath)) {
+      addSignal(
+        signals,
+        "foreign.persistent-memory.sync-protocol",
+        "persistent-memory",
+        file.path,
+        "Uses a non-PCP synchronization or continuity protocol.",
+        "strong"
+      );
+    }
+    if (/^(?:.+\/)?parallel-orchestration\.md$/u.test(normalizedPath)) {
+      addSignal(
+        signals,
+        "foreign.orchestration.parallel-plan",
+        "orchestration",
+        file.path,
+        "Uses a non-PCP multi-agent orchestration plan.",
+        "strong"
+      );
+    }
+  }
+  for (const document of input.documents) {
+    const normalizedPath = document.path.toLowerCase();
+    if (/(?:^|\/)(?:ai|agents?|context|memory)\/.*change ?log\.ya?ml$/u.test(normalizedPath) && /\bagent\s*:/iu.test(document.contents)) {
+      addSignal(
+        signals,
+        "foreign.change-journal.agent-log",
+        "change-journal",
+        document.path,
+        "Contains an agent-attributed non-PCP change journal.",
+        "strong"
+      );
+    }
+  }
+  return signals;
+}
+function semanticForeignSignals(documents) {
+  const signals = [];
+  const agentAnchor = /\b(ai agents?|coding agents?|assistant|agent[- ]id|multi[- ]agent|parallel agents?)\b/iu;
+  const contextAnchor = /\b(before (?:any|each|every) task|source of truth|continuity|handoff|checkpoint|last[- ]synced|agent[- ]id|agent registry|journal event|change ?log|working agreement|workstream|must (?:read|follow|register|sync))\b/iu;
+  for (const document of documents) {
+    const normalizedPath = document.path.toLowerCase();
+    const isRootReadme = normalizedPath === "readme.md";
+    if (!agentAnchor.test(document.contents) || !contextAnchor.test(document.contents)) continue;
+    const matches = semanticPatterns.filter(({ pattern }) => pattern.test(document.contents));
+    if (isRootReadme && (matches.length < 2 || !matches.some((match) => match.category === "agent-instructions"))) {
+      continue;
+    }
+    for (const match of matches) {
+      addSignal(
+        signals,
+        `foreign.${match.category}.semantic`,
+        match.category,
+        document.path,
+        match.reason,
+        matches.length >= 3 ? "strong" : "moderate"
+      );
+    }
+  }
+  return signals;
+}
+function representativeSignal(signals, code2, category, paths, reason, strength) {
+  const first = [...paths].sort(comparePortablePaths)[0];
+  if (first !== void 0) addSignal(signals, code2, category, first, reason, strength);
+}
+function projectSignals(inventory) {
+  const signals = [];
+  const sourcePaths = [];
+  const testPaths = [];
+  const manifestPaths = [];
+  const deploymentPaths = [];
+  const documentationPaths = [];
+  const dataPaths = [];
+  const assetPaths = [];
+  for (const file of inventory.files) {
+    const normalized = file.path.toLowerCase();
+    const fileName = basename(normalized);
+    const fileExtension = extension(normalized);
+    if (manifestNames.has(fileName) || /\.(?:csproj|fsproj|sln)$/u.test(fileName)) {
+      manifestPaths.push(file.path);
+    }
+    if (deploymentNames.has(fileName) || normalized.startsWith(".github/workflows/") || normalized.startsWith("k8s/") || normalized.startsWith("kubernetes/") || normalized.startsWith("terraform/") || fileExtension === ".tf") {
+      deploymentPaths.push(file.path);
+    }
+    if (codeExtensions.has(fileExtension) || fileExtension === ".ipynb") {
+      if (/(?:^|\/)(?:__tests__|test|tests)\//u.test(normalized) || /\.(?:spec|test)\.[^.]+$/u.test(normalized)) {
+        testPaths.push(file.path);
+      } else {
+        sourcePaths.push(file.path);
+      }
+    }
+    if (documentationExtensions.has(fileExtension)) {
+      const atRoot = !normalized.includes("/");
+      if (!atRoot || !rootSeedDocumentNames.has(fileName)) documentationPaths.push(file.path);
+    }
+    if (dataExtensions.has(fileExtension)) dataPaths.push(file.path);
+    if (assetExtensions.has(fileExtension)) assetPaths.push(file.path);
+  }
+  representativeSignal(
+    signals,
+    "project.manifest",
+    "project-manifest",
+    manifestPaths,
+    `Found ${manifestPaths.length} project or build manifest${manifestPaths.length === 1 ? "" : "s"}.`,
+    "strong"
+  );
+  representativeSignal(
+    signals,
+    "project.source-code",
+    "source-code",
+    sourcePaths,
+    `Found ${sourcePaths.length} source-code file${sourcePaths.length === 1 ? "" : "s"}.`,
+    "strong"
+  );
+  representativeSignal(
+    signals,
+    "project.tests",
+    "tests",
+    testPaths,
+    `Found ${testPaths.length} test file${testPaths.length === 1 ? "" : "s"}.`,
+    "moderate"
+  );
+  representativeSignal(
+    signals,
+    "project.deployment",
+    "deployment",
+    deploymentPaths,
+    `Found ${deploymentPaths.length} deployment or CI file${deploymentPaths.length === 1 ? "" : "s"}.`,
+    "strong"
+  );
+  const documentationBytes = inventory.files.filter((file) => documentationPaths.includes(file.path)).reduce((total, file) => total + file.size, 0);
+  const docsDirectoryCount = documentationPaths.filter(
+    (candidate) => candidate.includes("/")
+  ).length;
+  if (documentationPaths.length >= 3 || docsDirectoryCount >= 2 || documentationPaths.length >= 2 && documentationBytes >= 12e3) {
+    representativeSignal(
+      signals,
+      "project.documentation-set",
+      "documentation",
+      documentationPaths,
+      `Found a substantive documentation set (${documentationPaths.length} files, ${documentationBytes} bytes).`,
+      "moderate"
+    );
+  }
+  representativeSignal(
+    signals,
+    "project.data",
+    "data",
+    dataPaths,
+    `Found ${dataPaths.length} project data file${dataPaths.length === 1 ? "" : "s"}.`,
+    "strong"
+  );
+  representativeSignal(
+    signals,
+    "project.creative-assets",
+    "creative-assets",
+    assetPaths,
+    `Found ${assetPaths.length} creative or media asset${assetPaths.length === 1 ? "" : "s"}.`,
+    "moderate"
+  );
+  const recognized = /* @__PURE__ */ new Set([
+    ...sourcePaths,
+    ...testPaths,
+    ...manifestPaths,
+    ...deploymentPaths,
+    ...documentationPaths,
+    ...dataPaths,
+    ...assetPaths
+  ]);
+  const unclassified = inventory.files.filter(
+    (file) => !recognized.has(file.path) && !rootSeedDocumentNames.has(basename(file.path)) && ![".gitignore", ".gitattributes", ".editorconfig"].includes(basename(file.path))
+  );
+  const unclassifiedBytes = unclassified.reduce((total, file) => total + file.size, 0);
+  if (unclassified.length >= 4 || unclassifiedBytes >= 65536) {
+    representativeSignal(
+      signals,
+      "project.unclassified-assets",
+      "data",
+      unclassified.map((file) => file.path),
+      `Found a substantive set of unclassified project assets (${unclassified.length} files, ${unclassifiedBytes} bytes).`,
+      "weak"
+    );
+  }
+  return signals;
+}
+function candidateRoot(candidatePath) {
+  const separator = candidatePath.indexOf("/");
+  return separator === -1 ? "." : candidatePath.slice(0, separator);
+}
+function foreignCandidates(signals) {
+  const candidates = /* @__PURE__ */ new Map();
+  for (const signal of signals) {
+    if (!foreignCategories.has(signal.category)) continue;
+    const root = candidateRoot(signal.path);
+    const candidate = candidates.get(root) ?? { categories: /* @__PURE__ */ new Set(), paths: /* @__PURE__ */ new Set() };
+    candidate.categories.add(signal.category);
+    candidate.paths.add(signal.path);
+    candidates.set(root, candidate);
+  }
+  return [...candidates.entries()].map(([root, candidate]) => ({
+    root,
+    categories: [...candidate.categories].sort(comparePortablePaths),
+    paths: [...candidate.paths].sort(comparePortablePaths)
+  })).sort((left, right) => comparePortablePaths(left.root, right.root));
+}
+function initialAmbiguities(input) {
+  const ambiguities = [];
+  const unsafeLinks = input.inventory.symlinks.filter((link) => link.boundary !== "internal");
+  if (unsafeLinks.length > 0) {
+    ambiguities.push({
+      code: "unsafe-symlink-boundary",
+      message: "External or broken symlinks were fingerprinted but never followed.",
+      paths: unsafeLinks.map((link) => link.path).sort(comparePortablePaths)
+    });
+  }
+  if (input.inventory.nestedRepositories.length > 0) {
+    ambiguities.push({
+      code: "nested-repositories-excluded",
+      message: "Nested repositories were recorded as independent boundaries and not inspected.",
+      paths: [...input.inventory.nestedRepositories]
+    });
+  }
+  if (input.managedManifest.status === "invalid") {
+    ambiguities.push({
+      code: "invalid-pcp-manifest",
+      message: input.managedManifest.reason,
+      paths: [".pcp/pcp.yaml"]
+    });
+  }
+  return ambiguities;
+}
+function stateBConfidence(signals) {
+  const categories = new Set(signals.map((signal) => signal.category));
+  if (categories.has("source-code") && (categories.has("project-manifest") || categories.has("tests") || categories.has("deployment"))) {
+    return "high";
+  }
+  if (categories.has("source-code") || categories.has("deployment") || categories.has("data")) {
+    return "high";
+  }
+  return "medium";
+}
+function classifyRepository(input) {
+  const signals = [
+    ...knownForeignPathSignals(input),
+    ...semanticForeignSignals(input.documents),
+    ...projectSignals(input.inventory)
+  ];
+  const ambiguities = initialAmbiguities(input);
+  if (input.managedManifest.status === "valid") {
+    signals.push({
+      code: "managed.valid-manifest",
+      category: "managed-manifest",
+      path: ".pcp/pcp.yaml",
+      reason: input.managedManifest.reason,
+      strength: "strong"
+    });
+    const candidates2 = foreignCandidates(signals);
+    if (candidates2.length > 0) {
+      ambiguities.push({
+        code: "managed-foreign-overlap",
+        message: "A managed PCP project also exposes possible context adapters or foreign remnants; validation must resolve ownership.",
+        paths: candidates2.flatMap((candidate) => candidate.paths).sort(comparePortablePaths)
+      });
+    }
+    return {
+      state: "managed",
+      confidence: "high",
+      signals: signals.sort((left, right) => comparePortablePaths(left.path, right.path)),
+      foreignCandidates: candidates2,
+      ambiguities
+    };
+  }
+  if (input.managedManifest.status === "invalid") {
+    signals.push({
+      code: "foreign.invalid-pcp-manifest",
+      category: "agent-instructions",
+      path: ".pcp/pcp.yaml",
+      reason: "A PCP-like layer exists but its manifest is not a valid managed identity.",
+      strength: "strong"
+    });
+  }
+  const foreignSignals = signals.filter((signal) => foreignCategories.has(signal.category));
+  const candidates = foreignCandidates(signals);
+  if (foreignSignals.length > 0) {
+    const categoryCount = new Set(foreignSignals.map((signal) => signal.category)).size;
+    if (candidates.length > 1) {
+      ambiguities.push({
+        code: "foreign-layer-overlap",
+        message: "Multiple possible context-layer roots overlap and require semantic coverage during State C adoption.",
+        paths: candidates.flatMap((candidate) => candidate.paths).sort(comparePortablePaths)
+      });
+    }
+    return {
+      state: "C",
+      confidence: foreignSignals.some((signal) => signal.strength === "strong") || categoryCount >= 3 ? "high" : "medium",
+      signals: signals.sort((left, right) => comparePortablePaths(left.path, right.path)),
+      foreignCandidates: candidates,
+      ambiguities
+    };
+  }
+  const substantiveSignals = signals.filter((signal) => !foreignCategories.has(signal.category));
+  if (substantiveSignals.length > 0) {
+    if (substantiveSignals.every(
+      (signal) => signal.strength === "weak" || signal.category === "documentation"
+    )) {
+      ambiguities.push({
+        code: "a-b-conservative-fallback",
+        message: "The project is borderline seed/established; PCP defaults ambiguous A/B targets to State B.",
+        paths: substantiveSignals.map((signal) => signal.path).sort(comparePortablePaths)
+      });
+    }
+    return {
+      state: "B",
+      confidence: stateBConfidence(substantiveSignals),
+      signals: signals.sort((left, right) => comparePortablePaths(left.path, right.path)),
+      foreignCandidates: [],
+      ambiguities
+    };
+  }
+  const seedFiles = input.inventory.files.filter(
+    (file) => ![".gitignore", ".gitattributes", ".editorconfig"].includes(basename(file.path))
+  );
+  return {
+    state: "A",
+    confidence: seedFiles.length <= 1 ? "high" : "medium",
+    signals: [],
+    foreignCandidates: [],
+    ambiguities
+  };
+}
+
+// src/application/inspect-repository.ts
+var maximumSemanticFileBytes = 1048576;
+function isText(buffer) {
+  const sampleLength = Math.min(buffer.length, 8192);
+  for (let index = 0; index < sampleLength; index += 1) {
+    if (buffer[index] === 0) return false;
+  }
+  return true;
+}
+function meritsSemanticReview(candidatePath, contents) {
+  if (candidatePath === ".pcp/pcp.yaml") return true;
+  if (/(?:^|\/)(?:\.claude|\.cursor|\.github\/agents|agents?|ai|context|memory)(?:\/|$)/iu.test(
+    candidatePath
+  )) {
+    return true;
+  }
+  return /\b(agent|assistant|continuity|handoff|checkpoint|workstream|journal|change ?log|working agreement|source of truth)\b/iu.test(
+    contents
+  );
+}
+async function loadTextDocuments(root, inventory) {
+  const documents = [];
+  for (const file of inventory.files) {
+    if (file.size > maximumSemanticFileBytes) continue;
+    const buffer = await readFile6(path8.join(root, ...file.path.split("/")));
+    const observedDigest = createHash5("sha256").update(buffer).digest("hex");
+    if (observedDigest !== file.sha256) {
+      throw new InspectionError(
+        "PCP_SOURCE_CHANGED",
+        `Candidate content changed after inventory: ${file.path}`
+      );
+    }
+    if (!isText(buffer)) continue;
+    const contents = buffer.toString("utf8");
+    if (meritsSemanticReview(file.path, contents)) {
+      documents.push({ path: file.path, contents });
+    }
+  }
+  return documents;
+}
+function manifestAssessment(inventory, documents) {
+  const manifest = documents.find((document) => document.path === ".pcp/pcp.yaml");
+  if (manifest === void 0) {
+    const manifestEntryExists = inventory.files.some((file) => file.path === ".pcp/pcp.yaml") || inventory.symlinks.some((link) => link.path === ".pcp/pcp.yaml");
+    if (manifestEntryExists) {
+      return {
+        status: "invalid",
+        reason: "The PCP manifest must be a regular UTF-8 text file no larger than 1 MiB."
+      };
+    }
+    return { status: "absent", reason: "No .pcp/pcp.yaml manifest was found." };
+  }
+  try {
+    const parsed = parse(manifest.contents);
+    if (typeof parsed !== "object" || parsed === null || Array.isArray(parsed)) {
+      return { status: "invalid", reason: "The PCP manifest must be a YAML mapping." };
+    }
+    const protocol = parsed.protocol;
+    if (typeof protocol !== "object" || protocol === null || Array.isArray(protocol)) {
+      return { status: "invalid", reason: "The PCP manifest must define a protocol mapping." };
+    }
+    const identity = protocol;
+    if (identity.name !== "persistent-context-protocol" || typeof identity.version !== "string" || !/^\d+\.\d+\.\d+(?:[-+][0-9A-Za-z.-]+)?$/u.test(identity.version)) {
+      return {
+        status: "invalid",
+        reason: "The PCP manifest protocol must identify persistent-context-protocol and a semantic version."
+      };
+    }
+    return {
+      status: "valid",
+      reason: `Found managed PCP protocol version ${identity.version}.`
+    };
+  } catch (error2) {
+    const detail = error2 instanceof Error ? error2.message : String(error2);
+    return { status: "invalid", reason: `The PCP manifest is not valid YAML: ${detail}` };
+  }
+}
+async function inspectRepository(candidate = ".") {
+  const root = await resolveCandidateRoot(candidate);
+  const inventory = await inventoryRepository(root);
+  const documents = await loadTextDocuments(root, inventory);
+  const classification = classifyRepository({
+    inventory,
+    documents,
+    managedManifest: manifestAssessment(inventory, documents)
+  });
+  return {
+    schemaVersion: INSPECTION_SCHEMA_VERSION,
+    candidate: ".",
+    state: classification.state,
+    confidence: classification.confidence,
+    signals: classification.signals,
+    foreignCandidates: classification.foreignCandidates,
+    ambiguities: classification.ambiguities,
+    inventory,
+    mutated: false
+  };
+}
+
+// src/application/validate-canonical-layer.ts
+import { readdir as readdir2, readFile as readFile7, stat as stat2 } from "node:fs/promises";
+import path9 from "node:path";
 
 // src/domain/canonical-semantics.ts
 function objectValue2(value) {
@@ -20221,8 +21127,8 @@ function objectArray2(value) {
 function stringArray2(value) {
   return Array.isArray(value) ? value.filter((item) => typeof item === "string") : [];
 }
-function error(code2, path8, message) {
-  return { severity: "error", code: code2, path: path8, message };
+function error(code2, path11, message) {
+  return { severity: "error", code: code2, path: path11, message };
 }
 function validateProjectIdentity(records) {
   const diagnostics = [];
@@ -20601,21 +21507,21 @@ function stringArray3(value) {
   return Array.isArray(value) && value.every((item) => typeof item === "string") ? value : void 0;
 }
 function relativeFrom(root, target) {
-  return path7.relative(root, target).split(path7.sep).join("/");
+  return path9.relative(root, target).split(path9.sep).join("/");
 }
-function isInside(root, target) {
-  const resolvedRoot = path7.resolve(root);
-  const resolvedTarget = path7.resolve(target);
-  return resolvedTarget === resolvedRoot || resolvedTarget.startsWith(`${resolvedRoot}${path7.sep}`);
+function isInside2(root, target) {
+  const resolvedRoot = path9.resolve(root);
+  const resolvedTarget = path9.resolve(target);
+  return resolvedTarget === resolvedRoot || resolvedTarget.startsWith(`${resolvedRoot}${path9.sep}`);
 }
 function issue2(code2, relativePath, message) {
   return { severity: "error", code: code2, path: relativePath, message };
 }
-async function collectFiles(directory, layerRoot, diagnostics) {
+async function collectFiles2(directory, layerRoot, diagnostics) {
   const files = [];
   let entries;
   try {
-    entries = await readdir(directory, { withFileTypes: true });
+    entries = await readdir2(directory, { withFileTypes: true });
   } catch (error2) {
     diagnostics.push(
       issue2(
@@ -20627,14 +21533,14 @@ async function collectFiles(directory, layerRoot, diagnostics) {
     return files;
   }
   for (const entry of entries.sort((left, right) => left.name.localeCompare(right.name))) {
-    const absolutePath = path7.join(directory, entry.name);
+    const absolutePath = path9.join(directory, entry.name);
     const relativePath = relativeFrom(layerRoot, absolutePath);
     if (entry.isSymbolicLink()) {
       diagnostics.push(
         issue2("path.symlink", relativePath, "Symlinks are not allowed inside the canonical layer.")
       );
     } else if (entry.isDirectory()) {
-      files.push(...await collectFiles(absolutePath, layerRoot, diagnostics));
+      files.push(...await collectFiles2(absolutePath, layerRoot, diagnostics));
     } else if (entry.isFile()) {
       files.push({ absolute_path: absolutePath, relative_path: relativePath });
     }
@@ -20680,10 +21586,10 @@ function normalizedLinkTarget(target) {
 }
 async function validateMarkdownLinks(projectRoot, layerRoot, records, diagnostics) {
   const graph = /* @__PURE__ */ new Map();
-  const canonicalMarkdown = new Set(records.map((record) => path7.resolve(record.absolute_path)));
+  const canonicalMarkdown = new Set(records.map((record) => path9.resolve(record.absolute_path)));
   for (const record of records) {
     const edges = /* @__PURE__ */ new Set();
-    graph.set(path7.resolve(record.absolute_path), edges);
+    graph.set(path9.resolve(record.absolute_path), edges);
     for (const link of record.parsed.links) {
       const diagnosticPath = `${record.relative_path}:${link.line}`;
       const rawTarget = link.target;
@@ -20726,8 +21632,8 @@ async function validateMarkdownLinks(projectRoot, layerRoot, records, diagnostic
         continue;
       }
       if (relativeTarget.length === 0) continue;
-      const target = path7.resolve(path7.dirname(record.absolute_path), relativeTarget);
-      if (!isInside(projectRoot, target)) {
+      const target = path9.resolve(path9.dirname(record.absolute_path), relativeTarget);
+      if (!isInside2(projectRoot, target)) {
         diagnostics.push(
           issue2(
             "link.outside-project",
@@ -20745,7 +21651,7 @@ async function validateMarkdownLinks(projectRoot, layerRoot, records, diagnostic
         );
         continue;
       }
-      if (isInside(layerRoot, target) && canonicalMarkdown.has(target)) edges.add(target);
+      if (isInside2(layerRoot, target) && canonicalMarkdown.has(target)) edges.add(target);
     }
   }
   return graph;
@@ -20753,11 +21659,11 @@ async function validateMarkdownLinks(projectRoot, layerRoot, records, diagnostic
 function validateMarkdownStructure(layerRoot, records, graph, diagnostics) {
   const byDirectory = /* @__PURE__ */ new Map();
   for (const record of records) {
-    const directory = path7.dirname(record.absolute_path);
+    const directory = path9.dirname(record.absolute_path);
     const siblings = byDirectory.get(directory) ?? [];
     siblings.push(record);
     byDirectory.set(directory, siblings);
-    const number = pathNumber(path7.basename(record.absolute_path));
+    const number = pathNumber(path9.basename(record.absolute_path));
     if (number === void 0) {
       diagnostics.push(
         issue2(
@@ -20777,7 +21683,7 @@ function validateMarkdownStructure(layerRoot, records, graph, diagnostics) {
     }
   }
   for (const [directory, siblings] of byDirectory) {
-    const index = siblings.find((record) => path7.basename(record.absolute_path) === "00-index.md");
+    const index = siblings.find((record) => path9.basename(record.absolute_path) === "00-index.md");
     if (index === void 0) {
       diagnostics.push(
         issue2(
@@ -20790,7 +21696,7 @@ function validateMarkdownStructure(layerRoot, records, graph, diagnostics) {
     }
     const seenNumbers = /* @__PURE__ */ new Map();
     for (const sibling of siblings) {
-      const number = pathNumber(path7.basename(sibling.absolute_path));
+      const number = pathNumber(path9.basename(sibling.absolute_path));
       if (number === void 0) continue;
       const previous = seenNumbers.get(number);
       if (previous !== void 0) {
@@ -20805,21 +21711,21 @@ function validateMarkdownStructure(layerRoot, records, graph, diagnostics) {
         seenNumbers.set(number, sibling.relative_path);
       }
     }
-    const indexTargets = graph.get(path7.resolve(index.absolute_path)) ?? /* @__PURE__ */ new Set();
+    const indexTargets = graph.get(path9.resolve(index.absolute_path)) ?? /* @__PURE__ */ new Set();
     for (const sibling of siblings) {
       if (sibling === index) continue;
-      if (!indexTargets.has(path7.resolve(sibling.absolute_path))) {
+      if (!indexTargets.has(path9.resolve(sibling.absolute_path))) {
         diagnostics.push(
           issue2(
             "index.unlisted-document",
             index.relative_path,
-            `Folder index does not link ${path7.basename(sibling.absolute_path)}.`
+            `Folder index does not link ${path9.basename(sibling.absolute_path)}.`
           )
         );
       }
     }
   }
-  const rootIndex = path7.resolve(layerRoot, "00-index.md");
+  const rootIndex = path9.resolve(layerRoot, "00-index.md");
   const reached = /* @__PURE__ */ new Set();
   const queue = [rootIndex];
   while (queue.length > 0) {
@@ -20829,7 +21735,7 @@ function validateMarkdownStructure(layerRoot, records, graph, diagnostics) {
     queue.push(...graph.get(current) ?? []);
   }
   for (const record of records) {
-    if (!reached.has(path7.resolve(record.absolute_path))) {
+    if (!reached.has(path9.resolve(record.absolute_path))) {
       diagnostics.push(
         issue2(
           "markdown.orphan",
@@ -20977,8 +21883,8 @@ function assignLoadedYaml(loaded, relativePath, schema4, value) {
   loaded.set(relativePath, { path: relativePath, schema: schema4, value });
 }
 async function validateCanonicalLayer(projectRoot, options = {}) {
-  const resolvedProjectRoot = path7.resolve(projectRoot);
-  const layerRoot = path7.join(resolvedProjectRoot, ".pcp");
+  const resolvedProjectRoot = path9.resolve(projectRoot);
+  const layerRoot = path9.join(resolvedProjectRoot, ".pcp");
   const diagnostics = [];
   try {
     if (!(await stat2(layerRoot)).isDirectory()) {
@@ -20988,7 +21894,7 @@ async function validateCanonicalLayer(projectRoot, options = {}) {
     diagnostics.push(issue2("layer.missing", ".pcp", "Project does not contain a .pcp directory."));
     return { valid: false, checked_files: 0, diagnostics };
   }
-  const files = await collectFiles(layerRoot, layerRoot, diagnostics);
+  const files = await collectFiles2(layerRoot, layerRoot, diagnostics);
   const presentPaths = new Set(files.map((file) => file.relative_path));
   for (const requiredPath of REQUIRED_CANONICAL_PATHS) {
     if (!presentPaths.has(requiredPath)) {
@@ -21016,7 +21922,7 @@ async function validateCanonicalLayer(projectRoot, options = {}) {
       );
       continue;
     }
-    const contents = await readFile5(file.absolute_path, "utf8");
+    const contents = await readFile7(file.absolute_path, "utf8");
     const document = parseDocument(contents, { prettyErrors: false, uniqueKeys: true });
     if (document.errors.length > 0) {
       for (const error2 of document.errors) {
@@ -21058,7 +21964,7 @@ async function validateCanonicalLayer(projectRoot, options = {}) {
   for (const file of files.filter(
     (item) => item.relative_path.endsWith(".md") && !item.relative_path.startsWith("runtime/")
   )) {
-    const contents = await readFile5(file.absolute_path, "utf8");
+    const contents = await readFile7(file.absolute_path, "utf8");
     try {
       const parsed = parseCanonicalMarkdown(contents);
       const result = schemaRegistry.validate("frontmatter", parsed.frontmatter);
@@ -21114,7 +22020,7 @@ async function validateCanonicalLayer(projectRoot, options = {}) {
   for (const file of files.filter(
     (item) => TEXT_FILE_PATTERN.test(item.relative_path) && !item.relative_path.startsWith("runtime/")
   )) {
-    validateTextSafety(file.relative_path, await readFile5(file.absolute_path, "utf8"), diagnostics);
+    validateTextSafety(file.relative_path, await readFile7(file.absolute_path, "utf8"), diagnostics);
   }
   diagnostics.push(...validateCanonicalSemantics(semanticRecords));
   if (options.clean_genesis === true) {
@@ -21137,10 +22043,658 @@ async function validateCanonicalLayer(projectRoot, options = {}) {
   };
 }
 
+// src/application/plan-adoption.ts
+var MAXIMUM_ADOPTION_INPUT_BYTES = 4 * 1048576;
+var PLACEHOLDER_PATTERN = /replace this baseline|pending project|grounded project purpose/iu;
+var WINDOWS_RESERVED_NAME = /^(?:con|prn|aux|nul|com[1-9]|lpt[1-9])(?:\..*)?$/iu;
+var WINDOWS_FORBIDDEN_CHARACTER = /[<>:"|?*]/u;
+var SCAFFOLD_SECRET_PATTERNS = [
+  /-----BEGIN (?:RSA |OPENSSH |EC |DSA |PGP )?PRIVATE KEY-----/u,
+  /\bAKIA[0-9A-Z]{16}\b/u,
+  /\b(?:gh[pousr]_[A-Za-z0-9]{30,}|github_pat_[A-Za-z0-9_]{40,})\b/u,
+  /\bsk-[A-Za-z0-9_-]{20,}\b/u,
+  /\b(?:password|passwd|api[_-]?key|client[_-]?secret|access[_-]?token)\s*[:=]\s*["']?[A-Za-z0-9+/_=-]{12,}/iu
+];
+var expectedDocuments = /* @__PURE__ */ new Map([
+  ["knowledge/10-overview.md", { type: "knowledge", status: "static" }],
+  ["knowledge/20-architecture.md", { type: "knowledge", status: "static" }],
+  ["knowledge/30-source-map.md", { type: "knowledge", status: "static" }],
+  ["knowledge/40-build-and-tooling.md", { type: "knowledge", status: "static" }],
+  ["knowledge/50-domain-and-invariants.md", { type: "knowledge", status: "static" }],
+  ["operations/10-working-agreement.md", { type: "policy", status: "living" }],
+  ["operations/20-plan.md", { type: "plan", status: "living" }],
+  ["operations/30-decisions.md", { type: "policy", status: "living" }]
+]);
+function isInside3(root, candidate) {
+  const relative = path10.relative(root, candidate);
+  return relative === "" || !relative.startsWith(`..${path10.sep}`) && relative !== ".." && !path10.isAbsolute(relative);
+}
+function portableBasename(root) {
+  const normalized = path10.basename(root).normalize("NFKD").toLowerCase();
+  const slug = normalized.replace(/[^a-z0-9]+/gu, "-").replace(/^-+|-+$/gu, "").slice(0, 63);
+  return slug || "project";
+}
+function baselineFor(root, inspection) {
+  const groups = /* @__PURE__ */ new Map();
+  for (const signal of inspection.signals) {
+    const paths = groups.get(signal.category) ?? /* @__PURE__ */ new Set();
+    paths.add(signal.path);
+    groups.set(signal.category, paths);
+  }
+  groups.set("inventory", new Set(inspection.inventory.files.map((file) => file.path)));
+  return {
+    suggested_project_id: portableBasename(root),
+    seed_sources: inspection.state === "A" ? inspection.inventory.files.map((file) => file.path) : [],
+    evidence_groups: [...groups.entries()].map(([category, paths]) => ({ category, paths: [...paths].sort(comparePortablePaths) })).sort((left, right) => comparePortablePaths(left.category, right.category)),
+    nested_repositories: [...inspection.inventory.nestedRepositories],
+    required_documents: REQUIRED_ADOPTION_DOCUMENTS,
+    preserves_existing_paths: true
+  };
+}
+function questionsFor(inspection) {
+  if (inspection.state === "managed") return [];
+  if (inspection.state === "C") {
+    return [
+      {
+        id: "state-c-coverage",
+        prompt: "Provide complete foreign-context file and history coverage before adoption.",
+        reason: "State C translation and destructive removal require semantic dispositions.",
+        required: true,
+        response_shape: "file-set"
+      }
+    ];
+  }
+  if (inspection.state === "B") {
+    return [
+      {
+        id: "grounded-baseline",
+        prompt: "Synthesize the eight canonical project documents from cited repository evidence.",
+        reason: "The deterministic engine inventories evidence but must not invent project meaning.",
+        required: true,
+        response_shape: "object"
+      },
+      {
+        id: "vcs-profile",
+        prompt: "Select none, human-owned, agent-managed, or a complete custom VCS policy.",
+        reason: "PCP cannot infer version-control authority from repository presence.",
+        required: true,
+        response_shape: "enum",
+        options: ["none", "human-owned", "agent-managed", "custom"]
+      }
+    ];
+  }
+  const questions = [
+    {
+      id: "project-identity",
+      prompt: "Provide the project name, concrete purpose, project type, and lifecycle state.",
+      reason: "A seed title or empty directory does not establish indispensable project meaning.",
+      required: true,
+      response_shape: "object"
+    },
+    {
+      id: "software-stack",
+      prompt: "If this is software, provide the language, runtime, package manager, license, and deployment choice that actually apply.",
+      reason: "PCP must not invent a software stack or license from a title.",
+      required: true,
+      response_shape: "object",
+      when: "project.project_type == software"
+    },
+    {
+      id: "vcs-profile",
+      prompt: "Select none, human-owned, agent-managed, or a complete custom VCS policy.",
+      reason: "PCP cannot infer version-control authority.",
+      required: true,
+      response_shape: "enum",
+      options: ["none", "human-owned", "agent-managed", "custom"]
+    }
+  ];
+  if (inspection.inventory.files.length === 0) {
+    questions.push({
+      id: "initial-scaffold",
+      prompt: "Provide the minimal project-type-appropriate files to create beside .pcp/.",
+      reason: "An empty seed needs an explicit scaffold, and PCP does not assume every project is software.",
+      required: true,
+      response_shape: "file-set"
+    });
+  }
+  return questions;
+}
+function previewWithoutPlan(root, inspection) {
+  return {
+    schema_version: ADOPTION_SCHEMA_VERSION,
+    command: "adopt",
+    candidate: ".",
+    classification: inspection.state,
+    confidence: inspection.confidence,
+    applicable: false,
+    questions: questionsFor(inspection),
+    baseline: baselineFor(root, inspection),
+    mutated: false
+  };
+}
+function schemaFailure(diagnostics) {
+  const details = diagnostics.slice(0, 8).map((diagnostic2) => `${diagnostic2.path}: ${diagnostic2.message}`).join("; ");
+  return new AdoptionError("PCP_ADOPTION_INPUT_INVALID", `Invalid adoption input: ${details}`);
+}
+async function loadAdoptionInput(inputPath, candidateRoot2) {
+  const resolvedInput = path10.resolve(inputPath);
+  if (isInside3(candidateRoot2, resolvedInput)) {
+    throw new AdoptionError(
+      "PCP_ADOPTION_INPUT_INSIDE_CANDIDATE",
+      "Store the transient adoption input outside the candidate project so it cannot become project state."
+    );
+  }
+  const metadata = await lstat4(resolvedInput).catch((error2) => {
+    const detail = error2 instanceof Error ? error2.message : String(error2);
+    throw new AdoptionError(
+      "PCP_ADOPTION_INPUT_UNREADABLE",
+      `Cannot read adoption input: ${detail}`
+    );
+  });
+  if (!metadata.isFile() || metadata.isSymbolicLink() || metadata.size > MAXIMUM_ADOPTION_INPUT_BYTES) {
+    throw new AdoptionError(
+      "PCP_ADOPTION_INPUT_UNSAFE",
+      "The adoption input must be a regular non-symlink file no larger than 4 MiB."
+    );
+  }
+  const document = parseDocument(await readFile8(resolvedInput, "utf8"), {
+    prettyErrors: false,
+    strict: true,
+    uniqueKeys: true
+  });
+  if (document.errors.length > 0) {
+    throw new AdoptionError(
+      "PCP_ADOPTION_INPUT_INVALID",
+      `Invalid adoption input YAML: ${document.errors.map((error2) => error2.message).join("; ")}`
+    );
+  }
+  const value = document.toJS({ mapAsMap: false });
+  const validation = new SchemaRegistry().validate("adoption-input", value);
+  if (!validation.valid) throw schemaFailure(validation.diagnostics);
+  return value;
+}
+function validateDocumentSet(input, inspection) {
+  const paths = input.documents.map((document) => document.path);
+  if (new Set(paths).size !== REQUIRED_ADOPTION_DOCUMENTS.length) {
+    throw new AdoptionError(
+      "PCP_ADOPTION_INPUT_INVALID",
+      "Each required canonical adoption document must appear exactly once."
+    );
+  }
+  for (const requiredPath of REQUIRED_ADOPTION_DOCUMENTS) {
+    if (!paths.includes(requiredPath)) {
+      throw new AdoptionError(
+        "PCP_ADOPTION_INPUT_INVALID",
+        `Missing required adoption document: ${requiredPath}`
+      );
+    }
+  }
+  const availableEvidence = /* @__PURE__ */ new Set([
+    ...inspection.inventory.directories,
+    ...inspection.inventory.files.map((file) => file.path),
+    ...inspection.inventory.nestedRepositories
+  ]);
+  for (const document of input.documents) {
+    const expected = expectedDocuments.get(document.path);
+    if (expected === void 0 || expected.type !== document.type || expected.status !== document.status) {
+      throw new AdoptionError(
+        "PCP_ADOPTION_INPUT_INVALID",
+        `Document metadata does not match its canonical role: ${document.path}`
+      );
+    }
+    const body = normalizeText(document.body).trim();
+    if (!body.startsWith("# ") || body.startsWith("---") || PLACEHOLDER_PATTERN.test(body)) {
+      throw new AdoptionError(
+        "PCP_ADOPTION_INPUT_INVALID",
+        `Document must contain grounded Markdown without template placeholders: ${document.path}`
+      );
+    }
+    if ((document.basis === "repository" || document.basis === "repository-and-user") && document.evidence_paths.length === 0) {
+      throw new AdoptionError(
+        "PCP_ADOPTION_INPUT_INVALID",
+        `Repository-grounded document has no evidence path: ${document.path}`
+      );
+    }
+    if (inspection.state === "B" && document.type === "knowledge" && document.basis !== "repository" && document.basis !== "repository-and-user") {
+      throw new AdoptionError(
+        "PCP_ADOPTION_INPUT_INVALID",
+        `State B knowledge must cite current repository evidence: ${document.path}`
+      );
+    }
+    for (const evidencePath of document.evidence_paths) {
+      if (!availableEvidence.has(evidencePath)) {
+        throw new AdoptionError(
+          "PCP_ADOPTION_EVIDENCE_MISSING",
+          `Cited evidence is not in the inspected candidate: ${evidencePath}`
+        );
+      }
+    }
+  }
+}
+function portableCollisionKey(value) {
+  return value.normalize("NFKC").toLowerCase();
+}
+function assertPortableMutationPath(value) {
+  for (const segment of value.split("/")) {
+    if (segment.length === 0 || segment.endsWith(".") || segment.endsWith(" ") || WINDOWS_RESERVED_NAME.test(segment) || WINDOWS_FORBIDDEN_CHARACTER.test(segment) || [...segment].some((character) => (character.codePointAt(0) ?? 0) <= 31)) {
+      throw new AdoptionError(
+        "PCP_ADOPTION_PATH_NONPORTABLE",
+        `Planned path is not portable across supported platforms: ${value}`
+      );
+    }
+  }
+}
+function validateProjectInput(input, inspection) {
+  if (!input.project.context_roots.includes(".pcp")) {
+    throw new AdoptionError(
+      "PCP_ADOPTION_INPUT_INVALID",
+      "Project context_roots must include .pcp."
+    );
+  }
+  if (inspection.state === "B" && input.scaffold_files.length > 0) {
+    throw new AdoptionError(
+      "PCP_STATE_B_SCAFFOLD_FORBIDDEN",
+      "State B adoption preserves ordinary project topology and cannot add scaffold files."
+    );
+  }
+  if (inspection.state === "A" && inspection.inventory.files.length === 0 && input.scaffold_files.length === 0) {
+    throw new AdoptionError(
+      "PCP_STATE_A_SCAFFOLD_REQUIRED",
+      "An empty State A candidate requires an explicit project-type-appropriate scaffold."
+    );
+  }
+  const scaffoldPaths = input.scaffold_files.map((file) => file.path);
+  if (new Set(scaffoldPaths).size !== scaffoldPaths.length) {
+    throw new AdoptionError("PCP_ADOPTION_INPUT_INVALID", "Scaffold paths must be unique.");
+  }
+  for (const scaffold of input.scaffold_files) {
+    const normalized = path10.posix.normalize(scaffold.path);
+    if (scaffold.path === "." || normalized !== scaffold.path || scaffold.path.endsWith("/") || scaffold.path.startsWith(".pcp/")) {
+      throw new AdoptionError("PCP_ADOPTION_PATH_UNSAFE", `Unsafe scaffold path: ${scaffold.path}`);
+    }
+    assertPortableMutationPath(scaffold.path);
+    if (SCAFFOLD_SECRET_PATTERNS.some((pattern) => pattern.test(scaffold.content))) {
+      throw new AdoptionError(
+        "PCP_ADOPTION_SCAFFOLD_SECRET",
+        `Refusing to scaffold secret-like content: ${scaffold.path}`
+      );
+    }
+  }
+}
+function renderDocument(document, baselineAt) {
+  const frontmatter = stringify3(
+    {
+      doc: document.path,
+      type: document.type,
+      status: document.status,
+      version: "1.0.0",
+      last_updated: baselineAt,
+      ownership: "project"
+    },
+    { lineWidth: 0 }
+  ).trimEnd();
+  const body = normalizeText(document.body).trim();
+  return Buffer.from(`---
+${frontmatter}
+---
+
+${body}
+`, "utf8");
+}
+async function writeStageFiles(root, files) {
+  for (const [relativePath, content] of files) {
+    const target = path10.join(root, ...relativePath.split("/"));
+    await mkdir2(path10.dirname(target), { recursive: true });
+    await writeFile3(target, content, { flag: "wx" });
+  }
+}
+async function collectStageFiles(directory, stageRoot, result) {
+  const entries = await readdir3(directory, { withFileTypes: true });
+  entries.sort((left, right) => comparePortablePaths(left.name, right.name));
+  for (const entry of entries) {
+    const target = path10.join(directory, entry.name);
+    const metadata = await lstat4(target);
+    const relativePath = toPortablePath(path10.relative(stageRoot, target));
+    if (metadata.isSymbolicLink()) {
+      throw new AdoptionError(
+        "PCP_ADOPTION_STAGE_INVALID",
+        `Staged symlink is forbidden: ${relativePath}`
+      );
+    }
+    if (metadata.isDirectory()) {
+      await collectStageFiles(target, stageRoot, result);
+    } else if (metadata.isFile()) {
+      result.set(relativePath, await readFile8(target));
+    }
+  }
+}
+function yamlBuffer(value) {
+  return Buffer.from(stringify3(value, { lineWidth: 0, sortMapEntries: true }), "utf8");
+}
+async function stageCanonicalLayer(input) {
+  const stageRoot = await mkdtemp2(path10.join(tmpdir2(), "pcp-adoption-preview-"));
+  try {
+    const template = new Map(await loadCoreTemplateFiles());
+    const manifestPath = ".pcp/pcp.yaml";
+    const manifestBytes = template.get(manifestPath);
+    if (manifestBytes === void 0) {
+      throw new AdoptionError("PCP_ADOPTION_ASSETS_MISSING", "The core manifest asset is missing.");
+    }
+    const manifest = parse(manifestBytes.toString("utf8"));
+    manifest.persistence = input.persistence;
+    template.set(manifestPath, yamlBuffer(manifest));
+    template.set(".pcp/state/project.yaml", yamlBuffer(input.project));
+    template.set(".pcp/state/projects.yaml", yamlBuffer(input.projects));
+    template.set(".pcp/state/workstreams.yaml", yamlBuffer(input.workstreams));
+    template.set(".pcp/state/vcs-policy.yaml", yamlBuffer(input.vcs_policy));
+    for (const document of input.documents) {
+      template.set(`.pcp/${document.path}`, renderDocument(document, input.baseline_at));
+    }
+    await writeStageFiles(stageRoot, template);
+    const rendering = await renderCanonicalViews(stageRoot);
+    if (!rendering.valid) {
+      throw new AdoptionError(
+        "PCP_ADOPTION_STAGE_INVALID",
+        `Unable to render staged canonical views: ${rendering.diagnostics.map((item) => item.message).join("; ")}`
+      );
+    }
+    const validation = await validateCanonicalLayer(stageRoot, { clean_genesis: true });
+    if (!validation.valid) {
+      throw new AdoptionError(
+        "PCP_ADOPTION_STAGE_INVALID",
+        `Staged canonical layer is invalid: ${validation.diagnostics.slice(0, 8).map((item) => `${item.path}: ${item.message}`).join("; ")}`
+      );
+    }
+    const result = /* @__PURE__ */ new Map();
+    await collectStageFiles(path10.join(stageRoot, ".pcp"), stageRoot, result);
+    return result;
+  } finally {
+    await rm2(stageRoot, { recursive: true, force: true });
+  }
+}
+function parentDirectories(relativePath) {
+  const result = [];
+  let parent = path10.posix.dirname(relativePath);
+  while (parent !== ".") {
+    result.push(parent);
+    parent = path10.posix.dirname(parent);
+  }
+  return result;
+}
+function pathDepth(value) {
+  return value.split("/").length;
+}
+async function assertNoTargetCollisions(root, content, inspection, persistence) {
+  const files = new Set(inspection.inventory.files.map((file) => file.path));
+  const directories = new Set(inspection.inventory.directories);
+  const symlinks = inspection.inventory.symlinks.map((link) => link.path);
+  const existingPathKeys = /* @__PURE__ */ new Map();
+  for (const existing of [...files, ...directories, ...symlinks]) {
+    existingPathKeys.set(portableCollisionKey(existing), existing);
+  }
+  const desiredPaths = /* @__PURE__ */ new Set();
+  for (const target of content.keys()) {
+    desiredPaths.add(target);
+    for (const parent of parentDirectories(target)) desiredPaths.add(parent);
+  }
+  const desiredPathKeys = /* @__PURE__ */ new Map();
+  for (const desired of desiredPaths) {
+    assertPortableMutationPath(desired);
+    const desiredKey = portableCollisionKey(desired);
+    const equivalentDesired = desiredPathKeys.get(desiredKey);
+    if (equivalentDesired !== void 0 && equivalentDesired !== desired) {
+      throw new AdoptionError(
+        "PCP_ADOPTION_PATH_COLLISION",
+        `Planned paths collide under portable normalization: ${equivalentDesired}, ${desired}`
+      );
+    }
+    desiredPathKeys.set(desiredKey, desired);
+    const existingEquivalent = existingPathKeys.get(desiredKey);
+    if (existingEquivalent !== void 0 && existingEquivalent !== desired) {
+      throw new AdoptionError(
+        "PCP_ADOPTION_PATH_COLLISION",
+        `Planned path collides with existing path ${existingEquivalent}: ${desired}`
+      );
+    }
+  }
+  for (const target of content.keys()) {
+    if (files.has(target) || directories.has(target) || symlinks.includes(target)) {
+      throw new AdoptionError(
+        "PCP_ADOPTION_PATH_COLLISION",
+        `Planned target already exists: ${target}`
+      );
+    }
+    const staticExclusion = mutationPathExclusion(target);
+    if (staticExclusion !== void 0) {
+      throw new AdoptionError(
+        "PCP_ADOPTION_PATH_BOUNDARY",
+        `Planned target enters a ${staticExclusion} path: ${target}`
+      );
+    }
+    if (await isMutationPathIgnored(root, target) && !(persistence === "local" && target.startsWith(".pcp/"))) {
+      throw new AdoptionError(
+        "PCP_ADOPTION_PATH_BOUNDARY",
+        `Planned target is ignored by candidate policy: ${target}`
+      );
+    }
+    for (const exclusion of inspection.inventory.exclusions) {
+      if (target === exclusion.path || target.startsWith(`${exclusion.path}/`)) {
+        throw new AdoptionError(
+          "PCP_ADOPTION_PATH_BOUNDARY",
+          `Planned target enters an excluded ${exclusion.reason} boundary: ${target}`
+        );
+      }
+    }
+    for (const link of symlinks) {
+      if (target.startsWith(`${link}/`)) {
+        throw new AdoptionError(
+          "PCP_ADOPTION_PATH_BOUNDARY",
+          `Planned target crosses a symbolic-link boundary: ${target}`
+        );
+      }
+    }
+    for (const nested of inspection.inventory.nestedRepositories) {
+      if (target === nested || target.startsWith(`${nested}/`)) {
+        throw new AdoptionError(
+          "PCP_ADOPTION_NESTED_REPOSITORY",
+          `Planned target crosses a nested repository boundary: ${target}`
+        );
+      }
+    }
+    for (const parent of parentDirectories(target)) {
+      if (files.has(parent) || symlinks.includes(parent)) {
+        throw new AdoptionError(
+          "PCP_ADOPTION_PATH_COLLISION",
+          `Planned target has a non-directory ancestor: ${target}`
+        );
+      }
+    }
+  }
+}
+async function buildPlanMaterial(root, inspection, input) {
+  if (inspection.state !== "A" && inspection.state !== "B") {
+    throw new AdoptionError(
+      "PCP_ADOPTION_STATE_UNSUPPORTED",
+      `M3 adoption applies only to State A or State B candidates, not ${inspection.state}.`
+    );
+  }
+  validateDocumentSet(input, inspection);
+  validateProjectInput(input, inspection);
+  if (input.persistence === "local" && !await isMutationDirectoryIgnored(root, ".pcp")) {
+    throw new AdoptionError(
+      "PCP_LOCAL_PERSISTENCE_NOT_IGNORED",
+      "Local persistence requires candidate ignore policy to cover the complete .pcp/ layer before adoption."
+    );
+  }
+  const content = new Map(await stageCanonicalLayer(input));
+  for (const scaffold of input.scaffold_files) {
+    content.set(scaffold.path, Buffer.from(normalizeText(scaffold.content), "utf8"));
+  }
+  await assertNoTargetCollisions(root, content, inspection, input.persistence);
+  const existingDirectories = new Set(inspection.inventory.directories);
+  const requiredDirectories = /* @__PURE__ */ new Set();
+  for (const target of content.keys()) {
+    for (const directory of parentDirectories(target)) {
+      if (!existingDirectories.has(directory)) requiredDirectories.add(directory);
+    }
+  }
+  const directoryOperations = [...requiredDirectories].sort((left, right) => pathDepth(left) - pathDepth(right) || comparePortablePaths(left, right)).map((directory) => ({ action: "mkdir", path: directory }));
+  const writeOperations = [...content.entries()].sort(([left], [right]) => comparePortablePaths(left, right)).map(([target, bytes]) => ({
+    action: "write",
+    path: target,
+    content_digest: sha256(bytes)
+  }));
+  const plan = createMutationPlan({
+    classification: inspection.state,
+    inventory: inspection.inventory,
+    generatedAt: input.baseline_at,
+    operations: [...directoryOperations, ...writeOperations],
+    validations: [
+      "candidate-inventory",
+      "canonical-layer",
+      "clean-genesis",
+      "desired-hashes",
+      "path-boundaries",
+      "rollback",
+      "semantic-input"
+    ]
+  });
+  const planValidation = new SchemaRegistry().validate("mutation-plan", plan);
+  if (!planValidation.valid) throw schemaFailure(planValidation.diagnostics);
+  const preview = {
+    schema_version: ADOPTION_SCHEMA_VERSION,
+    command: "adopt",
+    candidate: ".",
+    classification: inspection.state,
+    confidence: inspection.confidence,
+    applicable: true,
+    questions: [],
+    baseline: baselineFor(root, inspection),
+    plan,
+    mutated: false
+  };
+  return { inspection, input, preview, content_by_path: content };
+}
+async function planAdoption(candidate = ".", inputPath) {
+  const root = await resolveCandidateRoot(candidate);
+  const inspection = await inspectRepository(root);
+  if (inputPath === void 0 || inspection.state === "managed" || inspection.state === "C") {
+    return previewWithoutPlan(root, inspection);
+  }
+  const input = await loadAdoptionInput(inputPath, root);
+  return buildPlanMaterial(root, inspection, input);
+}
+function isPlanMaterial(value) {
+  return "content_by_path" in value;
+}
+
+// src/application/adopt-project.ts
+function digestMatches(expected, supplied) {
+  if (!/^[a-f0-9]{64}$/u.test(supplied)) return false;
+  return timingSafeEqual(Buffer.from(expected, "hex"), Buffer.from(supplied, "hex"));
+}
+function comparableInventory(inventory) {
+  return {
+    directories: inventory.directories,
+    files: inventory.files,
+    symlinks: inventory.symlinks,
+    nested_repositories: inventory.nestedRepositories
+  };
+}
+async function verifyAdoptionSourceStability(root, original, plan) {
+  if (plan.operations.some(
+    (operation) => operation.action !== "mkdir" && operation.action !== "write"
+  )) {
+    throw new AdoptionError(
+      "PCP_ADOPTION_PLAN_UNSAFE",
+      "State A/B adoption may contain only new-directory and new-file operations.",
+      true
+    );
+  }
+  const createdDirectories = new Set(
+    plan.operations.filter((operation) => operation.action === "mkdir").map((operation) => operation.path)
+  );
+  const createdFiles = new Set(
+    plan.operations.filter((operation) => operation.action === "write").map((operation) => operation.path)
+  );
+  const current = await inventoryRepository(root);
+  const withoutAdoption = {
+    ...current,
+    directories: current.directories.filter((item) => !createdDirectories.has(item)),
+    files: current.files.filter((item) => !createdFiles.has(item.path))
+  };
+  if (canonicalJson(comparableInventory(withoutAdoption)) !== canonicalJson(comparableInventory(original))) {
+    throw new AdoptionError(
+      "PCP_SOURCE_CHANGED",
+      "Candidate-owned source changed while the adoption transaction was running.",
+      true
+    );
+  }
+}
+async function adoptProject(candidate = ".", options = {}) {
+  if (options.apply !== void 0 && options.input === void 0) {
+    throw new AdoptionError(
+      "PCP_ADOPTION_INPUT_REQUIRED",
+      "Applying adoption requires the same external semantic input used to create the preview."
+    );
+  }
+  const planned = await planAdoption(candidate, options.input);
+  if (!isPlanMaterial(planned)) {
+    if (options.apply !== void 0) {
+      throw new AdoptionError(
+        "PCP_ADOPTION_NOT_APPLICABLE",
+        `The ${planned.classification} candidate is not ready for an applicable State A/B plan.`
+      );
+    }
+    return planned;
+  }
+  if (options.apply === void 0) return planned.preview;
+  if (!digestMatches(planned.preview.plan.plan_digest, options.apply)) {
+    throw new AdoptionError(
+      "PCP_PLAN_DIGEST_MISMATCH",
+      "The approved digest does not match the fully recomputed current adoption plan."
+    );
+  }
+  const root = await resolveCandidateRoot(candidate);
+  let checkedFiles = 0;
+  const transaction = await executeFilesystemTransaction(
+    root,
+    planned.preview.plan,
+    planned.content_by_path,
+    {
+      ...options.fail_after_operation === void 0 ? {} : { fail_after_operation: options.fail_after_operation },
+      verify_source_stability: async () => verifyAdoptionSourceStability(root, planned.inspection.inventory, planned.preview.plan),
+      validate_live: async () => {
+        const validation = await validateCanonicalLayer(root, { clean_genesis: true });
+        if (!validation.valid) {
+          throw new AdoptionError(
+            "PCP_ADOPTION_LIVE_INVALID",
+            `Applied canonical layer failed validation: ${validation.diagnostics.slice(0, 8).map((item) => `${item.path}: ${item.message}`).join("; ")}`,
+            true
+          );
+        }
+        checkedFiles = validation.checked_files;
+      }
+    }
+  );
+  return {
+    schema_version: ADOPTION_SCHEMA_VERSION,
+    command: "adopt",
+    candidate: ".",
+    classification: planned.preview.classification,
+    plan_digest: planned.preview.plan.plan_digest,
+    applied_operations: transaction.applied_operations,
+    validation: { valid: true, checked_files: checkedFiles },
+    clean_genesis: { agent_profiles: 0, journal_events: 0 },
+    recovery_cleaned: transaction.recovery_cleaned,
+    mutated: true
+  };
+}
+
 // src/domain/release.ts
 var PCP_NAME = "Persistent Context Protocol";
 var PCP_VERSION = "0.1.0";
-var PCP_RELEASE_STAGE = "canonical-layer";
+var PCP_RELEASE_STAGE = "state-a-b-adoption";
 var PCP_COMMANDS = [
   "inspect",
   "adopt",
@@ -21153,6 +22707,55 @@ var PCP_COMMANDS = [
   "upgrade",
   "repair"
 ];
+
+// src/presentation/format-adoption.ts
+function line(value = "") {
+  return `${value}
+`;
+}
+function formatAdoption(result) {
+  let output = line("PCP adoption");
+  output += line(`State: ${result.classification}`);
+  if (result.mutated) {
+    output += line(`Plan digest: ${result.plan_digest}`);
+    output += line(`Applied operations: ${result.applied_operations}`);
+    output += line(`Validated canonical files: ${result.validation.checked_files}`);
+    output += line("Clean genesis: 0 agent profiles, 0 journal events");
+    output += line("Recovery material: cleaned");
+    output += line("Mutation: applied");
+    return output;
+  }
+  output += line(`Confidence: ${result.confidence}`);
+  output += line(`Applicable: ${result.applicable ? "yes" : "no"}`);
+  output += line(`Suggested project id: ${result.baseline.suggested_project_id}`);
+  if (result.baseline.evidence_groups.length > 0) {
+    output += line("Evidence inputs:");
+    for (const group of result.baseline.evidence_groups) {
+      output += line(`- ${group.category}: ${group.paths.join(", ") || "(none)"}`);
+    }
+  }
+  if (result.questions.length > 0) {
+    output += line("Required inputs:");
+    for (const question of result.questions) {
+      output += line(`- ${question.id}: ${question.prompt}`);
+      if (question.when !== void 0) output += line(`  when: ${question.when}`);
+    }
+  }
+  if (result.plan !== void 0) {
+    output += line(`Plan digest: ${result.plan.plan_digest}`);
+    output += line("Operations:");
+    for (const operation of result.plan.operations) {
+      const digest = operation.content_digest === void 0 ? "" : ` sha256:${operation.content_digest}`;
+      const source = operation.source_path === void 0 ? "" : ` from:${operation.source_path}`;
+      output += line(
+        `- ${operation.operation_id} ${operation.action} ${operation.path}${source}${digest}`
+      );
+    }
+    output += line(`Validations: ${result.plan.validations.join(", ")}`);
+  }
+  output += line("Mutation: none");
+  return output;
+}
 
 // src/presentation/format-canonical.ts
 function diagnosticLines(diagnostics) {
@@ -21256,6 +22859,17 @@ function reportInspectionError(error2) {
 `);
   process.exitCode = 2;
 }
+function reportAdoptionError(error2) {
+  const code2 = error2 instanceof AdoptionError ? error2.code : "PCP_ADOPTION_FAILED";
+  const message = error2 instanceof Error ? error2.message : String(error2);
+  const mutated = error2 instanceof AdoptionError ? error2.mutated : false;
+  const recoveryRetained = error2 instanceof AdoptionError && error2.recoveryRoot !== void 0;
+  process.stderr.write(
+    `${JSON.stringify({ code: code2, message, mutated, recovery_retained: recoveryRetained })}
+`
+  );
+  process.exitCode = 2;
+}
 function addInspectCommand(program2) {
   return program2.command("inspect").description(commandDescriptions.inspect).argument("[directory]", "candidate project root").option("--candidate <directory>", "candidate project root").option("--json", "emit stable structured JSON").action(async (directory, options) => {
     try {
@@ -21266,6 +22880,22 @@ function addInspectCommand(program2) {
       );
     } catch (error2) {
       reportInspectionError(error2);
+    }
+  });
+}
+function addAdoptCommand(program2) {
+  return program2.command("adopt").description(commandDescriptions.adopt).argument("[directory]", "candidate project root").option("--candidate <directory>", "candidate project root").option("--input <adoption.yaml>", "external semantic adoption input").option("--apply <digest>", "apply only the matching fully recomputed preview digest").option("--json", "emit stable structured JSON").action(async (directory, options) => {
+    try {
+      const result = await adoptProject(options.candidate ?? directory ?? ".", {
+        ...options.input === void 0 ? {} : { input: options.input },
+        ...options.apply === void 0 ? {} : { apply: options.apply }
+      });
+      process.stdout.write(
+        options.json === true ? `${JSON.stringify(result, null, 2)}
+` : formatAdoption(result)
+      );
+    } catch (error2) {
+      reportAdoptionError(error2);
     }
   });
 }
@@ -21311,9 +22941,6 @@ function reportOperationError(code2, error2, mutationPossible) {
 function addUnavailableCommand(program2, commandName) {
   const command = program2.command(commandName).description(commandDescriptions[commandName]);
   switch (commandName) {
-    case "adopt":
-      command.option("--candidate <directory>", "candidate project root", ".").option("--apply <digest>", "apply only the matching preview digest");
-      break;
     case "record":
       command.requiredOption("--input <event.yaml>", "event candidate to validate and record");
       break;
@@ -21338,6 +22965,8 @@ function createProgram() {
   for (const commandName of PCP_COMMANDS) {
     if (commandName === "inspect") {
       addInspectCommand(program2);
+    } else if (commandName === "adopt") {
+      addAdoptCommand(program2);
     } else if (commandName === "validate") {
       addValidateCommand(program2);
     } else if (commandName === "render") {

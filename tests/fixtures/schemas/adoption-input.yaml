@@ -1,0 +1,123 @@
+schema: adoption-input
+valid:
+  schema_version: 1
+  baseline_at: 2026-07-13T09:30:00Z
+  persistence: tracked
+  project:
+    schema_version: 1
+    project_id: sample-project
+    name: Sample project
+    purpose: Demonstrate grounded PCP adoption input.
+    project_type: software
+    lifecycle: active
+    artifact_roots:
+      - .
+    context_roots:
+      - .pcp
+    repositories: []
+    tags: []
+  projects:
+    schema_version: 1
+    projects: []
+  workstreams:
+    schema_version: 1
+    workstreams: []
+  vcs_policy:
+    schema_version: 1
+    mode: none
+    provider: none
+    repository:
+      remote_name: none
+      default_branch: main
+    responsibilities:
+      initialize: prohibited
+      create_repository: prohibited
+      configure_remote: prohibited
+      configure_protection: prohibited
+      sync_default: prohibited
+      create_branch: prohibited
+      stage: prohibited
+      commit: prohibited
+      push: prohibited
+      open_pull_request: prohibited
+      repair_ci: prohibited
+      review_pull_request: prohibited
+      merge_pull_request: prohibited
+      cleanup_branch: prohibited
+      tag: prohibited
+      release: prohibited
+      force_push: prohibited
+      rewrite_history: prohibited
+      destructive_recovery: prohibited
+      manage_credentials: prohibited
+    workflow:
+      branch_pattern: disabled
+      commit_convention: none
+      push_cadence: never
+      pull_request_required: false
+      human_merge_required: false
+      post_merge: []
+  documents:
+    - path: knowledge/10-overview.md
+      type: knowledge
+      status: static
+      basis: repository
+      evidence_paths: [README.md]
+      body: "# Project overview\n\nGrounded overview."
+    - path: knowledge/20-architecture.md
+      type: knowledge
+      status: static
+      basis: repository
+      evidence_paths: [README.md]
+      body: "# Architecture\n\nGrounded architecture."
+    - path: knowledge/30-source-map.md
+      type: knowledge
+      status: static
+      basis: repository
+      evidence_paths: [README.md]
+      body: "# Source map\n\nGrounded source map."
+    - path: knowledge/40-build-and-tooling.md
+      type: knowledge
+      status: static
+      basis: repository
+      evidence_paths: [README.md]
+      body: "# Build and tooling\n\nGrounded tooling."
+    - path: knowledge/50-domain-and-invariants.md
+      type: knowledge
+      status: static
+      basis: repository
+      evidence_paths: [README.md]
+      body: "# Domain and invariants\n\nGrounded invariants."
+    - path: operations/10-working-agreement.md
+      type: policy
+      status: living
+      basis: user
+      evidence_paths: []
+      body: "# Working agreement\n\nUser-approved working agreement."
+    - path: operations/20-plan.md
+      type: plan
+      status: living
+      basis: user
+      evidence_paths: []
+      body: "# Project plan\n\nUser-approved next action."
+    - path: operations/30-decisions.md
+      type: policy
+      status: living
+      basis: user
+      evidence_paths: []
+      body: "# Decision ledger\n\nNo accepted project decision yet."
+  scaffold_files:
+    - path: src/index.ts
+      content: "export {};\n"
+invalid:
+  - name: missing project state
+    operation: delete
+    path: project
+  - name: scaffold enters canonical layer
+    operation: set
+    path: scaffold_files.0.path
+    value: .pcp/escape.md
+  - name: unsupported document path
+    operation: set
+    path: documents.0.path
+    value: overview.md

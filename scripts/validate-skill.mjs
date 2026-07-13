@@ -55,6 +55,7 @@ if (typeof defaultPrompt !== 'string' || !defaultPrompt.includes('$build-pcp')) 
 
 const requiredAssets = [
   'pcp-assets.sha256',
+  'schemas/v1/adoption-input.schema.json',
   'schemas/v1/pcp-manifest.schema.json',
   'templates/core/.pcp/pcp.yaml',
   'templates/core/.pcp/views/10-status.generated.md',

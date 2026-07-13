@@ -2,6 +2,7 @@ import { pathToFileURL } from 'node:url';
 
 import { Command } from 'commander';
 
+import { adoptProject } from '../application/adopt-project.js';
 import { inspectRepository } from '../application/inspect-repository.js';
 import { renderCanonicalViews } from '../application/render-canonical-views.js';
 import { validateCanonicalLayer } from '../application/validate-canonical-layer.js';
@@ -12,7 +13,9 @@ import {
   PCP_VERSION,
   type PcpCommandName,
 } from '../domain/release.js';
+import { AdoptionError } from '../domain/adoption.js';
 import { InspectionError } from '../domain/inspection.js';
+import { formatAdoption } from '../presentation/format-adoption.js';
 import {
   formatCanonicalRender,
   formatCanonicalValidation,
@@ -50,6 +53,13 @@ interface InspectOptions {
   json?: boolean;
 }
 
+interface AdoptOptions {
+  candidate?: string;
+  input?: string;
+  apply?: string;
+  json?: boolean;
+}
+
 interface ValidateOptions {
   cleanGenesis?: boolean;
   json?: boolean;
@@ -64,6 +74,17 @@ function reportInspectionError(error: unknown): void {
   const code = error instanceof InspectionError ? error.code : 'PCP_INSPECTION_FAILED';
   const message = error instanceof Error ? error.message : String(error);
   process.stderr.write(`${JSON.stringify({ code, message, mutated: false })}\n`);
+  process.exitCode = 2;
+}
+
+function reportAdoptionError(error: unknown): void {
+  const code = error instanceof AdoptionError ? error.code : 'PCP_ADOPTION_FAILED';
+  const message = error instanceof Error ? error.message : String(error);
+  const mutated = error instanceof AdoptionError ? error.mutated : false;
+  const recoveryRetained = error instanceof AdoptionError && error.recoveryRoot !== undefined;
+  process.stderr.write(
+    `${JSON.stringify({ code, message, mutated, recovery_retained: recoveryRetained })}\n`,
+  );
   process.exitCode = 2;
 }
 
@@ -82,6 +103,30 @@ function addInspectCommand(program: Command): Command {
         );
       } catch (error) {
         reportInspectionError(error);
+      }
+    });
+}
+
+function addAdoptCommand(program: Command): Command {
+  return program
+    .command('adopt')
+    .description(commandDescriptions.adopt)
+    .argument('[directory]', 'candidate project root')
+    .option('--candidate <directory>', 'candidate project root')
+    .option('--input <adoption.yaml>', 'external semantic adoption input')
+    .option('--apply <digest>', 'apply only the matching fully recomputed preview digest')
+    .option('--json', 'emit stable structured JSON')
+    .action(async (directory: string | undefined, options: AdoptOptions) => {
+      try {
+        const result = await adoptProject(options.candidate ?? directory ?? '.', {
+          ...(options.input === undefined ? {} : { input: options.input }),
+          ...(options.apply === undefined ? {} : { apply: options.apply }),
+        });
+        process.stdout.write(
+          options.json === true ? `${JSON.stringify(result, null, 2)}\n` : formatAdoption(result),
+        );
+      } catch (error) {
+        reportAdoptionError(error);
       }
     });
 }
@@ -145,11 +190,6 @@ function addUnavailableCommand(program: Command, commandName: PcpCommandName): C
   const command = program.command(commandName).description(commandDescriptions[commandName]);
 
   switch (commandName) {
-    case 'adopt':
-      command
-        .option('--candidate <directory>', 'candidate project root', '.')
-        .option('--apply <digest>', 'apply only the matching preview digest');
-      break;
     case 'record':
       command.requiredOption('--input <event.yaml>', 'event candidate to validate and record');
       break;
@@ -182,6 +222,8 @@ export function createProgram(): Command {
   for (const commandName of PCP_COMMANDS) {
     if (commandName === 'inspect') {
       addInspectCommand(program);
+    } else if (commandName === 'adopt') {
+      addAdoptCommand(program);
     } else if (commandName === 'validate') {
       addValidateCommand(program);
     } else if (commandName === 'render') {

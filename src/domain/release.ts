@@ -1,6 +1,6 @@
 export const PCP_NAME = 'Persistent Context Protocol';
 export const PCP_VERSION = '0.1.0';
-export const PCP_RELEASE_STAGE = 'canonical-layer';
+export const PCP_RELEASE_STAGE = 'state-a-b-adoption';
 
 export const PCP_COMMANDS = [
   'inspect',

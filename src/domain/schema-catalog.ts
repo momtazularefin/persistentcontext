@@ -1,4 +1,5 @@
 import adapterSchema from '../../schemas/v1/adapter.schema.json' with { type: 'json' };
+import adoptionInputSchema from '../../schemas/v1/adoption-input.schema.json' with { type: 'json' };
 import agentProfileSchema from '../../schemas/v1/agent-profile.schema.json' with { type: 'json' };
 import checkpointSchema from '../../schemas/v1/checkpoint.schema.json' with { type: 'json' };
 import commonSchema from '../../schemas/v1/common.schema.json' with { type: 'json' };
@@ -14,6 +15,7 @@ import workstreamsSchema from '../../schemas/v1/workstreams.schema.json' with { 
 
 export const SCHEMA_CATALOG = {
   adapter: adapterSchema,
+  'adoption-input': adoptionInputSchema,
   'agent-profile': agentProfileSchema,
   checkpoint: checkpointSchema,
   coverage: coverageSchema,

@@ -113,6 +113,19 @@ function exclusionForName(name: string, isDirectory: boolean): ExclusionReason |
   return undefined;
 }
 
+export function mutationPathExclusion(candidatePath: string): ExclusionReason | undefined {
+  const segments = candidatePath.split('/');
+  if (segments.some((segment) => versionControlDirectoryNames.has(segment.toLowerCase()))) {
+    return 'version-control-metadata';
+  }
+  for (const segment of segments.slice(0, -1)) {
+    const reason = exclusionForName(segment, true);
+    if (reason !== undefined) return reason;
+  }
+  const finalSegment = segments.at(-1);
+  return finalSegment === undefined ? undefined : exclusionForName(finalSegment, false);
+}
+
 function relativeFromBase(candidate: string, base: string): string | undefined {
   if (base === '') return candidate;
   if (candidate === base) return '';
@@ -155,6 +168,48 @@ async function loadIgnoreContext(
     if (code === 'ENOENT' || code === 'EISDIR') return undefined;
     throw error;
   }
+}
+
+async function mutationIgnoreContexts(
+  root: string,
+  candidatePath: string,
+): Promise<IgnoreContext[]> {
+  const contexts: IgnoreContext[] = [];
+  let absoluteDirectory = root;
+  let relativeDirectory = '';
+  const rootContext = await loadIgnoreContext(absoluteDirectory, relativeDirectory);
+  if (rootContext !== undefined) contexts.push(rootContext);
+
+  for (const segment of candidatePath.split('/').slice(0, -1)) {
+    absoluteDirectory = path.join(absoluteDirectory, segment);
+    relativeDirectory = relativeDirectory === '' ? segment : `${relativeDirectory}/${segment}`;
+    let metadata;
+    try {
+      metadata = await lstat(absoluteDirectory);
+    } catch (error) {
+      if ((error as NodeJS.ErrnoException).code === 'ENOENT') break;
+      throw error;
+    }
+    if (!metadata.isDirectory() || metadata.isSymbolicLink()) break;
+    const context = await loadIgnoreContext(absoluteDirectory, relativeDirectory);
+    if (context !== undefined) contexts.push(context);
+  }
+
+  return contexts;
+}
+
+export async function isMutationPathIgnored(root: string, candidatePath: string): Promise<boolean> {
+  const contexts = await mutationIgnoreContexts(root, candidatePath);
+
+  return isIgnored(candidatePath, false, contexts);
+}
+
+export async function isMutationDirectoryIgnored(
+  root: string,
+  candidatePath: string,
+): Promise<boolean> {
+  const contexts = await mutationIgnoreContexts(root, candidatePath);
+  return isIgnored(candidatePath, true, contexts);
 }
 
 async function hasNestedRepositoryMarker(absoluteDirectory: string): Promise<boolean> {

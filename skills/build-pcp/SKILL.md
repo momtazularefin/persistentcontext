@@ -46,7 +46,7 @@ Never delete foreign context while any file, history entry, collision, or confli
 
 ## Fail closed during development
 
-Read-only `inspect`, `validate`, and `render --check` are available. `render` may replace only the declared generated status view from schema-valid canonical YAML. If the engine returns `PCP_OPERATION_UNAVAILABLE` for another lifecycle command, report that the operation has not reached a verified release milestone. Do not simulate it or mutate the target.
+`inspect`, State A/B `adopt`, `validate`, and `render` are available. Adoption is preview-only unless the exact recomputed plan digest is supplied with the same external semantic input; `render` may replace only the declared generated status view. State C translation and the remaining lifecycle commands still return `PCP_OPERATION_UNAVAILABLE` or a non-applicable preview. Do not simulate an unavailable operation or mutate the target around the engine.
 
 ## Report evidence
 

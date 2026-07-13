@@ -6,9 +6,9 @@ Most coding agents can complete a task. The harder problem is helping the next a
 
 ## Development status
 
-PCP is under active `0.1.0` development. The engine performs read-only repository inventory and explainable intake classification, validates the canonical `.pcp/` contract, and deterministically checks or renders the generated project-status view. It fingerprints files with SHA-256, honors ignore and nested-repository boundaries, records symlinks without following them, and distinguishes a managed PCP project from State A, B, or C.
+PCP is under active `0.1.0` development. The engine performs read-only repository inventory and explainable intake classification, safely adopts State A and State B projects, validates the canonical `.pcp/` contract, and deterministically checks or renders the generated project-status view. It fingerprints files with SHA-256, honors ignore and nested-repository boundaries, records symlinks without following them, and distinguishes a managed PCP project from State A, B, or C.
 
-Do not use this revision to adopt or migrate a live context layer. Structural adoption, migration, registration, journaling, workstream mutation, repair, and upgrade remain fail-closed until their safety milestones are verified. `pcp render` may replace only its declared generated status view.
+State A/B adoption is preview-first and requires an external, schema-valid semantic baseline plus the exact recomputed plan digest. State C foreign-layer translation, registration, journaling, workstream mutation, repair, and upgrade remain fail-closed until their safety milestones are verified. `pcp render` may replace only its declared generated status view.
 
 ## Intended model
 
@@ -19,15 +19,15 @@ PCP separates two kinds of work:
 
 An adopted project will keep its canonical context in `.pcp/`. Thin adapters for supported agent products will point to that same source rather than maintaining independent memories.
 
-## Planned adoption states
+## Adoption states
 
-One adoption workflow will support:
+One adoption workflow classifies:
 
-1. A seed or greenfield project described by a title, prompt, README, or plain language.
-2. An established project with substantive assets but no persistent agent layer.
-3. A project with an existing non-PCP instruction, knowledge, memory, planning, or orchestration layer.
+1. State A: a seed or greenfield project described by a title, prompt, README, or plain language. Preview and transactional adoption are implemented.
+2. State B: an established project with substantive assets but no persistent agent layer. Grounded preview and transactional adoption are implemented without reorganizing project-owned assets.
+3. State C: a project with an existing non-PCP instruction, knowledge, memory, planning, or orchestration layer. Classification is implemented; translation and removal remain unavailable until the coverage milestone.
 
-All three states will converge on a clean genesis: grounded current context, no imported agent profiles, and no imported or synthetic journal events.
+Every successful adoption converges on a clean genesis: grounded current context, no imported agent profiles, and no imported or synthetic journal events.
 
 ## Product surfaces
 
@@ -55,23 +55,26 @@ pcp upgrade
 pcp repair
 ```
 
-Three lifecycle operations are implemented:
+Four lifecycle operations are implemented:
 
 ```powershell
 node dist/pcp.mjs inspect path/to/project
 node dist/pcp.mjs inspect path/to/project --json
+node dist/pcp.mjs adopt --candidate path/to/project --json
+node dist/pcp.mjs adopt --candidate path/to/project --input path/to/external-adoption.yaml --json
+node dist/pcp.mjs adopt --candidate path/to/project --input path/to/external-adoption.yaml --apply <plan-digest> --json
 node dist/pcp.mjs validate path/to/managed-project --clean-genesis --json
 node dist/pcp.mjs render path/to/managed-project --check --json
 node dist/pcp.mjs render path/to/managed-project --json
 ```
 
-`inspect` reports classification evidence and always reports `mutated: false`. `validate` checks schemas, core structure, numbered and indexed Markdown, links, portability, secrets, ownership, generated digests, identities, events, checkpoints, workstream dependencies, VCS authority, and optional clean genesis. `render --check` is non-mutating; write mode replaces only `.pcp/views/10-status.generated.md` from four schema-valid YAML sources. Other lifecycle commands explain that their implementation is unavailable and exit without mutation.
+`inspect` reports classification evidence and always reports `mutated: false`. `adopt` first returns structured questions and evidence; with an external semantic input it returns an exact non-mutating plan, and only `--apply <plan-digest>` authorizes the fully recomputed plan. `validate` checks schemas, core structure, numbered and indexed Markdown, links, portability, secrets, ownership, generated digests, identities, events, checkpoints, workstream dependencies, VCS authority, and optional clean genesis. `render --check` is non-mutating; write mode replaces only `.pcp/views/10-status.generated.md` from four schema-valid YAML sources. Other lifecycle commands explain that their implementation is unavailable and exit without mutation.
 
 ## Canonical layer
 
 The source baseline lives under [`templates/core/.pcp/`](templates/core/.pcp/). It starts with zero agent profiles and zero journal events, keeps machine authority in versioned YAML, uses numbered Markdown with a `00-index.md` per folder, and separates protocol, project, generated, and runtime ownership. Optional overlays add spec-driven projects, Concurrent Execution Blocks, scratch space, and incremental walkthroughs.
 
-The open skill ships byte-identical copies of the release schemas and templates plus a checksum manifest. The build verifies source/asset parity and executes bundled `inspect`, `validate`, and `render --check` on every platform gate.
+The open skill ships byte-identical copies of the release schemas and templates plus a checksum manifest. The build verifies source/asset parity and executes bundled `inspect`, transactional State A adoption, `validate`, and `render --check` on every platform gate.
 
 ## Version-control policy
 
@@ -92,9 +95,11 @@ node dist/pcp.mjs --help
 
 `npm run verify` checks formatting, lint, types, tests and coverage, the bundled engine, skill structure, distribution integrity, and private-data leakage.
 
-## Safety direction
+## Adoption safety
 
-PCP structural operations will be preview-first. A mutation plan will be applied only by its approved digest after source fingerprints are rechecked. State C conversion will require complete source and history coverage, zero unresolved dispositions, and verified rollback before any foreign live layer is removed.
+State A/B structural operations are preview-first. The engine normalizes and hashes the complete plan, requires the approved digest, recomputes it from the same external semantic input, and rejects source drift before acquiring mutation authority. Apply uses a project-scoped lock, external staging and preimages, a write-ahead operation log, atomic file replacement, reverse rollback with exact inventory verification, live canonical validation, and recovery cleanup after success.
+
+State C conversion will additionally require complete source and history coverage, zero unresolved dispositions, and verified rollback before any foreign live layer is removed.
 
 PCP never infers Git authority from a repository or installed tooling. The canonical VCS policy must assign each action explicitly.
 
