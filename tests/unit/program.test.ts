@@ -59,4 +59,54 @@ describe('pcp command surface', () => {
       output.mockRestore();
     }
   });
+
+  it('validates a clean canonical layer with structured JSON output', async () => {
+    const output = vi.spyOn(process.stdout, 'write').mockImplementation(() => true);
+    const previousExitCode = process.exitCode;
+    process.exitCode = undefined;
+    const fixture = fileURLToPath(new URL('../../templates/core/', import.meta.url));
+
+    try {
+      await createProgram().parseAsync([
+        'node',
+        'pcp',
+        'validate',
+        fixture,
+        '--clean-genesis',
+        '--json',
+      ]);
+      const serialized = String(output.mock.calls.at(-1)?.[0]);
+      expect(JSON.parse(serialized)).toMatchObject({
+        command: 'validate',
+        valid: true,
+        mutated: false,
+      });
+      expect(process.exitCode).toBeUndefined();
+    } finally {
+      process.exitCode = previousExitCode;
+      output.mockRestore();
+    }
+  });
+
+  it('checks canonical rendering without mutation', async () => {
+    const output = vi.spyOn(process.stdout, 'write').mockImplementation(() => true);
+    const previousExitCode = process.exitCode;
+    process.exitCode = undefined;
+    const fixture = fileURLToPath(new URL('../../templates/core/', import.meta.url));
+
+    try {
+      await createProgram().parseAsync(['node', 'pcp', 'render', fixture, '--check', '--json']);
+      const serialized = String(output.mock.calls.at(-1)?.[0]);
+      expect(JSON.parse(serialized)).toMatchObject({
+        command: 'render',
+        valid: true,
+        mode: 'check',
+        mutated: false,
+      });
+      expect(process.exitCode).toBeUndefined();
+    } finally {
+      process.exitCode = previousExitCode;
+      output.mockRestore();
+    }
+  });
 });

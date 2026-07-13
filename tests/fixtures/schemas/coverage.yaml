@@ -1,0 +1,23 @@
+schema: coverage
+valid:
+  schema_version: 1
+  coverage_id: 01ARZ3NDEKTSV4RRFFQ69G5FAV
+  source_inventory_digest: aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
+  records:
+    - source_id: legacy-policy
+      source_path: legacy/context/policy.md
+      source_kind: file
+      fingerprint: bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb
+      disposition: represented
+      targets: [.pcp/operations/20-vcs-policy.md]
+      evidence: [The canonical policy contains the current authority boundary.]
+  unresolved_count: 0
+invalid:
+  - name: represented source lacks target
+    operation: set
+    path: records.0.targets
+    value: []
+  - name: malformed source fingerprint
+    operation: set
+    path: records.0.fingerprint
+    value: abc123

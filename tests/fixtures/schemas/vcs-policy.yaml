@@ -1,0 +1,176 @@
+schema: vcs-policy
+valid: &agent-managed
+  schema_version: 1
+  mode: agent-managed
+  provider: github
+  repository:
+    remote_name: origin
+    default_branch: main
+  responsibilities:
+    initialize: agent
+    create_repository: human
+    configure_remote: agent
+    configure_protection: human
+    sync_default: agent
+    create_branch: agent
+    stage: agent
+    commit: agent
+    push: agent
+    open_pull_request: agent
+    repair_ci: agent
+    review_pull_request: human
+    merge_pull_request: human
+    cleanup_branch: agent
+    tag: human
+    release: human
+    force_push: prohibited
+    rewrite_history: prohibited
+    destructive_recovery: human
+    manage_credentials: human
+  workflow:
+    branch_pattern: ^(feat|fix|docs|chore)/[a-z0-9-]+$
+    commit_convention: conventional
+    push_cadence: milestone
+    pull_request_required: true
+    human_merge_required: true
+    post_merge:
+      - verify-pr
+      - verify-checks
+      - fetch-prune
+      - switch-default
+      - pull-ff-only
+      - verify-clean
+      - delete-local-branch
+      - verify-merged-tree
+      - create-next-branch
+profiles:
+  none:
+    schema_version: 1
+    mode: none
+    provider: none
+    repository:
+      remote_name: none
+      default_branch: main
+    responsibilities:
+      initialize: prohibited
+      create_repository: prohibited
+      configure_remote: prohibited
+      configure_protection: prohibited
+      sync_default: prohibited
+      create_branch: prohibited
+      stage: prohibited
+      commit: prohibited
+      push: prohibited
+      open_pull_request: prohibited
+      repair_ci: prohibited
+      review_pull_request: prohibited
+      merge_pull_request: prohibited
+      cleanup_branch: prohibited
+      tag: prohibited
+      release: prohibited
+      force_push: prohibited
+      rewrite_history: prohibited
+      destructive_recovery: prohibited
+      manage_credentials: prohibited
+    workflow:
+      branch_pattern: disabled
+      commit_convention: none
+      push_cadence: never
+      pull_request_required: false
+      human_merge_required: false
+      post_merge: []
+  human-owned:
+    schema_version: 1
+    mode: human-owned
+    provider: github
+    repository:
+      remote_name: origin
+      default_branch: main
+    responsibilities:
+      initialize: human
+      create_repository: human
+      configure_remote: human
+      configure_protection: human
+      sync_default: human
+      create_branch: human
+      stage: human
+      commit: human
+      push: human
+      open_pull_request: human
+      repair_ci: human
+      review_pull_request: human
+      merge_pull_request: human
+      cleanup_branch: human
+      tag: human
+      release: human
+      force_push: prohibited
+      rewrite_history: prohibited
+      destructive_recovery: human
+      manage_credentials: human
+    workflow:
+      branch_pattern: ^(feat|fix|docs|chore)/[a-z0-9-]+$
+      commit_convention: conventional
+      push_cadence: manual
+      pull_request_required: true
+      human_merge_required: true
+      post_merge: []
+  agent-managed: *agent-managed
+  custom:
+    schema_version: 1
+    mode: custom
+    provider: gitlab
+    repository:
+      remote_name: upstream
+      default_branch: trunk
+    responsibilities:
+      initialize: agent
+      create_repository: external
+      configure_remote: human
+      configure_protection: external
+      sync_default: agent
+      create_branch: agent
+      stage: agent
+      commit: agent
+      push: human
+      open_pull_request: human
+      repair_ci: agent
+      review_pull_request: human
+      merge_pull_request: human
+      cleanup_branch: agent
+      tag: external
+      release: external
+      force_push: prohibited
+      rewrite_history: prohibited
+      destructive_recovery: human
+      manage_credentials: external
+    workflow:
+      branch_pattern: ^work/[a-z0-9-]+$
+      commit_convention: custom
+      push_cadence: manual
+      pull_request_required: true
+      human_merge_required: true
+      post_merge:
+        - fetch-prune
+        - switch-default
+        - pull-ff-only
+invalid:
+  - name: incomplete authority map
+    operation: delete
+    path: responsibilities.commit
+  - name: agent self-merge in recommended profile
+    operation: set
+    path: responsibilities.merge_pull_request
+    value: agent
+  - name: incomplete recommended post-merge continuation
+    operation: delete
+    path: workflow.post_merge.8
+  - name: Git write enabled with version control disabled
+    profile: none
+    operation: set
+    path: responsibilities.commit
+    value: agent
+  - name: agent Git write in human-owned profile
+    profile: human-owned
+    operation: set
+    path: responsibilities.commit
+    value: agent

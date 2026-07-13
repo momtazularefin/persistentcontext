@@ -1,0 +1,20 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:pcp:schema:v1:project-registry",
+  "title": "PCP project registry",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "projects"],
+  "properties": {
+    "schema_version": {
+      "$ref": "urn:pcp:schema:v1:common#/$defs/schemaVersion"
+    },
+    "projects": {
+      "type": "array",
+      "items": {
+        "$ref": "urn:pcp:schema:v1:project"
+      },
+      "uniqueItems": true
+    }
+  }
+}

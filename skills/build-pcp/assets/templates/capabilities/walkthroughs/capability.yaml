@@ -1,0 +1,15 @@
+schema_version: 1
+capability_id: walkthroughs
+name: Incremental walkthroughs
+description: Adds a living FAQ workflow for building verified user guidance from real questions and answers.
+dependencies: []
+manifest_value: walkthroughs
+overlay_root: overlay
+index_entries:
+  - folder: protocol
+    path: 100-walkthrough-creation.md
+    title: Walkthrough creation
+  - folder: templates
+    path: 50-walkthrough.md
+    title: Walkthrough scaffold
+root_paths: []

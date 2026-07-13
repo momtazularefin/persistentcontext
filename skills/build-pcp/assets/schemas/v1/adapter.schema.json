@@ -1,0 +1,43 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:pcp:schema:v1:adapter",
+  "title": "PCP generated platform adapter",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "adapter_id",
+    "platform",
+    "target_path",
+    "source_paths",
+    "ownership",
+    "collision_policy",
+    "content_digest"
+  ],
+  "properties": {
+    "schema_version": {
+      "$ref": "urn:pcp:schema:v1:common#/$defs/schemaVersion"
+    },
+    "adapter_id": {
+      "$ref": "urn:pcp:schema:v1:common#/$defs/slug"
+    },
+    "platform": {
+      "enum": ["codex", "antigravity", "claude-code-desktop", "custom"]
+    },
+    "target_path": {
+      "$ref": "urn:pcp:schema:v1:common#/$defs/relativePath"
+    },
+    "source_paths": {
+      "$ref": "urn:pcp:schema:v1:common#/$defs/pathArray"
+    },
+    "ownership": {
+      "const": "generated"
+    },
+    "collision_policy": {
+      "enum": ["preview-required", "preserve", "replace-generated"]
+    },
+    "content_digest": {
+      "$ref": "urn:pcp:schema:v1:common#/$defs/sha256"
+    }
+  }
+}

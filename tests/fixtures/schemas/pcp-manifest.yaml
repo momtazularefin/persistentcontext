@@ -1,0 +1,27 @@
+schema: pcp-manifest
+valid:
+  schema_version: 1
+  protocol:
+    name: persistent-context-protocol
+    version: 0.1.0
+  persistence: tracked
+  capabilities: [core, vcs-policy]
+  ownership:
+    protocol: [.pcp/protocol/**, .pcp/schemas/**, .pcp/tools/**]
+    project: [.pcp/knowledge/**, .pcp/operations/**, .pcp/projects/**, .pcp/state/**]
+    generated: [.pcp/views/**, AGENTS.md, CLAUDE.md]
+    runtime: [.pcp/runtime/**]
+  adapter_ids: [codex, antigravity, claude-code-desktop]
+  validation:
+    strict: true
+    schema_root: .pcp/schemas
+    generated_views_read_only: true
+  vcs_policy_path: .pcp/operations/20-vcs-policy.yaml
+invalid:
+  - name: wrong protocol identity
+    operation: set
+    path: protocol.name
+    value: another-protocol
+  - name: missing ownership boundary
+    operation: delete
+    path: ownership.runtime

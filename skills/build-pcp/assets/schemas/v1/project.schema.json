@@ -1,0 +1,83 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:pcp:schema:v1:project",
+  "title": "PCP project state",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "project_id",
+    "name",
+    "purpose",
+    "project_type",
+    "lifecycle",
+    "artifact_roots",
+    "context_roots",
+    "repositories",
+    "tags"
+  ],
+  "properties": {
+    "schema_version": {
+      "$ref": "urn:pcp:schema:v1:common#/$defs/schemaVersion"
+    },
+    "project_id": {
+      "$ref": "urn:pcp:schema:v1:common#/$defs/slug"
+    },
+    "name": {
+      "$ref": "urn:pcp:schema:v1:common#/$defs/nonEmptyString"
+    },
+    "purpose": {
+      "$ref": "urn:pcp:schema:v1:common#/$defs/nonEmptyString"
+    },
+    "project_type": {
+      "enum": [
+        "software",
+        "research",
+        "data",
+        "writing",
+        "career",
+        "creative",
+        "operations",
+        "mixed",
+        "other"
+      ]
+    },
+    "lifecycle": {
+      "enum": ["seed", "active", "maintenance", "paused", "complete", "archived"]
+    },
+    "artifact_roots": {
+      "$ref": "urn:pcp:schema:v1:common#/$defs/pathArray"
+    },
+    "context_roots": {
+      "$ref": "urn:pcp:schema:v1:common#/$defs/pathArray"
+    },
+    "repositories": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["provider", "url", "default_branch", "visibility"],
+        "properties": {
+          "provider": {
+            "enum": ["github", "gitlab", "bitbucket", "other"]
+          },
+          "url": {
+            "type": "string",
+            "format": "uri",
+            "pattern": "^https://"
+          },
+          "default_branch": {
+            "$ref": "urn:pcp:schema:v1:common#/$defs/slug"
+          },
+          "visibility": {
+            "enum": ["public", "private", "internal", "unknown"]
+          }
+        }
+      },
+      "uniqueItems": true
+    },
+    "tags": {
+      "$ref": "urn:pcp:schema:v1:common#/$defs/slugArray"
+    }
+  }
+}

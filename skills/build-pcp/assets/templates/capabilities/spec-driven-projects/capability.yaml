@@ -1,0 +1,15 @@
+schema_version: 1
+capability_id: spec-driven-projects
+name: Spec-driven projects
+description: Adds a bounded spec-to-plan-to-task delivery contract and an inert project specification scaffold.
+dependencies: []
+manifest_value: spec-driven-projects
+overlay_root: overlay
+index_entries:
+  - folder: protocol
+    path: 70-spec-driven-delivery.md
+    title: Spec-driven delivery
+  - folder: templates
+    path: 30-project-spec.md
+    title: Project specification scaffold
+root_paths: []

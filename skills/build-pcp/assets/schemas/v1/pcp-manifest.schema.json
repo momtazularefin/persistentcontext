@@ -1,0 +1,80 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:pcp:schema:v1:pcp-manifest",
+  "title": "Persistent Context Protocol manifest",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "protocol",
+    "persistence",
+    "capabilities",
+    "ownership",
+    "adapter_ids",
+    "validation",
+    "vcs_policy_path"
+  ],
+  "properties": {
+    "schema_version": {
+      "$ref": "urn:pcp:schema:v1:common#/$defs/schemaVersion"
+    },
+    "protocol": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["name", "version"],
+      "properties": {
+        "name": {
+          "const": "persistent-context-protocol"
+        },
+        "version": {
+          "$ref": "urn:pcp:schema:v1:common#/$defs/semver"
+        }
+      }
+    },
+    "persistence": {
+      "enum": ["tracked", "local"]
+    },
+    "capabilities": {
+      "$ref": "urn:pcp:schema:v1:common#/$defs/slugArray"
+    },
+    "ownership": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["protocol", "project", "generated", "runtime"],
+      "properties": {
+        "protocol": { "$ref": "#/$defs/globArray" },
+        "project": { "$ref": "#/$defs/globArray" },
+        "generated": { "$ref": "#/$defs/globArray" },
+        "runtime": { "$ref": "#/$defs/globArray" }
+      }
+    },
+    "adapter_ids": {
+      "$ref": "urn:pcp:schema:v1:common#/$defs/slugArray"
+    },
+    "validation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["strict", "schema_root", "generated_views_read_only"],
+      "properties": {
+        "strict": { "type": "boolean" },
+        "schema_root": {
+          "$ref": "urn:pcp:schema:v1:common#/$defs/relativePath"
+        },
+        "generated_views_read_only": { "const": true }
+      }
+    },
+    "vcs_policy_path": {
+      "$ref": "urn:pcp:schema:v1:common#/$defs/relativePath"
+    }
+  },
+  "$defs": {
+    "globArray": {
+      "type": "array",
+      "items": {
+        "$ref": "urn:pcp:schema:v1:common#/$defs/relativeGlob"
+      },
+      "minItems": 1,
+      "uniqueItems": true
+    }
+  }
+}

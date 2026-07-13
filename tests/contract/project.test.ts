@@ -16,11 +16,13 @@ describe('public project contract', () => {
     expect(packageJson).not.toHaveProperty('bin');
   });
 
-  it('documents the inspection milestone limitation honestly', async () => {
+  it('documents implemented and unavailable milestone behavior honestly', async () => {
     const readme = await readFile(new URL('README.md', projectRoot), 'utf8');
     expect(readme).toContain('node dist/pcp.mjs inspect path/to/project --json');
+    expect(readme).toContain('node dist/pcp.mjs validate path/to/managed-project');
+    expect(readme).toContain('node dist/pcp.mjs render path/to/managed-project --check');
     expect(readme).toContain('Do not use this revision to adopt or migrate a live context layer.');
-    expect(readme).toContain('All mutating lifecycle commands remain fail-closed');
+    expect(readme).toContain('Structural adoption, migration, registration, journaling');
   });
 
   it('normalizes text for deterministic cross-platform checks', async () => {

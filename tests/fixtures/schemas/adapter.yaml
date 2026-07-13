@@ -1,0 +1,19 @@
+schema: adapter
+valid:
+  schema_version: 1
+  adapter_id: codex
+  platform: codex
+  target_path: AGENTS.md
+  source_paths: [.pcp/00-index.md, .pcp/protocol/10-startup.md]
+  ownership: generated
+  collision_policy: preview-required
+  content_digest: aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
+invalid:
+  - name: absolute target path
+    operation: set
+    path: target_path
+    value: 'C:\project\AGENTS.md'
+  - name: editable generated adapter
+    operation: set
+    path: ownership
+    value: project

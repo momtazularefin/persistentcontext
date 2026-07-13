@@ -1,0 +1,63 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:pcp:schema:v1:frontmatter",
+  "title": "PCP Markdown frontmatter",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["doc", "type", "status", "version", "last_updated", "ownership"],
+  "properties": {
+    "doc": {
+      "$ref": "urn:pcp:schema:v1:common#/$defs/relativePath"
+    },
+    "type": {
+      "enum": [
+        "index",
+        "protocol",
+        "knowledge",
+        "policy",
+        "plan",
+        "project",
+        "reference",
+        "generated"
+      ]
+    },
+    "status": {
+      "enum": ["living", "static", "generated"]
+    },
+    "version": {
+      "$ref": "urn:pcp:schema:v1:common#/$defs/semver"
+    },
+    "last_updated": {
+      "$ref": "urn:pcp:schema:v1:common#/$defs/dateTime"
+    },
+    "ownership": {
+      "enum": ["protocol", "project", "generated"]
+    },
+    "sources": {
+      "$ref": "urn:pcp:schema:v1:common#/$defs/pathArray"
+    },
+    "source_digest": {
+      "$ref": "urn:pcp:schema:v1:common#/$defs/sha256"
+    }
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": { "ownership": { "const": "generated" } },
+        "required": ["ownership"]
+      },
+      "then": {
+        "required": ["sources", "source_digest"],
+        "properties": {
+          "status": { "const": "generated" },
+          "sources": {
+            "$ref": "urn:pcp:schema:v1:common#/$defs/pathArray"
+          },
+          "source_digest": {
+            "$ref": "urn:pcp:schema:v1:common#/$defs/sha256"
+          }
+        }
+      }
+    }
+  ]
+}

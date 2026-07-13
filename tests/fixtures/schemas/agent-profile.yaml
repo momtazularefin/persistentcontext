@@ -1,0 +1,17 @@
+schema: agent-profile
+valid:
+  schema_version: 1
+  agent_id: codex-laptop-01ARZ3NDEK
+  platform: codex
+  machine_label: laptop
+  first_seen: 2026-07-12T00:00:00Z
+  checkpoint_paths: [.pcp/runtime/checkpoints/codex-laptop-01ARZ3NDEK.yaml]
+invalid:
+  - name: legacy collision-prone agent id
+    operation: set
+    path: agent_id
+    value: codex-laptop
+  - name: absolute checkpoint path
+    operation: set
+    path: checkpoint_paths.0
+    value: /tmp/checkpoint.yaml

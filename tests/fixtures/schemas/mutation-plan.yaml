@@ -1,0 +1,23 @@
+schema: mutation-plan
+valid:
+  schema_version: 1
+  plan_id: 01ARZ3NDEKTSV4RRFFQ69G5FAV
+  generated_at: 2026-07-12T00:00:00Z
+  classification: B
+  candidate_inventory_digest: aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
+  operations:
+    - operation_id: 01ARZ3NDEKTSV4RRFFQ69G5FAW
+      action: write
+      path: .pcp/00-index.md
+      content_digest: bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb
+  validations: [schemas, links, clean-genesis]
+  plan_digest: cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+invalid:
+  - name: removal without preimage fingerprint
+    operation: set
+    path: operations.0.action
+    value: remove
+  - name: absolute operation path
+    operation: set
+    path: operations.0.path
+    value: /project/.pcp/00-index.md

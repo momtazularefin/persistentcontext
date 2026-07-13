@@ -1,0 +1,38 @@
+schema_version: 1
+protocol:
+  name: persistent-context-protocol
+  version: 0.1.0
+persistence: tracked
+capabilities: []
+ownership:
+  protocol:
+    - .gitignore
+    - 00-index.md
+    - pcp.yaml
+    - protocol/**
+    - agents/00-index.md
+    - journal/00-index.md
+    - journal/events/00-index.md
+    - state/00-index.md
+    - views/00-index.md
+    - schemas/**
+    - tools/**
+  project:
+    - knowledge/**
+    - operations/**
+    - projects/**
+    - agents/*.yaml
+    - journal/events/*.yaml
+    - state/*.yaml
+    - references/**
+    - templates/**
+  generated:
+    - views/*.generated.md
+  runtime:
+    - runtime/**
+adapter_ids: []
+validation:
+  strict: true
+  schema_root: schemas
+  generated_views_read_only: true
+vcs_policy_path: state/vcs-policy.yaml
