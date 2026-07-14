@@ -13,6 +13,10 @@ valid:
   validations: [schemas, links, clean-genesis]
   plan_digest: cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 invalid:
+  - name: State C plan without reviewed coverage digest
+    operation: set
+    path: classification
+    value: C
   - name: removal without preimage fingerprint
     operation: set
     path: operations.0.action

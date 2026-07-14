@@ -10,6 +10,7 @@ import {
   discoverForeignCoverage,
   validateForeignCoverage,
 } from '../../src/application/foreign-coverage.js';
+import { adoptProject } from '../../src/application/adopt-project.js';
 import { inspectRepository } from '../../src/application/inspect-repository.js';
 import { isPlanMaterial, planAdoption } from '../../src/application/plan-adoption.js';
 import { sha256, type AdoptionInput } from '../../src/domain/adoption.js';
@@ -188,15 +189,20 @@ describe('State C foreign coverage', () => {
     });
   });
 
-  it('validates a completed matrix and grounded canonical target without mutating State C', async () => {
+  it('builds a stable preview-only translation plan without mutating State C', async () => {
     const inspection = await inspectRepository(fixtureRoot);
     const catalog = await discoverForeignCoverage(fixtureRoot, inspection);
     const coverage = reviewedCoverage(catalog.template);
     const input = await writeInput(await stateCInput(coverage));
     const before = inspection.inventory.digest;
 
-    const result = await planAdoption(fixtureRoot, input);
-    if (isPlanMaterial(result)) throw new Error('Coverage review cannot create a mutation plan.');
+    const [result, repeated] = await Promise.all([
+      planAdoption(fixtureRoot, input),
+      planAdoption(fixtureRoot, input),
+    ]);
+    if (isPlanMaterial(result) || isPlanMaterial(repeated)) {
+      throw new Error('State C preview cannot expose applicable plan material.');
+    }
     expect(result).toMatchObject({
       classification: 'C',
       applicable: false,
@@ -206,6 +212,42 @@ describe('State C foreign coverage', () => {
       coverage_status: 'complete',
       mutated: false,
     });
+    expect(result.plan).toEqual(repeated.plan);
+    expect(result.plan).toBeDefined();
+    if (result.plan === undefined) throw new Error('Expected a State C translation preview.');
+    expect(new SchemaRegistry().validate('mutation-plan', result.plan)).toEqual({
+      valid: true,
+      diagnostics: [],
+    });
+    expect(result.plan.classification).toBe('C');
+    expect(result.plan.coverage_digest).toMatch(/^[a-f0-9]{64}$/u);
+    const removals = result.plan.operations.filter((operation) => operation.action === 'remove');
+    expect(removals.map((operation) => operation.path)).toEqual(
+      expect.arrayContaining([
+        '.cursor/rules/legacy.mdc',
+        '.github/copilot-instructions.md',
+        'project-guidance/agent-registry.md',
+        'project-guidance/changelog.yaml',
+        'project-guidance/continuity.md',
+        'project-guidance/policy.md',
+      ]),
+    );
+    expect(
+      result.plan.operations.some((operation) => operation.path.includes('project-owned-note')),
+    ).toBe(false);
+    const inventoryByPath = new Map(inspection.inventory.files.map((file) => [file.path, file]));
+    expect(
+      removals.every(
+        (operation) => operation.preimage_digest === inventoryByPath.get(operation.path)?.sha256,
+      ),
+    ).toBe(true);
+    expect(
+      result.plan.operations.some(
+        (operation) =>
+          (operation.action === 'write' || operation.action === 'replace') &&
+          operation.path.startsWith('.pcp/coverage'),
+      ),
+    ).toBe(false);
     expect(new Set(coverage.records.map((record) => record.disposition))).toEqual(
       new Set([
         'represented',
@@ -217,8 +259,130 @@ describe('State C foreign coverage', () => {
         'project-owned',
       ]),
     );
-    expect(formatAdoption(result)).toContain('Coverage review: complete');
+    expect(formatAdoption(result)).toContain('Coverage digest:');
     expect((await inspectRepository(fixtureRoot)).inventory.digest).toBe(before);
+    await expect(
+      adoptProject(fixtureRoot, { input, apply: result.plan.plan_digest }),
+    ).rejects.toMatchObject({ code: 'PCP_ADOPTION_NOT_APPLICABLE', mutated: false });
+    expect((await inspectRepository(fixtureRoot)).inventory.digest).toBe(before);
+  });
+
+  it('normalizes equivalent coverage order while binding material review changes', async () => {
+    const inspection = await inspectRepository(fixtureRoot);
+    const catalog = await discoverForeignCoverage(fixtureRoot, inspection);
+    const originalCoverage = reviewedCoverage(catalog.template);
+    const reorderedCoverage = structuredClone(originalCoverage);
+    reorderedCoverage.records.reverse();
+    for (const record of reorderedCoverage.records) {
+      record.targets.reverse();
+      record.evidence.reverse();
+    }
+
+    const original = await planAdoption(
+      fixtureRoot,
+      await writeInput(await stateCInput(originalCoverage)),
+    );
+    const reordered = await planAdoption(
+      fixtureRoot,
+      await writeInput(await stateCInput(reorderedCoverage)),
+    );
+    if (isPlanMaterial(original) || isPlanMaterial(reordered)) {
+      throw new Error('State C preview cannot expose applicable plan material.');
+    }
+    expect(reordered.plan).toEqual(original.plan);
+
+    const changedCoverage = structuredClone(originalCoverage);
+    changedCoverage.records[0]!.evidence = ['A materially different semantic review.'];
+    const changed = await planAdoption(
+      fixtureRoot,
+      await writeInput(await stateCInput(changedCoverage)),
+    );
+    if (isPlanMaterial(changed)) throw new Error('State C plan must remain preview-only.');
+    expect(changed.plan?.operations).toEqual(original.plan?.operations);
+    expect(changed.plan?.coverage_digest).not.toBe(original.plan?.coverage_digest);
+    expect(changed.plan?.plan_id).not.toBe(original.plan?.plan_id);
+    expect(changed.plan?.plan_digest).not.toBe(original.plan?.plan_digest);
+  });
+
+  it('plans reviewed file replacements and file-to-directory collisions explicitly', async () => {
+    const candidate = await temporaryRoot('pcp-state-c-collisions-');
+    const pcpRoot = path.join(candidate, '.pcp');
+    await mkdir(pcpRoot);
+    await writeFile(
+      path.join(candidate, 'README.md'),
+      '# Existing project\n\nA grounded project with a nonstandard PCP-like layer.\n',
+      'utf8',
+    );
+    const legacyManifest = 'schema_version: 0\nlegacy_context: true\n';
+    await writeFile(path.join(pcpRoot, 'pcp.yaml'), legacyManifest, 'utf8');
+    await writeFile(
+      path.join(pcpRoot, 'knowledge'),
+      '# Legacy knowledge\n\nThis file occupies a directory PCP needs.\n',
+      'utf8',
+    );
+
+    const inspection = await inspectRepository(candidate);
+    expect(inspection.state).toBe('C');
+    const catalog = await discoverForeignCoverage(candidate, inspection);
+    const coverage = reviewedCoverage(catalog.template);
+    const result = await planAdoption(candidate, await writeInput(await stateCInput(coverage)));
+    if (isPlanMaterial(result) || result.plan === undefined) {
+      throw new Error('Expected a preview-only State C collision plan.');
+    }
+    const removeIndex = result.plan.operations.findIndex(
+      (operation) => operation.action === 'remove' && operation.path === '.pcp/knowledge',
+    );
+    const mkdirIndex = result.plan.operations.findIndex(
+      (operation) => operation.action === 'mkdir' && operation.path === '.pcp/knowledge',
+    );
+    expect(removeIndex).toBeGreaterThanOrEqual(0);
+    expect(mkdirIndex).toBeGreaterThan(removeIndex);
+    expect(result.plan.operations).toContainEqual(
+      expect.objectContaining({
+        action: 'replace',
+        path: '.pcp/pcp.yaml',
+        preimage_digest: sha256(legacyManifest),
+      }),
+    );
+    expect(await readFile(path.join(pcpRoot, 'knowledge'), 'utf8')).toContain('Legacy knowledge');
+    expect(await readFile(path.join(pcpRoot, 'pcp.yaml'), 'utf8')).toBe(legacyManifest);
+
+    const blockedCoverage = structuredClone(coverage);
+    const occupiedDirectory = blockedCoverage.records.find(
+      (record) => record.source_path === '.pcp/knowledge',
+    );
+    if (occupiedDirectory === undefined) throw new Error('Expected the collision source record.');
+    occupiedDirectory.disposition = 'project-owned';
+    occupiedDirectory.targets = [];
+    occupiedDirectory.evidence = ['This file must remain ordinary project material.'];
+    await expect(
+      planAdoption(candidate, await writeInput(await stateCInput(blockedCoverage))),
+    ).rejects.toMatchObject({ code: 'PCP_ADOPTION_PATH_COLLISION' });
+  });
+
+  it('rejects case-only collisions with the canonical PCP directory', async () => {
+    const candidate = await temporaryRoot('pcp-state-c-case-collision-');
+    const foreignRoot = path.join(candidate, '.PCP');
+    await mkdir(foreignRoot);
+    await writeFile(
+      path.join(candidate, 'README.md'),
+      '# Existing project\n\nA grounded project with a foreign context layer.\n',
+      'utf8',
+    );
+    await writeFile(
+      path.join(foreignRoot, 'continuity.md'),
+      '# Continuity\n\nThis directory is the source of truth for coding agents and handoffs.\n',
+      'utf8',
+    );
+    const inspection = await inspectRepository(candidate);
+    expect(inspection.state).toBe('C');
+    const catalog = await discoverForeignCoverage(candidate, inspection);
+    await expect(
+      planAdoption(
+        candidate,
+        await writeInput(await stateCInput(reviewedCoverage(catalog.template))),
+      ),
+    ).rejects.toMatchObject({ code: 'PCP_ADOPTION_PATH_COLLISION' });
   });
 
   it('requires current complete coverage and real staged canonical targets', async () => {

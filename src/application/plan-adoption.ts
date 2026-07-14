@@ -8,6 +8,7 @@ import {
   ADOPTION_SCHEMA_VERSION,
   AdoptionError,
   REQUIRED_ADOPTION_DOCUMENTS,
+  canonicalJson,
   createMutationPlan,
   normalizeText,
   sha256,
@@ -17,6 +18,7 @@ import {
   type AdoptionPlanMaterial,
   type AdoptionPreview,
   type AdoptionQuestion,
+  type MutationOperation,
 } from '../domain/adoption.js';
 import { comparePortablePaths, type InspectionResult } from '../domain/inspection.js';
 import { loadCoreTemplateFiles } from '../infrastructure/adoption-assets.js';
@@ -511,18 +513,22 @@ function pathDepth(value: string): number {
   return value.split('/').length;
 }
 
-async function assertNoTargetCollisions(
+async function assertContentTargetsSafe(
   root: string,
   content: ReadonlyMap<string, Buffer>,
   inspection: InspectionResult,
   persistence: AdoptionInput['persistence'],
+  replaceablePaths: ReadonlySet<string> = new Set<string>(),
 ): Promise<void> {
   const files = new Set(inspection.inventory.files.map((file) => file.path));
   const directories = new Set(inspection.inventory.directories);
   const symlinks = inspection.inventory.symlinks.map((link) => link.path);
-  const existingPathKeys = new Map<string, string>();
+  const existingPathKeys = new Map<string, string[]>();
   for (const existing of [...files, ...directories, ...symlinks]) {
-    existingPathKeys.set(portableCollisionKey(existing), existing);
+    const key = portableCollisionKey(existing);
+    const equivalents = existingPathKeys.get(key) ?? [];
+    equivalents.push(existing);
+    existingPathKeys.set(key, equivalents);
   }
   const desiredPaths = new Set<string>();
   for (const target of content.keys()) {
@@ -541,20 +547,25 @@ async function assertNoTargetCollisions(
       );
     }
     desiredPathKeys.set(desiredKey, desired);
-    const existingEquivalent = existingPathKeys.get(desiredKey);
-    if (existingEquivalent !== undefined && existingEquivalent !== desired) {
+    const existingEquivalents = existingPathKeys.get(desiredKey) ?? [];
+    const conflictingExisting = existingEquivalents.find((existing) => existing !== desired);
+    if (conflictingExisting !== undefined) {
       throw new AdoptionError(
         'PCP_ADOPTION_PATH_COLLISION',
-        `Planned path collides with existing path ${existingEquivalent}: ${desired}`,
+        `Planned path collides with existing path ${conflictingExisting}: ${desired}`,
       );
     }
   }
 
   for (const target of content.keys()) {
-    if (files.has(target) || directories.has(target) || symlinks.includes(target)) {
+    if (
+      (files.has(target) && !replaceablePaths.has(target)) ||
+      directories.has(target) ||
+      symlinks.includes(target)
+    ) {
       throw new AdoptionError(
         'PCP_ADOPTION_PATH_COLLISION',
-        `Planned target already exists: ${target}`,
+        `Planned target already exists and is not an approved file replacement: ${target}`,
       );
     }
     const staticExclusion = mutationPathExclusion(target);
@@ -598,7 +609,7 @@ async function assertNoTargetCollisions(
       }
     }
     for (const parent of parentDirectories(target)) {
-      if (files.has(parent) || symlinks.includes(parent)) {
+      if ((files.has(parent) && !replaceablePaths.has(parent)) || symlinks.includes(parent)) {
         throw new AdoptionError(
           'PCP_ADOPTION_PATH_COLLISION',
           `Planned target has a non-directory ancestor: ${target}`,
@@ -606,6 +617,106 @@ async function assertNoTargetCollisions(
       }
     }
   }
+}
+
+function normalizedCoverageDigest(coverage: NonNullable<AdoptionInput['coverage']>): string {
+  const normalized = {
+    ...coverage,
+    records: coverage.records
+      .map((record) => ({
+        ...record,
+        targets: [...record.targets].sort(comparePortablePaths),
+        evidence: [...record.evidence].sort(comparePortablePaths),
+      }))
+      .sort((left, right) => comparePortablePaths(left.source_id, right.source_id)),
+  };
+  return sha256(canonicalJson(normalized));
+}
+
+function stateCRemovalPaths(input: AdoptionInput): Set<string> {
+  if (input.coverage === undefined) return new Set<string>();
+  return new Set(
+    input.coverage.records
+      .filter(
+        (record) =>
+          (record.source_kind === 'file' || record.source_kind === 'adapter') &&
+          record.disposition !== 'project-owned',
+      )
+      .map((record) => record.source_path),
+  );
+}
+
+function buildStateCOperations(
+  content: ReadonlyMap<string, Buffer>,
+  inspection: InspectionResult,
+  removalPaths: ReadonlySet<string>,
+): Array<Omit<MutationOperation, 'operation_id'>> {
+  const filesByPath = new Map(inspection.inventory.files.map((file) => [file.path, file]));
+  const existingDirectories = new Set(inspection.inventory.directories);
+  const contentPaths = [...content.keys()];
+  const preWriteRemovalPaths = [...removalPaths]
+    .filter(
+      (removalPath) =>
+        !content.has(removalPath) &&
+        contentPaths.some((target) => target.startsWith(`${removalPath}/`)),
+    )
+    .sort(comparePortablePaths);
+  const preWriteRemovals = preWriteRemovalPaths.map((removalPath) => {
+    const source = filesByPath.get(removalPath);
+    if (source === undefined) {
+      throw new AdoptionError(
+        'PCP_STATE_C_COVERAGE_INVALID',
+        `Reviewed foreign file is missing from the current inventory: ${removalPath}`,
+      );
+    }
+    return {
+      action: 'remove' as const,
+      path: removalPath,
+      preimage_digest: source.sha256,
+    };
+  });
+
+  const requiredDirectories = new Set<string>();
+  for (const target of contentPaths) {
+    for (const directory of parentDirectories(target)) {
+      if (!existingDirectories.has(directory)) requiredDirectories.add(directory);
+    }
+  }
+  const directoryOperations = [...requiredDirectories]
+    .sort((left, right) => pathDepth(left) - pathDepth(right) || comparePortablePaths(left, right))
+    .map((directory) => ({ action: 'mkdir' as const, path: directory }));
+  const contentOperations = [...content.entries()]
+    .sort(([left], [right]) => comparePortablePaths(left, right))
+    .map(([target, bytes]) => {
+      const existing = filesByPath.get(target);
+      return existing === undefined
+        ? { action: 'write' as const, path: target, content_digest: sha256(bytes) }
+        : {
+            action: 'replace' as const,
+            path: target,
+            content_digest: sha256(bytes),
+            preimage_digest: existing.sha256,
+          };
+    });
+  const earlyRemovalSet = new Set(preWriteRemovalPaths);
+  const postWriteRemovals = [...removalPaths]
+    .filter((removalPath) => !content.has(removalPath) && !earlyRemovalSet.has(removalPath))
+    .sort(comparePortablePaths)
+    .map((removalPath) => {
+      const source = filesByPath.get(removalPath);
+      if (source === undefined) {
+        throw new AdoptionError(
+          'PCP_STATE_C_COVERAGE_INVALID',
+          `Reviewed foreign file is missing from the current inventory: ${removalPath}`,
+        );
+      }
+      return {
+        action: 'remove' as const,
+        path: removalPath,
+        preimage_digest: source.sha256,
+      };
+    });
+  return [...preWriteRemovals, ...directoryOperations, ...contentOperations, ...postWriteRemovals];
 }
 
 function stateCCoverageFailure(
@@ -641,7 +752,7 @@ function validateStateCCoverageTargets(
   if (diagnostics.length > 0) throw stateCCoverageFailure(diagnostics);
 }
 
-async function reviewStateCCoverage(
+async function buildStateCTranslationPreview(
   root: string,
   inspection: InspectionResult,
   input: AdoptionInput,
@@ -674,6 +785,29 @@ async function reviewStateCCoverage(
 
   const content = await stageCanonicalLayer(input);
   validateStateCCoverageTargets(input, content);
+  const removalPaths = stateCRemovalPaths(input);
+  await assertContentTargetsSafe(root, content, inspection, input.persistence, removalPaths);
+  const plan = createMutationPlan({
+    classification: 'C',
+    coverageDigest: normalizedCoverageDigest(input.coverage),
+    inventory: inspection.inventory,
+    generatedAt: input.baseline_at,
+    operations: buildStateCOperations(content, inspection, removalPaths),
+    validations: [
+      'candidate-inventory',
+      'canonical-layer',
+      'clean-genesis',
+      'coverage',
+      'desired-hashes',
+      'foreign-removals',
+      'path-boundaries',
+      'preimages',
+      'rollback',
+      'semantic-input',
+    ],
+  });
+  const planValidation = new SchemaRegistry().validate('mutation-plan', plan);
+  if (!planValidation.valid) throw schemaFailure(planValidation.diagnostics);
 
   return {
     schema_version: ADOPTION_SCHEMA_VERSION,
@@ -687,6 +821,7 @@ async function reviewStateCCoverage(
     coverage: input.coverage,
     coverage_issues: [],
     coverage_status: 'complete',
+    plan,
     mutated: false,
   };
 }
@@ -715,7 +850,7 @@ async function buildPlanMaterial(
   for (const scaffold of input.scaffold_files) {
     content.set(scaffold.path, Buffer.from(normalizeText(scaffold.content), 'utf8'));
   }
-  await assertNoTargetCollisions(root, content, inspection, input.persistence);
+  await assertContentTargetsSafe(root, content, inspection, input.persistence);
 
   const existingDirectories = new Set(inspection.inventory.directories);
   const requiredDirectories = new Set<string>();
@@ -777,7 +912,7 @@ export async function planAdoption(
     return previewWithoutPlan(root, inspection);
   }
   const input = await loadAdoptionInput(inputPath, root);
-  if (inspection.state === 'C') return reviewStateCCoverage(root, inspection, input);
+  if (inspection.state === 'C') return buildStateCTranslationPreview(root, inspection, input);
   return buildPlanMaterial(root, inspection, input);
 }
 

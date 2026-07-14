@@ -11692,6 +11692,7 @@ function deterministicUlid(seed) {
 }
 function createMutationPlan(input) {
   const operationSeed = canonicalJson(input.operations);
+  const coverageDigest = input.classification === "C" ? input.coverageDigest : void 0;
   const operations = input.operations.map((operation) => ({
     operation_id: deterministicUlid(
       canonicalJson([
@@ -11707,10 +11708,13 @@ function createMutationPlan(input) {
   }));
   const planWithoutDigest = {
     schema_version: ADOPTION_SCHEMA_VERSION,
-    plan_id: deterministicUlid(`${input.inventory.digest}:${operationSeed}`),
+    plan_id: deterministicUlid(
+      canonicalJson([input.inventory.digest, operationSeed, coverageDigest])
+    ),
     generated_at: input.generatedAt,
     classification: input.classification,
     candidate_inventory_digest: input.inventory.digest,
+    ...coverageDigest === void 0 ? {} : { coverage_digest: coverageDigest },
     operations,
     validations: [...input.validations].sort()
   };
@@ -19517,6 +19521,9 @@ var mutation_plan_schema_default = {
     candidate_inventory_digest: {
       $ref: "urn:pcp:schema:v1:common#/$defs/sha256"
     },
+    coverage_digest: {
+      $ref: "urn:pcp:schema:v1:common#/$defs/sha256"
+    },
     operations: {
       type: "array",
       items: {
@@ -19536,6 +19543,29 @@ var mutation_plan_schema_default = {
       $ref: "urn:pcp:schema:v1:common#/$defs/sha256"
     }
   },
+  allOf: [
+    {
+      if: {
+        properties: {
+          classification: { const: "C" }
+        },
+        required: ["classification"]
+      },
+      then: {
+        properties: {
+          coverage_digest: {
+            $ref: "urn:pcp:schema:v1:common#/$defs/sha256"
+          }
+        },
+        required: ["coverage_digest"]
+      },
+      else: {
+        properties: {
+          coverage_digest: false
+        }
+      }
+    }
+  ],
   $defs: {
     operation: {
       type: "object",
@@ -23077,13 +23107,16 @@ function parentDirectories(relativePath) {
 function pathDepth(value) {
   return value.split("/").length;
 }
-async function assertNoTargetCollisions(root, content, inspection, persistence) {
+async function assertContentTargetsSafe(root, content, inspection, persistence, replaceablePaths = /* @__PURE__ */ new Set()) {
   const files = new Set(inspection.inventory.files.map((file) => file.path));
   const directories = new Set(inspection.inventory.directories);
   const symlinks = inspection.inventory.symlinks.map((link) => link.path);
   const existingPathKeys = /* @__PURE__ */ new Map();
   for (const existing of [...files, ...directories, ...symlinks]) {
-    existingPathKeys.set(portableCollisionKey(existing), existing);
+    const key = portableCollisionKey(existing);
+    const equivalents = existingPathKeys.get(key) ?? [];
+    equivalents.push(existing);
+    existingPathKeys.set(key, equivalents);
   }
   const desiredPaths = /* @__PURE__ */ new Set();
   for (const target of content.keys()) {
@@ -23102,19 +23135,20 @@ async function assertNoTargetCollisions(root, content, inspection, persistence) 
       );
     }
     desiredPathKeys.set(desiredKey, desired);
-    const existingEquivalent = existingPathKeys.get(desiredKey);
-    if (existingEquivalent !== void 0 && existingEquivalent !== desired) {
+    const existingEquivalents = existingPathKeys.get(desiredKey) ?? [];
+    const conflictingExisting = existingEquivalents.find((existing) => existing !== desired);
+    if (conflictingExisting !== void 0) {
       throw new AdoptionError(
         "PCP_ADOPTION_PATH_COLLISION",
-        `Planned path collides with existing path ${existingEquivalent}: ${desired}`
+        `Planned path collides with existing path ${conflictingExisting}: ${desired}`
       );
     }
   }
   for (const target of content.keys()) {
-    if (files.has(target) || directories.has(target) || symlinks.includes(target)) {
+    if (files.has(target) && !replaceablePaths.has(target) || directories.has(target) || symlinks.includes(target)) {
       throw new AdoptionError(
         "PCP_ADOPTION_PATH_COLLISION",
-        `Planned target already exists: ${target}`
+        `Planned target already exists and is not an approved file replacement: ${target}`
       );
     }
     const staticExclusion = mutationPathExclusion(target);
@@ -23155,7 +23189,7 @@ async function assertNoTargetCollisions(root, content, inspection, persistence) 
       }
     }
     for (const parent of parentDirectories(target)) {
-      if (files.has(parent) || symlinks.includes(parent)) {
+      if (files.has(parent) && !replaceablePaths.has(parent) || symlinks.includes(parent)) {
         throw new AdoptionError(
           "PCP_ADOPTION_PATH_COLLISION",
           `Planned target has a non-directory ancestor: ${target}`
@@ -23163,6 +23197,79 @@ async function assertNoTargetCollisions(root, content, inspection, persistence) 
       }
     }
   }
+}
+function normalizedCoverageDigest(coverage) {
+  const normalized = {
+    ...coverage,
+    records: coverage.records.map((record) => ({
+      ...record,
+      targets: [...record.targets].sort(comparePortablePaths),
+      evidence: [...record.evidence].sort(comparePortablePaths)
+    })).sort((left, right) => comparePortablePaths(left.source_id, right.source_id))
+  };
+  return sha256(canonicalJson(normalized));
+}
+function stateCRemovalPaths(input) {
+  if (input.coverage === void 0) return /* @__PURE__ */ new Set();
+  return new Set(
+    input.coverage.records.filter(
+      (record) => (record.source_kind === "file" || record.source_kind === "adapter") && record.disposition !== "project-owned"
+    ).map((record) => record.source_path)
+  );
+}
+function buildStateCOperations(content, inspection, removalPaths) {
+  const filesByPath = new Map(inspection.inventory.files.map((file) => [file.path, file]));
+  const existingDirectories = new Set(inspection.inventory.directories);
+  const contentPaths = [...content.keys()];
+  const preWriteRemovalPaths = [...removalPaths].filter(
+    (removalPath) => !content.has(removalPath) && contentPaths.some((target) => target.startsWith(`${removalPath}/`))
+  ).sort(comparePortablePaths);
+  const preWriteRemovals = preWriteRemovalPaths.map((removalPath) => {
+    const source = filesByPath.get(removalPath);
+    if (source === void 0) {
+      throw new AdoptionError(
+        "PCP_STATE_C_COVERAGE_INVALID",
+        `Reviewed foreign file is missing from the current inventory: ${removalPath}`
+      );
+    }
+    return {
+      action: "remove",
+      path: removalPath,
+      preimage_digest: source.sha256
+    };
+  });
+  const requiredDirectories = /* @__PURE__ */ new Set();
+  for (const target of contentPaths) {
+    for (const directory of parentDirectories(target)) {
+      if (!existingDirectories.has(directory)) requiredDirectories.add(directory);
+    }
+  }
+  const directoryOperations = [...requiredDirectories].sort((left, right) => pathDepth(left) - pathDepth(right) || comparePortablePaths(left, right)).map((directory) => ({ action: "mkdir", path: directory }));
+  const contentOperations = [...content.entries()].sort(([left], [right]) => comparePortablePaths(left, right)).map(([target, bytes]) => {
+    const existing = filesByPath.get(target);
+    return existing === void 0 ? { action: "write", path: target, content_digest: sha256(bytes) } : {
+      action: "replace",
+      path: target,
+      content_digest: sha256(bytes),
+      preimage_digest: existing.sha256
+    };
+  });
+  const earlyRemovalSet = new Set(preWriteRemovalPaths);
+  const postWriteRemovals = [...removalPaths].filter((removalPath) => !content.has(removalPath) && !earlyRemovalSet.has(removalPath)).sort(comparePortablePaths).map((removalPath) => {
+    const source = filesByPath.get(removalPath);
+    if (source === void 0) {
+      throw new AdoptionError(
+        "PCP_STATE_C_COVERAGE_INVALID",
+        `Reviewed foreign file is missing from the current inventory: ${removalPath}`
+      );
+    }
+    return {
+      action: "remove",
+      path: removalPath,
+      preimage_digest: source.sha256
+    };
+  });
+  return [...preWriteRemovals, ...directoryOperations, ...contentOperations, ...postWriteRemovals];
 }
 function stateCCoverageFailure(diagnostics) {
   const details = diagnostics.slice(0, 8).map((diagnostic2) => `${diagnostic2.code} ${diagnostic2.path}: ${diagnostic2.message}`).join("; ");
@@ -23187,7 +23294,7 @@ function validateStateCCoverageTargets(input, content) {
   }
   if (diagnostics.length > 0) throw stateCCoverageFailure(diagnostics);
 }
-async function reviewStateCCoverage(root, inspection, input) {
+async function buildStateCTranslationPreview(root, inspection, input) {
   if (inspection.state !== "C") {
     throw new AdoptionError(
       "PCP_ADOPTION_STATE_UNSUPPORTED",
@@ -23213,6 +23320,29 @@ async function reviewStateCCoverage(root, inspection, input) {
   if (!validation.valid) throw stateCCoverageFailure(validation.diagnostics);
   const content = await stageCanonicalLayer(input);
   validateStateCCoverageTargets(input, content);
+  const removalPaths = stateCRemovalPaths(input);
+  await assertContentTargetsSafe(root, content, inspection, input.persistence, removalPaths);
+  const plan = createMutationPlan({
+    classification: "C",
+    coverageDigest: normalizedCoverageDigest(input.coverage),
+    inventory: inspection.inventory,
+    generatedAt: input.baseline_at,
+    operations: buildStateCOperations(content, inspection, removalPaths),
+    validations: [
+      "candidate-inventory",
+      "canonical-layer",
+      "clean-genesis",
+      "coverage",
+      "desired-hashes",
+      "foreign-removals",
+      "path-boundaries",
+      "preimages",
+      "rollback",
+      "semantic-input"
+    ]
+  });
+  const planValidation = new SchemaRegistry().validate("mutation-plan", plan);
+  if (!planValidation.valid) throw schemaFailure(planValidation.diagnostics);
   return {
     schema_version: ADOPTION_SCHEMA_VERSION,
     command: "adopt",
@@ -23225,6 +23355,7 @@ async function reviewStateCCoverage(root, inspection, input) {
     coverage: input.coverage,
     coverage_issues: [],
     coverage_status: "complete",
+    plan,
     mutated: false
   };
 }
@@ -23247,7 +23378,7 @@ async function buildPlanMaterial(root, inspection, input) {
   for (const scaffold of input.scaffold_files) {
     content.set(scaffold.path, Buffer.from(normalizeText(scaffold.content), "utf8"));
   }
-  await assertNoTargetCollisions(root, content, inspection, input.persistence);
+  await assertContentTargetsSafe(root, content, inspection, input.persistence);
   const existingDirectories = new Set(inspection.inventory.directories);
   const requiredDirectories = /* @__PURE__ */ new Set();
   for (const target of content.keys()) {
@@ -23299,7 +23430,7 @@ async function planAdoption(candidate = ".", inputPath) {
     return previewWithoutPlan(root, inspection);
   }
   const input = await loadAdoptionInput(inputPath, root);
-  if (inspection.state === "C") return reviewStateCCoverage(root, inspection, input);
+  if (inspection.state === "C") return buildStateCTranslationPreview(root, inspection, input);
   return buildPlanMaterial(root, inspection, input);
 }
 function isPlanMaterial(value) {
@@ -23412,7 +23543,7 @@ async function adoptProject(candidate = ".", options = {}) {
 // src/domain/release.ts
 var PCP_NAME = "Persistent Context Protocol";
 var PCP_VERSION = "0.1.0";
-var PCP_RELEASE_STAGE = "state-c-coverage-review";
+var PCP_RELEASE_STAGE = "state-c-translation-preview";
 var PCP_COMMANDS = [
   "inspect",
   "adopt",
@@ -23474,6 +23605,9 @@ function formatAdoption(result) {
   }
   if (result.plan !== void 0) {
     output += line(`Plan digest: ${result.plan.plan_digest}`);
+    if (result.plan.coverage_digest !== void 0) {
+      output += line(`Coverage digest: ${result.plan.coverage_digest}`);
+    }
     output += line("Operations:");
     for (const operation of result.plan.operations) {
       const digest = operation.content_digest === void 0 ? "" : ` sha256:${operation.content_digest}`;

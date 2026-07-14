@@ -49,6 +49,9 @@ export function formatAdoption(result: AdoptionPreview | AdoptionApplyResult): s
   }
   if (result.plan !== undefined) {
     output += line(`Plan digest: ${result.plan.plan_digest}`);
+    if (result.plan.coverage_digest !== undefined) {
+      output += line(`Coverage digest: ${result.plan.coverage_digest}`);
+    }
     output += line('Operations:');
     for (const operation of result.plan.operations) {
       const digest =

@@ -45,7 +45,7 @@ Create a temporary YAML or JSON document outside the candidate that validates ag
 - exactly the five canonical knowledge documents and three operations documents named by the schema;
 - each document's canonical type/status, evidence basis, cited candidate-relative paths, and grounded Markdown body;
 - State A scaffold files only when they are explicitly appropriate; an empty State A target requires at least one;
-- an empty `scaffold_files` array for State B.
+- an empty `scaffold_files` array for State B;
 - for State C, an empty `scaffold_files` array plus the completed coverage matrix emitted for the current candidate inventory.
 
 Use `tracked` unless the candidate's existing ignore policy already covers the complete `.pcp/` layer. The engine rejects a `local` persistence claim that is not actually ignored and rejects tracked adoption into an ignored canonical path.
@@ -76,10 +76,10 @@ The engine fully recomputes the plan, rejects source drift, acquires a project l
 - Discover foreign context by semantics, not directory name.
 - Translate useful current facts, decisions, rationale, rules, projects, and workstreams.
 - Do not import actor profiles, synchronization cursors, or historical events.
-- Require complete file and history coverage before preview can become applicable.
+- Require complete file and history coverage before planning any foreign removal.
 - Mark an ordinary file `project-owned` only when cautious directory expansion found it beside foreign context; leave it unchanged and give it no canonical target.
 
-Run `adopt` without input to obtain the transient matrix, then include the completed matrix as `coverage` in the external State C semantic input. A successful review reports `coverage_status: complete` without mutating the project. Translation planning and apply remain unavailable until the engine returns an applicable plan; do not remove the foreign layer manually.
+Run `adopt` without input to obtain the transient matrix, then include the completed matrix as `coverage` in the external State C semantic input. A successful review reports `coverage_status: complete` and emits a normalized plan whose digest binds coverage, canonical writes, preimages, and removals. The plan remains `applicable: false`; adapter replacement and destructive apply are unavailable. Treat it as review evidence, not a migration recipe, and do not remove the foreign layer manually.
 
 ## Clean genesis
 

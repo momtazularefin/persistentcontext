@@ -101,6 +101,7 @@ export interface MutationPlan {
   generated_at: string;
   classification: IntakeState;
   candidate_inventory_digest: string;
+  coverage_digest?: string;
   operations: MutationOperation[];
   validations: string[];
   plan_digest: string;
@@ -234,14 +235,19 @@ interface PlanOperationInput {
   preimage_digest?: string;
 }
 
-export function createMutationPlan(input: {
-  classification: 'A' | 'B';
+type MutationPlanInput = {
   inventory: RepositoryInventory;
   generatedAt: string;
   operations: PlanOperationInput[];
   validations: string[];
-}): MutationPlan {
+} & (
+  | { classification: 'A' | 'B'; coverageDigest?: never }
+  | { classification: 'C'; coverageDigest: string }
+);
+
+export function createMutationPlan(input: MutationPlanInput): MutationPlan {
   const operationSeed = canonicalJson(input.operations);
+  const coverageDigest = input.classification === 'C' ? input.coverageDigest : undefined;
   const operations = input.operations.map((operation) => ({
     operation_id: deterministicUlid(
       canonicalJson([
@@ -257,10 +263,13 @@ export function createMutationPlan(input: {
   }));
   const planWithoutDigest = {
     schema_version: ADOPTION_SCHEMA_VERSION,
-    plan_id: deterministicUlid(`${input.inventory.digest}:${operationSeed}`),
+    plan_id: deterministicUlid(
+      canonicalJson([input.inventory.digest, operationSeed, coverageDigest]),
+    ),
     generated_at: input.generatedAt,
     classification: input.classification,
     candidate_inventory_digest: input.inventory.digest,
+    ...(coverageDigest === undefined ? {} : { coverage_digest: coverageDigest }),
     operations,
     validations: [...input.validations].sort(),
   } satisfies Omit<MutationPlan, 'plan_digest'>;
