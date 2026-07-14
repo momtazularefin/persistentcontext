@@ -10,6 +10,7 @@ export type CoverageDisposition =
   | 'operational-noise'
   | 'historical-only'
   | 'sensitive-local'
+  | 'project-owned'
   | 'unresolved';
 
 export interface CoverageRecord {

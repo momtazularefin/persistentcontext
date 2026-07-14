@@ -23,8 +23,9 @@ describe('public project contract', () => {
     expect(readme).toContain('node dist/pcp.mjs validate path/to/managed-project');
     expect(readme).toContain('node dist/pcp.mjs render path/to/managed-project --check');
     expect(readme).toContain('State A/B adoption is preview-first');
-    expect(readme).toContain('State C intake now discovers complete foreign directories');
-    expect(readme).toContain('translation and removal remain fail-closed');
+    expect(readme).toContain('State C intake discovers complete foreign directories');
+    expect(readme).toContain('can be marked `project-owned` and preserved unchanged');
+    expect(readme).toContain('Translation and removal remain fail-closed');
   });
 
   it('normalizes text for deterministic cross-platform checks', async () => {

@@ -10,6 +10,7 @@ Assign every foreign file and history entry one transient disposition:
 - `operational-noise`: bookkeeping has no enduring value.
 - `historical-only`: completed activity does not define current state.
 - `sensitive-local`: omit a secret/private value or convert it to a safe current statement.
+- `project-owned`: preserve an ordinary repository file that cautious foreign-layer discovery included only because it shares a directory with context material.
 - `unresolved`: meaning, conflict, or target is unknown.
 
 Block deletion while any item is unresolved. Do not use timestamps alone to resolve meaning.

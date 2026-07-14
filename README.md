@@ -6,9 +6,9 @@ Most coding agents can complete a task. The harder problem is helping the next a
 
 ## Development status
 
-PCP is under active `0.1.0` development. The engine performs read-only repository inventory and explainable intake classification, safely adopts State A and State B projects, emits deterministic State C foreign-source coverage templates, validates the canonical `.pcp/` contract, and deterministically checks or renders the generated project-status view. It fingerprints files with SHA-256, honors ignore and nested-repository boundaries, records symlinks without following them, and distinguishes a managed PCP project from State A, B, or C.
+PCP is under active `0.1.0` development. The engine performs read-only repository inventory and explainable intake classification, safely adopts State A and State B projects, emits and validates deterministic State C foreign-source coverage, validates the canonical `.pcp/` contract, and deterministically checks or renders the generated project-status view. It fingerprints files with SHA-256, honors ignore and nested-repository boundaries, records symlinks without following them, and distinguishes a managed PCP project from State A, B, or C.
 
-State A/B adoption is preview-first and requires an external, schema-valid semantic baseline plus the exact recomputed plan digest. State C intake now discovers complete foreign directories from semantic anchors, emits fingerprinted file/adapter/history/registry records, and reports unsafe or unparseable boundaries; translation and removal remain fail-closed until the completed matrix and transaction milestones are verified. Registration, event recording, workstream mutation, repair, and upgrade also remain unavailable. `pcp render` may replace only its declared generated status view.
+State A/B adoption is preview-first and requires an external, schema-valid semantic baseline plus the exact recomputed plan digest. State C intake discovers complete foreign directories from semantic anchors, emits fingerprinted file/adapter/history/registry records, and validates a completed matrix against the current repository and staged canonical files. Ordinary project files caught by cautious directory expansion can be marked `project-owned` and preserved unchanged. Translation and removal remain fail-closed until the mutation and rollback milestones are verified. Registration, event recording, workstream mutation, repair, and upgrade also remain unavailable. `pcp render` may replace only its declared generated status view.
 
 ## Intended model
 
@@ -25,7 +25,7 @@ One adoption workflow classifies:
 
 1. State A: a seed or greenfield project described by a title, prompt, README, or plain language. Preview and transactional adoption are implemented.
 2. State B: an established project with substantive assets but no persistent agent layer. Grounded preview and transactional adoption are implemented without reorganizing project-owned assets.
-3. State C: a project with an existing non-PCP instruction, knowledge, memory, planning, or orchestration layer. Classification and transient source/entry coverage generation are implemented; translation and removal remain unavailable until every disposition and transaction gate passes.
+3. State C: a project with an existing non-PCP instruction, knowledge, memory, planning, or orchestration layer. Classification plus transient source/entry coverage generation and review are implemented; translation and removal remain unavailable until every transaction gate passes.
 
 Every successful adoption converges on a clean genesis: grounded current context, no actor profiles, and no imported, active, archived, or synthetic events.
 
@@ -68,7 +68,7 @@ node dist/pcp.mjs render path/to/managed-project --check --json
 node dist/pcp.mjs render path/to/managed-project --json
 ```
 
-`inspect` reports classification evidence and always reports `mutated: false`. `adopt` first returns structured questions and evidence; with an external semantic input it returns an exact non-mutating plan, and only `--apply <plan-digest>` authorizes the fully recomputed plan. `validate` checks schemas, core structure, numbered and indexed Markdown, links, portability, secrets, ownership, generated digests, identities, events, checkpoints, workstream dependencies, VCS authority, and optional clean genesis. `render --check` is non-mutating; write mode replaces only `.pcp/views/10-status.generated.md` from four schema-valid YAML sources. Other lifecycle commands explain that their implementation is unavailable and exit without mutation.
+`inspect` reports classification evidence and always reports `mutated: false`. `adopt` first returns structured questions and evidence. State A/B semantic input produces an exact non-mutating plan, and only `--apply <plan-digest>` authorizes its fully recomputed form. State C semantic input validates the completed coverage matrix and canonical targets but remains non-applicable until translation planning is implemented. `validate` checks schemas, core structure, numbered and indexed Markdown, links, portability, secrets, ownership, generated digests, identities, events, checkpoints, workstream dependencies, VCS authority, and optional clean genesis. `render --check` is non-mutating; write mode replaces only `.pcp/views/10-status.generated.md` from four schema-valid YAML sources. Other lifecycle commands explain that their implementation is unavailable and exit without mutation.
 
 ## Canonical layer
 
@@ -99,7 +99,7 @@ node dist/pcp.mjs --help
 
 State A/B structural operations are preview-first. The engine normalizes and hashes the complete plan, requires the approved digest, recomputes it from the same external semantic input, and rejects source drift before acquiring mutation authority. Apply uses a project-scoped lock, external staging and preimages, a write-ahead operation log, atomic file replacement, reverse rollback with exact inventory verification, live canonical validation, and recovery cleanup after success.
 
-State C conversion will additionally require complete source and history coverage, zero unresolved dispositions, and verified rollback before any foreign live layer is removed.
+State C coverage review already requires complete source and history coverage, zero unresolved dispositions, and real staged canonical targets. Conversion will additionally require a fully reviewed mutation plan and verified rollback before any foreign live layer is removed.
 
 PCP never infers Git authority from a repository or installed tooling. The canonical VCS policy must assign each action explicitly.
 

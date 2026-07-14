@@ -242,6 +242,39 @@ describe('State A and State B adoption planning', () => {
     await expect(
       planAdoption(candidate, await writeInput(userOnlyKnowledge)),
     ).rejects.toMatchObject({ code: 'PCP_ADOPTION_INPUT_INVALID' });
+
+    const stateCCoverage = adoptionInput({
+      projectType: 'software',
+      evidencePath: 'package.json',
+    });
+    stateCCoverage.coverage = {
+      schema_version: 1,
+      coverage_id: '01ARZ3NDEKTSV4RRFFQ69G5FAV',
+      source_inventory_digest: 'a'.repeat(64),
+      records: [],
+      unresolved_count: 0,
+    };
+    await expect(planAdoption(candidate, await writeInput(stateCCoverage))).rejects.toMatchObject({
+      code: 'PCP_STATE_C_COVERAGE_FORBIDDEN',
+    });
+  });
+
+  it('rejects State C coverage attached to State A input', async () => {
+    const candidate = await temporaryRoot('pcp-state-a-coverage-');
+    const input = adoptionInput({
+      projectType: 'research',
+      scaffold: [{ path: 'README.md', content: '# Research notebook\n' }],
+    });
+    input.coverage = {
+      schema_version: 1,
+      coverage_id: '01ARZ3NDEKTSV4RRFFQ69G5FAV',
+      source_inventory_digest: 'a'.repeat(64),
+      records: [],
+      unresolved_count: 0,
+    };
+    await expect(planAdoption(candidate, await writeInput(input))).rejects.toMatchObject({
+      code: 'PCP_STATE_C_COVERAGE_FORBIDDEN',
+    });
   });
 
   it('rejects excluded, case-colliding, nonportable, and secret-bearing State A scaffold paths', async () => {

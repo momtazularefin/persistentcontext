@@ -46,7 +46,7 @@ Never delete foreign context while any file, history entry, collision, or confli
 
 ## Fail closed during development
 
-`inspect`, State A/B `adopt`, `validate`, and `render` are available. Adoption is preview-only unless the exact recomputed plan digest is supplied with the same external semantic input; `render` may replace only the declared generated status view. State C translation and the remaining lifecycle commands still return `PCP_OPERATION_UNAVAILABLE` or a non-applicable preview. Do not simulate an unavailable operation or mutate the target around the engine.
+`inspect`, State A/B `adopt`, State C coverage review, `validate`, and `render` are available. Adoption is preview-only unless the exact recomputed plan digest is supplied with the same external semantic input; `render` may replace only the declared generated status view. State C translation still stops at a non-applicable reviewed-coverage preview, and the remaining lifecycle commands return `PCP_OPERATION_UNAVAILABLE`. Do not simulate an unavailable operation or mutate the target around the engine.
 
 ## Report evidence
 

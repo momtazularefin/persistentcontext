@@ -416,6 +416,13 @@ export function validateForeignCoverage(
     path: issue.path,
     message: issue.message,
   }));
+  if (coverage.coverage_id !== catalog.template.coverage_id) {
+    diagnostics.push({
+      code: 'coverage-id-mismatch',
+      path: '/coverage_id',
+      message: 'Coverage ID does not match the matrix emitted for this candidate.',
+    });
+  }
   if (coverage.source_inventory_digest !== catalog.source_inventory_digest) {
     diagnostics.push({
       code: 'coverage-inventory-mismatch',

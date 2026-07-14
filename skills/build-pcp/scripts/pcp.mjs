@@ -18916,7 +18916,7 @@ var adapter_schema_default = {
 var adoption_input_schema_default = {
   $schema: "https://json-schema.org/draft/2020-12/schema",
   $id: "urn:pcp:schema:v1:adoption-input",
-  title: "PCP State A or State B semantic adoption input",
+  title: "PCP semantic adoption input",
   type: "object",
   additionalProperties: false,
   required: [
@@ -18959,6 +18959,9 @@ var adoption_input_schema_default = {
       },
       minItems: 8,
       maxItems: 8
+    },
+    coverage: {
+      $ref: "urn:pcp:schema:v1:coverage"
     },
     scaffold_files: {
       type: "array",
@@ -19293,6 +19296,7 @@ var coverage_schema_default = {
             "operational-noise",
             "historical-only",
             "sensitive-local",
+            "project-owned",
             "unresolved"
           ]
         },
@@ -19321,6 +19325,22 @@ var coverage_schema_default = {
           then: {
             properties: {
               targets: { type: "array", minItems: 1 }
+            }
+          }
+        },
+        {
+          if: {
+            properties: {
+              disposition: {
+                const: "project-owned"
+              }
+            },
+            required: ["disposition"]
+          },
+          then: {
+            properties: {
+              source_kind: { const: "file" },
+              targets: { type: "array", maxItems: 0 }
             }
           }
         }
@@ -20553,6 +20573,103 @@ async function discoverForeignCoverage(root, inspection) {
     issues: uniqueIssues,
     template: createCoverageTemplate(inspection.inventory.digest, sources)
   };
+}
+function validateForeignCoverage(catalog, value) {
+  const schema4 = new SchemaRegistry().validate("coverage", value);
+  if (!schema4.valid) {
+    return {
+      valid: false,
+      diagnostics: schema4.diagnostics.map((diagnostic2) => ({
+        code: "coverage-schema-invalid",
+        path: diagnostic2.path,
+        message: diagnostic2.message
+      }))
+    };
+  }
+  const coverage = value;
+  const diagnostics = catalog.issues.map((issue3) => ({
+    code: issue3.code,
+    path: issue3.path,
+    message: issue3.message
+  }));
+  if (coverage.coverage_id !== catalog.template.coverage_id) {
+    diagnostics.push({
+      code: "coverage-id-mismatch",
+      path: "/coverage_id",
+      message: "Coverage ID does not match the matrix emitted for this candidate."
+    });
+  }
+  if (coverage.source_inventory_digest !== catalog.source_inventory_digest) {
+    diagnostics.push({
+      code: "coverage-inventory-mismatch",
+      path: "/source_inventory_digest",
+      message: "Coverage was prepared against a different candidate inventory."
+    });
+  }
+  const recordsById = /* @__PURE__ */ new Map();
+  for (const [index, record] of coverage.records.entries()) {
+    if (recordsById.has(record.source_id)) {
+      diagnostics.push({
+        code: "coverage-source-id-duplicate",
+        path: `/records/${index}/source_id`,
+        message: `Coverage source ID appears more than once: ${record.source_id}`
+      });
+    } else {
+      recordsById.set(record.source_id, record);
+    }
+  }
+  const expectedById = new Map(catalog.sources.map((source) => [source.source_id, source]));
+  for (const source of catalog.sources) {
+    const record = recordsById.get(source.source_id);
+    if (record === void 0) {
+      diagnostics.push({
+        code: "coverage-source-missing",
+        path: "/records",
+        message: `Discovered foreign source has no coverage record: ${source.source_id}`
+      });
+      continue;
+    }
+    if (record.source_path !== source.source_path || record.source_kind !== source.source_kind || record.fingerprint !== source.fingerprint) {
+      diagnostics.push({
+        code: "coverage-source-mismatch",
+        path: `/records/${coverage.records.indexOf(record)}`,
+        message: `Coverage metadata does not match the discovered source: ${source.source_id}`
+      });
+    }
+  }
+  for (const [index, record] of coverage.records.entries()) {
+    if (!expectedById.has(record.source_id) && record.source_kind !== "fact") {
+      diagnostics.push({
+        code: "coverage-source-unexpected",
+        path: `/records/${index}`,
+        message: `Only explicit fileless facts may extend the discovered source set: ${record.source_id}`
+      });
+    }
+    if (record.disposition === "unresolved") {
+      diagnostics.push({
+        code: "coverage-source-unresolved",
+        path: `/records/${index}/disposition`,
+        message: `Foreign source remains unresolved: ${record.source_id}`
+      });
+    } else if (record.evidence.includes(PENDING_COVERAGE_EVIDENCE)) {
+      diagnostics.push({
+        code: "coverage-evidence-pending",
+        path: `/records/${index}/evidence`,
+        message: `Resolved coverage requires concrete evidence: ${record.source_id}`
+      });
+    }
+  }
+  const actualUnresolved = coverage.records.filter(
+    (record) => record.disposition === "unresolved"
+  ).length;
+  if (coverage.unresolved_count !== actualUnresolved) {
+    diagnostics.push({
+      code: "coverage-unresolved-count-mismatch",
+      path: "/unresolved_count",
+      message: `Declared unresolved_count ${coverage.unresolved_count} does not match ${actualUnresolved} unresolved records.`
+    });
+  }
+  return { valid: diagnostics.length === 0, diagnostics };
 }
 
 // src/application/render-canonical-views.ts
@@ -22698,6 +22815,7 @@ async function previewWithoutPlan(root, inspection) {
     const catalog = await discoverForeignCoverage(root, inspection);
     preview.coverage = catalog.template;
     preview.coverage_issues = catalog.issues;
+    preview.coverage_status = catalog.issues.length === 0 ? "requires-disposition" : "blocked";
   }
   return preview;
 }
@@ -22784,10 +22902,10 @@ function validateDocumentSet(input, inspection) {
         `Repository-grounded document has no evidence path: ${document.path}`
       );
     }
-    if (inspection.state === "B" && document.type === "knowledge" && document.basis !== "repository" && document.basis !== "repository-and-user") {
+    if ((inspection.state === "B" || inspection.state === "C") && document.type === "knowledge" && document.basis !== "repository" && document.basis !== "repository-and-user") {
       throw new AdoptionError(
         "PCP_ADOPTION_INPUT_INVALID",
-        `State B knowledge must cite current repository evidence: ${document.path}`
+        `Established-project knowledge must cite current repository evidence: ${document.path}`
       );
     }
     for (const evidencePath of document.evidence_paths) {
@@ -22820,10 +22938,16 @@ function validateProjectInput(input, inspection) {
       "Project context_roots must include .pcp."
     );
   }
-  if (inspection.state === "B" && input.scaffold_files.length > 0) {
+  if (inspection.state !== "C" && input.coverage !== void 0) {
     throw new AdoptionError(
-      "PCP_STATE_B_SCAFFOLD_FORBIDDEN",
-      "State B adoption preserves ordinary project topology and cannot add scaffold files."
+      "PCP_STATE_C_COVERAGE_FORBIDDEN",
+      "Foreign-context coverage belongs only to State C adoption input."
+    );
+  }
+  if ((inspection.state === "B" || inspection.state === "C") && input.scaffold_files.length > 0) {
+    throw new AdoptionError(
+      inspection.state === "B" ? "PCP_STATE_B_SCAFFOLD_FORBIDDEN" : "PCP_STATE_C_SCAFFOLD_FORBIDDEN",
+      `${inspection.state === "B" ? "State B adoption" : "State C translation"} preserves ordinary project topology and cannot add scaffold files.`
     );
   }
   if (inspection.state === "A" && inspection.inventory.files.length === 0 && input.scaffold_files.length === 0) {
@@ -23040,6 +23164,70 @@ async function assertNoTargetCollisions(root, content, inspection, persistence) 
     }
   }
 }
+function stateCCoverageFailure(diagnostics) {
+  const details = diagnostics.slice(0, 8).map((diagnostic2) => `${diagnostic2.code} ${diagnostic2.path}: ${diagnostic2.message}`).join("; ");
+  return new AdoptionError(
+    "PCP_STATE_C_COVERAGE_INVALID",
+    `State C coverage is not ready: ${details}`
+  );
+}
+function validateStateCCoverageTargets(input, content) {
+  if (input.coverage === void 0) return;
+  const diagnostics = [];
+  for (const [recordIndex, record] of input.coverage.records.entries()) {
+    for (const [targetIndex, target] of record.targets.entries()) {
+      if (!target.startsWith(".pcp/") || !content.has(target)) {
+        diagnostics.push({
+          code: "coverage-target-missing",
+          path: `/coverage/records/${recordIndex}/targets/${targetIndex}`,
+          message: `Coverage target is not a staged canonical file: ${target}`
+        });
+      }
+    }
+  }
+  if (diagnostics.length > 0) throw stateCCoverageFailure(diagnostics);
+}
+async function reviewStateCCoverage(root, inspection, input) {
+  if (inspection.state !== "C") {
+    throw new AdoptionError(
+      "PCP_ADOPTION_STATE_UNSUPPORTED",
+      `State C coverage review requires a State C candidate, not ${inspection.state}.`
+    );
+  }
+  if (input.coverage === void 0) {
+    throw new AdoptionError(
+      "PCP_STATE_C_COVERAGE_REQUIRED",
+      "State C adoption input must include the completed coverage matrix emitted for this candidate."
+    );
+  }
+  validateDocumentSet(input, inspection);
+  validateProjectInput(input, inspection);
+  if (input.persistence === "local" && !await isMutationDirectoryIgnored(root, ".pcp")) {
+    throw new AdoptionError(
+      "PCP_LOCAL_PERSISTENCE_NOT_IGNORED",
+      "Local persistence requires candidate ignore policy to cover the complete .pcp/ layer before adoption."
+    );
+  }
+  const catalog = await discoverForeignCoverage(root, inspection);
+  const validation = validateForeignCoverage(catalog, input.coverage);
+  if (!validation.valid) throw stateCCoverageFailure(validation.diagnostics);
+  const content = await stageCanonicalLayer(input);
+  validateStateCCoverageTargets(input, content);
+  return {
+    schema_version: ADOPTION_SCHEMA_VERSION,
+    command: "adopt",
+    candidate: ".",
+    classification: "C",
+    confidence: inspection.confidence,
+    applicable: false,
+    questions: [],
+    baseline: baselineFor(root, inspection),
+    coverage: input.coverage,
+    coverage_issues: [],
+    coverage_status: "complete",
+    mutated: false
+  };
+}
 async function buildPlanMaterial(root, inspection, input) {
   if (inspection.state !== "A" && inspection.state !== "B") {
     throw new AdoptionError(
@@ -23107,10 +23295,11 @@ async function buildPlanMaterial(root, inspection, input) {
 async function planAdoption(candidate = ".", inputPath) {
   const root = await resolveCandidateRoot(candidate);
   const inspection = await inspectRepository(root);
-  if (inputPath === void 0 || inspection.state === "managed" || inspection.state === "C") {
+  if (inputPath === void 0 || inspection.state === "managed") {
     return previewWithoutPlan(root, inspection);
   }
   const input = await loadAdoptionInput(inputPath, root);
+  if (inspection.state === "C") return reviewStateCCoverage(root, inspection, input);
   return buildPlanMaterial(root, inspection, input);
 }
 function isPlanMaterial(value) {
@@ -23172,7 +23361,7 @@ async function adoptProject(candidate = ".", options = {}) {
     if (options.apply !== void 0) {
       throw new AdoptionError(
         "PCP_ADOPTION_NOT_APPLICABLE",
-        `The ${planned.classification} candidate is not ready for an applicable State A/B plan.`
+        `The ${planned.classification} candidate is not ready for an applicable adoption plan.`
       );
     }
     return planned;
@@ -23223,7 +23412,7 @@ async function adoptProject(candidate = ".", options = {}) {
 // src/domain/release.ts
 var PCP_NAME = "Persistent Context Protocol";
 var PCP_VERSION = "0.1.0";
-var PCP_RELEASE_STAGE = "state-c-coverage-intake";
+var PCP_RELEASE_STAGE = "state-c-coverage-review";
 var PCP_COMMANDS = [
   "inspect",
   "adopt",
@@ -23273,6 +23462,9 @@ function formatAdoption(result) {
   if (result.coverage !== void 0) {
     output += line(`Foreign coverage records: ${result.coverage.records.length}`);
     output += line(`Unresolved coverage records: ${result.coverage.unresolved_count}`);
+  }
+  if (result.coverage_status !== void 0) {
+    output += line(`Coverage review: ${result.coverage_status}`);
   }
   if (result.coverage_issues !== void 0 && result.coverage_issues.length > 0) {
     output += line("Blocking foreign-source issues:");

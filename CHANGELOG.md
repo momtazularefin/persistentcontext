@@ -13,3 +13,4 @@ All notable public protocol changes will be documented here after the first rele
 - Replaced agent-only continuity with stable human and agent actors, minimal performer/recorder events, a 64-event active window, and 32-event explicit-only archive rotation.
 - Added the recommended human-signed-commit profile while making pull requests optional policy and retaining human-owned, agent-managed, custom, non-Git, and no-VCS choices.
 - Added deterministic State C foreign-source discovery with file, adapter, history-entry, and registry-entry coverage templates; duplicate timestamps do not act as identities, and unreadable, encrypted, binary, excluded, or malformed sources fail closed.
+- Added non-mutating State C coverage review against the current inventory and staged canonical targets, including a `project-owned` disposition that preserves ordinary files caught by cautious discovery.

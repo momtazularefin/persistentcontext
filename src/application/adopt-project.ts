@@ -97,7 +97,7 @@ export async function adoptProject(
     if (options.apply !== undefined) {
       throw new AdoptionError(
         'PCP_ADOPTION_NOT_APPLICABLE',
-        `The ${planned.classification} candidate is not ready for an applicable State A/B plan.`,
+        `The ${planned.classification} candidate is not ready for an applicable adoption plan.`,
       );
     }
     return planned;

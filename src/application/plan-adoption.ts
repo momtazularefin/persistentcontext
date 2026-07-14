@@ -28,7 +28,7 @@ import {
   toPortablePath,
 } from '../infrastructure/filesystem-inventory.js';
 import { SchemaRegistry } from '../infrastructure/schema-validator.js';
-import { discoverForeignCoverage } from './foreign-coverage.js';
+import { discoverForeignCoverage, validateForeignCoverage } from './foreign-coverage.js';
 import { renderCanonicalViews } from './render-canonical-views.js';
 import { inspectRepository } from './inspect-repository.js';
 import { validateCanonicalLayer } from './validate-canonical-layer.js';
@@ -191,6 +191,7 @@ async function previewWithoutPlan(
     const catalog = await discoverForeignCoverage(root, inspection);
     preview.coverage = catalog.template;
     preview.coverage_issues = catalog.issues;
+    preview.coverage_status = catalog.issues.length === 0 ? 'requires-disposition' : 'blocked';
   }
   return preview;
 }
@@ -298,14 +299,14 @@ function validateDocumentSet(input: AdoptionInput, inspection: InspectionResult)
       );
     }
     if (
-      inspection.state === 'B' &&
+      (inspection.state === 'B' || inspection.state === 'C') &&
       document.type === 'knowledge' &&
       document.basis !== 'repository' &&
       document.basis !== 'repository-and-user'
     ) {
       throw new AdoptionError(
         'PCP_ADOPTION_INPUT_INVALID',
-        `State B knowledge must cite current repository evidence: ${document.path}`,
+        `Established-project knowledge must cite current repository evidence: ${document.path}`,
       );
     }
     for (const evidencePath of document.evidence_paths) {
@@ -348,10 +349,18 @@ function validateProjectInput(input: AdoptionInput, inspection: InspectionResult
       'Project context_roots must include .pcp.',
     );
   }
-  if (inspection.state === 'B' && input.scaffold_files.length > 0) {
+  if (inspection.state !== 'C' && input.coverage !== undefined) {
     throw new AdoptionError(
-      'PCP_STATE_B_SCAFFOLD_FORBIDDEN',
-      'State B adoption preserves ordinary project topology and cannot add scaffold files.',
+      'PCP_STATE_C_COVERAGE_FORBIDDEN',
+      'Foreign-context coverage belongs only to State C adoption input.',
+    );
+  }
+  if ((inspection.state === 'B' || inspection.state === 'C') && input.scaffold_files.length > 0) {
+    throw new AdoptionError(
+      inspection.state === 'B'
+        ? 'PCP_STATE_B_SCAFFOLD_FORBIDDEN'
+        : 'PCP_STATE_C_SCAFFOLD_FORBIDDEN',
+      `${inspection.state === 'B' ? 'State B adoption' : 'State C translation'} preserves ordinary project topology and cannot add scaffold files.`,
     );
   }
   if (
@@ -599,6 +608,89 @@ async function assertNoTargetCollisions(
   }
 }
 
+function stateCCoverageFailure(
+  diagnostics: Array<{ code: string; path: string; message: string }>,
+): AdoptionError {
+  const details = diagnostics
+    .slice(0, 8)
+    .map((diagnostic) => `${diagnostic.code} ${diagnostic.path}: ${diagnostic.message}`)
+    .join('; ');
+  return new AdoptionError(
+    'PCP_STATE_C_COVERAGE_INVALID',
+    `State C coverage is not ready: ${details}`,
+  );
+}
+
+function validateStateCCoverageTargets(
+  input: AdoptionInput,
+  content: ReadonlyMap<string, Buffer>,
+): void {
+  if (input.coverage === undefined) return;
+  const diagnostics: Array<{ code: string; path: string; message: string }> = [];
+  for (const [recordIndex, record] of input.coverage.records.entries()) {
+    for (const [targetIndex, target] of record.targets.entries()) {
+      if (!target.startsWith('.pcp/') || !content.has(target)) {
+        diagnostics.push({
+          code: 'coverage-target-missing',
+          path: `/coverage/records/${recordIndex}/targets/${targetIndex}`,
+          message: `Coverage target is not a staged canonical file: ${target}`,
+        });
+      }
+    }
+  }
+  if (diagnostics.length > 0) throw stateCCoverageFailure(diagnostics);
+}
+
+async function reviewStateCCoverage(
+  root: string,
+  inspection: InspectionResult,
+  input: AdoptionInput,
+): Promise<AdoptionPreview> {
+  if (inspection.state !== 'C') {
+    throw new AdoptionError(
+      'PCP_ADOPTION_STATE_UNSUPPORTED',
+      `State C coverage review requires a State C candidate, not ${inspection.state}.`,
+    );
+  }
+  if (input.coverage === undefined) {
+    throw new AdoptionError(
+      'PCP_STATE_C_COVERAGE_REQUIRED',
+      'State C adoption input must include the completed coverage matrix emitted for this candidate.',
+    );
+  }
+
+  validateDocumentSet(input, inspection);
+  validateProjectInput(input, inspection);
+  if (input.persistence === 'local' && !(await isMutationDirectoryIgnored(root, '.pcp'))) {
+    throw new AdoptionError(
+      'PCP_LOCAL_PERSISTENCE_NOT_IGNORED',
+      'Local persistence requires candidate ignore policy to cover the complete .pcp/ layer before adoption.',
+    );
+  }
+
+  const catalog = await discoverForeignCoverage(root, inspection);
+  const validation = validateForeignCoverage(catalog, input.coverage);
+  if (!validation.valid) throw stateCCoverageFailure(validation.diagnostics);
+
+  const content = await stageCanonicalLayer(input);
+  validateStateCCoverageTargets(input, content);
+
+  return {
+    schema_version: ADOPTION_SCHEMA_VERSION,
+    command: 'adopt',
+    candidate: '.',
+    classification: 'C',
+    confidence: inspection.confidence,
+    applicable: false,
+    questions: [],
+    baseline: baselineFor(root, inspection),
+    coverage: input.coverage,
+    coverage_issues: [],
+    coverage_status: 'complete',
+    mutated: false,
+  };
+}
+
 async function buildPlanMaterial(
   root: string,
   inspection: InspectionResult,
@@ -681,10 +773,11 @@ export async function planAdoption(
 ): Promise<AdoptionPreview | AdoptionPlanMaterial> {
   const root = await resolveCandidateRoot(candidate);
   const inspection = await inspectRepository(root);
-  if (inputPath === undefined || inspection.state === 'managed' || inspection.state === 'C') {
+  if (inputPath === undefined || inspection.state === 'managed') {
     return previewWithoutPlan(root, inspection);
   }
   const input = await loadAdoptionInput(inputPath, root);
+  if (inspection.state === 'C') return reviewStateCCoverage(root, inspection, input);
   return buildPlanMaterial(root, inspection, input);
 }
 

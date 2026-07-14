@@ -80,6 +80,7 @@ export interface AdoptionInput {
   };
   vcs_policy: Record<string, unknown>;
   documents: AdoptionDocumentInput[];
+  coverage?: CoverageMatrix;
   scaffold_files: AdoptionScaffoldFile[];
 }
 
@@ -142,6 +143,7 @@ export interface AdoptionPreview {
   baseline: AdoptionBaseline;
   coverage?: CoverageMatrix;
   coverage_issues?: ForeignCoverageIssue[];
+  coverage_status?: 'requires-disposition' | 'blocked' | 'complete';
   plan?: MutationPlan;
   mutated: false;
 }

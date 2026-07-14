@@ -1,9 +1,10 @@
-import { mkdir, mkdtemp, rm, writeFile } from 'node:fs/promises';
+import { mkdir, mkdtemp, readFile, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 import { afterEach, describe, expect, it } from 'vitest';
+import { parse } from 'yaml';
 
 import {
   discoverForeignCoverage,
@@ -11,13 +12,16 @@ import {
 } from '../../src/application/foreign-coverage.js';
 import { inspectRepository } from '../../src/application/inspect-repository.js';
 import { isPlanMaterial, planAdoption } from '../../src/application/plan-adoption.js';
-import { sha256 } from '../../src/domain/adoption.js';
+import { sha256, type AdoptionInput } from '../../src/domain/adoption.js';
 import type { CoverageMatrix } from '../../src/domain/coverage.js';
 import { SchemaRegistry } from '../../src/infrastructure/schema-validator.js';
 import { formatAdoption } from '../../src/presentation/format-adoption.js';
 
 const fixtureRoot = fileURLToPath(
   new URL('../fixtures/inspection/state-c-coverage/', import.meta.url),
+);
+const adoptionInputFixture = fileURLToPath(
+  new URL('../fixtures/schemas/adoption-input.yaml', import.meta.url),
 );
 const temporaryRoots: string[] = [];
 
@@ -41,6 +45,63 @@ function resolvedCoverage(template: CoverageMatrix): CoverageMatrix {
   }
   coverage.unresolved_count = 0;
   return coverage;
+}
+
+function reviewedCoverage(template: CoverageMatrix): CoverageMatrix {
+  const coverage = structuredClone(template);
+  const dispositions = [
+    'represented',
+    'promoted',
+    'superseded',
+    'operational-noise',
+    'historical-only',
+    'sensitive-local',
+  ] as const;
+  let dispositionIndex = 0;
+  for (const record of coverage.records) {
+    if (record.source_path === 'project-guidance/project-owned-note.md') {
+      record.disposition = 'project-owned';
+      record.targets = [];
+      record.evidence = ['This is an ordinary product note, not persistent agent context.'];
+      continue;
+    }
+    const disposition = dispositions[dispositionIndex % dispositions.length]!;
+    dispositionIndex += 1;
+    record.disposition = disposition;
+    record.targets =
+      disposition === 'represented' || disposition === 'promoted' || disposition === 'superseded'
+        ? ['.pcp/operations/10-working-agreement.md']
+        : [];
+    record.evidence = [`Reviewed ${record.source_path} and assigned ${disposition}.`];
+  }
+  coverage.records.push({
+    source_id: 'fact:current-user-direction',
+    source_path: 'user-input/current-direction',
+    source_kind: 'fact',
+    fingerprint: sha256('The current direction is explicit and fileless.'),
+    disposition: 'promoted',
+    targets: ['.pcp/operations/30-decisions.md'],
+    evidence: ['The adopting user explicitly supplied this current direction.'],
+  });
+  coverage.unresolved_count = 0;
+  return coverage;
+}
+
+async function stateCInput(coverage?: CoverageMatrix): Promise<AdoptionInput> {
+  const fixture = parse(await readFile(adoptionInputFixture, 'utf8')) as {
+    valid: AdoptionInput;
+  };
+  const input = structuredClone(fixture.valid);
+  input.scaffold_files = [];
+  if (coverage !== undefined) input.coverage = coverage;
+  return input;
+}
+
+async function writeInput(value: AdoptionInput): Promise<string> {
+  const root = await temporaryRoot('pcp-state-c-input-');
+  const target = path.join(root, 'adoption.json');
+  await writeFile(target, `${JSON.stringify(value, null, 2)}\n`, 'utf8');
+  return target;
 }
 
 describe('State C foreign coverage', () => {
@@ -72,6 +133,7 @@ describe('State C foreign coverage', () => {
       'project-guidance/changelog.yaml',
       'project-guidance/continuity.md',
       'project-guidance/policy.md',
+      'project-guidance/project-owned-note.md',
     ]);
     expect(fileLevel.map((source) => source.source_path)).not.toContain('README.md');
     expect(fileLevel.map((source) => source.source_path)).not.toContain('.cursor/settings.json');
@@ -86,7 +148,7 @@ describe('State C foreign coverage', () => {
     expect([...history, ...registry].every((source) => !source.source_id.includes('2026-'))).toBe(
       true,
     );
-    expect(first.template.unresolved_count).toBe(11);
+    expect(first.template.unresolved_count).toBe(12);
 
     const before = inspection.inventory.digest;
     const preview = await planAdoption(fixtureRoot);
@@ -96,11 +158,13 @@ describe('State C foreign coverage', () => {
       mutated: false,
       coverage: first.template,
       coverage_issues: [],
+      coverage_status: 'requires-disposition',
     });
     if (isPlanMaterial(preview)) throw new Error('State C coverage intake cannot mutate.');
     const formatted = formatAdoption(preview);
-    expect(formatted).toContain('Foreign coverage records: 11');
-    expect(formatted).toContain('Unresolved coverage records: 11');
+    expect(formatted).toContain('Foreign coverage records: 12');
+    expect(formatted).toContain('Unresolved coverage records: 12');
+    expect(formatted).toContain('Coverage review: requires-disposition');
     expect((await inspectRepository(fixtureRoot)).inventory.digest).toBe(before);
   });
 
@@ -122,6 +186,113 @@ describe('State C foreign coverage', () => {
       valid: true,
       diagnostics: [],
     });
+  });
+
+  it('validates a completed matrix and grounded canonical target without mutating State C', async () => {
+    const inspection = await inspectRepository(fixtureRoot);
+    const catalog = await discoverForeignCoverage(fixtureRoot, inspection);
+    const coverage = reviewedCoverage(catalog.template);
+    const input = await writeInput(await stateCInput(coverage));
+    const before = inspection.inventory.digest;
+
+    const result = await planAdoption(fixtureRoot, input);
+    if (isPlanMaterial(result)) throw new Error('Coverage review cannot create a mutation plan.');
+    expect(result).toMatchObject({
+      classification: 'C',
+      applicable: false,
+      questions: [],
+      coverage,
+      coverage_issues: [],
+      coverage_status: 'complete',
+      mutated: false,
+    });
+    expect(new Set(coverage.records.map((record) => record.disposition))).toEqual(
+      new Set([
+        'represented',
+        'promoted',
+        'superseded',
+        'operational-noise',
+        'historical-only',
+        'sensitive-local',
+        'project-owned',
+      ]),
+    );
+    expect(formatAdoption(result)).toContain('Coverage review: complete');
+    expect((await inspectRepository(fixtureRoot)).inventory.digest).toBe(before);
+  });
+
+  it('requires current complete coverage and real staged canonical targets', async () => {
+    await expect(
+      planAdoption(fixtureRoot, await writeInput(await stateCInput())),
+    ).rejects.toMatchObject({ code: 'PCP_STATE_C_COVERAGE_REQUIRED' });
+
+    const inspection = await inspectRepository(fixtureRoot);
+    const catalog = await discoverForeignCoverage(fixtureRoot, inspection);
+    const unresolved = reviewedCoverage(catalog.template);
+    unresolved.records[0]!.disposition = 'unresolved';
+    unresolved.records[0]!.targets = [];
+    unresolved.records[0]!.evidence = ['Pending semantic disposition.'];
+    unresolved.unresolved_count = 1;
+    await expect(
+      planAdoption(fixtureRoot, await writeInput(await stateCInput(unresolved))),
+    ).rejects.toMatchObject({ code: 'PCP_STATE_C_COVERAGE_INVALID' });
+
+    const missingTarget = reviewedCoverage(catalog.template);
+    const represented = missingTarget.records.find(
+      (record) => record.disposition === 'represented',
+    );
+    if (represented === undefined) throw new Error('Expected a represented fixture record.');
+    represented.targets = ['.pcp/knowledge/99-missing.md'];
+    const missingTargetReview = planAdoption(
+      fixtureRoot,
+      await writeInput(await stateCInput(missingTarget)),
+    );
+    await expect(missingTargetReview).rejects.toMatchObject({
+      code: 'PCP_STATE_C_COVERAGE_INVALID',
+    });
+    await expect(missingTargetReview).rejects.toThrow(/coverage-target-missing/u);
+  });
+
+  it('rejects State C scaffolding and knowledge without repository evidence', async () => {
+    const inspection = await inspectRepository(fixtureRoot);
+    const catalog = await discoverForeignCoverage(fixtureRoot, inspection);
+
+    const scaffold = await stateCInput(reviewedCoverage(catalog.template));
+    scaffold.scaffold_files = [{ path: 'extra.txt', content: 'not allowed' }];
+    await expect(planAdoption(fixtureRoot, await writeInput(scaffold))).rejects.toMatchObject({
+      code: 'PCP_STATE_C_SCAFFOLD_FORBIDDEN',
+    });
+
+    const ungrounded = await stateCInput(reviewedCoverage(catalog.template));
+    ungrounded.documents[0] = {
+      ...ungrounded.documents[0]!,
+      basis: 'user',
+      evidence_paths: [],
+    };
+    await expect(planAdoption(fixtureRoot, await writeInput(ungrounded))).rejects.toMatchObject({
+      code: 'PCP_ADOPTION_INPUT_INVALID',
+    });
+  });
+
+  it('limits project-owned coverage to unchanged files', async () => {
+    const inspection = await inspectRepository(fixtureRoot);
+    const catalog = await discoverForeignCoverage(fixtureRoot, inspection);
+    const valid = reviewedCoverage(catalog.template);
+    expect(new SchemaRegistry().validate('coverage', valid).valid).toBe(true);
+
+    const wrongKind = structuredClone(valid);
+    const ownedAsAdapter = wrongKind.records.find(
+      (record) => record.disposition === 'project-owned',
+    );
+    if (ownedAsAdapter === undefined) throw new Error('Expected a project-owned fixture record.');
+    ownedAsAdapter.source_kind = 'adapter';
+    expect(new SchemaRegistry().validate('coverage', wrongKind).valid).toBe(false);
+
+    const mapped = structuredClone(valid);
+    const mappedOwned = mapped.records.find((record) => record.disposition === 'project-owned');
+    if (mappedOwned === undefined) throw new Error('Expected a project-owned fixture record.');
+    mappedOwned.targets = ['.pcp/knowledge/10-overview.md'];
+    expect(new SchemaRegistry().validate('coverage', mapped).valid).toBe(false);
   });
 
   it('rejects missing, stale, duplicate, unexpected, and unresolved coverage', async () => {
@@ -150,6 +321,7 @@ describe('State C foreign coverage', () => {
     coverage.records[1]!.evidence = ['Pending semantic disposition.'];
     coverage.records[2]!.evidence = ['Pending semantic disposition.'];
     coverage.source_inventory_digest = 'd'.repeat(64);
+    coverage.coverage_id = '01ARZ3NDEKTSV4RRFFQ69G5FAV';
     coverage.unresolved_count = 0;
 
     const result = validateForeignCoverage(catalog, coverage);
@@ -163,6 +335,7 @@ describe('State C foreign coverage', () => {
         'coverage-source-unresolved',
         'coverage-evidence-pending',
         'coverage-inventory-mismatch',
+        'coverage-id-mismatch',
         'coverage-unresolved-count-mismatch',
       ]),
     );
@@ -200,6 +373,9 @@ describe('State C foreign coverage', () => {
         'foreign-structured-source-malformed',
       ]),
     );
+    const preview = await planAdoption(root);
+    if (isPlanMaterial(preview)) throw new Error('Blocked State C intake cannot mutate.');
+    expect(preview.coverage_status).toBe('blocked');
     const result = validateForeignCoverage(catalog, resolvedCoverage(catalog.template));
     expect(result.valid).toBe(false);
     expect(result.diagnostics.map((diagnostic) => diagnostic.code)).toEqual(

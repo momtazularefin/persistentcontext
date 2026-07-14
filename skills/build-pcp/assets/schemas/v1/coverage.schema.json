@@ -67,6 +67,7 @@
             "operational-noise",
             "historical-only",
             "sensitive-local",
+            "project-owned",
             "unresolved"
           ]
         },
@@ -95,6 +96,22 @@
           "then": {
             "properties": {
               "targets": { "type": "array", "minItems": 1 }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "disposition": {
+                "const": "project-owned"
+              }
+            },
+            "required": ["disposition"]
+          },
+          "then": {
+            "properties": {
+              "source_kind": { "const": "file" },
+              "targets": { "type": "array", "maxItems": 0 }
             }
           }
         }

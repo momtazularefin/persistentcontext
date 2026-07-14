@@ -38,6 +38,9 @@ export function formatAdoption(result: AdoptionPreview | AdoptionApplyResult): s
     output += line(`Foreign coverage records: ${result.coverage.records.length}`);
     output += line(`Unresolved coverage records: ${result.coverage.unresolved_count}`);
   }
+  if (result.coverage_status !== undefined) {
+    output += line(`Coverage review: ${result.coverage_status}`);
+  }
   if (result.coverage_issues !== undefined && result.coverage_issues.length > 0) {
     output += line('Blocking foreign-source issues:');
     for (const issue of result.coverage_issues) {
