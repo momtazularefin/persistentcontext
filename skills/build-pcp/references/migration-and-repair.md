@@ -28,7 +28,7 @@ Block deletion while any item is unresolved. Do not use timestamps alone to reso
 
 Abort on source drift, unsafe symlinks, nested-boundary violations, insufficient permissions or space, unreadable material, or unresolved semantic conflict.
 
-During `0.1.0` development, State C stops after presenting the normalized plan. Do not apply its digest or reproduce its removal operations manually until the engine reports the plan as applicable.
+During `0.1.0` development, State C stops after presenting the normalized plan, including the five generated platform adapters and every collision. Do not apply its digest or reproduce its replacement/removal operations manually until the engine reports the plan as applicable. If the engine reports an unsupported adapter surface, preserve it and add an explicit implementation rather than treating another platform's adapter as equivalent.
 
 ## Repair and upgrade
 

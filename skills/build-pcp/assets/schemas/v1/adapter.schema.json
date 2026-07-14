@@ -22,7 +22,14 @@
       "$ref": "urn:pcp:schema:v1:common#/$defs/slug"
     },
     "platform": {
-      "enum": ["codex", "antigravity", "claude-code-desktop", "custom"]
+      "enum": [
+        "codex",
+        "antigravity",
+        "claude-code-desktop",
+        "github-copilot-vscode",
+        "cursor",
+        "custom"
+      ]
     },
     "target_path": {
       "$ref": "urn:pcp:schema:v1:common#/$defs/relativePath"

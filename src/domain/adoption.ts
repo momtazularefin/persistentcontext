@@ -3,6 +3,7 @@ import { createHash } from 'node:crypto';
 import { ulid } from 'ulid';
 
 import type { CoverageMatrix, ForeignCoverageIssue } from './coverage.js';
+import type { AdapterManifest } from './adapters.js';
 import type {
   InspectionConfidence,
   InspectionResult,
@@ -145,6 +146,7 @@ export interface AdoptionPreview {
   coverage?: CoverageMatrix;
   coverage_issues?: ForeignCoverageIssue[];
   coverage_status?: 'requires-disposition' | 'blocked' | 'complete';
+  adapters?: AdapterManifest[];
   plan?: MutationPlan;
   mutated: false;
 }

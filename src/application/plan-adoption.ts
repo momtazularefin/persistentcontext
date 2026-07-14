@@ -20,6 +20,7 @@ import {
   type AdoptionQuestion,
   type MutationOperation,
 } from '../domain/adoption.js';
+import { supportedAdapterForSourcePath } from '../domain/adapters.js';
 import { comparePortablePaths, type InspectionResult } from '../domain/inspection.js';
 import { loadCoreTemplateFiles } from '../infrastructure/adoption-assets.js';
 import {
@@ -31,6 +32,10 @@ import {
 } from '../infrastructure/filesystem-inventory.js';
 import { SchemaRegistry } from '../infrastructure/schema-validator.js';
 import { discoverForeignCoverage, validateForeignCoverage } from './foreign-coverage.js';
+import {
+  renderPlatformAdapters,
+  type GeneratedPlatformAdapter,
+} from './render-platform-adapters.js';
 import { renderCanonicalViews } from './render-canonical-views.js';
 import { inspectRepository } from './inspect-repository.js';
 import { validateCanonicalLayer } from './validate-canonical-layer.js';
@@ -452,7 +457,10 @@ function yamlBuffer(value: unknown): Buffer {
   return Buffer.from(stringify(value, { lineWidth: 0, sortMapEntries: true }), 'utf8');
 }
 
-async function stageCanonicalLayer(input: AdoptionInput): Promise<ReadonlyMap<string, Buffer>> {
+async function stageCanonicalLayer(
+  input: AdoptionInput,
+  adapters: readonly GeneratedPlatformAdapter[] = [],
+): Promise<ReadonlyMap<string, Buffer>> {
   const stageRoot = await mkdtemp(path.join(tmpdir(), 'pcp-adoption-preview-'));
   try {
     const template = new Map(await loadCoreTemplateFiles());
@@ -463,6 +471,7 @@ async function stageCanonicalLayer(input: AdoptionInput): Promise<ReadonlyMap<st
     }
     const manifest = parse(manifestBytes.toString('utf8')) as Record<string, unknown>;
     manifest.persistence = input.persistence;
+    manifest.adapter_ids = adapters.map((adapter) => adapter.manifest.adapter_id);
     template.set(manifestPath, yamlBuffer(manifest));
     template.set('.pcp/state/project.yaml', yamlBuffer(input.project));
     template.set('.pcp/state/projects.yaml', yamlBuffer(input.projects));
@@ -493,6 +502,15 @@ async function stageCanonicalLayer(input: AdoptionInput): Promise<ReadonlyMap<st
 
     const result = new Map<string, Buffer>();
     await collectStageFiles(path.join(stageRoot, '.pcp'), stageRoot, result);
+    for (const adapter of adapters) {
+      if (result.has(adapter.manifest.target_path)) {
+        throw new AdoptionError(
+          'PCP_ADAPTER_RENDER_INVALID',
+          `Generated adapter target collides with canonical staged content: ${adapter.manifest.target_path}`,
+        );
+      }
+      result.set(adapter.manifest.target_path, adapter.content);
+    }
     return result;
   } finally {
     await rm(stageRoot, { recursive: true, force: true });
@@ -732,6 +750,56 @@ function stateCCoverageFailure(
   );
 }
 
+function assertSupportedStateCAdapters(input: AdoptionInput): void {
+  if (input.coverage === undefined) return;
+  const unsupported = input.coverage.records
+    .filter(
+      (record) =>
+        record.source_kind === 'adapter' &&
+        supportedAdapterForSourcePath(record.source_path) === undefined,
+    )
+    .map((record) => record.source_path)
+    .sort(comparePortablePaths);
+  if (unsupported.length === 0) return;
+  const examples = unsupported.slice(0, 8).join(', ');
+  throw new AdoptionError(
+    'PCP_STATE_C_ADAPTER_UNSUPPORTED',
+    `State C contains adapter surfaces without a verified PCP replacement: ${examples}. Preserve the candidate and add an explicit adapter implementation before translation.`,
+  );
+}
+
+function assertGeneratedPlatformAdapters(adapters: readonly GeneratedPlatformAdapter[]): void {
+  const registry = new SchemaRegistry();
+  const ids = new Set<string>();
+  const targets = new Set<string>();
+  for (const adapter of adapters) {
+    const validation = registry.validate('adapter', adapter.manifest);
+    if (!validation.valid) {
+      throw new AdoptionError(
+        'PCP_ADAPTER_RENDER_INVALID',
+        `Generated adapter ${adapter.manifest.adapter_id} is invalid: ${validation.diagnostics
+          .slice(0, 8)
+          .map((diagnostic) => `${diagnostic.path}: ${diagnostic.message}`)
+          .join('; ')}`,
+      );
+    }
+    if (adapter.manifest.content_digest !== sha256(adapter.content)) {
+      throw new AdoptionError(
+        'PCP_ADAPTER_RENDER_INVALID',
+        `Generated adapter digest is stale: ${adapter.manifest.adapter_id}`,
+      );
+    }
+    if (ids.has(adapter.manifest.adapter_id) || targets.has(adapter.manifest.target_path)) {
+      throw new AdoptionError(
+        'PCP_ADAPTER_RENDER_INVALID',
+        `Generated adapter ID or target appears more than once: ${adapter.manifest.adapter_id}`,
+      );
+    }
+    ids.add(adapter.manifest.adapter_id);
+    targets.add(adapter.manifest.target_path);
+  }
+}
+
 function validateStateCCoverageTargets(
   input: AdoptionInput,
   content: ReadonlyMap<string, Buffer>,
@@ -782,8 +850,11 @@ async function buildStateCTranslationPreview(
   const catalog = await discoverForeignCoverage(root, inspection);
   const validation = validateForeignCoverage(catalog, input.coverage);
   if (!validation.valid) throw stateCCoverageFailure(validation.diagnostics);
+  assertSupportedStateCAdapters(input);
 
-  const content = await stageCanonicalLayer(input);
+  const adapters = renderPlatformAdapters();
+  assertGeneratedPlatformAdapters(adapters);
+  const content = await stageCanonicalLayer(input, adapters);
   validateStateCCoverageTargets(input, content);
   const removalPaths = stateCRemovalPaths(input);
   await assertContentTargetsSafe(root, content, inspection, input.persistence, removalPaths);
@@ -801,6 +872,7 @@ async function buildStateCTranslationPreview(
       'desired-hashes',
       'foreign-removals',
       'path-boundaries',
+      'platform-adapters',
       'preimages',
       'rollback',
       'semantic-input',
@@ -821,6 +893,7 @@ async function buildStateCTranslationPreview(
     coverage: input.coverage,
     coverage_issues: [],
     coverage_status: 'complete',
+    adapters: adapters.map((adapter) => adapter.manifest),
     plan,
     mutated: false,
   };

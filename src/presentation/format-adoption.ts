@@ -41,6 +41,12 @@ export function formatAdoption(result: AdoptionPreview | AdoptionApplyResult): s
   if (result.coverage_status !== undefined) {
     output += line(`Coverage review: ${result.coverage_status}`);
   }
+  if (result.adapters !== undefined) {
+    output += line('Generated platform adapters:');
+    for (const adapter of result.adapters) {
+      output += line(`- ${adapter.adapter_id}: ${adapter.target_path}`);
+    }
+  }
   if (result.coverage_issues !== undefined && result.coverage_issues.length > 0) {
     output += line('Blocking foreign-source issues:');
     for (const issue of result.coverage_issues) {

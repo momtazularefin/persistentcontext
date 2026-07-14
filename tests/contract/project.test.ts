@@ -25,6 +25,8 @@ describe('public project contract', () => {
     expect(readme).toContain('State A/B adoption is preview-first');
     expect(readme).toContain('State C intake discovers complete foreign directories');
     expect(readme).toContain('can be marked `project-owned` and preserved unchanged');
+    expect(readme).toContain('five generated platform delegations');
+    expect(readme).toContain('outside the five-product contract fails closed');
     expect(readme).toContain('produces a normalized plan whose digest binds the reviewed coverage');
     expect(readme).toContain('the result explicitly remains `applicable: false`');
   });

@@ -18809,6 +18809,60 @@ function stringify3(value, replacer, options) {
   return new Document(value, _replacer, options).toString(options);
 }
 
+// src/domain/adapters.ts
+var SUPPORTED_ADAPTER_IDS = [
+  "codex",
+  "antigravity",
+  "claude-code-desktop",
+  "github-copilot-vscode",
+  "cursor"
+];
+var ADAPTER_BASENAMES = /* @__PURE__ */ new Set([
+  ".cursorrules",
+  "agents.md",
+  "claude.md",
+  "copilot-instructions.md",
+  "gemini.md",
+  "skill.md"
+]);
+var ADAPTER_NAMESPACES = [
+  ".agents/rules",
+  ".claude/agents",
+  ".claude/commands",
+  ".claude/rules",
+  ".claude/skills",
+  ".cursor/rules",
+  ".github/agents",
+  ".github/instructions",
+  ".roo/rules",
+  ".windsurf/rules"
+];
+function normalizedPath(candidatePath) {
+  return candidatePath.replaceAll("\\", "/").replace(/^\.\//u, "").toLowerCase();
+}
+function isInsideNamespace(candidatePath, namespace) {
+  return candidatePath === namespace || candidatePath.startsWith(`${namespace}/`) || candidatePath.includes(`/${namespace}/`);
+}
+function isForeignAdapterSourcePath(candidatePath) {
+  const normalized = normalizedPath(candidatePath);
+  const basename2 = normalized.split("/").at(-1) ?? normalized;
+  return ADAPTER_BASENAMES.has(basename2) || ADAPTER_NAMESPACES.some((namespace) => isInsideNamespace(normalized, namespace));
+}
+function supportedAdapterForSourcePath(candidatePath) {
+  const normalized = normalizedPath(candidatePath);
+  const basename2 = normalized.split("/").at(-1) ?? normalized;
+  if (basename2 === "agents.md") return "codex";
+  if (basename2 === "claude.md") return "claude-code-desktop";
+  if (basename2 === ".cursorrules" || isInsideNamespace(normalized, ".cursor/rules")) {
+    return "cursor";
+  }
+  if (isInsideNamespace(normalized, ".agents/rules")) return "antigravity";
+  if (basename2 === "copilot-instructions.md" || isInsideNamespace(normalized, ".github/agents") || isInsideNamespace(normalized, ".github/instructions")) {
+    return "github-copilot-vscode";
+  }
+  return void 0;
+}
+
 // src/infrastructure/adoption-assets.ts
 import { lstat as lstat3, readdir, readFile as readFile3 } from "node:fs/promises";
 import path4 from "node:path";
@@ -18896,7 +18950,14 @@ var adapter_schema_default = {
       $ref: "urn:pcp:schema:v1:common#/$defs/slug"
     },
     platform: {
-      enum: ["codex", "antigravity", "claude-code-desktop", "custom"]
+      enum: [
+        "codex",
+        "antigravity",
+        "claude-code-desktop",
+        "github-copilot-vscode",
+        "cursor",
+        "custom"
+      ]
     },
     target_path: {
       $ref: "urn:pcp:schema:v1:common#/$defs/relativePath"
@@ -20322,34 +20383,12 @@ var FOREIGN_CATEGORIES = /* @__PURE__ */ new Set([
   "workflow",
   "orchestration"
 ]);
-var ADAPTER_BASENAMES = /* @__PURE__ */ new Set([
-  ".cursorrules",
-  "agents.md",
-  "claude.md",
-  "copilot-instructions.md",
-  "gemini.md",
-  "skill.md"
-]);
-var ADAPTER_PREFIXES = [
-  ".agents/rules/",
-  ".claude/",
-  ".cursor/rules/",
-  ".github/agents/",
-  ".github/instructions/",
-  ".roo/rules/",
-  ".windsurf/rules/"
-];
 var ENCRYPTED_EXTENSION = /\.(?:age|asc|enc|gpg|p12|pfx|pgp)$/iu;
 var ENCRYPTED_CONTENT = /-----BEGIN (?:PGP MESSAGE|ENCRYPTED PRIVATE KEY)-----|age-encryption\.org\/v1/iu;
 var HISTORY_BASENAME = /^(?:change[-_ ]?log|events?|history|journal)(?:\.[a-z0-9_-]+)?\.(?:json|md|ya?ml)$/iu;
 var REGISTRY_BASENAME = /^(?:agent|actor)[-_ ]?(?:profiles?|registry|repository)\.(?:json|md|ya?ml)$/iu;
 function isInsideForeignRoot(candidatePath, root) {
   return candidatePath === root || candidatePath.startsWith(`${root}/`);
-}
-function isAdapterPath(candidatePath) {
-  const normalized = candidatePath.toLowerCase();
-  const basename2 = normalized.split("/").at(-1) ?? normalized;
-  return ADAPTER_BASENAMES.has(basename2) || ADAPTER_PREFIXES.some((prefix) => normalized.startsWith(prefix));
 }
 function structuredSourceKind(candidatePath) {
   const basename2 = candidatePath.split("/").at(-1) ?? candidatePath;
@@ -20524,9 +20563,9 @@ async function discoverForeignCoverage(root, inspection) {
   const issues = boundaryIssues(inspection);
   for (const file of selectedForeignFiles(inspection)) {
     sources.push({
-      source_id: `${isAdapterPath(file.path) ? "adapter" : "file"}:${file.path}`,
+      source_id: `${isForeignAdapterSourcePath(file.path) ? "adapter" : "file"}:${file.path}`,
       source_path: file.path,
-      source_kind: isAdapterPath(file.path) ? "adapter" : "file",
+      source_kind: isForeignAdapterSourcePath(file.path) ? "adapter" : "file",
       fingerprint: file.sha256
     });
     if (file.size > MAXIMUM_STRUCTURED_SOURCE_BYTES) {
@@ -20702,6 +20741,68 @@ function validateForeignCoverage(catalog, value) {
   return { valid: diagnostics.length === 0, diagnostics };
 }
 
+// src/application/render-platform-adapters.ts
+var GENERATED_MARKER = "<!-- PCP: GENERATED; DO NOT EDIT -->";
+var CANONICAL_ENTRY = ".pcp/00-index.md";
+var targetByAdapter = {
+  codex: "AGENTS.md",
+  antigravity: ".agents/rules/pcp.md",
+  "claude-code-desktop": "CLAUDE.md",
+  "github-copilot-vscode": ".github/copilot-instructions.md",
+  cursor: ".cursor/rules/pcp.mdc"
+};
+function sharedBody() {
+  return [
+    GENERATED_MARKER,
+    "",
+    "# Persistent Context Protocol",
+    "",
+    "Canonical project context lives in `.pcp/`; this file is only a platform adapter.",
+    "",
+    `1. Start at \`${CANONICAL_ENTRY}\`.`,
+    "2. Follow its first-task or returning-task path.",
+    "3. Read only the state, knowledge, operations, project, and continuity records relevant to the active scope.",
+    "4. Update canonical PCP sources when project context changes; do not create independent authority in this adapter.",
+    ""
+  ];
+}
+function adapterText(adapterId) {
+  const body = sharedBody();
+  if (adapterId === "claude-code-desktop") {
+    body.splice(6, 1, `1. Read @${CANONICAL_ENTRY} before work.`);
+  }
+  if (adapterId === "cursor") {
+    return [
+      "---",
+      "description: Route project work through the canonical PCP context",
+      "globs:",
+      "alwaysApply: true",
+      "---",
+      "",
+      ...body
+    ].join("\n");
+  }
+  return body.join("\n");
+}
+function renderPlatformAdapters() {
+  return SUPPORTED_ADAPTER_IDS.map((adapterId) => {
+    const content = Buffer.from(adapterText(adapterId), "utf8");
+    return {
+      manifest: {
+        schema_version: 1,
+        adapter_id: adapterId,
+        platform: adapterId,
+        target_path: targetByAdapter[adapterId],
+        source_paths: [CANONICAL_ENTRY],
+        ownership: "generated",
+        collision_policy: "preview-required",
+        content_digest: sha256(content)
+      },
+      content
+    };
+  });
+}
+
 // src/application/render-canonical-views.ts
 import { readFile as readFile6, writeFile as writeFile2 } from "node:fs/promises";
 import path7 from "node:path";
@@ -20754,7 +20855,7 @@ async function canonicalSourceDigest(root, sources) {
 // src/application/render-canonical-views.ts
 var VIEW_PATH = "views/10-status.generated.md";
 var PROJECT_VIEW_PATH = `.pcp/${VIEW_PATH}`;
-var GENERATED_MARKER = "<!-- PCP: GENERATED; DO NOT EDIT -->";
+var GENERATED_MARKER2 = "<!-- PCP: GENERATED; DO NOT EDIT -->";
 var RENDERER_TEMPLATE_UPDATED_AT = "2026-07-14T07:20:00Z";
 var SOURCES = [
   ["state/project.yaml", "project"],
@@ -20885,7 +20986,7 @@ function renderCanonicalStatusView(sources, sourceDigest) {
     `source_digest: ${sourceDigest}`,
     "---",
     "",
-    GENERATED_MARKER,
+    GENERATED_MARKER2,
     "",
     "# Project status",
     "",
@@ -21226,9 +21327,9 @@ function addSignal(signals, code2, category, candidatePath, reason, strength) {
 function knownForeignPathSignals(input) {
   const signals = [];
   for (const file of input.inventory.files) {
-    const normalizedPath = file.path.toLowerCase();
+    const normalizedPath2 = file.path.toLowerCase();
     const fileName = basename(file.path);
-    if (knownInstructionBasenames.has(fileName) || knownInstructionPrefixes.some((prefix) => normalizedPath.startsWith(prefix))) {
+    if (knownInstructionBasenames.has(fileName) || knownInstructionPrefixes.some((prefix) => normalizedPath2.startsWith(prefix))) {
       addSignal(
         signals,
         "foreign.agent-instructions.known-entry",
@@ -21238,7 +21339,7 @@ function knownForeignPathSignals(input) {
         "strong"
       );
     }
-    if (/^(?:.+\/)?agent-(?:repository|registry)\.md$/u.test(normalizedPath)) {
+    if (/^(?:.+\/)?agent-(?:repository|registry)\.md$/u.test(normalizedPath2)) {
       addSignal(
         signals,
         "foreign.agent-identity.registry",
@@ -21248,7 +21349,7 @@ function knownForeignPathSignals(input) {
         "strong"
       );
     }
-    if (/^(?:.+\/)?sync-protocol\.md$/u.test(normalizedPath)) {
+    if (/^(?:.+\/)?sync-protocol\.md$/u.test(normalizedPath2)) {
       addSignal(
         signals,
         "foreign.persistent-memory.sync-protocol",
@@ -21258,7 +21359,7 @@ function knownForeignPathSignals(input) {
         "strong"
       );
     }
-    if (/^(?:.+\/)?parallel-orchestration\.md$/u.test(normalizedPath)) {
+    if (/^(?:.+\/)?parallel-orchestration\.md$/u.test(normalizedPath2)) {
       addSignal(
         signals,
         "foreign.orchestration.parallel-plan",
@@ -21270,8 +21371,8 @@ function knownForeignPathSignals(input) {
     }
   }
   for (const document of input.documents) {
-    const normalizedPath = document.path.toLowerCase();
-    if (/(?:^|\/)(?:ai|agents?|context|memory)\/.*change ?log\.ya?ml$/u.test(normalizedPath) && /\bagent\s*:/iu.test(document.contents)) {
+    const normalizedPath2 = document.path.toLowerCase();
+    if (/(?:^|\/)(?:ai|agents?|context|memory)\/.*change ?log\.ya?ml$/u.test(normalizedPath2) && /\bagent\s*:/iu.test(document.contents)) {
       addSignal(
         signals,
         "foreign.change-journal.agent-log",
@@ -21289,8 +21390,8 @@ function semanticForeignSignals(documents) {
   const agentAnchor = /\b(ai agents?|coding agents?|assistant|agent[- ]id|multi[- ]agent|parallel agents?)\b/iu;
   const contextAnchor = /\b(before (?:any|each|every) task|source of truth|continuity|handoff|checkpoint|last[- ]synced|agent[- ]id|agent registry|journal event|change ?log|working agreement|workstream|must (?:read|follow|register|sync))\b/iu;
   for (const document of documents) {
-    const normalizedPath = document.path.toLowerCase();
-    const isRootReadme = normalizedPath === "readme.md";
+    const normalizedPath2 = document.path.toLowerCase();
+    const isRootReadme = normalizedPath2 === "readme.md";
     if (!agentAnchor.test(document.contents) || !contextAnchor.test(document.contents)) continue;
     const matches = semanticPatterns.filter(({ pattern }) => pattern.test(document.contents));
     if (isRootReadme && (matches.length < 2 || !matches.some((match) => match.category === "agent-instructions"))) {
@@ -22106,7 +22207,7 @@ function matchingOwnershipClasses(relativePath, patterns) {
 }
 
 // src/application/validate-canonical-layer.ts
-var GENERATED_MARKER2 = "<!-- PCP: GENERATED; DO NOT EDIT -->";
+var GENERATED_MARKER3 = "<!-- PCP: GENERATED; DO NOT EDIT -->";
 var REQUIRED_CANONICAL_PATHS = [
   ".gitignore",
   "00-index.md",
@@ -22481,12 +22582,12 @@ async function validateOwnership(layerRoot, files, markdown, patterns, diagnosti
       );
     }
     if (matches[0] === "generated") {
-      if (!record.contents.includes(GENERATED_MARKER2)) {
+      if (!record.contents.includes(GENERATED_MARKER3)) {
         diagnostics.push(
           issue2(
             "generated.editable",
             file.relative_path,
-            `Generated Markdown must contain ${GENERATED_MARKER2}.`
+            `Generated Markdown must contain ${GENERATED_MARKER3}.`
           )
         );
       }
@@ -23054,7 +23155,7 @@ async function collectStageFiles(directory, stageRoot, result) {
 function yamlBuffer(value) {
   return Buffer.from(stringify3(value, { lineWidth: 0, sortMapEntries: true }), "utf8");
 }
-async function stageCanonicalLayer(input) {
+async function stageCanonicalLayer(input, adapters = []) {
   const stageRoot = await mkdtemp2(path11.join(tmpdir2(), "pcp-adoption-preview-"));
   try {
     const template = new Map(await loadCoreTemplateFiles());
@@ -23065,6 +23166,7 @@ async function stageCanonicalLayer(input) {
     }
     const manifest = parse(manifestBytes.toString("utf8"));
     manifest.persistence = input.persistence;
+    manifest.adapter_ids = adapters.map((adapter) => adapter.manifest.adapter_id);
     template.set(manifestPath, yamlBuffer(manifest));
     template.set(".pcp/state/project.yaml", yamlBuffer(input.project));
     template.set(".pcp/state/projects.yaml", yamlBuffer(input.projects));
@@ -23090,6 +23192,15 @@ async function stageCanonicalLayer(input) {
     }
     const result = /* @__PURE__ */ new Map();
     await collectStageFiles(path11.join(stageRoot, ".pcp"), stageRoot, result);
+    for (const adapter of adapters) {
+      if (result.has(adapter.manifest.target_path)) {
+        throw new AdoptionError(
+          "PCP_ADAPTER_RENDER_INVALID",
+          `Generated adapter target collides with canonical staged content: ${adapter.manifest.target_path}`
+        );
+      }
+      result.set(adapter.manifest.target_path, adapter.content);
+    }
     return result;
   } finally {
     await rm2(stageRoot, { recursive: true, force: true });
@@ -23278,6 +23389,46 @@ function stateCCoverageFailure(diagnostics) {
     `State C coverage is not ready: ${details}`
   );
 }
+function assertSupportedStateCAdapters(input) {
+  if (input.coverage === void 0) return;
+  const unsupported = input.coverage.records.filter(
+    (record) => record.source_kind === "adapter" && supportedAdapterForSourcePath(record.source_path) === void 0
+  ).map((record) => record.source_path).sort(comparePortablePaths);
+  if (unsupported.length === 0) return;
+  const examples = unsupported.slice(0, 8).join(", ");
+  throw new AdoptionError(
+    "PCP_STATE_C_ADAPTER_UNSUPPORTED",
+    `State C contains adapter surfaces without a verified PCP replacement: ${examples}. Preserve the candidate and add an explicit adapter implementation before translation.`
+  );
+}
+function assertGeneratedPlatformAdapters(adapters) {
+  const registry = new SchemaRegistry();
+  const ids = /* @__PURE__ */ new Set();
+  const targets = /* @__PURE__ */ new Set();
+  for (const adapter of adapters) {
+    const validation = registry.validate("adapter", adapter.manifest);
+    if (!validation.valid) {
+      throw new AdoptionError(
+        "PCP_ADAPTER_RENDER_INVALID",
+        `Generated adapter ${adapter.manifest.adapter_id} is invalid: ${validation.diagnostics.slice(0, 8).map((diagnostic2) => `${diagnostic2.path}: ${diagnostic2.message}`).join("; ")}`
+      );
+    }
+    if (adapter.manifest.content_digest !== sha256(adapter.content)) {
+      throw new AdoptionError(
+        "PCP_ADAPTER_RENDER_INVALID",
+        `Generated adapter digest is stale: ${adapter.manifest.adapter_id}`
+      );
+    }
+    if (ids.has(adapter.manifest.adapter_id) || targets.has(adapter.manifest.target_path)) {
+      throw new AdoptionError(
+        "PCP_ADAPTER_RENDER_INVALID",
+        `Generated adapter ID or target appears more than once: ${adapter.manifest.adapter_id}`
+      );
+    }
+    ids.add(adapter.manifest.adapter_id);
+    targets.add(adapter.manifest.target_path);
+  }
+}
 function validateStateCCoverageTargets(input, content) {
   if (input.coverage === void 0) return;
   const diagnostics = [];
@@ -23318,7 +23469,10 @@ async function buildStateCTranslationPreview(root, inspection, input) {
   const catalog = await discoverForeignCoverage(root, inspection);
   const validation = validateForeignCoverage(catalog, input.coverage);
   if (!validation.valid) throw stateCCoverageFailure(validation.diagnostics);
-  const content = await stageCanonicalLayer(input);
+  assertSupportedStateCAdapters(input);
+  const adapters = renderPlatformAdapters();
+  assertGeneratedPlatformAdapters(adapters);
+  const content = await stageCanonicalLayer(input, adapters);
   validateStateCCoverageTargets(input, content);
   const removalPaths = stateCRemovalPaths(input);
   await assertContentTargetsSafe(root, content, inspection, input.persistence, removalPaths);
@@ -23336,6 +23490,7 @@ async function buildStateCTranslationPreview(root, inspection, input) {
       "desired-hashes",
       "foreign-removals",
       "path-boundaries",
+      "platform-adapters",
       "preimages",
       "rollback",
       "semantic-input"
@@ -23355,6 +23510,7 @@ async function buildStateCTranslationPreview(root, inspection, input) {
     coverage: input.coverage,
     coverage_issues: [],
     coverage_status: "complete",
+    adapters: adapters.map((adapter) => adapter.manifest),
     plan,
     mutated: false
   };
@@ -23596,6 +23752,12 @@ function formatAdoption(result) {
   }
   if (result.coverage_status !== void 0) {
     output += line(`Coverage review: ${result.coverage_status}`);
+  }
+  if (result.adapters !== void 0) {
+    output += line("Generated platform adapters:");
+    for (const adapter of result.adapters) {
+      output += line(`- ${adapter.adapter_id}: ${adapter.target_path}`);
+    }
   }
   if (result.coverage_issues !== void 0 && result.coverage_issues.length > 0) {
     output += line("Blocking foreign-source issues:");

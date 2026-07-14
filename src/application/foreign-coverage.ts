@@ -10,6 +10,7 @@ import {
   normalizeText,
   sha256,
 } from '../domain/adoption.js';
+import { isForeignAdapterSourcePath } from '../domain/adapters.js';
 import {
   COVERAGE_SCHEMA_VERSION,
   PENDING_COVERAGE_EVIDENCE,
@@ -38,23 +39,6 @@ const FOREIGN_CATEGORIES = new Set<SignalCategory>([
   'workflow',
   'orchestration',
 ]);
-const ADAPTER_BASENAMES = new Set([
-  '.cursorrules',
-  'agents.md',
-  'claude.md',
-  'copilot-instructions.md',
-  'gemini.md',
-  'skill.md',
-]);
-const ADAPTER_PREFIXES = [
-  '.agents/rules/',
-  '.claude/',
-  '.cursor/rules/',
-  '.github/agents/',
-  '.github/instructions/',
-  '.roo/rules/',
-  '.windsurf/rules/',
-];
 const ENCRYPTED_EXTENSION = /\.(?:age|asc|enc|gpg|p12|pfx|pgp)$/iu;
 const ENCRYPTED_CONTENT =
   /-----BEGIN (?:PGP MESSAGE|ENCRYPTED PRIVATE KEY)-----|age-encryption\.org\/v1/iu;
@@ -67,15 +51,6 @@ type StructuredSourceKind = 'history-entry' | 'registry-entry';
 
 function isInsideForeignRoot(candidatePath: string, root: string): boolean {
   return candidatePath === root || candidatePath.startsWith(`${root}/`);
-}
-
-function isAdapterPath(candidatePath: string): boolean {
-  const normalized = candidatePath.toLowerCase();
-  const basename = normalized.split('/').at(-1) ?? normalized;
-  return (
-    ADAPTER_BASENAMES.has(basename) ||
-    ADAPTER_PREFIXES.some((prefix) => normalized.startsWith(prefix))
-  );
 }
 
 function structuredSourceKind(candidatePath: string): StructuredSourceKind | undefined {
@@ -307,9 +282,9 @@ export async function discoverForeignCoverage(
   const issues = boundaryIssues(inspection);
   for (const file of selectedForeignFiles(inspection)) {
     sources.push({
-      source_id: `${isAdapterPath(file.path) ? 'adapter' : 'file'}:${file.path}`,
+      source_id: `${isForeignAdapterSourcePath(file.path) ? 'adapter' : 'file'}:${file.path}`,
       source_path: file.path,
-      source_kind: isAdapterPath(file.path) ? 'adapter' : 'file',
+      source_kind: isForeignAdapterSourcePath(file.path) ? 'adapter' : 'file',
       fingerprint: file.sha256,
     });
 

@@ -210,6 +210,22 @@ describe('State C foreign coverage', () => {
       coverage,
       coverage_issues: [],
       coverage_status: 'complete',
+      adapters: [
+        expect.objectContaining({ adapter_id: 'codex', target_path: 'AGENTS.md' }),
+        expect.objectContaining({
+          adapter_id: 'antigravity',
+          target_path: '.agents/rules/pcp.md',
+        }),
+        expect.objectContaining({
+          adapter_id: 'claude-code-desktop',
+          target_path: 'CLAUDE.md',
+        }),
+        expect.objectContaining({
+          adapter_id: 'github-copilot-vscode',
+          target_path: '.github/copilot-instructions.md',
+        }),
+        expect.objectContaining({ adapter_id: 'cursor', target_path: '.cursor/rules/pcp.mdc' }),
+      ],
       mutated: false,
     });
     expect(result.plan).toEqual(repeated.plan);
@@ -225,7 +241,6 @@ describe('State C foreign coverage', () => {
     expect(removals.map((operation) => operation.path)).toEqual(
       expect.arrayContaining([
         '.cursor/rules/legacy.mdc',
-        '.github/copilot-instructions.md',
         'project-guidance/agent-registry.md',
         'project-guidance/changelog.yaml',
         'project-guidance/continuity.md',
@@ -241,6 +256,21 @@ describe('State C foreign coverage', () => {
         (operation) => operation.preimage_digest === inventoryByPath.get(operation.path)?.sha256,
       ),
     ).toBe(true);
+    expect(result.plan.operations).toContainEqual(
+      expect.objectContaining({
+        action: 'replace',
+        path: '.github/copilot-instructions.md',
+        preimage_digest: inventoryByPath.get('.github/copilot-instructions.md')?.sha256,
+      }),
+    );
+    const cursorWriteIndex = result.plan.operations.findIndex(
+      (operation) => operation.action === 'write' && operation.path === '.cursor/rules/pcp.mdc',
+    );
+    const legacyCursorRemovalIndex = result.plan.operations.findIndex(
+      (operation) => operation.action === 'remove' && operation.path === '.cursor/rules/legacy.mdc',
+    );
+    expect(cursorWriteIndex).toBeGreaterThanOrEqual(0);
+    expect(legacyCursorRemovalIndex).toBeGreaterThan(cursorWriteIndex);
     expect(
       result.plan.operations.some(
         (operation) =>
@@ -260,11 +290,82 @@ describe('State C foreign coverage', () => {
       ]),
     );
     expect(formatAdoption(result)).toContain('Coverage digest:');
+    expect(formatAdoption(result)).toContain('Generated platform adapters:');
     expect((await inspectRepository(fixtureRoot)).inventory.digest).toBe(before);
     await expect(
       adoptProject(fixtureRoot, { input, apply: result.plan.plan_digest }),
     ).rejects.toMatchObject({ code: 'PCP_ADOPTION_NOT_APPLICABLE', mutated: false });
     expect((await inspectRepository(fixtureRoot)).inventory.digest).toBe(before);
+  });
+
+  it('previews explicit replacements for all five canonical adapter collisions', async () => {
+    const candidate = await temporaryRoot('pcp-state-c-platform-collisions-');
+    await mkdir(path.join(candidate, '.agents', 'rules'), { recursive: true });
+    await mkdir(path.join(candidate, '.github'), { recursive: true });
+    await mkdir(path.join(candidate, '.cursor', 'rules'), { recursive: true });
+    await writeFile(
+      path.join(candidate, 'README.md'),
+      '# Existing project\n\nA maintained project with several agent entry points.\n',
+      'utf8',
+    );
+    const existingAdapters = new Map([
+      ['AGENTS.md', '# Existing Codex instructions\n'],
+      ['.agents/rules/pcp.md', '# Existing Antigravity instructions\n'],
+      ['CLAUDE.md', '# Existing Claude instructions\n'],
+      ['.github/copilot-instructions.md', '# Existing Copilot instructions\n'],
+      [
+        '.cursor/rules/pcp.mdc',
+        '---\ndescription: Existing Cursor instructions\nalwaysApply: true\n---\n',
+      ],
+    ]);
+    for (const [target, contents] of existingAdapters) {
+      await writeFile(path.join(candidate, ...target.split('/')), contents, 'utf8');
+    }
+
+    const inspection = await inspectRepository(candidate);
+    expect(inspection.state).toBe('C');
+    const catalog = await discoverForeignCoverage(candidate, inspection);
+    const coverage = reviewedCoverage(catalog.template);
+    const result = await planAdoption(candidate, await writeInput(await stateCInput(coverage)));
+    if (isPlanMaterial(result) || result.plan === undefined) {
+      throw new Error('Expected a preview-only adapter collision plan.');
+    }
+
+    const replacements = result.plan.operations.filter(
+      (operation) => operation.action === 'replace' && existingAdapters.has(operation.path),
+    );
+    expect(replacements.map((operation) => operation.path)).toEqual(
+      [...existingAdapters.keys()].sort(),
+    );
+    for (const replacement of replacements) {
+      expect(replacement.preimage_digest).toBe(sha256(existingAdapters.get(replacement.path)!));
+    }
+    for (const [target, contents] of existingAdapters) {
+      expect(await readFile(path.join(candidate, ...target.split('/')), 'utf8')).toBe(contents);
+    }
+  });
+
+  it('refuses to remove an adapter whose platform replacement is not implemented', async () => {
+    const candidate = await temporaryRoot('pcp-state-c-unsupported-adapter-');
+    await mkdir(path.join(candidate, '.windsurf', 'rules'), { recursive: true });
+    await writeFile(
+      path.join(candidate, 'README.md'),
+      '# Existing project\n\nA maintained project with foreign agent rules.\n',
+      'utf8',
+    );
+    const unsupportedPath = path.join(candidate, '.windsurf', 'rules', 'project.md');
+    const unsupportedContents =
+      '# Agent instructions\n\nBefore every task, read the project memory and current workstream.\n';
+    await writeFile(unsupportedPath, unsupportedContents, 'utf8');
+
+    const inspection = await inspectRepository(candidate);
+    expect(inspection.state).toBe('C');
+    const catalog = await discoverForeignCoverage(candidate, inspection);
+    const coverage = reviewedCoverage(catalog.template);
+    await expect(
+      planAdoption(candidate, await writeInput(await stateCInput(coverage))),
+    ).rejects.toMatchObject({ code: 'PCP_STATE_C_ADAPTER_UNSUPPORTED', mutated: false });
+    expect(await readFile(unsupportedPath, 'utf8')).toBe(unsupportedContents);
   });
 
   it('normalizes equivalent coverage order while binding material review changes', async () => {

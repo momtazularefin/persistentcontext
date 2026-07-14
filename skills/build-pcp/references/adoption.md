@@ -79,7 +79,7 @@ The engine fully recomputes the plan, rejects source drift, acquires a project l
 - Require complete file and history coverage before planning any foreign removal.
 - Mark an ordinary file `project-owned` only when cautious directory expansion found it beside foreign context; leave it unchanged and give it no canonical target.
 
-Run `adopt` without input to obtain the transient matrix, then include the completed matrix as `coverage` in the external State C semantic input. A successful review reports `coverage_status: complete` and emits a normalized plan whose digest binds coverage, canonical writes, preimages, and removals. The plan remains `applicable: false`; adapter replacement and destructive apply are unavailable. Treat it as review evidence, not a migration recipe, and do not remove the foreign layer manually.
+Run `adopt` without input to obtain the transient matrix, then include the completed matrix as `coverage` in the external State C semantic input. A successful review reports `coverage_status: complete` and emits a normalized plan whose digest binds coverage, canonical writes, generated platform adapters, preimages, and removals. Review every adapter `write`, `replace`, and legacy removal. PCP plans the replacement before removing a supported scoped convention and blocks any adapter surface outside the implemented five-product contract. The plan remains `applicable: false`; destructive apply is unavailable. Treat it as review evidence, not a migration recipe, and do not remove the foreign layer manually.
 
 ## Clean genesis
 
