@@ -119,11 +119,13 @@ function questionsFor(inspection: InspectionResult): AdoptionQuestion[] {
       },
       {
         id: 'vcs-profile',
-        prompt: 'Select none, human-owned, agent-managed, or a complete custom VCS policy.',
-        reason: 'PCP cannot infer version-control authority from repository presence.',
+        prompt:
+          'Select recommended human-commit, none, human-owned, agent-managed, or a complete custom VCS policy.',
+        reason:
+          'PCP recommends transparent human commits but cannot infer or enforce version-control authority.',
         required: true,
         response_shape: 'enum',
-        options: ['none', 'human-owned', 'agent-managed', 'custom'],
+        options: ['human-commit', 'none', 'human-owned', 'agent-managed', 'custom'],
       },
     ];
   }
@@ -147,11 +149,13 @@ function questionsFor(inspection: InspectionResult): AdoptionQuestion[] {
     },
     {
       id: 'vcs-profile',
-      prompt: 'Select none, human-owned, agent-managed, or a complete custom VCS policy.',
-      reason: 'PCP cannot infer version-control authority.',
+      prompt:
+        'Select recommended human-commit, none, human-owned, agent-managed, or a complete custom VCS policy.',
+      reason:
+        'PCP recommends transparent human commits but cannot infer or enforce version-control authority.',
       required: true,
       response_shape: 'enum',
-      options: ['none', 'human-owned', 'agent-managed', 'custom'],
+      options: ['human-commit', 'none', 'human-owned', 'agent-managed', 'custom'],
     },
   ];
   if (inspection.inventory.files.length === 0) {

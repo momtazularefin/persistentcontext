@@ -2,7 +2,7 @@ schema: checkpoint
 valid:
   schema_version: 1
   checkpoint_id: 01ARZ3NDEKTSV4RRFFQ69G5FAV
-  agent_id: codex-laptop-01ARZ3NDEK
+  actor_id: codex-laptop-01ARZ3NDEK
   workstream_id: canonical-layer
   last_event_id: null
   reconciled_at: 2026-07-12T00:00:00Z

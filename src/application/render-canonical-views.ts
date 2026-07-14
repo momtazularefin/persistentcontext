@@ -21,7 +21,7 @@ import { SchemaRegistry } from '../infrastructure/schema-validator.js';
 const VIEW_PATH = 'views/10-status.generated.md';
 const PROJECT_VIEW_PATH = `.pcp/${VIEW_PATH}`;
 const GENERATED_MARKER = '<!-- PCP: GENERATED; DO NOT EDIT -->';
-const RENDERER_TEMPLATE_UPDATED_AT = '2026-07-12T13:10:00Z';
+const RENDERER_TEMPLATE_UPDATED_AT = '2026-07-14T07:20:00Z';
 const SOURCES: Array<[string, SchemaName]> = [
   ['state/project.yaml', 'project'],
   ['state/projects.yaml', 'project-registry'],
@@ -213,10 +213,12 @@ export function renderCanonicalStatusView(
     '## Version control',
     '',
     `- Mode: ${code(vcsPolicy.mode)}`,
+    `- System: ${code(vcsPolicy.system)}`,
     `- Provider: ${code(vcsPolicy.provider)}`,
     `- Default branch: ${code(repository.default_branch)}`,
+    `- Commit signing: ${code(workflow.commit_signing)}`,
     `- Push cadence: ${code(workflow.push_cadence)}`,
-    `- Pull request required: ${code(workflow.pull_request_required)}`,
+    `- Pull request policy: ${code(workflow.pull_request_policy)}`,
     `- Human merge required: ${code(workflow.human_merge_required)}`,
     '',
   ];

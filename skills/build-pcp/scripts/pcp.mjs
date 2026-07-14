@@ -19030,17 +19030,18 @@ var adoption_input_schema_default = {
   }
 };
 
-// schemas/v1/agent-profile.schema.json
-var agent_profile_schema_default = {
+// schemas/v1/actor-profile.schema.json
+var actor_profile_schema_default = {
   $schema: "https://json-schema.org/draft/2020-12/schema",
-  $id: "urn:pcp:schema:v1:agent-profile",
-  title: "PCP durable agent profile",
+  $id: "urn:pcp:schema:v1:actor-profile",
+  title: "PCP durable human or agent profile",
   type: "object",
   additionalProperties: false,
   required: [
     "schema_version",
-    "agent_id",
-    "platform",
+    "actor_id",
+    "actor_type",
+    "client",
     "machine_label",
     "first_seen",
     "checkpoint_paths"
@@ -19049,13 +19050,16 @@ var agent_profile_schema_default = {
     schema_version: {
       $ref: "urn:pcp:schema:v1:common#/$defs/schemaVersion"
     },
-    agent_id: {
+    actor_id: {
       type: "string",
       pattern: "^[a-z0-9]+(?:-[a-z0-9]+)*-[0-9A-HJKMNP-TV-Z]{10}$",
       maxLength: 160
     },
-    platform: {
-      enum: ["codex", "antigravity", "claude-code-desktop", "other"]
+    actor_type: {
+      enum: ["human", "agent"]
+    },
+    client: {
+      enum: ["codex", "antigravity", "claude-code-desktop", "human", "other"]
     },
     machine_label: {
       $ref: "urn:pcp:schema:v1:common#/$defs/slug"
@@ -19066,7 +19070,32 @@ var agent_profile_schema_default = {
     checkpoint_paths: {
       $ref: "urn:pcp:schema:v1:common#/$defs/pathArray"
     }
-  }
+  },
+  allOf: [
+    {
+      if: {
+        properties: { actor_type: { const: "human" } },
+        required: ["actor_type"]
+      },
+      then: {
+        properties: {
+          client: { const: "human" },
+          checkpoint_paths: { type: "array", maxItems: 0 }
+        }
+      }
+    },
+    {
+      if: {
+        properties: { actor_type: { const: "agent" } },
+        required: ["actor_type"]
+      },
+      then: {
+        properties: {
+          client: { not: { const: "human" } }
+        }
+      }
+    }
+  ]
 };
 
 // schemas/v1/checkpoint.schema.json
@@ -19079,7 +19108,7 @@ var checkpoint_schema_default = {
   required: [
     "schema_version",
     "checkpoint_id",
-    "agent_id",
+    "actor_id",
     "workstream_id",
     "last_event_id",
     "reconciled_at",
@@ -19093,7 +19122,7 @@ var checkpoint_schema_default = {
     checkpoint_id: {
       $ref: "urn:pcp:schema:v1:common#/$defs/ulid"
     },
-    agent_id: {
+    actor_id: {
       type: "string",
       minLength: 1,
       maxLength: 160
@@ -19300,6 +19329,76 @@ var coverage_schema_default = {
   }
 };
 
+// schemas/v1/event.schema.json
+var event_schema_default = {
+  $schema: "https://json-schema.org/draft/2020-12/schema",
+  $id: "urn:pcp:schema:v1:event",
+  title: "PCP immutable continuity event",
+  type: "object",
+  additionalProperties: false,
+  required: [
+    "schema_version",
+    "event_id",
+    "occurred_at",
+    "actor",
+    "recorded_by",
+    "basis",
+    "kind",
+    "scopes",
+    "workstreams",
+    "summary",
+    "affected_paths"
+  ],
+  properties: {
+    schema_version: {
+      $ref: "urn:pcp:schema:v1:common#/$defs/schemaVersion"
+    },
+    event_id: {
+      $ref: "urn:pcp:schema:v1:common#/$defs/ulid"
+    },
+    occurred_at: {
+      $ref: "urn:pcp:schema:v1:common#/$defs/dateTime"
+    },
+    actor: {
+      $ref: "urn:pcp:schema:v1:common#/$defs/actorReference"
+    },
+    recorded_by: {
+      $ref: "urn:pcp:schema:v1:common#/$defs/actorReference"
+    },
+    basis: {
+      enum: ["self", "reported", "observed", "system"]
+    },
+    kind: {
+      enum: [
+        "code",
+        "documentation",
+        "configuration",
+        "decision",
+        "research",
+        "operations",
+        "release",
+        "vcs",
+        "workstream"
+      ]
+    },
+    scopes: {
+      $ref: "urn:pcp:schema:v1:common#/$defs/slugArray"
+    },
+    workstreams: {
+      $ref: "urn:pcp:schema:v1:common#/$defs/slugArray"
+    },
+    summary: {
+      $ref: "urn:pcp:schema:v1:common#/$defs/nonEmptyString"
+    },
+    rationale: {
+      $ref: "urn:pcp:schema:v1:common#/$defs/nonEmptyString"
+    },
+    affected_paths: {
+      $ref: "urn:pcp:schema:v1:common#/$defs/pathArray"
+    }
+  }
+};
+
 // schemas/v1/frontmatter.schema.json
 var frontmatter_schema_default = {
   $schema: "https://json-schema.org/draft/2020-12/schema",
@@ -19363,72 +19462,6 @@ var frontmatter_schema_default = {
       }
     }
   ]
-};
-
-// schemas/v1/journal-event.schema.json
-var journal_event_schema_default = {
-  $schema: "https://json-schema.org/draft/2020-12/schema",
-  $id: "urn:pcp:schema:v1:journal-event",
-  title: "PCP immutable journal event",
-  type: "object",
-  additionalProperties: false,
-  required: [
-    "schema_version",
-    "event_id",
-    "occurred_at",
-    "actor",
-    "origin",
-    "kind",
-    "scopes",
-    "workstreams",
-    "summary",
-    "rationale",
-    "affected_paths"
-  ],
-  properties: {
-    schema_version: {
-      $ref: "urn:pcp:schema:v1:common#/$defs/schemaVersion"
-    },
-    event_id: {
-      $ref: "urn:pcp:schema:v1:common#/$defs/ulid"
-    },
-    occurred_at: {
-      $ref: "urn:pcp:schema:v1:common#/$defs/dateTime"
-    },
-    actor: {
-      $ref: "urn:pcp:schema:v1:common#/$defs/actorReference"
-    },
-    origin: {
-      enum: ["human", "agent", "system"]
-    },
-    kind: {
-      enum: [
-        "code",
-        "documentation",
-        "configuration",
-        "decision",
-        "research",
-        "operations",
-        "release",
-        "workstream"
-      ]
-    },
-    scopes: {
-      $ref: "urn:pcp:schema:v1:common#/$defs/slugArray"
-    },
-    workstreams: {
-      $ref: "urn:pcp:schema:v1:common#/$defs/slugArray"
-    },
-    summary: {
-      $ref: "urn:pcp:schema:v1:common#/$defs/nonEmptyString"
-    },
-    rationale: {
-      $ref: "urn:pcp:schema:v1:common#/$defs/nonEmptyString"
-    },
-    affected_paths: {
-      $ref: "urn:pcp:schema:v1:common#/$defs/pathArray"
-    }
-  }
 };
 
 // schemas/v1/mutation-plan.schema.json
@@ -19568,6 +19601,7 @@ var pcp_manifest_schema_default = {
     "protocol",
     "persistence",
     "capabilities",
+    "continuity",
     "ownership",
     "adapter_ids",
     "validation",
@@ -19595,6 +19629,16 @@ var pcp_manifest_schema_default = {
     },
     capabilities: {
       $ref: "urn:pcp:schema:v1:common#/$defs/slugArray"
+    },
+    continuity: {
+      type: "object",
+      additionalProperties: false,
+      required: ["active_event_limit", "archive_batch_size", "archive_read_policy"],
+      properties: {
+        active_event_limit: { const: 64 },
+        archive_batch_size: { const: 32 },
+        archive_read_policy: { const: "explicit-only" }
+      }
     },
     ownership: {
       type: "object",
@@ -19752,13 +19796,24 @@ var vcs_policy_schema_default = {
   title: "PCP version-control authority policy",
   type: "object",
   additionalProperties: false,
-  required: ["schema_version", "mode", "provider", "repository", "responsibilities", "workflow"],
+  required: [
+    "schema_version",
+    "mode",
+    "system",
+    "provider",
+    "repository",
+    "responsibilities",
+    "workflow"
+  ],
   properties: {
     schema_version: {
       $ref: "urn:pcp:schema:v1:common#/$defs/schemaVersion"
     },
     mode: {
-      enum: ["none", "human-owned", "agent-managed", "custom"]
+      enum: ["none", "human-owned", "human-commit", "agent-managed", "custom"]
+    },
+    system: {
+      enum: ["none", "git", "subversion", "other"]
     },
     provider: {
       enum: ["none", "github", "gitlab", "bitbucket", "other"]
@@ -19785,8 +19840,9 @@ var vcs_policy_schema_default = {
       required: [
         "branch_pattern",
         "commit_convention",
+        "commit_signing",
         "push_cadence",
-        "pull_request_required",
+        "pull_request_policy",
         "human_merge_required",
         "post_merge"
       ],
@@ -19797,11 +19853,14 @@ var vcs_policy_schema_default = {
         commit_convention: {
           enum: ["conventional", "custom", "none"]
         },
+        commit_signing: {
+          enum: ["required", "recommended", "none"]
+        },
         push_cadence: {
           enum: ["milestone", "unit", "manual", "never"]
         },
-        pull_request_required: {
-          type: "boolean"
+        pull_request_policy: {
+          enum: ["none", "recommended", "required"]
         },
         human_merge_required: {
           type: "boolean"
@@ -19812,6 +19871,7 @@ var vcs_policy_schema_default = {
             enum: [
               "verify-pr",
               "verify-checks",
+              "accept-human-report",
               "fetch-prune",
               "switch-default",
               "pull-ff-only",
@@ -19888,6 +19948,7 @@ var vcs_policy_schema_default = {
       then: {
         properties: {
           provider: { const: "none" },
+          system: { const: "none" },
           responsibilities: {
             type: "object",
             additionalProperties: { const: "prohibited" }
@@ -19896,8 +19957,9 @@ var vcs_policy_schema_default = {
             type: "object",
             properties: {
               commit_convention: { const: "none" },
+              commit_signing: { const: "none" },
               push_cadence: { const: "never" },
-              pull_request_required: { const: false },
+              pull_request_policy: { const: "none" },
               human_merge_required: { const: false },
               post_merge: { type: "array", maxItems: 0 }
             }
@@ -19913,6 +19975,7 @@ var vcs_policy_schema_default = {
       then: {
         properties: {
           provider: { not: { const: "none" } },
+          system: { const: "git" },
           responsibilities: {
             type: "object",
             properties: {
@@ -19934,8 +19997,9 @@ var vcs_policy_schema_default = {
             type: "object",
             properties: {
               commit_convention: { const: "conventional" },
+              commit_signing: { enum: ["required", "recommended"] },
               push_cadence: { const: "milestone" },
-              pull_request_required: { const: true },
+              pull_request_policy: { const: "recommended" },
               human_merge_required: { const: true },
               post_merge: {
                 type: "array",
@@ -19952,6 +20016,59 @@ var vcs_policy_schema_default = {
                 ],
                 minItems: 9,
                 maxItems: 9
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      if: {
+        properties: { mode: { const: "human-commit" } },
+        required: ["mode"]
+      },
+      then: {
+        properties: {
+          provider: { not: { const: "none" } },
+          system: { const: "git" },
+          responsibilities: {
+            type: "object",
+            properties: {
+              sync_default: { const: "agent" },
+              create_branch: { const: "agent" },
+              stage: { const: "human" },
+              commit: { const: "human" },
+              push: { const: "agent" },
+              open_pull_request: { const: "agent" },
+              repair_ci: { const: "agent" },
+              review_pull_request: { const: "human" },
+              merge_pull_request: { const: "human" },
+              cleanup_branch: { const: "agent" },
+              force_push: { const: "prohibited" },
+              rewrite_history: { const: "prohibited" }
+            }
+          },
+          workflow: {
+            type: "object",
+            properties: {
+              commit_convention: { const: "conventional" },
+              commit_signing: { enum: ["required", "recommended"] },
+              push_cadence: { const: "milestone" },
+              pull_request_policy: { const: "recommended" },
+              human_merge_required: { const: true },
+              post_merge: {
+                type: "array",
+                prefixItems: [
+                  { const: "accept-human-report" },
+                  { const: "fetch-prune" },
+                  { const: "switch-default" },
+                  { const: "pull-ff-only" },
+                  { const: "verify-clean" },
+                  { const: "delete-local-branch" },
+                  { const: "create-next-branch" }
+                ],
+                minItems: 7,
+                maxItems: 7
               }
             }
           }
@@ -20062,11 +20179,11 @@ var workstreams_schema_default = {
 var SCHEMA_CATALOG = {
   adapter: adapter_schema_default,
   "adoption-input": adoption_input_schema_default,
-  "agent-profile": agent_profile_schema_default,
+  "actor-profile": actor_profile_schema_default,
   checkpoint: checkpoint_schema_default,
   coverage: coverage_schema_default,
+  event: event_schema_default,
   frontmatter: frontmatter_schema_default,
-  "journal-event": journal_event_schema_default,
   "mutation-plan": mutation_plan_schema_default,
   "pcp-manifest": pcp_manifest_schema_default,
   "project-registry": project_registry_schema_default,
@@ -20190,7 +20307,7 @@ async function canonicalSourceDigest(root, sources) {
 var VIEW_PATH = "views/10-status.generated.md";
 var PROJECT_VIEW_PATH = `.pcp/${VIEW_PATH}`;
 var GENERATED_MARKER = "<!-- PCP: GENERATED; DO NOT EDIT -->";
-var RENDERER_TEMPLATE_UPDATED_AT = "2026-07-12T13:10:00Z";
+var RENDERER_TEMPLATE_UPDATED_AT = "2026-07-14T07:20:00Z";
 var SOURCES = [
   ["state/project.yaml", "project"],
   ["state/projects.yaml", "project-registry"],
@@ -20347,10 +20464,12 @@ function renderCanonicalStatusView(sources, sourceDigest) {
     "## Version control",
     "",
     `- Mode: ${code(vcsPolicy.mode)}`,
+    `- System: ${code(vcsPolicy.system)}`,
     `- Provider: ${code(vcsPolicy.provider)}`,
     `- Default branch: ${code(repository.default_branch)}`,
+    `- Commit signing: ${code(workflow.commit_signing)}`,
     `- Push cadence: ${code(workflow.push_cadence)}`,
-    `- Pull request required: ${code(workflow.pull_request_required)}`,
+    `- Pull request policy: ${code(workflow.pull_request_policy)}`,
     `- Human merge required: ${code(workflow.human_merge_required)}`,
     ""
   ];
@@ -21234,27 +21353,27 @@ function validateWorkstreams(records) {
   for (const id of byId.keys()) visit3(id, []);
   return diagnostics;
 }
-function validateAgents(records) {
+function validateActors(records) {
   const diagnostics = [];
   const seen = /* @__PURE__ */ new Map();
-  for (const record of records.agents) {
+  for (const record of records.actors) {
     const profile = objectValue2(record.value);
-    const id = stringValue(profile?.agent_id);
+    const id = stringValue(profile?.actor_id);
     if (id === void 0) continue;
     const expectedName = `${id}.yaml`;
     if (!record.path.endsWith(`/${expectedName}`)) {
       diagnostics.push(
         error(
-          "identity.agent-filename-mismatch",
+          "identity.actor-filename-mismatch",
           record.path,
-          `Agent profile filename must be ${expectedName}.`
+          `Actor profile filename must be ${expectedName}.`
         )
       );
     }
     const previous = seen.get(id);
     if (previous !== void 0) {
       diagnostics.push(
-        error("identity.duplicate-agent", record.path, `Agent ID ${id} duplicates ${previous}.`)
+        error("identity.duplicate-actor", record.path, `Actor ID ${id} duplicates ${previous}.`)
       );
     } else {
       seen.set(id, record.path);
@@ -21265,8 +21384,13 @@ function validateAgents(records) {
 function validateEvents(records) {
   const diagnostics = [];
   const seen = /* @__PURE__ */ new Map();
-  const agentIds = new Set(
-    records.agents.map((record) => stringValue(objectValue2(record.value)?.agent_id)).filter((id) => id !== void 0)
+  const actorTypes = new Map(
+    records.actors.map((record) => {
+      const profile = objectValue2(record.value);
+      return [stringValue(profile?.actor_id), stringValue(profile?.actor_type)];
+    }).filter(
+      (entry) => entry[0] !== void 0 && entry[1] !== void 0
+    )
   );
   const workstreamRoot = objectValue2(records.workstreams?.value);
   const workstreamIds = new Set(
@@ -21279,44 +21403,82 @@ function validateEvents(records) {
     const expectedName = `${id}.yaml`;
     if (!record.path.endsWith(`/${expectedName}`)) {
       diagnostics.push(
-        error(
-          "journal.filename-mismatch",
-          record.path,
-          `Journal event filename must be ${expectedName}.`
-        )
+        error("event.filename-mismatch", record.path, `Event filename must be ${expectedName}.`)
       );
     }
     const previous = seen.get(id);
     if (previous !== void 0) {
       diagnostics.push(
-        error("journal.duplicate-event", record.path, `Event ID ${id} duplicates ${previous}.`)
+        error("event.duplicate", record.path, `Event ID ${id} duplicates ${previous}.`)
       );
     } else {
       seen.set(id, record.path);
     }
     const actor = objectValue2(event?.actor);
+    const recorder = objectValue2(event?.recorded_by);
     const actorType = stringValue(actor?.type);
     const actorId = stringValue(actor?.id);
-    const origin = stringValue(event?.origin);
-    if (actorType !== void 0 && origin !== void 0 && actorType !== origin) {
+    const recorderType = stringValue(recorder?.type);
+    const recorderId = stringValue(recorder?.id);
+    const basis = stringValue(event?.basis);
+    for (const [role, referenceType, referenceId] of [
+      ["actor", actorType, actorId],
+      ["recorder", recorderType, recorderId]
+    ]) {
+      if ((referenceType === "human" || referenceType === "agent") && referenceId !== void 0) {
+        const profileType = actorTypes.get(referenceId);
+        if (profileType === void 0) {
+          diagnostics.push(
+            error(
+              `event.unknown-${role}`,
+              record.path,
+              `Event ${role} references unknown ${referenceType} ${referenceId}.`
+            )
+          );
+        } else if (profileType !== referenceType) {
+          diagnostics.push(
+            error(
+              `event.${role}-type-mismatch`,
+              record.path,
+              `Event ${role} type ${referenceType} does not match profile type ${profileType}.`
+            )
+          );
+        }
+      }
+    }
+    const sameIdentity = actorType === recorderType && actorId === recorderId;
+    if (basis === "self" && !sameIdentity) {
       diagnostics.push(
         error(
-          "journal.origin-actor-mismatch",
+          "event.self-recorder-mismatch",
           record.path,
-          `Event origin ${origin} does not match actor type ${actorType}.`
+          "A self-recorded event must name the same actor and recorder."
         )
       );
     }
-    if (actorType === "agent" && actorId !== void 0 && !agentIds.has(actorId)) {
+    if ((basis === "reported" || basis === "observed") && sameIdentity) {
       diagnostics.push(
-        error("journal.unknown-agent", record.path, `Event references unknown agent ${actorId}.`)
+        error(
+          "event.external-basis-self-recorded",
+          record.path,
+          `A ${basis} event must be recorded by a different actor.`
+        )
+      );
+    }
+    if (basis === "system" && (actorType !== "system" || recorderType !== "system")) {
+      diagnostics.push(
+        error(
+          "event.system-basis-mismatch",
+          record.path,
+          "A system-basis event must name system as both actor and recorder."
+        )
       );
     }
     for (const workstreamId of stringArray2(event?.workstreams)) {
       if (!workstreamIds.has(workstreamId)) {
         diagnostics.push(
           error(
-            "journal.unknown-workstream",
+            "event.unknown-workstream",
             record.path,
             `Event references unknown workstream ${workstreamId}.`
           )
@@ -21328,8 +21490,13 @@ function validateEvents(records) {
 }
 function validateCheckpoints(records) {
   const diagnostics = [];
-  const agentIds = new Set(
-    records.agents.map((record) => stringValue(objectValue2(record.value)?.agent_id)).filter((id) => id !== void 0)
+  const actorTypes = new Map(
+    records.actors.map((record) => {
+      const profile = objectValue2(record.value);
+      return [stringValue(profile?.actor_id), stringValue(profile?.actor_type)];
+    }).filter(
+      (entry) => entry[0] !== void 0 && entry[1] !== void 0
+    )
   );
   const eventIds = new Set(
     records.events.map((record) => stringValue(objectValue2(record.value)?.event_id)).filter((id) => id !== void 0)
@@ -21350,15 +21517,26 @@ function validateCheckpoints(records) {
         )
       );
     }
-    const agentId = stringValue(checkpoint?.agent_id);
-    if (agentId !== void 0 && !agentIds.has(agentId)) {
-      diagnostics.push(
-        error(
-          "checkpoint.unknown-agent",
-          record.path,
-          `Checkpoint references unknown agent ${agentId}.`
-        )
-      );
+    const actorId = stringValue(checkpoint?.actor_id);
+    if (actorId !== void 0) {
+      const actorType = actorTypes.get(actorId);
+      if (actorType === void 0) {
+        diagnostics.push(
+          error(
+            "checkpoint.unknown-actor",
+            record.path,
+            `Checkpoint references unknown actor ${actorId}.`
+          )
+        );
+      } else if (actorType !== "agent") {
+        diagnostics.push(
+          error(
+            "checkpoint.human-actor",
+            record.path,
+            `Checkpoint actor ${actorId} must be an agent.`
+          )
+        );
+      }
     }
     const workstreamId = stringValue(checkpoint?.workstream_id);
     if (workstreamId !== void 0 && !workstreamIds.has(workstreamId)) {
@@ -21402,7 +21580,7 @@ function validateCanonicalSemantics(records) {
   return [
     ...validateProjectIdentity(records),
     ...validateWorkstreams(records),
-    ...validateAgents(records),
+    ...validateActors(records),
     ...validateEvents(records),
     ...validateCheckpoints(records),
     ...validateVcsPolicy(records)
@@ -21468,9 +21646,11 @@ var GENERATED_MARKER2 = "<!-- PCP: GENERATED; DO NOT EDIT -->";
 var REQUIRED_CANONICAL_PATHS = [
   ".gitignore",
   "00-index.md",
-  "agents/00-index.md",
-  "journal/00-index.md",
-  "journal/events/00-index.md",
+  "continuity/00-index.md",
+  "continuity/actors/00-index.md",
+  "continuity/archive/00-index.md",
+  "continuity/checkpoints/00-index.md",
+  "continuity/events/00-index.md",
   "knowledge/00-index.md",
   "operations/00-index.md",
   "pcp.yaml",
@@ -21553,9 +21733,11 @@ function schemaForPath(relativePath) {
   if (relativePath === "state/projects.yaml") return "project-registry";
   if (relativePath === "state/workstreams.yaml") return "workstreams";
   if (relativePath === "state/vcs-policy.yaml") return "vcs-policy";
-  if (/^agents\/[^/]+\.yaml$/.test(relativePath)) return "agent-profile";
-  if (/^journal\/events\/[^/]+\.yaml$/.test(relativePath)) return "journal-event";
-  if (/^runtime\/checkpoints\/[^/]+\.yaml$/.test(relativePath)) return "checkpoint";
+  if (/^continuity\/actors\/[^/]+\.yaml$/.test(relativePath)) return "actor-profile";
+  if (/^continuity\/(?:events|archive)\/[^/]+\.yaml$/.test(relativePath)) {
+    return "event";
+  }
+  if (/^continuity\/checkpoints\/[^/]+\.yaml$/.test(relativePath)) return "checkpoint";
   return void 0;
 }
 function addSemanticRecord(records, record) {
@@ -21563,8 +21745,8 @@ function addSemanticRecord(records, record) {
   if (record.path === "state/projects.yaml") records.project_registry = record;
   if (record.path === "state/workstreams.yaml") records.workstreams = record;
   if (record.path === "state/vcs-policy.yaml") records.vcs_policy = record;
-  if (record.schema === "agent-profile") records.agents.push(record);
-  if (record.schema === "journal-event") records.events.push(record);
+  if (record.schema === "actor-profile") records.actors.push(record);
+  if (record.schema === "event") records.events.push(record);
   if (record.schema === "checkpoint") records.checkpoints.push(record);
 }
 function ownershipPatterns(manifest) {
@@ -21906,7 +22088,7 @@ async function validateCanonicalLayer(projectRoot, options = {}) {
   const schemaRegistry = new SchemaRegistry();
   const loadedYaml = /* @__PURE__ */ new Map();
   const semanticRecords = {
-    agents: [],
+    actors: [],
     events: [],
     checkpoints: []
   };
@@ -22023,15 +22205,39 @@ async function validateCanonicalLayer(projectRoot, options = {}) {
     validateTextSafety(file.relative_path, await readFile7(file.absolute_path, "utf8"), diagnostics);
   }
   diagnostics.push(...validateCanonicalSemantics(semanticRecords));
-  if (options.clean_genesis === true) {
-    if (files.some((file) => /^agents\/[^/]+\.yaml$/.test(file.relative_path))) {
+  const continuity = objectValue3(objectValue3(manifest)?.continuity);
+  const activeEventLimit = continuity?.active_event_limit;
+  if (typeof activeEventLimit === "number") {
+    const activeEventCount = files.filter(
+      (file) => /^continuity\/events\/[^/]+\.yaml$/.test(file.relative_path)
+    ).length;
+    if (activeEventCount > activeEventLimit) {
       diagnostics.push(
-        issue2("genesis.agent-profile", "agents", "Clean genesis must contain zero agent profiles.")
+        issue2(
+          "continuity.active-event-limit",
+          "continuity/events",
+          `Active events ${activeEventCount} exceed the configured limit ${activeEventLimit}; archive the oldest batch.`
+        )
       );
     }
-    if (files.some((file) => /^journal\/events\/[^/]+\.yaml$/.test(file.relative_path))) {
+  }
+  if (options.clean_genesis === true) {
+    if (files.some((file) => /^continuity\/actors\/[^/]+\.yaml$/.test(file.relative_path))) {
       diagnostics.push(
-        issue2("genesis.journal-event", "journal/events", "Clean genesis must contain zero events.")
+        issue2(
+          "genesis.actor-profile",
+          "continuity/actors",
+          "Clean genesis must contain zero actor profiles."
+        )
+      );
+    }
+    if (files.some((file) => /^continuity\/(?:events|archive)\/[^/]+\.yaml$/.test(file.relative_path))) {
+      diagnostics.push(
+        issue2(
+          "genesis.event",
+          "continuity",
+          "Clean genesis must contain zero active or archived events."
+        )
       );
     }
   }
@@ -22115,11 +22321,11 @@ function questionsFor(inspection) {
       },
       {
         id: "vcs-profile",
-        prompt: "Select none, human-owned, agent-managed, or a complete custom VCS policy.",
-        reason: "PCP cannot infer version-control authority from repository presence.",
+        prompt: "Select recommended human-commit, none, human-owned, agent-managed, or a complete custom VCS policy.",
+        reason: "PCP recommends transparent human commits but cannot infer or enforce version-control authority.",
         required: true,
         response_shape: "enum",
-        options: ["none", "human-owned", "agent-managed", "custom"]
+        options: ["human-commit", "none", "human-owned", "agent-managed", "custom"]
       }
     ];
   }
@@ -22141,11 +22347,11 @@ function questionsFor(inspection) {
     },
     {
       id: "vcs-profile",
-      prompt: "Select none, human-owned, agent-managed, or a complete custom VCS policy.",
-      reason: "PCP cannot infer version-control authority.",
+      prompt: "Select recommended human-commit, none, human-owned, agent-managed, or a complete custom VCS policy.",
+      reason: "PCP recommends transparent human commits but cannot infer or enforce version-control authority.",
       required: true,
       response_shape: "enum",
-      options: ["none", "human-owned", "agent-managed", "custom"]
+      options: ["human-commit", "none", "human-owned", "agent-managed", "custom"]
     }
   ];
   if (inspection.inventory.files.length === 0) {
@@ -22685,7 +22891,7 @@ async function adoptProject(candidate = ".", options = {}) {
     plan_digest: planned.preview.plan.plan_digest,
     applied_operations: transaction.applied_operations,
     validation: { valid: true, checked_files: checkedFiles },
-    clean_genesis: { agent_profiles: 0, journal_events: 0 },
+    clean_genesis: { actor_profiles: 0, active_events: 0, archived_events: 0 },
     recovery_cleaned: transaction.recovery_cleaned,
     mutated: true
   };
@@ -22720,7 +22926,7 @@ function formatAdoption(result) {
     output += line(`Plan digest: ${result.plan_digest}`);
     output += line(`Applied operations: ${result.applied_operations}`);
     output += line(`Validated canonical files: ${result.validation.checked_files}`);
-    output += line("Clean genesis: 0 agent profiles, 0 journal events");
+    output += line("Clean genesis: 0 actor profiles, 0 active events, 0 archived events");
     output += line("Recovery material: cleaned");
     output += line("Mutation: applied");
     return output;
@@ -22831,9 +23037,9 @@ function formatInspection(result) {
 var commandDescriptions = {
   inspect: "Inspect and classify a candidate project without mutation",
   adopt: "Preview or apply adoption into the canonical .pcp layer",
-  register: "Create or recover a stable project agent identity",
+  register: "Create or recover a stable project actor identity",
   status: "Report project state and scoped reconciliation changes",
-  record: "Append one meaningful immutable journal event",
+  record: "Append one meaningful immutable continuity event",
   validate: "Validate an installed PCP layer and its projections",
   render: "Render generated canonical views",
   workstream: "Create, update, validate, or complete a workstream",
@@ -22900,7 +23106,7 @@ function addAdoptCommand(program2) {
   });
 }
 function addValidateCommand(program2) {
-  return program2.command("validate").description(commandDescriptions.validate).argument("[directory]", "managed project root", ".").option("--clean-genesis", "require zero agent profiles and zero journal events").option("--json", "emit stable structured JSON").action(async (directory, options) => {
+  return program2.command("validate").description(commandDescriptions.validate).argument("[directory]", "managed project root", ".").option("--clean-genesis", "require zero actor profiles and zero active or archived events").option("--json", "emit stable structured JSON").action(async (directory, options) => {
     try {
       const report = await validateCanonicalLayer(directory, {
         clean_genesis: options.cleanGenesis === true

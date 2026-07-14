@@ -1,4 +1,4 @@
-schema: journal-event
+schema: event
 valid:
   schema_version: 1
   event_id: 01ARZ3NDEKTSV4RRFFQ69G5FAV
@@ -6,19 +6,24 @@ valid:
   actor:
     type: agent
     id: codex-laptop-01ARZ3NDEK
-  origin: agent
+  recorded_by:
+    type: agent
+    id: codex-laptop-01ARZ3NDEK
+  basis: self
   kind: configuration
   scopes: [protocol]
   workstreams: [canonical-layer]
   summary: Added an explicit version-control policy.
-  rationale: Repository authority must be mechanically discoverable.
-  affected_paths: [.pcp/operations/20-vcs-policy.yaml]
+  affected_paths: [.pcp/state/vcs-policy.yaml]
 invalid:
   - name: event id is not a ULID
     operation: set
     path: event_id
     value: 2026-07-12T00:00
-  - name: empty rationale
+  - name: unsupported recording basis
     operation: set
-    path: rationale
-    value: ''
+    path: basis
+    value: assumed
+  - name: missing recording actor
+    operation: delete
+    path: recorded_by

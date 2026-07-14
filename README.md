@@ -8,7 +8,7 @@ Most coding agents can complete a task. The harder problem is helping the next a
 
 PCP is under active `0.1.0` development. The engine performs read-only repository inventory and explainable intake classification, safely adopts State A and State B projects, validates the canonical `.pcp/` contract, and deterministically checks or renders the generated project-status view. It fingerprints files with SHA-256, honors ignore and nested-repository boundaries, records symlinks without following them, and distinguishes a managed PCP project from State A, B, or C.
 
-State A/B adoption is preview-first and requires an external, schema-valid semantic baseline plus the exact recomputed plan digest. State C foreign-layer translation, registration, journaling, workstream mutation, repair, and upgrade remain fail-closed until their safety milestones are verified. `pcp render` may replace only its declared generated status view.
+State A/B adoption is preview-first and requires an external, schema-valid semantic baseline plus the exact recomputed plan digest. State C foreign-layer translation, registration, event recording, workstream mutation, repair, and upgrade remain fail-closed until their safety milestones are verified. `pcp render` may replace only its declared generated status view.
 
 ## Intended model
 
@@ -27,7 +27,7 @@ One adoption workflow classifies:
 2. State B: an established project with substantive assets but no persistent agent layer. Grounded preview and transactional adoption are implemented without reorganizing project-owned assets.
 3. State C: a project with an existing non-PCP instruction, knowledge, memory, planning, or orchestration layer. Classification is implemented; translation and removal remain unavailable until the coverage milestone.
 
-Every successful adoption converges on a clean genesis: grounded current context, no imported agent profiles, and no imported or synthetic journal events.
+Every successful adoption converges on a clean genesis: grounded current context, no actor profiles, and no imported, active, archived, or synthetic events.
 
 ## Product surfaces
 
@@ -72,13 +72,13 @@ node dist/pcp.mjs render path/to/managed-project --json
 
 ## Canonical layer
 
-The source baseline lives under [`templates/core/.pcp/`](templates/core/.pcp/). It starts with zero agent profiles and zero journal events, keeps machine authority in versioned YAML, uses numbered Markdown with a `00-index.md` per folder, and separates protocol, project, generated, and runtime ownership. Optional overlays add spec-driven projects, Concurrent Execution Blocks, scratch space, and incremental walkthroughs.
+The source baseline lives under [`templates/core/.pcp/`](templates/core/.pcp/). It starts with zero actor profiles and zero active or archived events, keeps machine authority in versioned YAML, uses numbered Markdown with a `00-index.md` per folder, and separates protocol, project, generated, and runtime ownership. Ongoing installations keep identity, active events, archive, and scoped checkpoints together under `.pcp/continuity/`; the active window is capped at 64 records and rotates its oldest 32 records to explicit-only archive history. Optional overlays add spec-driven projects, Concurrent Execution Blocks, scratch space, and incremental walkthroughs.
 
 The open skill ships byte-identical copies of the release schemas and templates plus a checksum manifest. The build verifies source/asset parity and executes bundled `inspect`, transactional State A adoption, `validate`, and `render --check` on every platform gate.
 
 ## Version-control policy
 
-PCP requires an explicit `none`, `human-owned`, recommended `agent-managed`, or complete `custom` profile. Until selection it performs no Git writes. The recommended flow gives agents routine branch, verified local unit commit, milestone push/PR, CI follow-up, and post-merge continuation responsibilities while the human reviews and merges. See the [bare-minimum Git and GitHub reference](templates/core/.pcp/references/10-git-github-bare-minimum.md).
+PCP requires an explicit `none`, `human-owned`, recommended `human-commit`, `agent-managed`, or complete `custom` profile. Until selection it performs no VCS writes. In the recommended profile, agents prepare and verify coherent units, then hand the human exact signed-commit commands and wait for confirmation. Milestone PRs are recommended rather than enforced; projects may change the responsibility map, decline PRs, or use a non-Git system through a custom policy. See the [bare-minimum Git and GitHub reference](templates/core/.pcp/references/10-git-github-bare-minimum.md).
 
 ## Develop
 

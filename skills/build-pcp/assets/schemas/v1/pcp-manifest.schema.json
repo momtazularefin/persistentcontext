@@ -9,6 +9,7 @@
     "protocol",
     "persistence",
     "capabilities",
+    "continuity",
     "ownership",
     "adapter_ids",
     "validation",
@@ -36,6 +37,16 @@
     },
     "capabilities": {
       "$ref": "urn:pcp:schema:v1:common#/$defs/slugArray"
+    },
+    "continuity": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["active_event_limit", "archive_batch_size", "archive_read_policy"],
+      "properties": {
+        "active_event_limit": { "const": 64 },
+        "archive_batch_size": { "const": 32 },
+        "archive_read_policy": { "const": "explicit-only" }
+      }
     },
     "ownership": {
       "type": "object",

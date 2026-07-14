@@ -74,9 +74,11 @@ async function canonicalMarkdown(root: string): Promise<string[]> {
 describe('canonical template sources', () => {
   it('contains every required core capability area', async () => {
     const expected = [
-      'agents',
-      'journal',
-      'journal/events',
+      'continuity',
+      'continuity/actors',
+      'continuity/archive',
+      'continuity/checkpoints',
+      'continuity/events',
       'knowledge',
       'operations',
       'projects',
@@ -114,10 +116,12 @@ describe('canonical template sources', () => {
 
     const files = await walkFiles(coreRoot);
     expect(
-      files.filter((file) => relativeFrom(coreRoot, file).match(/^agents\/.*\.yaml$/)),
+      files.filter((file) => relativeFrom(coreRoot, file).match(/^continuity\/actors\/.*\.yaml$/)),
     ).toEqual([]);
     expect(
-      files.filter((file) => relativeFrom(coreRoot, file).match(/^journal\/events\/.*\.yaml$/)),
+      files.filter((file) =>
+        relativeFrom(coreRoot, file).match(/^continuity\/(?:events|archive)\/.*\.yaml$/),
+      ),
     ).toEqual([]);
   });
 

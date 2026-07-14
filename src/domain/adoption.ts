@@ -155,8 +155,9 @@ export interface AdoptionApplyResult {
     checked_files: number;
   };
   clean_genesis: {
-    agent_profiles: 0;
-    journal_events: 0;
+    actor_profiles: 0;
+    active_events: 0;
+    archived_events: 0;
   };
   recovery_cleaned: true;
   mutated: true;

@@ -1,7 +1,7 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "urn:pcp:schema:v1:journal-event",
-  "title": "PCP immutable journal event",
+  "$id": "urn:pcp:schema:v1:event",
+  "title": "PCP immutable continuity event",
   "type": "object",
   "additionalProperties": false,
   "required": [
@@ -9,12 +9,12 @@
     "event_id",
     "occurred_at",
     "actor",
-    "origin",
+    "recorded_by",
+    "basis",
     "kind",
     "scopes",
     "workstreams",
     "summary",
-    "rationale",
     "affected_paths"
   ],
   "properties": {
@@ -30,8 +30,11 @@
     "actor": {
       "$ref": "urn:pcp:schema:v1:common#/$defs/actorReference"
     },
-    "origin": {
-      "enum": ["human", "agent", "system"]
+    "recorded_by": {
+      "$ref": "urn:pcp:schema:v1:common#/$defs/actorReference"
+    },
+    "basis": {
+      "enum": ["self", "reported", "observed", "system"]
     },
     "kind": {
       "enum": [
@@ -42,6 +45,7 @@
         "research",
         "operations",
         "release",
+        "vcs",
         "workstream"
       ]
     },

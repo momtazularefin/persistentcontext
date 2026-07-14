@@ -6,6 +6,10 @@ valid:
     version: 0.1.0
   persistence: tracked
   capabilities: [core, vcs-policy]
+  continuity:
+    active_event_limit: 64
+    archive_batch_size: 32
+    archive_read_policy: explicit-only
   ownership:
     protocol: [.pcp/protocol/**, .pcp/schemas/**, .pcp/tools/**]
     project: [.pcp/knowledge/**, .pcp/operations/**, .pcp/projects/**, .pcp/state/**]

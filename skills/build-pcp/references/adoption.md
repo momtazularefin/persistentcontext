@@ -74,9 +74,9 @@ The engine fully recomputes the plan, rejects source drift, acquires a project l
 - Perform State B exploration against the real project first.
 - Discover foreign context by semantics, not directory name.
 - Translate useful current facts, decisions, rationale, rules, projects, and workstreams.
-- Do not import agent profiles, synchronization cursors, or historical events.
+- Do not import actor profiles, synchronization cursors, or historical events.
 - Require complete file and history coverage before preview can become applicable.
 
 ## Clean genesis
 
-Every successful adoption has zero event records and zero agent-profile records. Adoption, installation, migration, and registration do not create events. The first meaningful later change becomes event one.
+Every successful adoption has zero actor profiles, zero active events, and zero archived events. Adoption, installation, migration, and registration do not create events. The first meaningful later change becomes the first continuity event; its ULID provides ordering without a shared sequential counter.

@@ -7,7 +7,7 @@
   "required": [
     "schema_version",
     "checkpoint_id",
-    "agent_id",
+    "actor_id",
     "workstream_id",
     "last_event_id",
     "reconciled_at",
@@ -21,7 +21,7 @@
     "checkpoint_id": {
       "$ref": "urn:pcp:schema:v1:common#/$defs/ulid"
     },
-    "agent_id": {
+    "actor_id": {
       "type": "string",
       "minLength": 1,
       "maxLength": 160

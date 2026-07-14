@@ -12,7 +12,7 @@ export function formatAdoption(result: AdoptionPreview | AdoptionApplyResult): s
     output += line(`Plan digest: ${result.plan_digest}`);
     output += line(`Applied operations: ${result.applied_operations}`);
     output += line(`Validated canonical files: ${result.validation.checked_files}`);
-    output += line('Clean genesis: 0 agent profiles, 0 journal events');
+    output += line('Clean genesis: 0 actor profiles, 0 active events, 0 archived events');
     output += line('Recovery material: cleaned');
     output += line('Mutation: applied');
     return output;

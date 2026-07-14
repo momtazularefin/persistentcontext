@@ -82,6 +82,7 @@ describe('canonical schema catalogue', () => {
     expect(Object.keys(fixture.profiles ?? {}).sort()).toEqual([
       'agent-managed',
       'custom',
+      'human-commit',
       'human-owned',
       'none',
     ]);

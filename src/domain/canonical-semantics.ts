@@ -10,7 +10,7 @@ export interface CanonicalSemanticRecords {
   project_registry?: CanonicalRecord;
   workstreams?: CanonicalRecord;
   vcs_policy?: CanonicalRecord;
-  agents: CanonicalRecord[];
+  actors: CanonicalRecord[];
   events: CanonicalRecord[];
   checkpoints: CanonicalRecord[];
 }
@@ -153,27 +153,27 @@ function validateWorkstreams(records: CanonicalSemanticRecords): CanonicalDiagno
   return diagnostics;
 }
 
-function validateAgents(records: CanonicalSemanticRecords): CanonicalDiagnostic[] {
+function validateActors(records: CanonicalSemanticRecords): CanonicalDiagnostic[] {
   const diagnostics: CanonicalDiagnostic[] = [];
   const seen = new Map<string, string>();
-  for (const record of records.agents) {
+  for (const record of records.actors) {
     const profile = objectValue(record.value);
-    const id = stringValue(profile?.agent_id);
+    const id = stringValue(profile?.actor_id);
     if (id === undefined) continue;
     const expectedName = `${id}.yaml`;
     if (!record.path.endsWith(`/${expectedName}`)) {
       diagnostics.push(
         error(
-          'identity.agent-filename-mismatch',
+          'identity.actor-filename-mismatch',
           record.path,
-          `Agent profile filename must be ${expectedName}.`,
+          `Actor profile filename must be ${expectedName}.`,
         ),
       );
     }
     const previous = seen.get(id);
     if (previous !== undefined) {
       diagnostics.push(
-        error('identity.duplicate-agent', record.path, `Agent ID ${id} duplicates ${previous}.`),
+        error('identity.duplicate-actor', record.path, `Actor ID ${id} duplicates ${previous}.`),
       );
     } else {
       seen.set(id, record.path);
@@ -185,10 +185,16 @@ function validateAgents(records: CanonicalSemanticRecords): CanonicalDiagnostic[
 function validateEvents(records: CanonicalSemanticRecords): CanonicalDiagnostic[] {
   const diagnostics: CanonicalDiagnostic[] = [];
   const seen = new Map<string, string>();
-  const agentIds = new Set(
-    records.agents
-      .map((record) => stringValue(objectValue(record.value)?.agent_id))
-      .filter((id): id is string => id !== undefined),
+  const actorTypes = new Map(
+    records.actors
+      .map((record) => {
+        const profile = objectValue(record.value);
+        return [stringValue(profile?.actor_id), stringValue(profile?.actor_type)] as const;
+      })
+      .filter(
+        (entry): entry is readonly [string, string] =>
+          entry[0] !== undefined && entry[1] !== undefined,
+      ),
   );
   const workstreamRoot = objectValue(records.workstreams?.value);
   const workstreamIds = new Set(
@@ -203,45 +209,85 @@ function validateEvents(records: CanonicalSemanticRecords): CanonicalDiagnostic[
     const expectedName = `${id}.yaml`;
     if (!record.path.endsWith(`/${expectedName}`)) {
       diagnostics.push(
-        error(
-          'journal.filename-mismatch',
-          record.path,
-          `Journal event filename must be ${expectedName}.`,
-        ),
+        error('event.filename-mismatch', record.path, `Event filename must be ${expectedName}.`),
       );
     }
     const previous = seen.get(id);
     if (previous !== undefined) {
       diagnostics.push(
-        error('journal.duplicate-event', record.path, `Event ID ${id} duplicates ${previous}.`),
+        error('event.duplicate', record.path, `Event ID ${id} duplicates ${previous}.`),
       );
     } else {
       seen.set(id, record.path);
     }
 
     const actor = objectValue(event?.actor);
+    const recorder = objectValue(event?.recorded_by);
     const actorType = stringValue(actor?.type);
     const actorId = stringValue(actor?.id);
-    const origin = stringValue(event?.origin);
-    if (actorType !== undefined && origin !== undefined && actorType !== origin) {
+    const recorderType = stringValue(recorder?.type);
+    const recorderId = stringValue(recorder?.id);
+    const basis = stringValue(event?.basis);
+
+    for (const [role, referenceType, referenceId] of [
+      ['actor', actorType, actorId],
+      ['recorder', recorderType, recorderId],
+    ] as const) {
+      if ((referenceType === 'human' || referenceType === 'agent') && referenceId !== undefined) {
+        const profileType = actorTypes.get(referenceId);
+        if (profileType === undefined) {
+          diagnostics.push(
+            error(
+              `event.unknown-${role}`,
+              record.path,
+              `Event ${role} references unknown ${referenceType} ${referenceId}.`,
+            ),
+          );
+        } else if (profileType !== referenceType) {
+          diagnostics.push(
+            error(
+              `event.${role}-type-mismatch`,
+              record.path,
+              `Event ${role} type ${referenceType} does not match profile type ${profileType}.`,
+            ),
+          );
+        }
+      }
+    }
+
+    const sameIdentity = actorType === recorderType && actorId === recorderId;
+    if (basis === 'self' && !sameIdentity) {
       diagnostics.push(
         error(
-          'journal.origin-actor-mismatch',
+          'event.self-recorder-mismatch',
           record.path,
-          `Event origin ${origin} does not match actor type ${actorType}.`,
+          'A self-recorded event must name the same actor and recorder.',
         ),
       );
     }
-    if (actorType === 'agent' && actorId !== undefined && !agentIds.has(actorId)) {
+    if ((basis === 'reported' || basis === 'observed') && sameIdentity) {
       diagnostics.push(
-        error('journal.unknown-agent', record.path, `Event references unknown agent ${actorId}.`),
+        error(
+          'event.external-basis-self-recorded',
+          record.path,
+          `A ${basis} event must be recorded by a different actor.`,
+        ),
+      );
+    }
+    if (basis === 'system' && (actorType !== 'system' || recorderType !== 'system')) {
+      diagnostics.push(
+        error(
+          'event.system-basis-mismatch',
+          record.path,
+          'A system-basis event must name system as both actor and recorder.',
+        ),
       );
     }
     for (const workstreamId of stringArray(event?.workstreams)) {
       if (!workstreamIds.has(workstreamId)) {
         diagnostics.push(
           error(
-            'journal.unknown-workstream',
+            'event.unknown-workstream',
             record.path,
             `Event references unknown workstream ${workstreamId}.`,
           ),
@@ -254,10 +300,16 @@ function validateEvents(records: CanonicalSemanticRecords): CanonicalDiagnostic[
 
 function validateCheckpoints(records: CanonicalSemanticRecords): CanonicalDiagnostic[] {
   const diagnostics: CanonicalDiagnostic[] = [];
-  const agentIds = new Set(
-    records.agents
-      .map((record) => stringValue(objectValue(record.value)?.agent_id))
-      .filter((id): id is string => id !== undefined),
+  const actorTypes = new Map(
+    records.actors
+      .map((record) => {
+        const profile = objectValue(record.value);
+        return [stringValue(profile?.actor_id), stringValue(profile?.actor_type)] as const;
+      })
+      .filter(
+        (entry): entry is readonly [string, string] =>
+          entry[0] !== undefined && entry[1] !== undefined,
+      ),
   );
   const eventIds = new Set(
     records.events
@@ -283,15 +335,26 @@ function validateCheckpoints(records: CanonicalSemanticRecords): CanonicalDiagno
         ),
       );
     }
-    const agentId = stringValue(checkpoint?.agent_id);
-    if (agentId !== undefined && !agentIds.has(agentId)) {
-      diagnostics.push(
-        error(
-          'checkpoint.unknown-agent',
-          record.path,
-          `Checkpoint references unknown agent ${agentId}.`,
-        ),
-      );
+    const actorId = stringValue(checkpoint?.actor_id);
+    if (actorId !== undefined) {
+      const actorType = actorTypes.get(actorId);
+      if (actorType === undefined) {
+        diagnostics.push(
+          error(
+            'checkpoint.unknown-actor',
+            record.path,
+            `Checkpoint references unknown actor ${actorId}.`,
+          ),
+        );
+      } else if (actorType !== 'agent') {
+        diagnostics.push(
+          error(
+            'checkpoint.human-actor',
+            record.path,
+            `Checkpoint actor ${actorId} must be an agent.`,
+          ),
+        );
+      }
     }
     const workstreamId = stringValue(checkpoint?.workstream_id);
     if (workstreamId !== undefined && !workstreamIds.has(workstreamId)) {
@@ -339,7 +402,7 @@ export function validateCanonicalSemantics(
   return [
     ...validateProjectIdentity(records),
     ...validateWorkstreams(records),
-    ...validateAgents(records),
+    ...validateActors(records),
     ...validateEvents(records),
     ...validateCheckpoints(records),
     ...validateVcsPolicy(records),

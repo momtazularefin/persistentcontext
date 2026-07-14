@@ -1,9 +1,10 @@
-import { appendFile, cp, mkdir, mkdtemp, readFile, rm, writeFile } from 'node:fs/promises';
+import { appendFile, cp, mkdtemp, readFile, rename, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 import { parse, stringify } from 'yaml';
+import { monotonicFactory } from 'ulid';
 import { afterEach, describe, expect, it } from 'vitest';
 
 import { validateCanonicalLayer } from '../../src/application/validate-canonical-layer.js';
@@ -12,6 +13,7 @@ import { canonicalSourceDigest } from '../../src/infrastructure/canonical-source
 const coreTemplate = fileURLToPath(new URL('../../templates/core/.pcp/', import.meta.url));
 const temporaryRoots: string[] = [];
 const agentId = 'codex-test-machine-0123456789';
+const humanId = 'human-test-machine-9876543210';
 const eventId = '01ARZ3NDEKTSV4RRFFQ69G5FAV';
 
 function objectValue(value: unknown, label: string): Record<string, unknown> {
@@ -45,13 +47,19 @@ function diagnosticCodes(report: Awaited<ReturnType<typeof validateCanonicalLaye
   return report.diagnostics.map((diagnostic) => diagnostic.code);
 }
 
-async function writeAgent(root: string, fileName = `${agentId}.yaml`): Promise<void> {
+async function writeActor(
+  root: string,
+  actorId = agentId,
+  actorType: 'agent' | 'human' = 'agent',
+  fileName = `${actorId}.yaml`,
+): Promise<void> {
   await writeFile(
-    path.join(root, '.pcp', 'agents', fileName),
+    path.join(root, '.pcp', 'continuity', 'actors', fileName),
     stringify({
       schema_version: 1,
-      agent_id: agentId,
-      platform: 'codex',
+      actor_id: actorId,
+      actor_type: actorType,
+      client: actorType === 'human' ? 'human' : 'codex',
       machine_label: 'test-machine',
       first_seen: '2026-07-12T13:00:00Z',
       checkpoint_paths: [],
@@ -62,25 +70,43 @@ async function writeAgent(root: string, fileName = `${agentId}.yaml`): Promise<v
 
 async function writeEvent(
   root: string,
-  id = eventId,
-  fileName = `${id}.yaml`,
-  origin = 'agent',
+  options: {
+    id?: string;
+    fileName?: string;
+    directory?: 'events' | 'archive';
+    actor?: { type: 'human' | 'agent' | 'system'; id: string };
+    recordedBy?: { type: 'human' | 'agent' | 'system'; id: string };
+    basis?: 'self' | 'reported' | 'observed' | 'system';
+    kind?: 'code' | 'vcs';
+    rationale?: string;
+  } = {},
 ): Promise<void> {
+  const id = options.id ?? eventId;
+  const actor = options.actor ?? { type: 'agent', id: agentId };
+  const recordedBy = options.recordedBy ?? actor;
+  const event = {
+    schema_version: 1,
+    event_id: id,
+    occurred_at: '2026-07-12T13:05:00Z',
+    actor,
+    recorded_by: recordedBy,
+    basis: options.basis ?? 'self',
+    kind: options.kind ?? 'code',
+    scopes: ['core'],
+    workstreams: [],
+    summary: 'Validated a canonical fixture.',
+    ...(options.rationale === undefined ? {} : { rationale: options.rationale }),
+    affected_paths: ['state/project.yaml'],
+  };
   await writeFile(
-    path.join(root, '.pcp', 'journal', 'events', fileName),
-    stringify({
-      schema_version: 1,
-      event_id: id,
-      occurred_at: '2026-07-12T13:05:00Z',
-      actor: { type: 'agent', id: agentId },
-      origin,
-      kind: 'code',
-      scopes: ['core'],
-      workstreams: [],
-      summary: 'Validated a canonical fixture.',
-      rationale: 'Exercise immutable event validation.',
-      affected_paths: ['state/project.yaml'],
-    }),
+    path.join(
+      root,
+      '.pcp',
+      'continuity',
+      options.directory ?? 'events',
+      options.fileName ?? `${id}.yaml`,
+    ),
+    stringify(event),
     'utf8',
   );
 }
@@ -181,36 +207,58 @@ describe('installed canonical layer validation', () => {
     expect(codes).toContain('workstream.completion-without-evidence');
   });
 
-  it('rejects duplicate agent identities and filename drift', async () => {
+  it('rejects duplicate actor identities and filename drift', async () => {
     const root = await createProject();
-    await writeAgent(root, 'first.yaml');
-    await writeAgent(root, 'second.yaml');
+    await writeActor(root, agentId, 'agent', 'first.yaml');
+    await writeActor(root, agentId, 'agent', 'second.yaml');
 
     const codes = diagnosticCodes(await validateCanonicalLayer(root));
-    expect(codes).toContain('identity.duplicate-agent');
-    expect(codes).toContain('identity.agent-filename-mismatch');
+    expect(codes).toContain('identity.duplicate-actor');
+    expect(codes).toContain('identity.actor-filename-mismatch');
   });
 
   it('rejects invalid event ULIDs before semantic processing', async () => {
     const root = await createProject();
-    await writeEvent(root, 'not-a-ulid');
+    await writeEvent(root, { id: 'not-a-ulid' });
 
     const report = await validateCanonicalLayer(root);
     expect(report.valid).toBe(false);
     expect(
-      report.diagnostics.some((item) => item.path.startsWith('journal/events/not-a-ulid')),
+      report.diagnostics.some((item) => item.path.startsWith('continuity/events/not-a-ulid')),
     ).toBe(true);
     expect(diagnosticCodes(report)).toContain('schema.pattern');
   });
 
-  it('checks immutable event filename and origin identity', async () => {
+  it('checks immutable event filenames and recording basis', async () => {
     const root = await createProject();
-    await writeAgent(root);
-    await writeEvent(root, eventId, 'mismatched.yaml', 'human');
+    await writeActor(root);
+    await writeActor(root, humanId, 'human');
+    await writeEvent(root, {
+      fileName: 'mismatched.yaml',
+      recordedBy: { type: 'human', id: humanId },
+      basis: 'self',
+    });
 
     const codes = diagnosticCodes(await validateCanonicalLayer(root));
-    expect(codes).toContain('journal.filename-mismatch');
-    expect(codes).toContain('journal.origin-actor-mismatch');
+    expect(codes).toContain('event.filename-mismatch');
+    expect(codes).toContain('event.self-recorder-mismatch');
+  });
+
+  it('accepts minimal human-reported VCS events and requires a durable human identity', async () => {
+    const root = await createProject();
+    await writeActor(root);
+    await writeActor(root, humanId, 'human');
+    await writeEvent(root, {
+      actor: { type: 'human', id: humanId },
+      recordedBy: { type: 'agent', id: agentId },
+      basis: 'reported',
+      kind: 'vcs',
+    });
+
+    expect((await validateCanonicalLayer(root)).valid).toBe(true);
+
+    await rm(path.join(root, '.pcp', 'continuity', 'actors', `${humanId}.yaml`));
+    expect(diagnosticCodes(await validateCanonicalLayer(root))).toContain('event.unknown-actor');
   });
 
   it('rejects invalid reading order and orphan Markdown', async () => {
@@ -323,14 +371,13 @@ source_digest: aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
   it('validates checkpoint references against durable identities and state', async () => {
     const root = await createProject();
     const checkpointId = '01ARZ3NDEKTSV4RRFFQ69G5FAW';
-    const directory = path.join(root, '.pcp', 'runtime', 'checkpoints');
-    await mkdir(directory, { recursive: true });
+    const directory = path.join(root, '.pcp', 'continuity', 'checkpoints');
     await writeFile(
       path.join(directory, `${checkpointId}.yaml`),
       stringify({
         schema_version: 1,
         checkpoint_id: checkpointId,
-        agent_id: agentId,
+        actor_id: agentId,
         workstream_id: 'missing-workstream',
         last_event_id: eventId,
         reconciled_at: '2026-07-12T13:10:00Z',
@@ -341,7 +388,7 @@ source_digest: aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
     );
 
     const codes = diagnosticCodes(await validateCanonicalLayer(root));
-    expect(codes).toContain('checkpoint.unknown-agent');
+    expect(codes).toContain('checkpoint.unknown-actor');
     expect(codes).toContain('checkpoint.unknown-workstream');
     expect(codes).toContain('checkpoint.unknown-event');
   });
@@ -362,12 +409,36 @@ source_digest: aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
 
   it('enforces clean genesis without rejecting valid managed history', async () => {
     const root = await createProject();
-    await writeAgent(root);
+    await writeActor(root);
     await writeEvent(root);
 
     expect((await validateCanonicalLayer(root)).valid).toBe(true);
     const cleanGenesis = await validateCanonicalLayer(root, { clean_genesis: true });
-    expect(diagnosticCodes(cleanGenesis)).toContain('genesis.agent-profile');
-    expect(diagnosticCodes(cleanGenesis)).toContain('genesis.journal-event');
+    expect(diagnosticCodes(cleanGenesis)).toContain('genesis.actor-profile');
+    expect(diagnosticCodes(cleanGenesis)).toContain('genesis.event');
+  });
+
+  it('bounds active history and accepts a 32-event archive rotation', async () => {
+    const root = await createProject();
+    await writeActor(root);
+    const nextUlid = monotonicFactory();
+    const ids: string[] = [];
+    for (let index = 0; index < 65; index += 1) {
+      const id = nextUlid(1_720_000_000_000);
+      ids.push(id);
+      await writeEvent(root, { id });
+    }
+
+    expect(diagnosticCodes(await validateCanonicalLayer(root))).toContain(
+      'continuity.active-event-limit',
+    );
+
+    for (const id of ids.slice(0, 32)) {
+      await rename(
+        path.join(root, '.pcp', 'continuity', 'events', `${id}.yaml`),
+        path.join(root, '.pcp', 'continuity', 'archive', `${id}.yaml`),
+      );
+    }
+    expect((await validateCanonicalLayer(root)).valid).toBe(true);
   });
 });

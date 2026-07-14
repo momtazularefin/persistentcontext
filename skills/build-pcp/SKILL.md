@@ -1,6 +1,6 @@
 ---
 name: build-pcp
-description: Adopt and maintain Persistent Context Protocol (PCP) in seed, established, or foreign-context-layer projects. Use when an agent needs to inspect or classify a repository for PCP, preview or apply adoption, migrate an existing AI/agent memory layer, register or reconcile agents, validate or render .pcp state, record a meaningful change, manage workstreams or CEBs, repair drift, or upgrade PCP.
+description: Adopt and maintain Persistent Context Protocol (PCP) in seed, established, or foreign-context-layer projects. Use when an agent needs to inspect or classify a repository for PCP, preview or apply adoption, migrate an existing AI/agent memory layer, register or reconcile project actors, validate or render .pcp state, record a meaningful change, manage workstreams or CEBs, repair drift, or upgrade PCP.
 ---
 
 # Build PCP

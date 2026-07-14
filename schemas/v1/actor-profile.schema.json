@@ -1,0 +1,66 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:pcp:schema:v1:actor-profile",
+  "title": "PCP durable human or agent profile",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "actor_id",
+    "actor_type",
+    "client",
+    "machine_label",
+    "first_seen",
+    "checkpoint_paths"
+  ],
+  "properties": {
+    "schema_version": {
+      "$ref": "urn:pcp:schema:v1:common#/$defs/schemaVersion"
+    },
+    "actor_id": {
+      "type": "string",
+      "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*-[0-9A-HJKMNP-TV-Z]{10}$",
+      "maxLength": 160
+    },
+    "actor_type": {
+      "enum": ["human", "agent"]
+    },
+    "client": {
+      "enum": ["codex", "antigravity", "claude-code-desktop", "human", "other"]
+    },
+    "machine_label": {
+      "$ref": "urn:pcp:schema:v1:common#/$defs/slug"
+    },
+    "first_seen": {
+      "$ref": "urn:pcp:schema:v1:common#/$defs/dateTime"
+    },
+    "checkpoint_paths": {
+      "$ref": "urn:pcp:schema:v1:common#/$defs/pathArray"
+    }
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": { "actor_type": { "const": "human" } },
+        "required": ["actor_type"]
+      },
+      "then": {
+        "properties": {
+          "client": { "const": "human" },
+          "checkpoint_paths": { "type": "array", "maxItems": 0 }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": { "actor_type": { "const": "agent" } },
+        "required": ["actor_type"]
+      },
+      "then": {
+        "properties": {
+          "client": { "not": { "const": "human" } }
+        }
+      }
+    }
+  ]
+}

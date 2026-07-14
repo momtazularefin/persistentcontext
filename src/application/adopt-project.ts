@@ -147,7 +147,7 @@ export async function adoptProject(
     plan_digest: planned.preview.plan.plan_digest,
     applied_operations: transaction.applied_operations,
     validation: { valid: true, checked_files: checkedFiles },
-    clean_genesis: { agent_profiles: 0, journal_events: 0 },
+    clean_genesis: { actor_profiles: 0, active_events: 0, archived_events: 0 },
     recovery_cleaned: transaction.recovery_cleaned,
     mutated: true,
   };

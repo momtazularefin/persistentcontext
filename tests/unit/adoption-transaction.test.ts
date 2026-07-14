@@ -72,7 +72,7 @@ describe('transactional State A adoption', () => {
       plan_digest: digest,
       applied_operations: steps,
       validation: { valid: true },
-      clean_genesis: { agent_profiles: 0, journal_events: 0 },
+      clean_genesis: { actor_profiles: 0, active_events: 0, archived_events: 0 },
       recovery_cleaned: true,
       mutated: true,
     });
@@ -82,8 +82,13 @@ describe('transactional State A adoption', () => {
     expect(await validateCanonicalLayer(candidate, { clean_genesis: true })).toMatchObject({
       valid: true,
     });
-    expect(await readdir(path.join(candidate, '.pcp', 'agents'))).toEqual(['00-index.md']);
-    expect(await readdir(path.join(candidate, '.pcp', 'journal', 'events'))).toEqual([
+    expect(await readdir(path.join(candidate, '.pcp', 'continuity', 'actors'))).toEqual([
+      '00-index.md',
+    ]);
+    expect(await readdir(path.join(candidate, '.pcp', 'continuity', 'events'))).toEqual([
+      '00-index.md',
+    ]);
+    expect(await readdir(path.join(candidate, '.pcp', 'continuity', 'archive'))).toEqual([
       '00-index.md',
     ]);
     expect(before.inventory.files.map((file) => file.path)).toEqual(['README.md']);

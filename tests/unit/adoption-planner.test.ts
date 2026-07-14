@@ -72,14 +72,16 @@ function noneVcsPolicy(): Record<string, unknown> {
   return {
     schema_version: 1,
     mode: 'none',
+    system: 'none',
     provider: 'none',
     repository: { remote_name: 'none', default_branch: 'main' },
     responsibilities: prohibited,
     workflow: {
       branch_pattern: 'disabled',
       commit_convention: 'none',
+      commit_signing: 'none',
       push_cadence: 'never',
-      pull_request_required: false,
+      pull_request_policy: 'none',
       human_merge_required: false,
       post_merge: [],
     },
@@ -137,6 +139,11 @@ describe('State A and State B adoption planning', () => {
     expect('questions' in result ? result.questions.map((question) => question.id) : []).toEqual(
       expect.arrayContaining(['project-identity', 'software-stack', 'initial-scaffold']),
     );
+    const vcsQuestion =
+      'questions' in result
+        ? result.questions.find((question) => question.id === 'vcs-profile')
+        : undefined;
+    expect(vcsQuestion?.options?.[0]).toBe('human-commit');
     expect(after.inventory.digest).toBe(before.inventory.digest);
   });
 
@@ -154,6 +161,7 @@ describe('State A and State B adoption planning', () => {
       'grounded-baseline',
       'vcs-profile',
     ]);
+    expect(result.questions[1]?.options?.[0]).toBe('human-commit');
   });
 
   it('builds a stable preview-only State B mutation plan from cited semantic input', async () => {

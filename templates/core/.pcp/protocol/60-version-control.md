@@ -3,7 +3,7 @@ doc: protocol/60-version-control.md
 type: protocol
 status: static
 version: 1.0.0
-last_updated: 2026-07-12T13:10:00Z
+last_updated: 2026-07-14T07:20:00Z
 ownership: protocol
 ---
 
@@ -15,17 +15,21 @@ ownership: protocol
 
 - `none`: every VCS action is prohibited.
 - `human-owned`: agents may inspect Git read-only; the human performs declared VCS actions.
+- `human-commit`: agents prepare and verify coherent units; the human reviews, stages, and signs each commit; other responsibilities remain explicit.
 - `agent-managed`: agents perform routine branch, commit, push, PR, CI, and post-merge work; the human reviews and merges.
 - `custom`: every responsibility is assigned explicitly.
 - Before a policy is selected, behave as `none`.
 
-## Recommended agent-managed flow
+PCP recommends the `human-commit` profile as a transparent starting point. It does not require Git, GitHub, pull requests, or that profile. A project may choose another profile, define a custom policy, or replace this VCS policy with project-owned guidance for another system such as Subversion.
+
+## Recommended human-commit flow
 
 1. Synchronize the protected default branch and create one milestone branch.
-2. Commit each coherent verified unit locally with Conventional Commits; do not push routine units.
-3. After a substantial milestone passes the full gate, push once and open a ready-for-review PR.
-4. Ask the human to review and merge the PR.
-5. Verify PR and CI evidence, fetch and prune, switch to the default branch, fast-forward only, verify a clean merged tree, remove the proven local milestone branch, and create the next branch.
+2. After each coherent verified unit, show the human the changed paths, checks, diff, and exact signed-commit commands, then wait.
+3. Accept the human's commit report as the workflow boundary. Record the human VCS action without asserting independent verification.
+4. Do not push routine units. At a substantial milestone, push and open a PR only if the selected policy assigns those actions and the PR policy is accepted by the project.
+5. Ask the human to review and merge when a PR is used.
+6. After the human reports completion, perform the assigned post-merge continuation and create the next branch.
 
 Agents do not self-merge, force-push, rewrite published history, weaken protection, expose credentials, stage unrelated changes, or perform destructive recovery unless a custom policy explicitly assigns that exact action.
 
