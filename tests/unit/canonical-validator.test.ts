@@ -78,6 +78,7 @@ async function writeEvent(
     recordedBy?: { type: 'human' | 'agent' | 'system'; id: string };
     basis?: 'self' | 'reported' | 'observed' | 'system';
     kind?: 'code' | 'vcs';
+    summary?: string;
     rationale?: string;
   } = {},
 ): Promise<void> {
@@ -94,7 +95,7 @@ async function writeEvent(
     kind: options.kind ?? 'code',
     scopes: ['core'],
     workstreams: [],
-    summary: 'Validated a canonical fixture.',
+    summary: options.summary ?? 'Validated a canonical fixture.',
     ...(options.rationale === undefined ? {} : { rationale: options.rationale }),
     affected_paths: ['state/project.yaml'],
   };
@@ -244,7 +245,7 @@ describe('installed canonical layer validation', () => {
     expect(codes).toContain('event.self-recorder-mismatch');
   });
 
-  it('accepts minimal human-reported VCS events and requires a durable human identity', async () => {
+  it('preserves human performers and agent recorders for reported and observed changes', async () => {
     const root = await createProject();
     await writeActor(root);
     await writeActor(root, humanId, 'human');
@@ -253,9 +254,27 @@ describe('installed canonical layer validation', () => {
       recordedBy: { type: 'agent', id: agentId },
       basis: 'reported',
       kind: 'vcs',
+      summary: 'Recorded the human-reported signed commit.',
+    });
+    const observedId = '01ARZ3NDEKTSV4RRFFQ69G5FAW';
+    await writeEvent(root, {
+      id: observedId,
+      actor: { type: 'human', id: humanId },
+      recordedBy: { type: 'agent', id: agentId },
+      basis: 'observed',
+      kind: 'code',
+      summary: 'Recorded a project file changed outside the agent workflow.',
     });
 
     expect((await validateCanonicalLayer(root)).valid).toBe(true);
+    for (const id of [eventId, observedId]) {
+      const event = parse(
+        await readFile(path.join(root, '.pcp', 'continuity', 'events', `${id}.yaml`), 'utf8'),
+      ) as Record<string, unknown>;
+      expect(event.actor).toEqual({ type: 'human', id: humanId });
+      expect(event.recorded_by).toEqual({ type: 'agent', id: agentId });
+      expect(String(event.summary).toLowerCase()).not.toContain('verified');
+    }
 
     await rm(path.join(root, '.pcp', 'continuity', 'actors', `${humanId}.yaml`));
     expect(diagnosticCodes(await validateCanonicalLayer(root))).toContain('event.unknown-actor');

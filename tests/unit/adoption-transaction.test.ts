@@ -20,6 +20,9 @@ const schemaFixture = fileURLToPath(
 );
 const inspectionFixtureRoot = fileURLToPath(new URL('../fixtures/inspection/', import.meta.url));
 const stateCFixture = path.join(inspectionFixtureRoot, 'state-c-coverage');
+const equivalentStateCFixture = fileURLToPath(
+  new URL('../fixtures/adoption/state-c-equivalent-layouts/', import.meta.url),
+);
 const temporaryRoots: string[] = [];
 
 async function temporaryRoot(prefix: string): Promise<string> {
@@ -94,6 +97,19 @@ function reviewedCoverage(template: CoverageMatrix): CoverageMatrix {
   return coverage;
 }
 
+function representedCoverage(template: CoverageMatrix): CoverageMatrix {
+  const coverage = structuredClone(template);
+  for (const record of coverage.records) {
+    record.disposition = 'represented';
+    record.targets = ['.pcp/operations/10-working-agreement.md'];
+    record.evidence = [
+      'The common semantic baseline represents this legacy rule in canonical PCP state.',
+    ];
+  }
+  coverage.unresolved_count = 0;
+  return coverage;
+}
+
 async function createStateC(): Promise<{ candidate: string; inputPath: string }> {
   const candidate = await temporaryRoot('pcp-transaction-state-c-');
   await cp(stateCFixture, candidate, { recursive: true });
@@ -102,6 +118,21 @@ async function createStateC(): Promise<{ candidate: string; inputPath: string }>
   const input = await adoptionFixture();
   input.scaffold_files = [];
   input.coverage = reviewedCoverage(catalog.template);
+  return { candidate, inputPath: await writeExternalInput(input) };
+}
+
+async function createEquivalentStateC(
+  layout: 'layout-a' | 'layout-b',
+): Promise<{ candidate: string; inputPath: string }> {
+  const candidate = await temporaryRoot(`pcp-equivalent-${layout}-`);
+  await cp(path.join(equivalentStateCFixture, layout), candidate, { recursive: true });
+  const inspection = await inspectRepository(candidate);
+  if (inspection.state !== 'C') throw new Error(`${layout} must classify as State C.`);
+  const catalog = await discoverForeignCoverage(candidate, inspection);
+  if (catalog.issues.length > 0) throw new Error(`${layout} contains blocked foreign coverage.`);
+  const input = await adoptionFixture();
+  input.scaffold_files = [];
+  input.coverage = representedCoverage(catalog.template);
   return { candidate, inputPath: await writeExternalInput(input) };
 }
 
@@ -392,6 +423,49 @@ describe('transactional State A adoption', () => {
 });
 
 describe('transactional State C translation', () => {
+  it('converges different foreign layouts on the same canonical result', async () => {
+    const first = await createEquivalentStateC('layout-a');
+    const second = await createEquivalentStateC('layout-b');
+    const firstPreview = await previewDigest(first.candidate, first.inputPath);
+    const secondPreview = await previewDigest(second.candidate, second.inputPath);
+    expect(firstPreview.digest).not.toBe(secondPreview.digest);
+
+    await adoptProject(first.candidate, {
+      input: first.inputPath,
+      apply: firstPreview.digest,
+    });
+    await adoptProject(second.candidate, {
+      input: second.inputPath,
+      apply: secondPreview.digest,
+    });
+
+    expect((await inspectRepository(first.candidate)).state).toBe('managed');
+    expect((await inspectRepository(second.candidate)).state).toBe('managed');
+    const firstCanonical = await inspectRepository(path.join(first.candidate, '.pcp'));
+    const secondCanonical = await inspectRepository(path.join(second.candidate, '.pcp'));
+    expect(firstCanonical.inventory.digest).toBe(secondCanonical.inventory.digest);
+    expect(firstCanonical.inventory.files).toEqual(secondCanonical.inventory.files);
+
+    for (const adapter of renderPlatformAdapters()) {
+      const segments = adapter.manifest.target_path.split('/');
+      expect(await readFile(path.join(first.candidate, ...segments))).toEqual(
+        await readFile(path.join(second.candidate, ...segments)),
+      );
+    }
+    expect(await readFile(path.join(first.candidate, 'README.md'))).toEqual(
+      await readFile(path.join(second.candidate, 'README.md')),
+    );
+    expect(await readFile(path.join(first.candidate, 'src', 'index.ts'))).toEqual(
+      await readFile(path.join(second.candidate, 'src', 'index.ts')),
+    );
+    await expect(
+      readFile(path.join(first.candidate, 'legacy-context', 'policy.md')),
+    ).rejects.toMatchObject({ code: 'ENOENT' });
+    await expect(
+      readFile(path.join(second.candidate, 'team-memory', 'handoff.md')),
+    ).rejects.toMatchObject({ code: 'ENOENT' });
+  }, 60_000);
+
   it('translates reviewed foreign context into a valid clean PCP layer while preserving project assets', async () => {
     const { candidate, inputPath } = await createStateC();
     const before = await inspectRepository(candidate);
