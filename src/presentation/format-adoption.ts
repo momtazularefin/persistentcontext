@@ -34,6 +34,16 @@ export function formatAdoption(result: AdoptionPreview | AdoptionApplyResult): s
       if (question.when !== undefined) output += line(`  when: ${question.when}`);
     }
   }
+  if (result.coverage !== undefined) {
+    output += line(`Foreign coverage records: ${result.coverage.records.length}`);
+    output += line(`Unresolved coverage records: ${result.coverage.unresolved_count}`);
+  }
+  if (result.coverage_issues !== undefined && result.coverage_issues.length > 0) {
+    output += line('Blocking foreign-source issues:');
+    for (const issue of result.coverage_issues) {
+      output += line(`- ${issue.code} ${issue.path}: ${issue.message}`);
+    }
+  }
   if (result.plan !== undefined) {
     output += line(`Plan digest: ${result.plan.plan_digest}`);
     output += line('Operations:');

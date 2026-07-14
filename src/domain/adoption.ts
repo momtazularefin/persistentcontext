@@ -2,6 +2,7 @@ import { createHash } from 'node:crypto';
 
 import { ulid } from 'ulid';
 
+import type { CoverageMatrix, ForeignCoverageIssue } from './coverage.js';
 import type {
   InspectionConfidence,
   InspectionResult,
@@ -139,6 +140,8 @@ export interface AdoptionPreview {
   applicable: boolean;
   questions: AdoptionQuestion[];
   baseline: AdoptionBaseline;
+  coverage?: CoverageMatrix;
+  coverage_issues?: ForeignCoverageIssue[];
   plan?: MutationPlan;
   mutated: false;
 }

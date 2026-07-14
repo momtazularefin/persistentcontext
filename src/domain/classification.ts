@@ -156,6 +156,7 @@ const knownInstructionBasenames = new Set([
 ]);
 
 const knownInstructionPrefixes = [
+  '.agents/rules/',
   '.claude/',
   '.cursor/rules/',
   '.github/agents/',
@@ -495,7 +496,23 @@ function projectSignals(inventory: RepositoryInventory): InspectionSignal[] {
   return signals;
 }
 
+const scopedForeignRoots = [
+  '.agents/rules',
+  '.claude',
+  '.cursor/rules',
+  '.github/agents',
+  '.github/instructions',
+  '.roo/rules',
+  '.windsurf/rules',
+] as const;
+
 function candidateRoot(candidatePath: string): string {
+  const normalized = candidatePath.toLowerCase();
+  if (normalized === '.github/copilot-instructions.md') return candidatePath;
+  for (const scopedRoot of scopedForeignRoots) {
+    if (normalized !== scopedRoot && !normalized.startsWith(`${scopedRoot}/`)) continue;
+    return candidatePath.split('/').slice(0, scopedRoot.split('/').length).join('/');
+  }
   const separator = candidatePath.indexOf('/');
   return separator === -1 ? '.' : candidatePath.slice(0, separator);
 }

@@ -12,3 +12,4 @@ All notable public protocol changes will be documented here after the first rele
 - Added preview-first State A/B adoption with external grounded semantic inputs, normalized plan digests, source-drift rejection, project locks, write-ahead transactions, exact rollback, and clean-genesis validation.
 - Replaced agent-only continuity with stable human and agent actors, minimal performer/recorder events, a 64-event active window, and 32-event explicit-only archive rotation.
 - Added the recommended human-signed-commit profile while making pull requests optional policy and retaining human-owned, agent-managed, custom, non-Git, and no-VCS choices.
+- Added deterministic State C foreign-source discovery with file, adapter, history-entry, and registry-entry coverage templates; duplicate timestamps do not act as identities, and unreadable, encrypted, binary, excluded, or malformed sources fail closed.

@@ -6,9 +6,9 @@ Most coding agents can complete a task. The harder problem is helping the next a
 
 ## Development status
 
-PCP is under active `0.1.0` development. The engine performs read-only repository inventory and explainable intake classification, safely adopts State A and State B projects, validates the canonical `.pcp/` contract, and deterministically checks or renders the generated project-status view. It fingerprints files with SHA-256, honors ignore and nested-repository boundaries, records symlinks without following them, and distinguishes a managed PCP project from State A, B, or C.
+PCP is under active `0.1.0` development. The engine performs read-only repository inventory and explainable intake classification, safely adopts State A and State B projects, emits deterministic State C foreign-source coverage templates, validates the canonical `.pcp/` contract, and deterministically checks or renders the generated project-status view. It fingerprints files with SHA-256, honors ignore and nested-repository boundaries, records symlinks without following them, and distinguishes a managed PCP project from State A, B, or C.
 
-State A/B adoption is preview-first and requires an external, schema-valid semantic baseline plus the exact recomputed plan digest. State C foreign-layer translation, registration, event recording, workstream mutation, repair, and upgrade remain fail-closed until their safety milestones are verified. `pcp render` may replace only its declared generated status view.
+State A/B adoption is preview-first and requires an external, schema-valid semantic baseline plus the exact recomputed plan digest. State C intake now discovers complete foreign directories from semantic anchors, emits fingerprinted file/adapter/history/registry records, and reports unsafe or unparseable boundaries; translation and removal remain fail-closed until the completed matrix and transaction milestones are verified. Registration, event recording, workstream mutation, repair, and upgrade also remain unavailable. `pcp render` may replace only its declared generated status view.
 
 ## Intended model
 
@@ -25,7 +25,7 @@ One adoption workflow classifies:
 
 1. State A: a seed or greenfield project described by a title, prompt, README, or plain language. Preview and transactional adoption are implemented.
 2. State B: an established project with substantive assets but no persistent agent layer. Grounded preview and transactional adoption are implemented without reorganizing project-owned assets.
-3. State C: a project with an existing non-PCP instruction, knowledge, memory, planning, or orchestration layer. Classification is implemented; translation and removal remain unavailable until the coverage milestone.
+3. State C: a project with an existing non-PCP instruction, knowledge, memory, planning, or orchestration layer. Classification and transient source/entry coverage generation are implemented; translation and removal remain unavailable until every disposition and transaction gate passes.
 
 Every successful adoption converges on a clean genesis: grounded current context, no actor profiles, and no imported, active, archived, or synthetic events.
 
@@ -36,7 +36,7 @@ Every successful adoption converges on a clean genesis: grounded current context
 - Installed layer: `.pcp/`.
 - Open skill: `build-pcp`.
 - Bundled executable: `pcp`.
-- Initial supported products: Codex, Antigravity, and Claude Code Desktop.
+- `0.1.0` adapter targets: Codex, Antigravity, Claude Code Desktop, GitHub Copilot in Visual Studio Code, and Cursor IDE. Each remains a target rather than a support claim until its generation, collision, and reconstruction gates pass.
 
 The executable is project-local in `0.1.0`; this repository does not publish a global npm CLI.
 

@@ -54,7 +54,7 @@
           "$ref": "urn:pcp:schema:v1:common#/$defs/relativePath"
         },
         "source_kind": {
-          "enum": ["file", "history-entry", "fact", "adapter"]
+          "enum": ["file", "history-entry", "registry-entry", "fact", "adapter"]
         },
         "fingerprint": {
           "$ref": "urn:pcp:schema:v1:common#/$defs/sha256"

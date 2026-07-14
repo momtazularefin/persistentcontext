@@ -28,6 +28,7 @@ import {
   toPortablePath,
 } from '../infrastructure/filesystem-inventory.js';
 import { SchemaRegistry } from '../infrastructure/schema-validator.js';
+import { discoverForeignCoverage } from './foreign-coverage.js';
 import { renderCanonicalViews } from './render-canonical-views.js';
 import { inspectRepository } from './inspect-repository.js';
 import { validateCanonicalLayer } from './validate-canonical-layer.js';
@@ -100,10 +101,10 @@ function questionsFor(inspection: InspectionResult): AdoptionQuestion[] {
     return [
       {
         id: 'state-c-coverage',
-        prompt: 'Provide complete foreign-context file and history coverage before adoption.',
+        prompt: 'Complete every disposition in the emitted foreign-source coverage matrix.',
         reason: 'State C translation and destructive removal require semantic dispositions.',
         required: true,
-        response_shape: 'file-set',
+        response_shape: 'object',
       },
     ];
   }
@@ -171,8 +172,11 @@ function questionsFor(inspection: InspectionResult): AdoptionQuestion[] {
   return questions;
 }
 
-function previewWithoutPlan(root: string, inspection: InspectionResult): AdoptionPreview {
-  return {
+async function previewWithoutPlan(
+  root: string,
+  inspection: InspectionResult,
+): Promise<AdoptionPreview> {
+  const preview: AdoptionPreview = {
     schema_version: ADOPTION_SCHEMA_VERSION,
     command: 'adopt',
     candidate: '.',
@@ -183,6 +187,12 @@ function previewWithoutPlan(root: string, inspection: InspectionResult): Adoptio
     baseline: baselineFor(root, inspection),
     mutated: false,
   };
+  if (inspection.state === 'C') {
+    const catalog = await discoverForeignCoverage(root, inspection);
+    preview.coverage = catalog.template;
+    preview.coverage_issues = catalog.issues;
+  }
+  return preview;
 }
 
 function schemaFailure(diagnostics: Array<{ path: string; message: string }>): AdoptionError {
