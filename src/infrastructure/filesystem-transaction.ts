@@ -403,7 +403,16 @@ async function rollbackOperation(root: string, applied: AppliedOperation): Promi
 async function verifyDesiredContent(root: string, plan: MutationPlan): Promise<void> {
   for (const operation of plan.operations) {
     const target = resolveApprovedPath(root, operation.path);
-    if (operation.action === 'write' || operation.action === 'replace') {
+    if (operation.action === 'mkdir') {
+      const metadata = await metadataOrUndefined(target);
+      if (metadata === undefined || !metadata.isDirectory() || metadata.isSymbolicLink()) {
+        throw new AdoptionError(
+          'PCP_ADOPTION_LIVE_MISMATCH',
+          `An applied directory does not match the approved plan: ${operation.path}`,
+          true,
+        );
+      }
+    } else if (operation.action === 'write' || operation.action === 'replace') {
       const bytes = await readFile(target);
       if (operation.content_digest !== sha256(bytes)) {
         throw new AdoptionError(
@@ -530,6 +539,7 @@ export async function executeFilesystemTransaction(
     await options.verify_source_stability?.();
     await options.validate_live();
     await options.verify_source_stability?.();
+    await verifyDesiredContent(resolvedRoot, plan);
     await rm(recoveryRoot, { recursive: true, force: false });
     recoveryRoot = undefined;
     return { applied_operations: applied.length, recovery_cleaned: true };

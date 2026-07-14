@@ -10,7 +10,6 @@ import {
   discoverForeignCoverage,
   validateForeignCoverage,
 } from '../../src/application/foreign-coverage.js';
-import { adoptProject } from '../../src/application/adopt-project.js';
 import { inspectRepository } from '../../src/application/inspect-repository.js';
 import { isPlanMaterial, planAdoption } from '../../src/application/plan-adoption.js';
 import { sha256, type AdoptionInput } from '../../src/domain/adoption.js';
@@ -189,7 +188,7 @@ describe('State C foreign coverage', () => {
     });
   });
 
-  it('builds a stable preview-only translation plan without mutating State C', async () => {
+  it('builds a stable applicable translation plan without mutating State C', async () => {
     const inspection = await inspectRepository(fixtureRoot);
     const catalog = await discoverForeignCoverage(fixtureRoot, inspection);
     const coverage = reviewedCoverage(catalog.template);
@@ -200,12 +199,12 @@ describe('State C foreign coverage', () => {
       planAdoption(fixtureRoot, input),
       planAdoption(fixtureRoot, input),
     ]);
-    if (isPlanMaterial(result) || isPlanMaterial(repeated)) {
-      throw new Error('State C preview cannot expose applicable plan material.');
+    if (!isPlanMaterial(result) || !isPlanMaterial(repeated)) {
+      throw new Error('Expected applicable State C plan material.');
     }
-    expect(result).toMatchObject({
+    expect(result.preview).toMatchObject({
       classification: 'C',
-      applicable: false,
+      applicable: true,
       questions: [],
       coverage,
       coverage_issues: [],
@@ -228,16 +227,16 @@ describe('State C foreign coverage', () => {
       ],
       mutated: false,
     });
-    expect(result.plan).toEqual(repeated.plan);
-    expect(result.plan).toBeDefined();
-    if (result.plan === undefined) throw new Error('Expected a State C translation preview.');
-    expect(new SchemaRegistry().validate('mutation-plan', result.plan)).toEqual({
+    expect(result.preview.plan).toEqual(repeated.preview.plan);
+    expect(new SchemaRegistry().validate('mutation-plan', result.preview.plan)).toEqual({
       valid: true,
       diagnostics: [],
     });
-    expect(result.plan.classification).toBe('C');
-    expect(result.plan.coverage_digest).toMatch(/^[a-f0-9]{64}$/u);
-    const removals = result.plan.operations.filter((operation) => operation.action === 'remove');
+    expect(result.preview.plan.classification).toBe('C');
+    expect(result.preview.plan.coverage_digest).toMatch(/^[a-f0-9]{64}$/u);
+    const removals = result.preview.plan.operations.filter(
+      (operation) => operation.action === 'remove',
+    );
     expect(removals.map((operation) => operation.path)).toEqual(
       expect.arrayContaining([
         '.cursor/rules/legacy.mdc',
@@ -248,7 +247,9 @@ describe('State C foreign coverage', () => {
       ]),
     );
     expect(
-      result.plan.operations.some((operation) => operation.path.includes('project-owned-note')),
+      result.preview.plan.operations.some((operation) =>
+        operation.path.includes('project-owned-note'),
+      ),
     ).toBe(false);
     const inventoryByPath = new Map(inspection.inventory.files.map((file) => [file.path, file]));
     expect(
@@ -256,23 +257,23 @@ describe('State C foreign coverage', () => {
         (operation) => operation.preimage_digest === inventoryByPath.get(operation.path)?.sha256,
       ),
     ).toBe(true);
-    expect(result.plan.operations).toContainEqual(
+    expect(result.preview.plan.operations).toContainEqual(
       expect.objectContaining({
         action: 'replace',
         path: '.github/copilot-instructions.md',
         preimage_digest: inventoryByPath.get('.github/copilot-instructions.md')?.sha256,
       }),
     );
-    const cursorWriteIndex = result.plan.operations.findIndex(
+    const cursorWriteIndex = result.preview.plan.operations.findIndex(
       (operation) => operation.action === 'write' && operation.path === '.cursor/rules/pcp.mdc',
     );
-    const legacyCursorRemovalIndex = result.plan.operations.findIndex(
+    const legacyCursorRemovalIndex = result.preview.plan.operations.findIndex(
       (operation) => operation.action === 'remove' && operation.path === '.cursor/rules/legacy.mdc',
     );
     expect(cursorWriteIndex).toBeGreaterThanOrEqual(0);
     expect(legacyCursorRemovalIndex).toBeGreaterThan(cursorWriteIndex);
     expect(
-      result.plan.operations.some(
+      result.preview.plan.operations.some(
         (operation) =>
           (operation.action === 'write' || operation.action === 'replace') &&
           operation.path.startsWith('.pcp/coverage'),
@@ -289,12 +290,8 @@ describe('State C foreign coverage', () => {
         'project-owned',
       ]),
     );
-    expect(formatAdoption(result)).toContain('Coverage digest:');
-    expect(formatAdoption(result)).toContain('Generated platform adapters:');
-    expect((await inspectRepository(fixtureRoot)).inventory.digest).toBe(before);
-    await expect(
-      adoptProject(fixtureRoot, { input, apply: result.plan.plan_digest }),
-    ).rejects.toMatchObject({ code: 'PCP_ADOPTION_NOT_APPLICABLE', mutated: false });
+    expect(formatAdoption(result.preview)).toContain('Coverage digest:');
+    expect(formatAdoption(result.preview)).toContain('Generated platform adapters:');
     expect((await inspectRepository(fixtureRoot)).inventory.digest).toBe(before);
   });
 
@@ -327,11 +324,11 @@ describe('State C foreign coverage', () => {
     const catalog = await discoverForeignCoverage(candidate, inspection);
     const coverage = reviewedCoverage(catalog.template);
     const result = await planAdoption(candidate, await writeInput(await stateCInput(coverage)));
-    if (isPlanMaterial(result) || result.plan === undefined) {
-      throw new Error('Expected a preview-only adapter collision plan.');
+    if (!isPlanMaterial(result)) {
+      throw new Error('Expected an applicable adapter collision plan.');
     }
 
-    const replacements = result.plan.operations.filter(
+    const replacements = result.preview.plan.operations.filter(
       (operation) => operation.action === 'replace' && existingAdapters.has(operation.path),
     );
     expect(replacements.map((operation) => operation.path)).toEqual(
@@ -387,10 +384,10 @@ describe('State C foreign coverage', () => {
       fixtureRoot,
       await writeInput(await stateCInput(reorderedCoverage)),
     );
-    if (isPlanMaterial(original) || isPlanMaterial(reordered)) {
-      throw new Error('State C preview cannot expose applicable plan material.');
+    if (!isPlanMaterial(original) || !isPlanMaterial(reordered)) {
+      throw new Error('Expected applicable State C plan material.');
     }
-    expect(reordered.plan).toEqual(original.plan);
+    expect(reordered.preview.plan).toEqual(original.preview.plan);
 
     const changedCoverage = structuredClone(originalCoverage);
     changedCoverage.records[0]!.evidence = ['A materially different semantic review.'];
@@ -398,11 +395,11 @@ describe('State C foreign coverage', () => {
       fixtureRoot,
       await writeInput(await stateCInput(changedCoverage)),
     );
-    if (isPlanMaterial(changed)) throw new Error('State C plan must remain preview-only.');
-    expect(changed.plan?.operations).toEqual(original.plan?.operations);
-    expect(changed.plan?.coverage_digest).not.toBe(original.plan?.coverage_digest);
-    expect(changed.plan?.plan_id).not.toBe(original.plan?.plan_id);
-    expect(changed.plan?.plan_digest).not.toBe(original.plan?.plan_digest);
+    if (!isPlanMaterial(changed)) throw new Error('Expected applicable State C plan material.');
+    expect(changed.preview.plan.operations).toEqual(original.preview.plan.operations);
+    expect(changed.preview.plan.coverage_digest).not.toBe(original.preview.plan.coverage_digest);
+    expect(changed.preview.plan.plan_id).not.toBe(original.preview.plan.plan_id);
+    expect(changed.preview.plan.plan_digest).not.toBe(original.preview.plan.plan_digest);
   });
 
   it('plans reviewed file replacements and file-to-directory collisions explicitly', async () => {
@@ -427,18 +424,18 @@ describe('State C foreign coverage', () => {
     const catalog = await discoverForeignCoverage(candidate, inspection);
     const coverage = reviewedCoverage(catalog.template);
     const result = await planAdoption(candidate, await writeInput(await stateCInput(coverage)));
-    if (isPlanMaterial(result) || result.plan === undefined) {
-      throw new Error('Expected a preview-only State C collision plan.');
+    if (!isPlanMaterial(result)) {
+      throw new Error('Expected an applicable State C collision plan.');
     }
-    const removeIndex = result.plan.operations.findIndex(
+    const removeIndex = result.preview.plan.operations.findIndex(
       (operation) => operation.action === 'remove' && operation.path === '.pcp/knowledge',
     );
-    const mkdirIndex = result.plan.operations.findIndex(
+    const mkdirIndex = result.preview.plan.operations.findIndex(
       (operation) => operation.action === 'mkdir' && operation.path === '.pcp/knowledge',
     );
     expect(removeIndex).toBeGreaterThanOrEqual(0);
     expect(mkdirIndex).toBeGreaterThan(removeIndex);
-    expect(result.plan.operations).toContainEqual(
+    expect(result.preview.plan.operations).toContainEqual(
       expect.objectContaining({
         action: 'replace',
         path: '.pcp/pcp.yaml',

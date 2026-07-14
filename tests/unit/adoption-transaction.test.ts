@@ -7,14 +7,19 @@ import { parse } from 'yaml';
 import { afterEach, describe, expect, it } from 'vitest';
 
 import { adoptProject } from '../../src/application/adopt-project.js';
+import { discoverForeignCoverage } from '../../src/application/foreign-coverage.js';
 import { inspectRepository } from '../../src/application/inspect-repository.js';
+import { renderPlatformAdapters } from '../../src/application/render-platform-adapters.js';
 import { validateCanonicalLayer } from '../../src/application/validate-canonical-layer.js';
-import { AdoptionError, type AdoptionInput } from '../../src/domain/adoption.js';
+import { validatePlatformAdapters } from '../../src/application/validate-platform-adapters.js';
+import { AdoptionError, sha256, type AdoptionInput } from '../../src/domain/adoption.js';
+import type { CoverageMatrix } from '../../src/domain/coverage.js';
 
 const schemaFixture = fileURLToPath(
   new URL('../fixtures/schemas/adoption-input.yaml', import.meta.url),
 );
 const inspectionFixtureRoot = fileURLToPath(new URL('../fixtures/inspection/', import.meta.url));
+const stateCFixture = path.join(inspectionFixtureRoot, 'state-c-coverage');
 const temporaryRoots: string[] = [];
 
 async function temporaryRoot(prefix: string): Promise<string> {
@@ -47,6 +52,57 @@ async function createSeed(): Promise<{ candidate: string; inputPath: string; see
   await writeFile(path.join(candidate, 'README.md'), seed, 'utf8');
   const inputPath = await writeExternalInput(await adoptionFixture());
   return { candidate, inputPath, seed };
+}
+
+function reviewedCoverage(template: CoverageMatrix): CoverageMatrix {
+  const coverage = structuredClone(template);
+  const dispositions = [
+    'represented',
+    'promoted',
+    'superseded',
+    'operational-noise',
+    'historical-only',
+    'sensitive-local',
+  ] as const;
+  let dispositionIndex = 0;
+  for (const record of coverage.records) {
+    if (record.source_path === 'project-guidance/project-owned-note.md') {
+      record.disposition = 'project-owned';
+      record.targets = [];
+      record.evidence = ['This is an ordinary product note, not persistent agent context.'];
+      continue;
+    }
+    const disposition = dispositions[dispositionIndex % dispositions.length]!;
+    dispositionIndex += 1;
+    record.disposition = disposition;
+    record.targets =
+      disposition === 'represented' || disposition === 'promoted' || disposition === 'superseded'
+        ? ['.pcp/operations/10-working-agreement.md']
+        : [];
+    record.evidence = [`Reviewed ${record.source_path} and assigned ${disposition}.`];
+  }
+  coverage.records.push({
+    source_id: 'fact:current-user-direction',
+    source_path: 'user-input/current-direction',
+    source_kind: 'fact',
+    fingerprint: sha256('The current direction is explicit and fileless.'),
+    disposition: 'promoted',
+    targets: ['.pcp/operations/30-decisions.md'],
+    evidence: ['The adopting user explicitly supplied this current direction.'],
+  });
+  coverage.unresolved_count = 0;
+  return coverage;
+}
+
+async function createStateC(): Promise<{ candidate: string; inputPath: string }> {
+  const candidate = await temporaryRoot('pcp-transaction-state-c-');
+  await cp(stateCFixture, candidate, { recursive: true });
+  const inspection = await inspectRepository(candidate);
+  const catalog = await discoverForeignCoverage(candidate, inspection);
+  const input = await adoptionFixture();
+  input.scaffold_files = [];
+  input.coverage = reviewedCoverage(catalog.template);
+  return { candidate, inputPath: await writeExternalInput(input) };
 }
 
 async function previewDigest(
@@ -333,4 +389,144 @@ describe('transactional State A adoption', () => {
       expect(await readFile(path.join(candidate, 'README.md'), 'utf8')).toBe(seed);
     }
   }, 120_000);
+});
+
+describe('transactional State C translation', () => {
+  it('translates reviewed foreign context into a valid clean PCP layer while preserving project assets', async () => {
+    const { candidate, inputPath } = await createStateC();
+    const before = await inspectRepository(candidate);
+    expect(before.state).toBe('C');
+    const preservedPaths = [
+      'README.md',
+      '.cursor/settings.json',
+      '.github/workflows/ci.yml',
+      'project-guidance/project-owned-note.md',
+      'src/index.ts',
+    ];
+    const preserved = new Map(
+      await Promise.all(
+        preservedPaths.map(
+          async (candidatePath) =>
+            [
+              candidatePath,
+              await readFile(path.join(candidate, ...candidatePath.split('/'))),
+            ] as const,
+        ),
+      ),
+    );
+    const { digest, steps } = await previewDigest(candidate, inputPath);
+
+    const result = await adoptProject(candidate, { input: inputPath, apply: digest });
+
+    expect(result).toMatchObject({
+      classification: 'C',
+      plan_digest: digest,
+      applied_operations: steps,
+      validation: { valid: true },
+      clean_genesis: { actor_profiles: 0, active_events: 0, archived_events: 0 },
+      recovery_cleaned: true,
+      mutated: true,
+    });
+    const after = await inspectRepository(candidate);
+    expect(after.state).toBe('managed');
+    expect(await validateCanonicalLayer(candidate, { clean_genesis: true })).toMatchObject({
+      valid: true,
+    });
+    expect(after.inventory.files.some((file) => file.path.startsWith('.pcp/coverage'))).toBe(false);
+
+    for (const [candidatePath, contents] of preserved) {
+      expect(await readFile(path.join(candidate, ...candidatePath.split('/')))).toEqual(contents);
+    }
+    for (const removedPath of [
+      '.cursor/rules/legacy.mdc',
+      'project-guidance/agent-registry.md',
+      'project-guidance/changelog.yaml',
+      'project-guidance/continuity.md',
+      'project-guidance/policy.md',
+    ]) {
+      await expect(readFile(path.join(candidate, ...removedPath.split('/')))).rejects.toMatchObject(
+        {
+          code: 'ENOENT',
+        },
+      );
+    }
+
+    const generatedAdapters = renderPlatformAdapters();
+    for (const adapter of generatedAdapters) {
+      expect(
+        await readFile(path.join(candidate, ...adapter.manifest.target_path.split('/'))),
+      ).toEqual(adapter.content);
+    }
+    expect(
+      await validatePlatformAdapters(
+        candidate,
+        generatedAdapters.map((adapter) => adapter.manifest),
+      ),
+    ).toEqual({ valid: true, checked_adapters: 5, diagnostics: [] });
+  }, 60_000);
+
+  it('rejects source drift after preview without starting translation', async () => {
+    const { candidate, inputPath } = await createStateC();
+    const { digest } = await previewDigest(candidate, inputPath);
+    await writeFile(path.join(candidate, 'concurrent-note.txt'), 'A concurrent project change.\n');
+    const drifted = await inspectRepository(candidate);
+
+    await expect(
+      adoptProject(candidate, { input: inputPath, apply: digest }),
+    ).rejects.toMatchObject({
+      code: 'PCP_STATE_C_COVERAGE_INVALID',
+      mutated: false,
+    });
+    expect((await inspectRepository(candidate)).inventory.digest).toBe(drifted.inventory.digest);
+    await expect(readFile(path.join(candidate, 'AGENTS.md'))).rejects.toMatchObject({
+      code: 'ENOENT',
+    });
+    await expect(readdir(path.join(candidate, '.pcp'))).rejects.toMatchObject({ code: 'ENOENT' });
+  });
+
+  it('restores the exact foreign layer after failure at every operation and validation boundary', async () => {
+    const { candidate, inputPath } = await createStateC();
+    const before = await inspectRepository(candidate);
+    const originalCopilot = await readFile(
+      path.join(candidate, '.github', 'copilot-instructions.md'),
+    );
+    const originalChangelog = await readFile(
+      path.join(candidate, 'project-guidance', 'changelog.yaml'),
+    );
+    const { digest, steps } = await previewDigest(candidate, inputPath);
+
+    for (let failurePoint = 1; failurePoint <= steps + 1; failurePoint += 1) {
+      let caught: unknown;
+      try {
+        await adoptProject(candidate, {
+          input: inputPath,
+          apply: digest,
+          fail_after_operation: failurePoint,
+        });
+      } catch (error) {
+        caught = error;
+      }
+      expect(caught, `failure point ${failurePoint}`).toBeInstanceOf(AdoptionError);
+      expect(caught, `failure point ${failurePoint}`).toMatchObject({
+        code: 'PCP_FAULT_INJECTED',
+        mutated: false,
+      });
+      const recoveryRoot = (caught as AdoptionError).recoveryRoot;
+      expect(recoveryRoot, `failure point ${failurePoint}`).toBeTypeOf('string');
+      if (recoveryRoot !== undefined) {
+        await rm(recoveryRoot, { recursive: true, force: true });
+      }
+
+      expect(
+        (await inspectRepository(candidate)).inventory.digest,
+        `failure point ${failurePoint}`,
+      ).toBe(before.inventory.digest);
+      expect(await readFile(path.join(candidate, '.github', 'copilot-instructions.md'))).toEqual(
+        originalCopilot,
+      );
+      expect(await readFile(path.join(candidate, 'project-guidance', 'changelog.yaml'))).toEqual(
+        originalChangelog,
+      );
+    }
+  }, 240_000);
 });

@@ -54,7 +54,7 @@ Use `repository` or `repository-and-user` only with cited paths from the engine 
 
 For State A software, resolve the actual language, runtime, package manager, license, and deployment choice before encoding any related scaffold. For non-software work, create only the structure appropriate to its real project type.
 
-## Preview and apply State A or B
+## Preview and apply
 
 Generate the normalized, non-mutating plan with the completed external input:
 
@@ -79,7 +79,7 @@ The engine fully recomputes the plan, rejects source drift, acquires a project l
 - Require complete file and history coverage before planning any foreign removal.
 - Mark an ordinary file `project-owned` only when cautious directory expansion found it beside foreign context; leave it unchanged and give it no canonical target.
 
-Run `adopt` without input to obtain the transient matrix, then include the completed matrix as `coverage` in the external State C semantic input. A successful review reports `coverage_status: complete` and emits a normalized plan whose digest binds coverage, canonical writes, generated platform adapters, preimages, and removals. Review every adapter `write`, `replace`, and legacy removal. PCP plans the replacement before removing a supported scoped convention and blocks any adapter surface outside the implemented five-product contract. The plan remains `applicable: false`; destructive apply is unavailable. Treat it as review evidence, not a migration recipe, and do not remove the foreign layer manually.
+Run `adopt` without input to obtain the transient matrix, then include the completed matrix as `coverage` in the external State C semantic input. A successful review reports `coverage_status: complete` and emits an applicable normalized plan whose digest binds coverage, canonical writes, generated platform adapters, preimages, and removals. Review every adapter `write`, `replace`, and legacy removal. PCP plans the replacement before removing a supported scoped convention and blocks any adapter surface outside the implemented five-product contract. Apply only the approved digest through the engine using the command above. Do not reproduce the plan with manual file operations: the engine must recheck the inventory, validate the live canonical layer and adapters, and restore exact preimages on failure.
 
 ## Clean genesis
 

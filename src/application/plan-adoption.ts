@@ -820,11 +820,11 @@ function validateStateCCoverageTargets(
   if (diagnostics.length > 0) throw stateCCoverageFailure(diagnostics);
 }
 
-async function buildStateCTranslationPreview(
+async function buildStateCTranslationPlan(
   root: string,
   inspection: InspectionResult,
   input: AdoptionInput,
-): Promise<AdoptionPreview> {
+): Promise<AdoptionPlanMaterial> {
   if (inspection.state !== 'C') {
     throw new AdoptionError(
       'PCP_ADOPTION_STATE_UNSUPPORTED',
@@ -881,13 +881,13 @@ async function buildStateCTranslationPreview(
   const planValidation = new SchemaRegistry().validate('mutation-plan', plan);
   if (!planValidation.valid) throw schemaFailure(planValidation.diagnostics);
 
-  return {
+  const preview: AdoptionPlanMaterial['preview'] = {
     schema_version: ADOPTION_SCHEMA_VERSION,
     command: 'adopt',
     candidate: '.',
     classification: 'C',
     confidence: inspection.confidence,
-    applicable: false,
+    applicable: true,
     questions: [],
     baseline: baselineFor(root, inspection),
     coverage: input.coverage,
@@ -897,6 +897,7 @@ async function buildStateCTranslationPreview(
     plan,
     mutated: false,
   };
+  return { inspection, input, preview, content_by_path: content };
 }
 
 async function buildPlanMaterial(
@@ -985,7 +986,7 @@ export async function planAdoption(
     return previewWithoutPlan(root, inspection);
   }
   const input = await loadAdoptionInput(inputPath, root);
-  if (inspection.state === 'C') return buildStateCTranslationPreview(root, inspection, input);
+  if (inspection.state === 'C') return buildStateCTranslationPlan(root, inspection, input);
   return buildPlanMaterial(root, inspection, input);
 }
 

@@ -155,7 +155,7 @@ export interface AdoptionApplyResult {
   schema_version: 1;
   command: 'adopt';
   candidate: '.';
-  classification: 'A' | 'B';
+  classification: 'A' | 'B' | 'C';
   plan_digest: string;
   applied_operations: number;
   validation: {
@@ -175,7 +175,7 @@ export interface AdoptionPlanMaterial {
   inspection: InspectionResult;
   input: AdoptionInput;
   preview: AdoptionPreview & {
-    classification: 'A' | 'B';
+    classification: 'A' | 'B' | 'C';
     applicable: true;
     plan: MutationPlan;
   };

@@ -8,14 +8,20 @@ import {
   type MutationPlan,
   type AdoptionPreview,
 } from '../domain/adoption.js';
-import type { RepositoryInventory } from '../domain/inspection.js';
+import {
+  comparePortablePaths,
+  type FileFingerprint,
+  type RepositoryInventory,
+} from '../domain/inspection.js';
 import {
   inventoryRepository,
   resolveCandidateRoot,
 } from '../infrastructure/filesystem-inventory.js';
 import { executeFilesystemTransaction } from '../infrastructure/filesystem-transaction.js';
+import { inspectRepository } from './inspect-repository.js';
 import { isPlanMaterial, planAdoption } from './plan-adoption.js';
 import { validateCanonicalLayer } from './validate-canonical-layer.js';
+import { validatePlatformAdapters } from './validate-platform-adapters.js';
 
 export interface AdoptProjectOptions {
   input?: string;
@@ -41,38 +47,75 @@ async function verifyAdoptionSourceStability(
   root: string,
   original: RepositoryInventory,
   plan: MutationPlan,
+  contentByPath: ReadonlyMap<string, Buffer>,
+  persistence: 'tracked' | 'local',
 ): Promise<void> {
-  if (
-    plan.operations.some(
-      (operation) => operation.action !== 'mkdir' && operation.action !== 'write',
-    )
-  ) {
+  const allowedActions =
+    plan.classification === 'C'
+      ? new Set(['mkdir', 'write', 'replace', 'remove'])
+      : new Set(['mkdir', 'write']);
+  if (plan.operations.some((operation) => !allowedActions.has(operation.action))) {
     throw new AdoptionError(
       'PCP_ADOPTION_PLAN_UNSAFE',
-      'State A/B adoption may contain only new-directory and new-file operations.',
+      plan.classification === 'C'
+        ? 'State C adoption may contain only directory creation, file creation, approved replacement, and approved removal operations.'
+        : 'State A/B adoption may contain only new-directory and new-file operations.',
       true,
     );
   }
-  const createdDirectories = new Set(
-    plan.operations
-      .filter((operation) => operation.action === 'mkdir')
-      .map((operation) => operation.path),
+
+  const expectedDirectories = new Set(original.directories);
+  const expectedFiles = new Map(
+    original.files.map((file) => [file.path, { ...file }] satisfies [string, FileFingerprint]),
   );
-  const createdFiles = new Set(
-    plan.operations
-      .filter((operation) => operation.action === 'write')
-      .map((operation) => operation.path),
-  );
-  const current = await inventoryRepository(root);
-  const withoutAdoption: RepositoryInventory = {
-    ...current,
-    directories: current.directories.filter((item) => !createdDirectories.has(item)),
-    files: current.files.filter((item) => !createdFiles.has(item.path)),
+  const hiddenByLocalPersistence = (candidatePath: string): boolean =>
+    persistence === 'local' && (candidatePath === '.pcp' || candidatePath.startsWith('.pcp/'));
+
+  for (const operation of plan.operations) {
+    if (hiddenByLocalPersistence(operation.path)) continue;
+    switch (operation.action) {
+      case 'mkdir':
+        expectedDirectories.add(operation.path);
+        break;
+      case 'write':
+      case 'replace': {
+        const content = contentByPath.get(operation.path);
+        if (content === undefined || operation.content_digest === undefined) {
+          throw new AdoptionError(
+            'PCP_ADOPTION_PLAN_CONTENT_MISMATCH',
+            `The approved operation is missing expected content: ${operation.path}`,
+            true,
+          );
+        }
+        expectedFiles.set(operation.path, {
+          path: operation.path,
+          size: content.length,
+          sha256: operation.content_digest,
+        });
+        break;
+      }
+      case 'remove':
+        expectedFiles.delete(operation.path);
+        break;
+      case 'move':
+        throw new AdoptionError(
+          'PCP_ADOPTION_PLAN_UNSAFE',
+          'Move operations are not enabled for adoption source-stability checks.',
+          true,
+        );
+    }
+  }
+
+  const expected = {
+    directories: [...expectedDirectories].sort(comparePortablePaths),
+    files: [...expectedFiles.values()].sort((left, right) =>
+      comparePortablePaths(left.path, right.path),
+    ),
+    symlinks: original.symlinks,
+    nested_repositories: original.nestedRepositories,
   };
-  if (
-    canonicalJson(comparableInventory(withoutAdoption)) !==
-    canonicalJson(comparableInventory(original))
-  ) {
+  const current = await inventoryRepository(root);
+  if (canonicalJson(comparableInventory(current)) !== canonicalJson(expected)) {
     throw new AdoptionError(
       'PCP_SOURCE_CHANGED',
       'Candidate-owned source changed while the adoption transaction was running.',
@@ -121,7 +164,13 @@ export async function adoptProject(
         ? {}
         : { fail_after_operation: options.fail_after_operation }),
       verify_source_stability: async () =>
-        verifyAdoptionSourceStability(root, planned.inspection.inventory, planned.preview.plan),
+        verifyAdoptionSourceStability(
+          root,
+          planned.inspection.inventory,
+          planned.preview.plan,
+          planned.content_by_path,
+          planned.input.persistence,
+        ),
       validate_live: async () => {
         const validation = await validateCanonicalLayer(root, { clean_genesis: true });
         if (!validation.valid) {
@@ -135,6 +184,38 @@ export async function adoptProject(
           );
         }
         checkedFiles = validation.checked_files;
+
+        if (planned.preview.classification === 'C') {
+          const adapters = planned.preview.adapters ?? [];
+          if (adapters.length === 0) {
+            throw new AdoptionError(
+              'PCP_ADOPTION_LIVE_INVALID',
+              'State C apply did not retain its generated platform-adapter contract.',
+              true,
+            );
+          }
+          const adapterValidation = await validatePlatformAdapters(root, adapters);
+          if (!adapterValidation.valid) {
+            throw new AdoptionError(
+              'PCP_ADOPTION_LIVE_INVALID',
+              `Applied platform adapters failed validation: ${adapterValidation.diagnostics
+                .slice(0, 8)
+                .map((item) => `${item.path}: ${item.message}`)
+                .join('; ')}`,
+              true,
+            );
+          }
+          if (planned.input.persistence === 'tracked') {
+            const finalInspection = await inspectRepository(root);
+            if (finalInspection.state !== 'managed') {
+              throw new AdoptionError(
+                'PCP_ADOPTION_LIVE_INVALID',
+                `Applied tracked project classified as ${finalInspection.state}, not managed.`,
+                true,
+              );
+            }
+          }
+        }
       },
     },
   );
