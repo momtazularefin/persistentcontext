@@ -1,0 +1,109 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:pcp:schema:v1:workstream-operation-input",
+  "title": "PCP workstream mutation input",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "operation",
+    "expected_registry_digest",
+    "actor",
+    "recorded_by",
+    "basis",
+    "summary"
+  ],
+  "properties": {
+    "schema_version": {
+      "$ref": "urn:pcp:schema:v1:common#/$defs/schemaVersion"
+    },
+    "operation": {
+      "enum": ["create", "update", "complete"]
+    },
+    "expected_registry_digest": {
+      "$ref": "urn:pcp:schema:v1:common#/$defs/sha256"
+    },
+    "occurred_at": {
+      "$ref": "urn:pcp:schema:v1:common#/$defs/dateTime"
+    },
+    "actor": {
+      "$ref": "urn:pcp:schema:v1:common#/$defs/actorReference"
+    },
+    "recorded_by": {
+      "$ref": "urn:pcp:schema:v1:common#/$defs/actorReference"
+    },
+    "basis": {
+      "enum": ["self", "reported", "observed", "system"]
+    },
+    "change_key": {
+      "$ref": "urn:pcp:schema:v1:event#/$defs/changeKey"
+    },
+    "summary": {
+      "$ref": "urn:pcp:schema:v1:event#/$defs/summary"
+    },
+    "rationale": {
+      "$ref": "urn:pcp:schema:v1:event#/$defs/rationale"
+    },
+    "workstream": {
+      "$ref": "urn:pcp:schema:v1:workstreams#/$defs/workstream"
+    },
+    "workstream_id": {
+      "$ref": "urn:pcp:schema:v1:common#/$defs/slug"
+    },
+    "evidence": {
+      "type": "array",
+      "items": {
+        "$ref": "urn:pcp:schema:v1:workstreams#/$defs/completionEvidence"
+      },
+      "minItems": 1,
+      "uniqueItems": true
+    },
+    "announcement": {
+      "$ref": "urn:pcp:schema:v1:workstreams#/$defs/announcement"
+    }
+  },
+  "oneOf": [
+    {
+      "properties": {
+        "operation": { "const": "create" },
+        "workstream": {},
+        "workstream_id": false,
+        "evidence": false,
+        "announcement": false
+      },
+      "required": ["workstream"]
+    },
+    {
+      "properties": {
+        "operation": { "const": "update" },
+        "workstream": {},
+        "workstream_id": false,
+        "evidence": false,
+        "announcement": false
+      },
+      "required": ["workstream"]
+    },
+    {
+      "properties": {
+        "operation": { "const": "complete" },
+        "workstream": false,
+        "workstream_id": {},
+        "evidence": {},
+        "announcement": {}
+      },
+      "required": ["workstream_id", "evidence", "announcement"]
+    }
+  ],
+  "allOf": [
+    {
+      "if": {
+        "properties": { "basis": { "enum": ["reported", "observed"] } },
+        "required": ["basis"]
+      },
+      "then": {
+        "properties": { "change_key": {} },
+        "required": ["change_key"]
+      }
+    }
+  ]
+}

@@ -291,7 +291,12 @@ describe('transactional State A adoption', () => {
           dependencies: [],
           completion: {
             criteria: [`Preserve and describe the ${fixtureCase.name} project baseline.`],
-            evidence: [fixtureCase.evidence],
+            evidence: [
+              {
+                criterion: `Preserve and describe the ${fixtureCase.name} project baseline.`,
+                proof: fixtureCase.evidence,
+              },
+            ],
           },
         },
       ];

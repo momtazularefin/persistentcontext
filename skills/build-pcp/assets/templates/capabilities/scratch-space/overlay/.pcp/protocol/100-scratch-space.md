@@ -1,5 +1,5 @@
 ---
-doc: protocol/90-scratch-space.md
+doc: protocol/100-scratch-space.md
 type: protocol
 status: static
 version: 1.0.0

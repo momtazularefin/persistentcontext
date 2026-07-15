@@ -2,6 +2,7 @@ schema: event
 valid:
   schema_version: 1
   event_id: 01ARZ3NDEKTSV4RRFFQ69G5FAV
+  payload_digest: beb5ec9daf54287b8971448dc0699c26dcbc8c516c9ad25432b8cd83493ae435
   occurred_at: 2026-07-12T00:00:00Z
   actor:
     type: agent
@@ -16,6 +17,9 @@ valid:
   summary: Added an explicit version-control policy.
   affected_paths: [.pcp/state/vcs-policy.yaml]
 invalid:
+  - name: missing event payload digest
+    operation: delete
+    path: payload_digest
   - name: event id is not a ULID
     operation: set
     path: event_id
@@ -24,6 +28,15 @@ invalid:
     operation: set
     path: basis
     value: assumed
+  - name: reported event has no stable change key
+    operation: set
+    path: basis
+    value: reported
   - name: missing recording actor
     operation: delete
     path: recorded_by
+  - name: summary exceeds the concise event limit
+    operation: set
+    path: summary
+    value: >-
+      This deliberately oversized summary repeats enough words to exceed the concise event envelope and prove that durable continuity records remain short, concrete, and cheap for agents to scan instead of becoming another prose knowledge store with hidden decisions and large narrative explanations that belong in canonical project documents rather than active reconciliation history.

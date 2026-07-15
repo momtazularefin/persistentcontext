@@ -7,6 +7,7 @@ valid:
   last_event_id: null
   reconciled_at: 2026-07-12T00:00:00Z
   scopes: [protocol, validation]
+  paths: [src, schemas]
   dependencies: []
 invalid:
   - name: malformed checkpoint ULID
@@ -17,3 +18,7 @@ invalid:
     operation: set
     path: scopes.0
     value: Protocol_Rules
+  - name: absolute checkpoint path
+    operation: set
+    path: paths.0
+    value: C:\\private\\source

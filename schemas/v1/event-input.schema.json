@@ -1,0 +1,89 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:pcp:schema:v1:event-input",
+  "title": "PCP continuity event recording input",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "actor",
+    "recorded_by",
+    "basis",
+    "kind",
+    "scopes",
+    "workstreams",
+    "summary",
+    "affected_paths"
+  ],
+  "properties": {
+    "schema_version": {
+      "$ref": "urn:pcp:schema:v1:common#/$defs/schemaVersion"
+    },
+    "occurred_at": {
+      "$ref": "urn:pcp:schema:v1:common#/$defs/dateTime"
+    },
+    "actor": {
+      "$ref": "urn:pcp:schema:v1:common#/$defs/actorReference"
+    },
+    "recorded_by": {
+      "$ref": "urn:pcp:schema:v1:common#/$defs/actorReference"
+    },
+    "basis": {
+      "enum": ["self", "reported", "observed", "system"]
+    },
+    "change_key": {
+      "$ref": "urn:pcp:schema:v1:event#/$defs/changeKey"
+    },
+    "kind": {
+      "enum": [
+        "code",
+        "documentation",
+        "configuration",
+        "decision",
+        "research",
+        "operations",
+        "release",
+        "vcs",
+        "workstream"
+      ]
+    },
+    "scopes": {
+      "$ref": "urn:pcp:schema:v1:common#/$defs/slugArray"
+    },
+    "workstreams": {
+      "$ref": "urn:pcp:schema:v1:common#/$defs/slugArray"
+    },
+    "summary": {
+      "$ref": "urn:pcp:schema:v1:event#/$defs/summary"
+    },
+    "rationale": {
+      "$ref": "urn:pcp:schema:v1:event#/$defs/rationale"
+    },
+    "affected_paths": {
+      "$ref": "urn:pcp:schema:v1:common#/$defs/pathArray"
+    }
+  },
+  "anyOf": [
+    {
+      "properties": { "scopes": { "type": "array", "minItems": 1 } }
+    },
+    {
+      "properties": { "workstreams": { "type": "array", "minItems": 1 } }
+    },
+    {
+      "properties": { "affected_paths": { "type": "array", "minItems": 1 } }
+    }
+  ],
+  "allOf": [
+    {
+      "if": {
+        "properties": { "basis": { "enum": ["reported", "observed"] } },
+        "required": ["basis"]
+      },
+      "then": {
+        "properties": { "change_key": {} },
+        "required": ["change_key"]
+      }
+    }
+  ]
+}

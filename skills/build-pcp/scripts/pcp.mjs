@@ -327,7 +327,7 @@ var require_ignore = __commonJS({
       //   path matching.
       // - check `string` either `MODE_IGNORE` or `MODE_CHECK_IGNORE`
       // @returns {TestResult} true if a file is ignored
-      test(path13, checkUnignored, mode) {
+      test(path18, checkUnignored, mode) {
         let ignored = false;
         let unignored = false;
         let matchedRule;
@@ -336,7 +336,7 @@ var require_ignore = __commonJS({
           if (unignored === negative && ignored !== unignored || negative && !ignored && !unignored && !checkUnignored) {
             return;
           }
-          const matched = rule[mode].test(path13);
+          const matched = rule[mode].test(path18);
           if (!matched) {
             return;
           }
@@ -357,17 +357,17 @@ var require_ignore = __commonJS({
     var throwError = (message, Ctor) => {
       throw new Ctor(message);
     };
-    var checkPath = (path13, originalPath, doThrow) => {
-      if (!isString(path13)) {
+    var checkPath = (path18, originalPath, doThrow) => {
+      if (!isString(path18)) {
         return doThrow(
           `path must be a string, but got \`${originalPath}\``,
           TypeError
         );
       }
-      if (!path13) {
+      if (!path18) {
         return doThrow(`path must not be empty`, TypeError);
       }
-      if (checkPath.isNotRelative(path13)) {
+      if (checkPath.isNotRelative(path18)) {
         const r = "`path.relative()`d";
         return doThrow(
           `path should be a ${r} string, but got "${originalPath}"`,
@@ -376,7 +376,7 @@ var require_ignore = __commonJS({
       }
       return true;
     };
-    var isNotRelative = (path13) => REGEX_TEST_INVALID_PATH.test(path13);
+    var isNotRelative = (path18) => REGEX_TEST_INVALID_PATH.test(path18);
     checkPath.isNotRelative = isNotRelative;
     checkPath.convert = (p) => p;
     var Ignore = class {
@@ -406,19 +406,19 @@ var require_ignore = __commonJS({
       }
       // @returns {TestResult}
       _test(originalPath, cache, checkUnignored, slices) {
-        const path13 = originalPath && checkPath.convert(originalPath);
+        const path18 = originalPath && checkPath.convert(originalPath);
         checkPath(
-          path13,
+          path18,
           originalPath,
           this._strictPathCheck ? throwError : RETURN_FALSE
         );
-        return this._t(path13, cache, checkUnignored, slices);
+        return this._t(path18, cache, checkUnignored, slices);
       }
-      checkIgnore(path13) {
-        if (!REGEX_TEST_TRAILING_SLASH.test(path13)) {
-          return this.test(path13);
+      checkIgnore(path18) {
+        if (!REGEX_TEST_TRAILING_SLASH.test(path18)) {
+          return this.test(path18);
         }
-        const slices = path13.split(SLASH).filter(Boolean);
+        const slices = path18.split(SLASH).filter(Boolean);
         slices.pop();
         if (slices.length) {
           const parent = this._t(
@@ -431,18 +431,18 @@ var require_ignore = __commonJS({
             return parent;
           }
         }
-        return this._rules.test(path13, false, MODE_CHECK_IGNORE);
+        return this._rules.test(path18, false, MODE_CHECK_IGNORE);
       }
-      _t(path13, cache, checkUnignored, slices) {
-        if (path13 in cache) {
-          return cache[path13];
+      _t(path18, cache, checkUnignored, slices) {
+        if (path18 in cache) {
+          return cache[path18];
         }
         if (!slices) {
-          slices = path13.split(SLASH).filter(Boolean);
+          slices = path18.split(SLASH).filter(Boolean);
         }
         slices.pop();
         if (!slices.length) {
-          return cache[path13] = this._rules.test(path13, checkUnignored, MODE_IGNORE);
+          return cache[path18] = this._rules.test(path18, checkUnignored, MODE_IGNORE);
         }
         const parent = this._t(
           slices.join(SLASH) + SLASH,
@@ -450,29 +450,29 @@ var require_ignore = __commonJS({
           checkUnignored,
           slices
         );
-        return cache[path13] = parent.ignored ? parent : this._rules.test(path13, checkUnignored, MODE_IGNORE);
+        return cache[path18] = parent.ignored ? parent : this._rules.test(path18, checkUnignored, MODE_IGNORE);
       }
-      ignores(path13) {
-        return this._test(path13, this._ignoreCache, false).ignored;
+      ignores(path18) {
+        return this._test(path18, this._ignoreCache, false).ignored;
       }
       createFilter() {
-        return (path13) => !this.ignores(path13);
+        return (path18) => !this.ignores(path18);
       }
       filter(paths) {
         return makeArray(paths).filter(this.createFilter());
       }
       // @returns {TestResult}
-      test(path13) {
-        return this._test(path13, this._testCache, true);
+      test(path18) {
+        return this._test(path18, this._testCache, true);
       }
     };
     var factory = (options) => new Ignore(options);
-    var isPathValid = (path13) => checkPath(path13 && checkPath.convert(path13), path13, RETURN_FALSE);
+    var isPathValid = (path18) => checkPath(path18 && checkPath.convert(path18), path18, RETURN_FALSE);
     var setupWindows = () => {
       const makePosix = (str) => /^\\\\\?\\/.test(str) || /["<>|\u0000-\u001F]+/u.test(str) ? str : str.replace(/\\/g, "/");
       checkPath.convert = makePosix;
       const REGEX_TEST_WINDOWS_PATH_ABSOLUTE = /^[a-z]:\//i;
-      checkPath.isNotRelative = (path13) => REGEX_TEST_WINDOWS_PATH_ABSOLUTE.test(path13) || isNotRelative(path13);
+      checkPath.isNotRelative = (path18) => REGEX_TEST_WINDOWS_PATH_ABSOLUTE.test(path18) || isNotRelative(path18);
     };
     if (
       // Detect `process` so that it can run in browsers.
@@ -3683,8 +3683,8 @@ var require_utils = __commonJS({
       }
       return ind;
     }
-    function removeDotSegments(path13) {
-      let input = path13;
+    function removeDotSegments(path18) {
+      let input = path18;
       const output = [];
       let nextSlash = -1;
       let len = 0;
@@ -3936,8 +3936,8 @@ var require_schemes = __commonJS({
         wsComponent.secure = void 0;
       }
       if (wsComponent.resourceName) {
-        const [path13, query] = wsComponent.resourceName.split("?");
-        wsComponent.path = path13 && path13 !== "/" ? path13 : void 0;
+        const [path18, query] = wsComponent.resourceName.split("?");
+        wsComponent.path = path18 && path18 !== "/" ? path18 : void 0;
         wsComponent.query = query;
         wsComponent.resourceName = void 0;
       }
@@ -4804,7 +4804,7 @@ var require_core = __commonJS({
           }
         }
       }
-      _addSchema(schema4, meta, baseId, validateSchema = this.opts.validateSchema, addSchema = this.opts.addUsedSchema) {
+      _addSchema(schema4, meta, baseId, validateSchema2 = this.opts.validateSchema, addSchema = this.opts.addUsedSchema) {
         let id;
         const { schemaId: schemaId2 } = this.opts;
         if (typeof schema4 == "object") {
@@ -4827,7 +4827,7 @@ var require_core = __commonJS({
             this._checkUnique(baseId);
           this.refs[baseId] = sch;
         }
-        if (validateSchema)
+        if (validateSchema2)
           this.validateSchema(schema4, true);
         return sch;
       }
@@ -8169,6 +8169,7 @@ var require_dist = __commonJS({
 
 // src/cli/main.ts
 import { pathToFileURL } from "node:url";
+import { hostname } from "node:os";
 
 // node_modules/commander/lib/error.js
 var CommanderError = class extends Error {
@@ -11281,9 +11282,9 @@ Expecting one of '${allowedValues.join("', '")}'`);
    * @param {string} [path]
    * @return {(string|null|Command)}
    */
-  executableDir(path13) {
-    if (path13 === void 0) return this._executableDir;
-    this._executableDir = path13;
+  executableDir(path18) {
+    if (path18 === void 0) return this._executableDir;
+    this._executableDir = path18;
     return this;
   }
   /**
@@ -11575,6 +11576,48 @@ function randomChar(prng) {
   const randomPosition = Math.floor(prng() * ENCODING_LEN) % ENCODING_LEN;
   return ENCODING.charAt(randomPosition);
 }
+function replaceCharAt(str, index, char) {
+  if (index > str.length - 1) {
+    return str;
+  }
+  return str.substr(0, index) + char + str.substr(index + 1);
+}
+function incrementBase32(str) {
+  let done = void 0, index = str.length, char, charIndex, output = str;
+  const maxCharIndex = ENCODING_LEN - 1;
+  while (!done && index-- >= 0) {
+    char = output[index];
+    charIndex = ENCODING.indexOf(char);
+    if (charIndex === -1) {
+      throw new ULIDError(ULIDErrorCode.Base32IncorrectEncoding, "Incorrectly encoded string");
+    }
+    if (charIndex === maxCharIndex) {
+      output = replaceCharAt(output, index, ENCODING[0]);
+      continue;
+    }
+    done = replaceCharAt(output, index, ENCODING[charIndex + 1]);
+  }
+  if (typeof done === "string") {
+    return done;
+  }
+  throw new ULIDError(ULIDErrorCode.Base32IncorrectEncoding, "Failed incrementing string");
+}
+function decodeTime(id) {
+  if (id.length !== TIME_LEN + RANDOM_LEN) {
+    throw new ULIDError(ULIDErrorCode.DecodeTimeValueMalformed, "Malformed ULID");
+  }
+  const time = id.substr(0, TIME_LEN).toUpperCase().split("").reverse().reduce((carry, char, index) => {
+    const encodingIndex = ENCODING.indexOf(char);
+    if (encodingIndex === -1) {
+      throw new ULIDError(ULIDErrorCode.DecodeTimeInvalidCharacter, `Time decode error: Invalid character: ${char}`);
+    }
+    return carry += encodingIndex * Math.pow(ENCODING_LEN, index);
+  }, 0);
+  if (time > TIME_MAX) {
+    throw new ULIDError(ULIDErrorCode.DecodeTimeValueMalformed, `Malformed ULID: timestamp too large: ${time}`);
+  }
+  return time;
+}
 function detectPRNG(root) {
   const rootLookup = detectRoot();
   const globalCrypto = rootLookup && (rootLookup.crypto || rootLookup.msCrypto) || (typeof crypto !== "undefined" ? crypto : null);
@@ -11632,6 +11675,20 @@ function encodeTime(now, len = TIME_LEN) {
 }
 function inWebWorker() {
   return typeof WorkerGlobalScope !== "undefined" && self instanceof WorkerGlobalScope;
+}
+function monotonicFactory(prng) {
+  const currentPRNG = prng || detectPRNG();
+  let lastTime = 0, lastRandom;
+  return function _ulid(seedTime) {
+    const seed = !seedTime || isNaN(seedTime) ? Date.now() : seedTime;
+    if (seed <= lastTime) {
+      const incrementedRandom = lastRandom = incrementBase32(lastRandom);
+      return encodeTime(lastTime, TIME_LEN) + incrementedRandom;
+    }
+    lastTime = seed;
+    const newRandom = lastRandom = encodeRandom(RANDOM_LEN, currentPRNG);
+    return encodeTime(seed, TIME_LEN) + newRandom;
+  };
 }
 function ulid(seedTime, prng) {
   const currentPRNG = prng || detectPRNG();
@@ -11974,8 +12031,8 @@ async function scanDirectory(root, absoluteDirectory, relativeDirectory, inherit
       continue;
     }
     if (metadata.isFile()) {
-      const sha2562 = await sha256File(absoluteEntry);
-      inventory.files.push({ path: portableEntry, size: metadata.size, sha256: sha2562 });
+      const sha2563 = await sha256File(absoluteEntry);
+      inventory.files.push({ path: portableEntry, size: metadata.size, sha256: sha2563 });
       inventory.bytes += metadata.size;
     }
   }
@@ -12064,16 +12121,16 @@ function isInside(root, candidate) {
   const relative = path3.relative(root, candidate);
   return relative === "" || !relative.startsWith(`..${path3.sep}`) && relative !== ".." && !path3.isAbsolute(relative);
 }
-function resolveApprovedPath(root, portablePath) {
-  const normalized = path3.posix.normalize(portablePath);
-  if (portablePath === "." || normalized !== portablePath || portablePath.startsWith("/") || portablePath.includes("\\")) {
-    throw new AdoptionError("PCP_ADOPTION_PATH_UNSAFE", `Unsafe transaction path: ${portablePath}`);
+function resolveApprovedPath(root, portablePath2) {
+  const normalized = path3.posix.normalize(portablePath2);
+  if (portablePath2 === "." || normalized !== portablePath2 || portablePath2.startsWith("/") || portablePath2.includes("\\")) {
+    throw new AdoptionError("PCP_ADOPTION_PATH_UNSAFE", `Unsafe transaction path: ${portablePath2}`);
   }
-  const resolved = path3.resolve(root, ...portablePath.split("/"));
+  const resolved = path3.resolve(root, ...portablePath2.split("/"));
   if (!isInside(root, resolved) || resolved === path3.resolve(root)) {
     throw new AdoptionError(
       "PCP_ADOPTION_PATH_UNSAFE",
-      `Path escapes the candidate: ${portablePath}`
+      `Path escapes the candidate: ${portablePath2}`
     );
   }
   return resolved;
@@ -12580,17 +12637,17 @@ function visit(node, visitor) {
 visit.BREAK = BREAK;
 visit.SKIP = SKIP;
 visit.REMOVE = REMOVE;
-function visit_(key, node, visitor, path13) {
-  const ctrl = callVisitor(key, node, visitor, path13);
+function visit_(key, node, visitor, path18) {
+  const ctrl = callVisitor(key, node, visitor, path18);
   if (isNode(ctrl) || isPair(ctrl)) {
-    replaceNode(key, path13, ctrl);
-    return visit_(key, ctrl, visitor, path13);
+    replaceNode(key, path18, ctrl);
+    return visit_(key, ctrl, visitor, path18);
   }
   if (typeof ctrl !== "symbol") {
     if (isCollection(node)) {
-      path13 = Object.freeze(path13.concat(node));
+      path18 = Object.freeze(path18.concat(node));
       for (let i = 0; i < node.items.length; ++i) {
-        const ci = visit_(i, node.items[i], visitor, path13);
+        const ci = visit_(i, node.items[i], visitor, path18);
         if (typeof ci === "number")
           i = ci - 1;
         else if (ci === BREAK)
@@ -12601,13 +12658,13 @@ function visit_(key, node, visitor, path13) {
         }
       }
     } else if (isPair(node)) {
-      path13 = Object.freeze(path13.concat(node));
-      const ck = visit_("key", node.key, visitor, path13);
+      path18 = Object.freeze(path18.concat(node));
+      const ck = visit_("key", node.key, visitor, path18);
       if (ck === BREAK)
         return BREAK;
       else if (ck === REMOVE)
         node.key = null;
-      const cv = visit_("value", node.value, visitor, path13);
+      const cv = visit_("value", node.value, visitor, path18);
       if (cv === BREAK)
         return BREAK;
       else if (cv === REMOVE)
@@ -12628,17 +12685,17 @@ async function visitAsync(node, visitor) {
 visitAsync.BREAK = BREAK;
 visitAsync.SKIP = SKIP;
 visitAsync.REMOVE = REMOVE;
-async function visitAsync_(key, node, visitor, path13) {
-  const ctrl = await callVisitor(key, node, visitor, path13);
+async function visitAsync_(key, node, visitor, path18) {
+  const ctrl = await callVisitor(key, node, visitor, path18);
   if (isNode(ctrl) || isPair(ctrl)) {
-    replaceNode(key, path13, ctrl);
-    return visitAsync_(key, ctrl, visitor, path13);
+    replaceNode(key, path18, ctrl);
+    return visitAsync_(key, ctrl, visitor, path18);
   }
   if (typeof ctrl !== "symbol") {
     if (isCollection(node)) {
-      path13 = Object.freeze(path13.concat(node));
+      path18 = Object.freeze(path18.concat(node));
       for (let i = 0; i < node.items.length; ++i) {
-        const ci = await visitAsync_(i, node.items[i], visitor, path13);
+        const ci = await visitAsync_(i, node.items[i], visitor, path18);
         if (typeof ci === "number")
           i = ci - 1;
         else if (ci === BREAK)
@@ -12649,13 +12706,13 @@ async function visitAsync_(key, node, visitor, path13) {
         }
       }
     } else if (isPair(node)) {
-      path13 = Object.freeze(path13.concat(node));
-      const ck = await visitAsync_("key", node.key, visitor, path13);
+      path18 = Object.freeze(path18.concat(node));
+      const ck = await visitAsync_("key", node.key, visitor, path18);
       if (ck === BREAK)
         return BREAK;
       else if (ck === REMOVE)
         node.key = null;
-      const cv = await visitAsync_("value", node.value, visitor, path13);
+      const cv = await visitAsync_("value", node.value, visitor, path18);
       if (cv === BREAK)
         return BREAK;
       else if (cv === REMOVE)
@@ -12682,23 +12739,23 @@ function initVisitor(visitor) {
   }
   return visitor;
 }
-function callVisitor(key, node, visitor, path13) {
+function callVisitor(key, node, visitor, path18) {
   if (typeof visitor === "function")
-    return visitor(key, node, path13);
+    return visitor(key, node, path18);
   if (isMap(node))
-    return visitor.Map?.(key, node, path13);
+    return visitor.Map?.(key, node, path18);
   if (isSeq(node))
-    return visitor.Seq?.(key, node, path13);
+    return visitor.Seq?.(key, node, path18);
   if (isPair(node))
-    return visitor.Pair?.(key, node, path13);
+    return visitor.Pair?.(key, node, path18);
   if (isScalar(node))
-    return visitor.Scalar?.(key, node, path13);
+    return visitor.Scalar?.(key, node, path18);
   if (isAlias(node))
-    return visitor.Alias?.(key, node, path13);
+    return visitor.Alias?.(key, node, path18);
   return void 0;
 }
-function replaceNode(key, path13, node) {
-  const parent = path13[path13.length - 1];
+function replaceNode(key, path18, node) {
+  const parent = path18[path18.length - 1];
   if (isCollection(parent)) {
     parent.items[key] = node;
   } else if (isPair(parent)) {
@@ -13227,10 +13284,10 @@ function createNode(value, tagName, ctx) {
 }
 
 // node_modules/yaml/browser/dist/nodes/Collection.js
-function collectionFromPath(schema4, path13, value) {
+function collectionFromPath(schema4, path18, value) {
   let v = value;
-  for (let i = path13.length - 1; i >= 0; --i) {
-    const k = path13[i];
+  for (let i = path18.length - 1; i >= 0; --i) {
+    const k = path18[i];
     if (typeof k === "number" && Number.isInteger(k) && k >= 0) {
       const a = [];
       a[k] = v;
@@ -13249,7 +13306,7 @@ function collectionFromPath(schema4, path13, value) {
     sourceObjects: /* @__PURE__ */ new Map()
   });
 }
-var isEmptyPath = (path13) => path13 == null || typeof path13 === "object" && !!path13[Symbol.iterator]().next().done;
+var isEmptyPath = (path18) => path18 == null || typeof path18 === "object" && !!path18[Symbol.iterator]().next().done;
 var Collection = class extends NodeBase {
   constructor(type, schema4) {
     super(type);
@@ -13279,11 +13336,11 @@ var Collection = class extends NodeBase {
    * be a Pair instance or a `{ key, value }` object, which may not have a key
    * that already exists in the map.
    */
-  addIn(path13, value) {
-    if (isEmptyPath(path13))
+  addIn(path18, value) {
+    if (isEmptyPath(path18))
       this.add(value);
     else {
-      const [key, ...rest] = path13;
+      const [key, ...rest] = path18;
       const node = this.get(key, true);
       if (isCollection(node))
         node.addIn(rest, value);
@@ -13297,8 +13354,8 @@ var Collection = class extends NodeBase {
    * Removes a value from the collection.
    * @returns `true` if the item was found and removed.
    */
-  deleteIn(path13) {
-    const [key, ...rest] = path13;
+  deleteIn(path18) {
+    const [key, ...rest] = path18;
     if (rest.length === 0)
       return this.delete(key);
     const node = this.get(key, true);
@@ -13312,8 +13369,8 @@ var Collection = class extends NodeBase {
    * scalar values from their surrounding node; to disable set `keepScalar` to
    * `true` (collections are always returned intact).
    */
-  getIn(path13, keepScalar) {
-    const [key, ...rest] = path13;
+  getIn(path18, keepScalar) {
+    const [key, ...rest] = path18;
     const node = this.get(key, true);
     if (rest.length === 0)
       return !keepScalar && isScalar(node) ? node.value : node;
@@ -13331,8 +13388,8 @@ var Collection = class extends NodeBase {
   /**
    * Checks if the collection includes a value with the key `key`.
    */
-  hasIn(path13) {
-    const [key, ...rest] = path13;
+  hasIn(path18) {
+    const [key, ...rest] = path18;
     if (rest.length === 0)
       return this.has(key);
     const node = this.get(key, true);
@@ -13342,8 +13399,8 @@ var Collection = class extends NodeBase {
    * Sets a value in this collection. For `!!set`, `value` needs to be a
    * boolean to add/remove the item from the set.
    */
-  setIn(path13, value) {
-    const [key, ...rest] = path13;
+  setIn(path18, value) {
+    const [key, ...rest] = path18;
     if (rest.length === 0) {
       this.set(key, value);
     } else {
@@ -15482,9 +15539,9 @@ var Document = class _Document {
       this.contents.add(value);
   }
   /** Adds a value to the document. */
-  addIn(path13, value) {
+  addIn(path18, value) {
     if (assertCollection(this.contents))
-      this.contents.addIn(path13, value);
+      this.contents.addIn(path18, value);
   }
   /**
    * Create a new `Alias` node, ensuring that the target `node` has the required anchor.
@@ -15559,14 +15616,14 @@ var Document = class _Document {
    * Removes a value from the document.
    * @returns `true` if the item was found and removed.
    */
-  deleteIn(path13) {
-    if (isEmptyPath(path13)) {
+  deleteIn(path18) {
+    if (isEmptyPath(path18)) {
       if (this.contents == null)
         return false;
       this.contents = null;
       return true;
     }
-    return assertCollection(this.contents) ? this.contents.deleteIn(path13) : false;
+    return assertCollection(this.contents) ? this.contents.deleteIn(path18) : false;
   }
   /**
    * Returns item at `key`, or `undefined` if not found. By default unwraps
@@ -15581,10 +15638,10 @@ var Document = class _Document {
    * scalar values from their surrounding node; to disable set `keepScalar` to
    * `true` (collections are always returned intact).
    */
-  getIn(path13, keepScalar) {
-    if (isEmptyPath(path13))
+  getIn(path18, keepScalar) {
+    if (isEmptyPath(path18))
       return !keepScalar && isScalar(this.contents) ? this.contents.value : this.contents;
-    return isCollection(this.contents) ? this.contents.getIn(path13, keepScalar) : void 0;
+    return isCollection(this.contents) ? this.contents.getIn(path18, keepScalar) : void 0;
   }
   /**
    * Checks if the document includes a value with the key `key`.
@@ -15595,10 +15652,10 @@ var Document = class _Document {
   /**
    * Checks if the document includes a value at `path`.
    */
-  hasIn(path13) {
-    if (isEmptyPath(path13))
+  hasIn(path18) {
+    if (isEmptyPath(path18))
       return this.contents !== void 0;
-    return isCollection(this.contents) ? this.contents.hasIn(path13) : false;
+    return isCollection(this.contents) ? this.contents.hasIn(path18) : false;
   }
   /**
    * Sets a value in this document. For `!!set`, `value` needs to be a
@@ -15615,13 +15672,13 @@ var Document = class _Document {
    * Sets a value in this document. For `!!set`, `value` needs to be a
    * boolean to add/remove the item from the set.
    */
-  setIn(path13, value) {
-    if (isEmptyPath(path13)) {
+  setIn(path18, value) {
+    if (isEmptyPath(path18)) {
       this.contents = value;
     } else if (this.contents == null) {
-      this.contents = collectionFromPath(this.schema, Array.from(path13), value);
+      this.contents = collectionFromPath(this.schema, Array.from(path18), value);
     } else if (assertCollection(this.contents)) {
-      this.contents.setIn(path13, value);
+      this.contents.setIn(path18, value);
     }
   }
   /**
@@ -17171,9 +17228,9 @@ function visit2(cst, visitor) {
 visit2.BREAK = BREAK2;
 visit2.SKIP = SKIP2;
 visit2.REMOVE = REMOVE2;
-visit2.itemAtPath = (cst, path13) => {
+visit2.itemAtPath = (cst, path18) => {
   let item = cst;
-  for (const [field, index] of path13) {
+  for (const [field, index] of path18) {
     const tok = item?.[field];
     if (tok && "items" in tok) {
       item = tok.items[index];
@@ -17182,23 +17239,23 @@ visit2.itemAtPath = (cst, path13) => {
   }
   return item;
 };
-visit2.parentCollection = (cst, path13) => {
-  const parent = visit2.itemAtPath(cst, path13.slice(0, -1));
-  const field = path13[path13.length - 1][0];
+visit2.parentCollection = (cst, path18) => {
+  const parent = visit2.itemAtPath(cst, path18.slice(0, -1));
+  const field = path18[path18.length - 1][0];
   const coll = parent?.[field];
   if (coll && "items" in coll)
     return coll;
   throw new Error("Parent collection not found");
 };
-function _visit(path13, item, visitor) {
-  let ctrl = visitor(item, path13);
+function _visit(path18, item, visitor) {
+  let ctrl = visitor(item, path18);
   if (typeof ctrl === "symbol")
     return ctrl;
   for (const field of ["key", "value"]) {
     const token = item[field];
     if (token && "items" in token) {
       for (let i = 0; i < token.items.length; ++i) {
-        const ci = _visit(Object.freeze(path13.concat([[field, i]])), token.items[i], visitor);
+        const ci = _visit(Object.freeze(path18.concat([[field, i]])), token.items[i], visitor);
         if (typeof ci === "number")
           i = ci - 1;
         else if (ci === BREAK2)
@@ -17209,10 +17266,10 @@ function _visit(path13, item, visitor) {
         }
       }
       if (typeof ctrl === "function" && field === "key")
-        ctrl = ctrl(item, path13);
+        ctrl = ctrl(item, path18);
     }
   }
-  return typeof ctrl === "function" ? ctrl(item, path13) : ctrl;
+  return typeof ctrl === "function" ? ctrl(item, path18) : ctrl;
 }
 
 // node_modules/yaml/browser/dist/parse/cst.js
@@ -19770,13 +19827,21 @@ var actor_profile_schema_default = {
     actor_id: {
       type: "string",
       pattern: "^[a-z0-9]+(?:-[a-z0-9]+)*-[0-9A-HJKMNP-TV-Z]{10}$",
-      maxLength: 160
+      maxLength: 192
     },
     actor_type: {
       enum: ["human", "agent"]
     },
     client: {
-      enum: ["codex", "antigravity", "claude-code-desktop", "human", "other"]
+      enum: [
+        "codex",
+        "antigravity",
+        "claude-code-desktop",
+        "github-copilot-vscode",
+        "cursor",
+        "human",
+        "other"
+      ]
     },
     machine_label: {
       $ref: "urn:pcp:schema:v1:common#/$defs/slug"
@@ -19830,6 +19895,7 @@ var checkpoint_schema_default = {
     "last_event_id",
     "reconciled_at",
     "scopes",
+    "paths",
     "dependencies"
   ],
   properties: {
@@ -19842,7 +19908,7 @@ var checkpoint_schema_default = {
     actor_id: {
       type: "string",
       minLength: 1,
-      maxLength: 160
+      maxLength: 192
     },
     workstream_id: {
       anyOf: [{ $ref: "urn:pcp:schema:v1:common#/$defs/slug" }, { type: "null" }]
@@ -19855,6 +19921,9 @@ var checkpoint_schema_default = {
     },
     scopes: {
       $ref: "urn:pcp:schema:v1:common#/$defs/slugArray"
+    },
+    paths: {
+      $ref: "urn:pcp:schema:v1:common#/$defs/pathArray"
     },
     dependencies: {
       $ref: "urn:pcp:schema:v1:common#/$defs/slugArray"
@@ -20073,6 +20142,7 @@ var event_schema_default = {
   required: [
     "schema_version",
     "event_id",
+    "payload_digest",
     "occurred_at",
     "actor",
     "recorded_by",
@@ -20090,6 +20160,9 @@ var event_schema_default = {
     event_id: {
       $ref: "urn:pcp:schema:v1:common#/$defs/ulid"
     },
+    payload_digest: {
+      $ref: "urn:pcp:schema:v1:common#/$defs/sha256"
+    },
     occurred_at: {
       $ref: "urn:pcp:schema:v1:common#/$defs/dateTime"
     },
@@ -20101,6 +20174,9 @@ var event_schema_default = {
     },
     basis: {
       enum: ["self", "reported", "observed", "system"]
+    },
+    change_key: {
+      $ref: "#/$defs/changeKey"
     },
     kind: {
       enum: [
@@ -20122,15 +20198,149 @@ var event_schema_default = {
       $ref: "urn:pcp:schema:v1:common#/$defs/slugArray"
     },
     summary: {
-      $ref: "urn:pcp:schema:v1:common#/$defs/nonEmptyString"
+      $ref: "#/$defs/summary"
     },
     rationale: {
-      $ref: "urn:pcp:schema:v1:common#/$defs/nonEmptyString"
+      $ref: "#/$defs/rationale"
     },
     affected_paths: {
       $ref: "urn:pcp:schema:v1:common#/$defs/pathArray"
     }
+  },
+  anyOf: [
+    {
+      properties: { scopes: { type: "array", minItems: 1 } }
+    },
+    {
+      properties: { workstreams: { type: "array", minItems: 1 } }
+    },
+    {
+      properties: { affected_paths: { type: "array", minItems: 1 } }
+    }
+  ],
+  allOf: [
+    {
+      if: {
+        properties: { basis: { enum: ["reported", "observed"] } },
+        required: ["basis"]
+      },
+      then: {
+        properties: { change_key: {} },
+        required: ["change_key"]
+      }
+    }
+  ],
+  $defs: {
+    changeKey: {
+      type: "string",
+      minLength: 1,
+      maxLength: 240,
+      pattern: "\\S"
+    },
+    summary: {
+      type: "string",
+      minLength: 1,
+      maxLength: 240,
+      pattern: "\\S"
+    },
+    rationale: {
+      type: "string",
+      minLength: 1,
+      maxLength: 1e3,
+      pattern: "\\S"
+    }
   }
+};
+
+// schemas/v1/event-input.schema.json
+var event_input_schema_default = {
+  $schema: "https://json-schema.org/draft/2020-12/schema",
+  $id: "urn:pcp:schema:v1:event-input",
+  title: "PCP continuity event recording input",
+  type: "object",
+  additionalProperties: false,
+  required: [
+    "schema_version",
+    "actor",
+    "recorded_by",
+    "basis",
+    "kind",
+    "scopes",
+    "workstreams",
+    "summary",
+    "affected_paths"
+  ],
+  properties: {
+    schema_version: {
+      $ref: "urn:pcp:schema:v1:common#/$defs/schemaVersion"
+    },
+    occurred_at: {
+      $ref: "urn:pcp:schema:v1:common#/$defs/dateTime"
+    },
+    actor: {
+      $ref: "urn:pcp:schema:v1:common#/$defs/actorReference"
+    },
+    recorded_by: {
+      $ref: "urn:pcp:schema:v1:common#/$defs/actorReference"
+    },
+    basis: {
+      enum: ["self", "reported", "observed", "system"]
+    },
+    change_key: {
+      $ref: "urn:pcp:schema:v1:event#/$defs/changeKey"
+    },
+    kind: {
+      enum: [
+        "code",
+        "documentation",
+        "configuration",
+        "decision",
+        "research",
+        "operations",
+        "release",
+        "vcs",
+        "workstream"
+      ]
+    },
+    scopes: {
+      $ref: "urn:pcp:schema:v1:common#/$defs/slugArray"
+    },
+    workstreams: {
+      $ref: "urn:pcp:schema:v1:common#/$defs/slugArray"
+    },
+    summary: {
+      $ref: "urn:pcp:schema:v1:event#/$defs/summary"
+    },
+    rationale: {
+      $ref: "urn:pcp:schema:v1:event#/$defs/rationale"
+    },
+    affected_paths: {
+      $ref: "urn:pcp:schema:v1:common#/$defs/pathArray"
+    }
+  },
+  anyOf: [
+    {
+      properties: { scopes: { type: "array", minItems: 1 } }
+    },
+    {
+      properties: { workstreams: { type: "array", minItems: 1 } }
+    },
+    {
+      properties: { affected_paths: { type: "array", minItems: 1 } }
+    }
+  ],
+  allOf: [
+    {
+      if: {
+        properties: { basis: { enum: ["reported", "observed"] } },
+        required: ["basis"]
+      },
+      then: {
+        properties: { change_key: {} },
+        required: ["change_key"]
+      }
+    }
+  ]
 };
 
 // schemas/v1/frontmatter.schema.json
@@ -20916,7 +21126,7 @@ var workstreams_schema_default = {
             criteria: {
               type: "array",
               items: {
-                $ref: "urn:pcp:schema:v1:common#/$defs/nonEmptyString"
+                $ref: "#/$defs/criterion"
               },
               minItems: 1,
               uniqueItems: true
@@ -20924,15 +21134,157 @@ var workstreams_schema_default = {
             evidence: {
               type: "array",
               items: {
-                $ref: "urn:pcp:schema:v1:common#/$defs/nonEmptyString"
+                $ref: "#/$defs/completionEvidence"
               },
               uniqueItems: true
+            },
+            announcement: {
+              $ref: "#/$defs/announcement"
             }
           }
         }
       }
+    },
+    criterion: {
+      type: "string",
+      minLength: 1,
+      maxLength: 1e3,
+      pattern: "\\S"
+    },
+    completionEvidence: {
+      type: "object",
+      additionalProperties: false,
+      required: ["criterion", "proof"],
+      properties: {
+        criterion: {
+          $ref: "#/$defs/criterion"
+        },
+        proof: {
+          type: "string",
+          minLength: 1,
+          maxLength: 4096,
+          pattern: "\\S"
+        }
+      }
+    },
+    announcement: {
+      type: "string",
+      minLength: 1,
+      maxLength: 1e3,
+      pattern: "\\S"
     }
   }
+};
+
+// schemas/v1/workstream-operation-input.schema.json
+var workstream_operation_input_schema_default = {
+  $schema: "https://json-schema.org/draft/2020-12/schema",
+  $id: "urn:pcp:schema:v1:workstream-operation-input",
+  title: "PCP workstream mutation input",
+  type: "object",
+  additionalProperties: false,
+  required: [
+    "schema_version",
+    "operation",
+    "expected_registry_digest",
+    "actor",
+    "recorded_by",
+    "basis",
+    "summary"
+  ],
+  properties: {
+    schema_version: {
+      $ref: "urn:pcp:schema:v1:common#/$defs/schemaVersion"
+    },
+    operation: {
+      enum: ["create", "update", "complete"]
+    },
+    expected_registry_digest: {
+      $ref: "urn:pcp:schema:v1:common#/$defs/sha256"
+    },
+    occurred_at: {
+      $ref: "urn:pcp:schema:v1:common#/$defs/dateTime"
+    },
+    actor: {
+      $ref: "urn:pcp:schema:v1:common#/$defs/actorReference"
+    },
+    recorded_by: {
+      $ref: "urn:pcp:schema:v1:common#/$defs/actorReference"
+    },
+    basis: {
+      enum: ["self", "reported", "observed", "system"]
+    },
+    change_key: {
+      $ref: "urn:pcp:schema:v1:event#/$defs/changeKey"
+    },
+    summary: {
+      $ref: "urn:pcp:schema:v1:event#/$defs/summary"
+    },
+    rationale: {
+      $ref: "urn:pcp:schema:v1:event#/$defs/rationale"
+    },
+    workstream: {
+      $ref: "urn:pcp:schema:v1:workstreams#/$defs/workstream"
+    },
+    workstream_id: {
+      $ref: "urn:pcp:schema:v1:common#/$defs/slug"
+    },
+    evidence: {
+      type: "array",
+      items: {
+        $ref: "urn:pcp:schema:v1:workstreams#/$defs/completionEvidence"
+      },
+      minItems: 1,
+      uniqueItems: true
+    },
+    announcement: {
+      $ref: "urn:pcp:schema:v1:workstreams#/$defs/announcement"
+    }
+  },
+  oneOf: [
+    {
+      properties: {
+        operation: { const: "create" },
+        workstream: {},
+        workstream_id: false,
+        evidence: false,
+        announcement: false
+      },
+      required: ["workstream"]
+    },
+    {
+      properties: {
+        operation: { const: "update" },
+        workstream: {},
+        workstream_id: false,
+        evidence: false,
+        announcement: false
+      },
+      required: ["workstream"]
+    },
+    {
+      properties: {
+        operation: { const: "complete" },
+        workstream: false,
+        workstream_id: {},
+        evidence: {},
+        announcement: {}
+      },
+      required: ["workstream_id", "evidence", "announcement"]
+    }
+  ],
+  allOf: [
+    {
+      if: {
+        properties: { basis: { enum: ["reported", "observed"] } },
+        required: ["basis"]
+      },
+      then: {
+        properties: { change_key: {} },
+        required: ["change_key"]
+      }
+    }
+  ]
 };
 
 // src/domain/schema-catalog.ts
@@ -20943,12 +21295,14 @@ var SCHEMA_CATALOG = {
   checkpoint: checkpoint_schema_default,
   coverage: coverage_schema_default,
   event: event_schema_default,
+  "event-input": event_input_schema_default,
   frontmatter: frontmatter_schema_default,
   "mutation-plan": mutation_plan_schema_default,
   "pcp-manifest": pcp_manifest_schema_default,
   "project-registry": project_registry_schema_default,
   project: project_schema_default,
   "vcs-policy": vcs_policy_schema_default,
+  "workstream-operation-input": workstream_operation_input_schema_default,
   workstreams: workstreams_schema_default
 };
 var SUPPORTING_SCHEMAS = [common_schema_default];
@@ -21013,6 +21367,11 @@ var SchemaRegistry = class {
     return { valid, diagnostics };
   }
 };
+var defaultRegistry;
+function validateSchema(name, value) {
+  defaultRegistry ??= new SchemaRegistry();
+  return defaultRegistry.validate(name, value);
+}
 
 // src/application/foreign-coverage.ts
 import { readFile as readFile5 } from "node:fs/promises";
@@ -21611,7 +21970,7 @@ function renderWorkstreams(workstreams) {
     "| --- | --- | --- | --- | --- | --- |",
     ...workstreams.map((workstream) => {
       const completion = objectValue(workstream.completion);
-      return `| ${code(workstream.workstream_id)} | ${tableCell(workstream.name)} | ${code(workstream.kind)} | ${code(workstream.status)} | ${codeList(workstream.dependencies)} | ${stringArray(completion.evidence).length} item(s) |`;
+      return `| ${code(workstream.workstream_id)} | ${tableCell(workstream.name)} | ${code(workstream.kind)} | ${code(workstream.status)} | ${codeList(workstream.dependencies)} | ${objectArray(completion.evidence).length} item(s) |`;
     })
   ];
 }
@@ -21691,7 +22050,7 @@ async function renderCanonicalViews(projectRoot, options = {}) {
       diagnostics
     };
   }
-  const digest = canonicalSourceDigestFromContents(
+  const digest2 = canonicalSourceDigestFromContents(
     [...loadedSources].map(([sourcePath, source]) => ({
       path: sourcePath,
       contents: source.contents
@@ -21718,7 +22077,7 @@ async function renderCanonicalViews(projectRoot, options = {}) {
       diagnostics
     };
   }
-  if (currentSourceDigest !== digest) {
+  if (currentSourceDigest !== digest2) {
     return {
       valid: false,
       mode: options.check === true ? "check" : "write",
@@ -21735,7 +22094,7 @@ async function renderCanonicalViews(projectRoot, options = {}) {
   const sources = new Map(
     [...loadedSources].map(([sourcePath, source]) => [sourcePath, source.value])
   );
-  const desired = renderCanonicalStatusView(sources, digest);
+  const desired = renderCanonicalStatusView(sources, digest2);
   const absoluteViewPath = path9.join(layerRoot, VIEW_PATH);
   let current;
   try {
@@ -21806,6 +22165,29 @@ async function renderCanonicalViews(projectRoot, options = {}) {
 import { readdir as readdir2, readFile as readFile8, stat as stat2 } from "node:fs/promises";
 import path10 from "node:path";
 
+// src/domain/recording.ts
+import { createHash as createHash6 } from "node:crypto";
+function eventPayloadDigest(payload) {
+  return createHash6("sha256").update(canonicalJson(payload)).digest("hex");
+}
+var RecordingError = class extends Error {
+  constructor(code2, message, mutated = false, recovery_retained = false) {
+    super(message);
+    this.code = code2;
+    this.mutated = mutated;
+    this.recovery_retained = recovery_retained;
+    this.name = "RecordingError";
+  }
+  code;
+  mutated;
+  recovery_retained;
+};
+function nextEventId(existingIds, now = Date.now()) {
+  const newest = [...existingIds].sort((left, right) => left.localeCompare(right)).at(-1);
+  const timestamp2 = newest === void 0 ? now : Math.max(now, decodeTime(newest) + 1);
+  return ulid(timestamp2);
+}
+
 // src/domain/canonical-semantics.ts
 function objectValue2(value) {
   return typeof value === "object" && value !== null && !Array.isArray(value) ? value : void 0;
@@ -21819,8 +22201,8 @@ function objectArray2(value) {
 function stringArray2(value) {
   return Array.isArray(value) ? value.filter((item) => typeof item === "string") : [];
 }
-function error(code2, path13, message) {
-  return { severity: "error", code: code2, path: path13, message };
+function error(code2, path18, message) {
+  return { severity: "error", code: code2, path: path18, message };
 }
 function validateProjectIdentity(records) {
   const diagnostics = [];
@@ -21889,12 +22271,83 @@ function validateWorkstreams(records) {
       }
     }
     const completion = objectValue2(workstream.completion);
-    if (workstream.status === "complete" && stringArray2(completion?.evidence).length === 0) {
+    const criteria = stringArray2(completion?.criteria);
+    const evidence = objectArray2(completion?.evidence);
+    const evidenceCounts = /* @__PURE__ */ new Map();
+    for (const item of evidence) {
+      const criterion = stringValue(item.criterion);
+      if (criterion === void 0) continue;
+      evidenceCounts.set(criterion, (evidenceCounts.get(criterion) ?? 0) + 1);
+      if (!criteria.includes(criterion)) {
+        diagnostics.push(
+          error(
+            "workstream.evidence-unknown-criterion",
+            records.workstreams.path,
+            `Workstream ${id} has evidence for an unknown criterion: ${criterion}`
+          )
+        );
+      }
+    }
+    for (const [criterion, count] of evidenceCounts) {
+      if (count > 1) {
+        diagnostics.push(
+          error(
+            "workstream.duplicate-criterion-evidence",
+            records.workstreams.path,
+            `Workstream ${id} has multiple evidence records for criterion: ${criterion}`
+          )
+        );
+      }
+    }
+    if (workstream.status === "complete") {
+      if (evidence.length === 0) {
+        diagnostics.push(
+          error(
+            "workstream.completion-without-evidence",
+            records.workstreams.path,
+            `Complete workstream ${id} has no completion evidence.`
+          )
+        );
+      }
+      for (const criterion of criteria) {
+        if (!evidenceCounts.has(criterion)) {
+          diagnostics.push(
+            error(
+              "workstream.criterion-without-evidence",
+              records.workstreams.path,
+              `Complete workstream ${id} has no evidence for criterion: ${criterion}`
+            )
+          );
+        }
+      }
+      for (const dependency of stringArray2(workstream.dependencies)) {
+        const dependencyState = byId.get(dependency);
+        if (dependencyState !== void 0 && dependencyState.status !== "complete") {
+          diagnostics.push(
+            error(
+              "workstream.incomplete-dependency",
+              records.workstreams.path,
+              `Complete workstream ${id} depends on incomplete workstream ${dependency}.`
+            )
+          );
+        }
+      }
+      const announcement = stringValue(completion?.announcement);
+      if (announcement === void 0 || announcement.trim().length === 0) {
+        diagnostics.push(
+          error(
+            "workstream.completion-without-announcement",
+            records.workstreams.path,
+            `Complete workstream ${id} has no completion announcement.`
+          )
+        );
+      }
+    } else if (completion?.announcement !== void 0) {
       diagnostics.push(
         error(
-          "workstream.completion-without-evidence",
+          "workstream.announcement-before-completion",
           records.workstreams.path,
-          `Complete workstream ${id} has no completion evidence.`
+          `Workstream ${id} cannot announce completion while its status is ${String(workstream.status)}.`
         )
       );
     }
@@ -21943,6 +22396,19 @@ function validateActors(records) {
         )
       );
     }
+    const actorType = stringValue(profile?.actor_type);
+    const client = stringValue(profile?.client);
+    const machineLabel = stringValue(profile?.machine_label);
+    const actorLabel = actorType === "human" ? "human" : client;
+    if (actorLabel !== void 0 && machineLabel !== void 0 && !id.startsWith(`${actorLabel}-${machineLabel}-`)) {
+      diagnostics.push(
+        error(
+          "identity.actor-id-components",
+          record.path,
+          `Actor ID must start with ${actorLabel}-${machineLabel}-.`
+        )
+      );
+    }
     const previous = seen.get(id);
     if (previous !== void 0) {
       diagnostics.push(
@@ -21957,6 +22423,9 @@ function validateActors(records) {
 function validateEvents(records) {
   const diagnostics = [];
   const seen = /* @__PURE__ */ new Map();
+  const changeKeys = /* @__PURE__ */ new Map();
+  const activeEvents = [];
+  const archivedEvents = [];
   const actorTypes = new Map(
     records.actors.map((record) => {
       const profile = objectValue2(record.value);
@@ -21987,6 +22456,39 @@ function validateEvents(records) {
     } else {
       seen.set(id, record.path);
     }
+    const payloadDigest = stringValue(event?.payload_digest);
+    if (payloadDigest !== void 0 && event !== void 0) {
+      const payload = { ...event };
+      delete payload.payload_digest;
+      if (eventPayloadDigest(payload) !== payloadDigest) {
+        diagnostics.push(
+          error(
+            "event.payload-digest-mismatch",
+            record.path,
+            `Event ${id} payload no longer matches its recorded digest.`
+          )
+        );
+      }
+    }
+    const changeKey = stringValue(event?.change_key);
+    if (changeKey !== void 0) {
+      const previousChange = changeKeys.get(changeKey);
+      if (previousChange !== void 0) {
+        diagnostics.push(
+          error(
+            "event.duplicate-change-key",
+            record.path,
+            `Change key ${changeKey} duplicates ${previousChange}.`
+          )
+        );
+      } else {
+        changeKeys.set(changeKey, record.path);
+      }
+    }
+    (record.path.startsWith("continuity/archive/") ? archivedEvents : activeEvents).push({
+      id,
+      path: record.path
+    });
     const actor = objectValue2(event?.actor);
     const recorder = objectValue2(event?.recorded_by);
     const actorType = stringValue(actor?.type);
@@ -22019,8 +22521,8 @@ function validateEvents(records) {
         }
       }
     }
-    const sameIdentity = actorType === recorderType && actorId === recorderId;
-    if (basis === "self" && !sameIdentity) {
+    const sameIdentity2 = actorType === recorderType && actorId === recorderId;
+    if (basis === "self" && !sameIdentity2) {
       diagnostics.push(
         error(
           "event.self-recorder-mismatch",
@@ -22029,7 +22531,7 @@ function validateEvents(records) {
         )
       );
     }
-    if ((basis === "reported" || basis === "observed") && sameIdentity) {
+    if ((basis === "reported" || basis === "observed") && sameIdentity2) {
       diagnostics.push(
         error(
           "event.external-basis-self-recorded",
@@ -22047,6 +22549,15 @@ function validateEvents(records) {
         )
       );
     }
+    if (basis !== "system" && (actorType === "system" || recorderType === "system")) {
+      diagnostics.push(
+        error(
+          "event.system-reference-basis",
+          record.path,
+          "A system actor or recorder requires a system-basis event."
+        )
+      );
+    }
     for (const workstreamId of stringArray2(event?.workstreams)) {
       if (!workstreamIds.has(workstreamId)) {
         diagnostics.push(
@@ -22059,10 +22570,22 @@ function validateEvents(records) {
       }
     }
   }
+  const oldestActive = activeEvents.sort((left, right) => left.id.localeCompare(right.id))[0];
+  const newestArchive = archivedEvents.sort((left, right) => left.id.localeCompare(right.id)).at(-1);
+  if (oldestActive !== void 0 && newestArchive !== void 0 && newestArchive.id.localeCompare(oldestActive.id) >= 0) {
+    diagnostics.push(
+      error(
+        "event.archive-order",
+        newestArchive.path,
+        `Archived event ${newestArchive.id} must be older than the active-event floor ${oldestActive.id}.`
+      )
+    );
+  }
   return diagnostics;
 }
 function validateCheckpoints(records) {
   const diagnostics = [];
+  const checkpointIdentities = /* @__PURE__ */ new Map();
   const actorTypes = new Map(
     records.actors.map((record) => {
       const profile = objectValue2(record.value);
@@ -22121,6 +22644,17 @@ function validateCheckpoints(records) {
         )
       );
     }
+    for (const dependency of stringArray2(checkpoint?.dependencies)) {
+      if (!workstreamIds.has(dependency)) {
+        diagnostics.push(
+          error(
+            "checkpoint.unknown-dependency",
+            record.path,
+            `Checkpoint references unknown dependency workstream ${dependency}.`
+          )
+        );
+      }
+    }
     const eventId = stringValue(checkpoint?.last_event_id);
     if (eventId !== void 0 && !eventIds.has(eventId)) {
       diagnostics.push(
@@ -22130,6 +22664,27 @@ function validateCheckpoints(records) {
           `Checkpoint references unknown event ${eventId}.`
         )
       );
+    }
+    if (actorId !== void 0) {
+      const identity = JSON.stringify({
+        actor_id: actorId,
+        workstream_id: workstreamId ?? null,
+        scopes: stringArray2(checkpoint?.scopes).sort(),
+        paths: stringArray2(checkpoint?.paths).sort(),
+        dependencies: stringArray2(checkpoint?.dependencies).sort()
+      });
+      const previous = checkpointIdentities.get(identity);
+      if (previous !== void 0) {
+        diagnostics.push(
+          error(
+            "checkpoint.duplicate-scope",
+            record.path,
+            `Checkpoint duplicates the actor and scope identity in ${previous}.`
+          )
+        );
+      } else {
+        checkpointIdentities.set(identity, record.path);
+      }
     }
   }
   return diagnostics;
@@ -22677,6 +23232,22 @@ async function validateCanonicalLayer(projectRoot, options = {}) {
       );
       continue;
     }
+    if (options.archive_content === "filenames-only" && /^continuity\/archive\/[^/]+\.yaml$/.test(file.relative_path)) {
+      const eventId = path10.basename(file.relative_path, ".yaml");
+      if (!/^[0-7][0-9A-HJKMNP-TV-Z]{25}$/u.test(eventId)) {
+        diagnostics.push(
+          issue2(
+            "event.archive-filename",
+            file.relative_path,
+            "Archived event filename must be a ULID."
+          )
+        );
+      } else {
+        assignLoadedYaml(loadedYaml, file.relative_path, schema4, { event_id: eventId });
+        addSemanticRecord(semanticRecords, loadedYaml.get(file.relative_path));
+      }
+      continue;
+    }
     const contents = await readFile8(file.absolute_path, "utf8");
     const document = parseDocument(contents, { prettyErrors: false, uniqueKeys: true });
     if (document.errors.length > 0) {
@@ -22773,7 +23344,7 @@ async function validateCanonicalLayer(projectRoot, options = {}) {
     );
   }
   for (const file of files.filter(
-    (item) => TEXT_FILE_PATTERN.test(item.relative_path) && !item.relative_path.startsWith("runtime/")
+    (item) => TEXT_FILE_PATTERN.test(item.relative_path) && !item.relative_path.startsWith("runtime/") && !(options.archive_content === "filenames-only" && item.relative_path.startsWith("continuity/archive/"))
   )) {
     validateTextSafety(file.relative_path, await readFile8(file.absolute_path, "utf8"), diagnostics);
   }
@@ -23609,21 +24180,21 @@ function isInside4(root, candidate) {
   const relative = path12.relative(root, candidate);
   return relative === "" || !relative.startsWith(`..${path12.sep}`) && relative !== ".." && !path12.isAbsolute(relative);
 }
-function absoluteTarget(root, portablePath) {
-  const normalized = path12.posix.normalize(portablePath);
-  if (portablePath === "." || normalized !== portablePath || portablePath.startsWith("/") || portablePath.includes("\\")) {
+function absoluteTarget(root, portablePath2) {
+  const normalized = path12.posix.normalize(portablePath2);
+  if (portablePath2 === "." || normalized !== portablePath2 || portablePath2.startsWith("/") || portablePath2.includes("\\")) {
     return void 0;
   }
-  const target = path12.resolve(root, ...portablePath.split("/"));
+  const target = path12.resolve(root, ...portablePath2.split("/"));
   return isInside4(root, target) && target !== path12.resolve(root) ? target : void 0;
 }
 function compareDiagnostics2(left, right) {
   return comparePortablePaths(left.path, right.path) || comparePortablePaths(left.code, right.code);
 }
-async function validateRegularFile(root, portablePath, code2, diagnostics) {
-  const target = absoluteTarget(root, portablePath);
+async function validateRegularFile(root, portablePath2, code2, diagnostics) {
+  const target = absoluteTarget(root, portablePath2);
   if (target === void 0) {
-    diagnostics.push({ code: `${code2}.path`, path: portablePath, message: "Path escapes root." });
+    diagnostics.push({ code: `${code2}.path`, path: portablePath2, message: "Path escapes root." });
     return void 0;
   }
   try {
@@ -23631,7 +24202,7 @@ async function validateRegularFile(root, portablePath, code2, diagnostics) {
     if (!metadata.isFile() || metadata.isSymbolicLink()) {
       diagnostics.push({
         code: `${code2}.type`,
-        path: portablePath,
+        path: portablePath2,
         message: "Expected a regular file with no symbolic-link boundary."
       });
       return void 0;
@@ -23640,7 +24211,7 @@ async function validateRegularFile(root, portablePath, code2, diagnostics) {
   } catch (error2) {
     diagnostics.push({
       code: `${code2}.read`,
-      path: portablePath,
+      path: portablePath2,
       message: error2 instanceof Error ? error2.message : String(error2)
     });
     return void 0;
@@ -23922,10 +24493,2385 @@ async function adoptProject(candidate = ".", options = {}) {
   };
 }
 
+// src/application/manage-workstreams.ts
+import { createHash as createHash9, randomUUID as randomUUID3 } from "node:crypto";
+import {
+  chmod as chmod2,
+  lstat as lstat7,
+  mkdtemp as mkdtemp4,
+  open as open4,
+  readFile as readFile13,
+  realpath as realpath3,
+  rename as rename3,
+  rm as rm4,
+  stat as stat4,
+  unlink as unlink4,
+  utimes as utimes2
+} from "node:fs/promises";
+import { tmpdir as tmpdir5 } from "node:os";
+import path15 from "node:path";
+
+// src/application/record-event.ts
+import { createHash as createHash8, randomUUID as randomUUID2 } from "node:crypto";
+import {
+  lstat as lstat6,
+  mkdtemp as mkdtemp3,
+  open as open3,
+  readFile as readFile12,
+  readdir as readdir4,
+  realpath as realpath2,
+  rename as rename2,
+  rm as rm3,
+  unlink as unlink3,
+  writeFile as writeFile4
+} from "node:fs/promises";
+import { tmpdir as tmpdir4 } from "node:os";
+import path14 from "node:path";
+
+// src/infrastructure/continuity-lock.ts
+import { createHash as createHash7, randomUUID } from "node:crypto";
+import { mkdir as mkdir3, open as open2, readFile as readFile11, stat as stat3, unlink as unlink2 } from "node:fs/promises";
+import { tmpdir as tmpdir3 } from "node:os";
+import path13 from "node:path";
+import { setTimeout as delay } from "node:timers/promises";
+var LOCK_WAIT_MS = 3e4;
+var STALE_LOCK_MS = 5 * 6e4;
+var ContinuityLockError = class extends Error {
+  constructor(message) {
+    super(message);
+    this.name = "ContinuityLockError";
+  }
+};
+function lockDigest(root) {
+  const resolved = path13.resolve(root);
+  const portableRoot = process.platform === "win32" ? resolved.toLowerCase() : resolved;
+  return createHash7("sha256").update(portableRoot).digest("hex");
+}
+async function removeStaleLock(lockPath) {
+  try {
+    const metadata = await stat3(lockPath);
+    if (Date.now() - metadata.mtimeMs <= STALE_LOCK_MS) return false;
+    const contents = await readFile11(lockPath, "utf8");
+    let ownerPid;
+    try {
+      const value = JSON.parse(contents);
+      if (typeof value === "object" && value !== null && !Array.isArray(value)) {
+        const pid = value.pid;
+        if (typeof pid === "number" && Number.isSafeInteger(pid) && pid > 0) ownerPid = pid;
+      }
+    } catch {
+    }
+    if (ownerPid !== void 0) {
+      try {
+        process.kill(ownerPid, 0);
+        return false;
+      } catch (error2) {
+        if (error2.code !== "ESRCH") return false;
+      }
+    }
+    await unlink2(lockPath);
+    return true;
+  } catch (error2) {
+    if (error2.code === "ENOENT") return true;
+    throw error2;
+  }
+}
+async function withContinuityLock(projectRoot, operation) {
+  const lockRoot = path13.join(tmpdir3(), "pcp-continuity-locks");
+  await mkdir3(lockRoot, { recursive: true });
+  const lockPath = path13.join(lockRoot, `${lockDigest(projectRoot)}.lock`);
+  const token = randomUUID();
+  const lockContents = `${JSON.stringify({ token, pid: process.pid, created_at: (/* @__PURE__ */ new Date()).toISOString() })}
+`;
+  const deadline = Date.now() + LOCK_WAIT_MS;
+  let handle;
+  while (handle === void 0) {
+    try {
+      handle = await open2(lockPath, "wx");
+    } catch (error2) {
+      const code2 = error2.code;
+      if (process.platform === "win32" && code2 === "EPERM") {
+        if (Date.now() >= deadline) {
+          throw new ContinuityLockError("Another continuity operation is still running.");
+        }
+        await delay(20);
+        continue;
+      }
+      if (code2 !== "EEXIST") throw error2;
+      if (await removeStaleLock(lockPath)) continue;
+      if (Date.now() >= deadline) {
+        throw new ContinuityLockError("Another continuity operation is still running.");
+      }
+      await delay(20);
+    }
+  }
+  try {
+    await handle.writeFile(lockContents);
+    await handle.sync();
+    return await operation();
+  } finally {
+    await handle.close();
+    const current = await readFile11(lockPath, "utf8").catch((error2) => {
+      if (error2.code === "ENOENT") return void 0;
+      throw error2;
+    });
+    if (current === lockContents) {
+      await unlink2(lockPath).catch((error2) => {
+        if (error2.code !== "ENOENT") throw error2;
+      });
+    }
+  }
+}
+
+// src/application/record-event.ts
+var ACTIVE_EVENT_DIRECTORY = ".pcp/continuity/events";
+var ARCHIVE_EVENT_DIRECTORY = ".pcp/continuity/archive";
+var ACTOR_DIRECTORY = ".pcp/continuity/actors";
+var WORKSTREAM_PATH = ".pcp/state/workstreams.yaml";
+var ACTIVE_EVENT_LIMIT = 64;
+var ARCHIVE_BATCH_SIZE = 32;
+var MAXIMUM_EVENT_INPUT_BYTES = 64 * 1024;
+function isInside5(root, candidate) {
+  const relative = path14.relative(root, candidate);
+  return relative === "" || !relative.startsWith(`..${path14.sep}`) && relative !== ".." && !path14.isAbsolute(relative);
+}
+function digest(value) {
+  return createHash8("sha256").update(value).digest("hex");
+}
+function rootDigest(root) {
+  const resolved = path14.resolve(root);
+  return digest(process.platform === "win32" ? resolved.toLowerCase() : resolved);
+}
+function validationSummary(report) {
+  return report.diagnostics.slice(0, 4).map((diagnostic2) => `${diagnostic2.path}: ${diagnostic2.message}`).join("; ");
+}
+async function assertValidOperationalLayer(root) {
+  const report = await validateCanonicalLayer(root, { archive_content: "filenames-only" });
+  if (report.valid) return;
+  const detail = validationSummary(report);
+  throw new RecordingError(
+    "PCP_RECORD_INVALID_LAYER",
+    `Event recording requires a valid installed PCP layer${detail.length === 0 ? "." : `: ${detail}`}`
+  );
+}
+function inputFailure(message) {
+  return new RecordingError("PCP_RECORD_INPUT_INVALID", message);
+}
+async function loadEventInput(inputPath, projectRoot) {
+  const resolvedInput = path14.resolve(inputPath);
+  if (isInside5(projectRoot, resolvedInput)) {
+    throw new RecordingError(
+      "PCP_RECORD_INPUT_INSIDE_PROJECT",
+      "Store transient event input outside the managed project so it cannot become duplicate project state."
+    );
+  }
+  let metadata;
+  try {
+    metadata = await lstat6(resolvedInput);
+  } catch (error2) {
+    throw new RecordingError(
+      "PCP_RECORD_INPUT_UNREADABLE",
+      `Cannot read event input: ${error2 instanceof Error ? error2.message : String(error2)}`
+    );
+  }
+  if (!metadata.isFile() || metadata.isSymbolicLink() || metadata.size > MAXIMUM_EVENT_INPUT_BYTES) {
+    throw new RecordingError(
+      "PCP_RECORD_INPUT_UNSAFE",
+      "Event input must be a regular non-symlink file no larger than 64 KiB."
+    );
+  }
+  try {
+    const [physicalInput, physicalProjectRoot] = await Promise.all([
+      realpath2(resolvedInput),
+      realpath2(projectRoot)
+    ]);
+    if (isInside5(physicalProjectRoot, physicalInput)) {
+      throw new RecordingError(
+        "PCP_RECORD_INPUT_INSIDE_PROJECT",
+        "Store transient event input outside the managed project so it cannot become duplicate project state."
+      );
+    }
+  } catch (error2) {
+    if (error2 instanceof RecordingError) throw error2;
+    throw new RecordingError(
+      "PCP_RECORD_INPUT_UNREADABLE",
+      `Cannot resolve event input safely: ${error2 instanceof Error ? error2.message : String(error2)}`
+    );
+  }
+  const contents = await readFile12(resolvedInput, "utf8").catch((error2) => {
+    throw new RecordingError(
+      "PCP_RECORD_INPUT_UNREADABLE",
+      `Cannot read event input: ${error2 instanceof Error ? error2.message : String(error2)}`
+    );
+  });
+  const document = parseDocument(contents, {
+    prettyErrors: false,
+    strict: true,
+    uniqueKeys: true
+  });
+  if (document.errors.length > 0) {
+    throw inputFailure(
+      `Event input is not valid YAML: ${document.errors.map((error2) => error2.message).join("; ")}`
+    );
+  }
+  let value;
+  try {
+    value = document.toJS({ mapAsMap: false, maxAliasCount: 50 });
+  } catch (error2) {
+    throw inputFailure(
+      `Event input cannot be decoded safely: ${error2 instanceof Error ? error2.message : String(error2)}`
+    );
+  }
+  const validation = validateSchema("event-input", value);
+  if (!validation.valid) {
+    const detail = validation.diagnostics.slice(0, 8).map((diagnostic2) => `${diagnostic2.path}: ${diagnostic2.message}`).join("; ");
+    throw inputFailure(`Event input fails its release schema: ${detail}`);
+  }
+  return value;
+}
+async function listYamlNames(directory) {
+  const entries = await readdir4(directory, { withFileTypes: true });
+  return entries.filter((entry) => entry.isFile() && entry.name.endsWith(".yaml")).map((entry) => entry.name).sort((left, right) => left.localeCompare(right));
+}
+async function loadActiveEvents(root) {
+  const directory = path14.join(root, ...ACTIVE_EVENT_DIRECTORY.split("/"));
+  const names = await listYamlNames(directory);
+  const events = [];
+  for (const name of names) {
+    const absolutePath = path14.join(directory, name);
+    const contents = await readFile12(absolutePath);
+    events.push({
+      event_id: name.slice(0, -".yaml".length),
+      absolute_path: absolutePath,
+      contents,
+      digest: digest(contents),
+      event: parse(contents.toString("utf8"))
+    });
+  }
+  return events;
+}
+async function loadArchiveIds(root) {
+  const directory = path14.join(root, ...ARCHIVE_EVENT_DIRECTORY.split("/"));
+  return (await listYamlNames(directory)).map((name) => name.slice(0, -".yaml".length));
+}
+async function loadSemanticRecords(root) {
+  const actorRoot = path14.join(root, ...ACTOR_DIRECTORY.split("/"));
+  const actorNames = await listYamlNames(actorRoot);
+  const actors = await Promise.all(
+    actorNames.map(async (name) => ({
+      path: `continuity/actors/${name}`,
+      value: parse(await readFile12(path14.join(actorRoot, name), "utf8"))
+    }))
+  );
+  return {
+    actors,
+    workstreams: {
+      path: "state/workstreams.yaml",
+      value: parse(await readFile12(path14.join(root, ...WORKSTREAM_PATH.split("/")), "utf8"))
+    }
+  };
+}
+function normalizeEventInput(input, eventId) {
+  const payload = {
+    schema_version: 1,
+    event_id: eventId,
+    occurred_at: input.occurred_at ?? (/* @__PURE__ */ new Date()).toISOString(),
+    actor: input.actor,
+    recorded_by: input.recorded_by,
+    basis: input.basis,
+    ...input.change_key === void 0 ? {} : { change_key: input.change_key.trim() },
+    kind: input.kind,
+    scopes: [...input.scopes].sort((left, right) => left.localeCompare(right)),
+    workstreams: [...input.workstreams].sort((left, right) => left.localeCompare(right)),
+    summary: input.summary.trim(),
+    ...input.rationale === void 0 ? {} : { rationale: input.rationale.trim() },
+    affected_paths: [...input.affected_paths].sort((left, right) => left.localeCompare(right))
+  };
+  return { ...payload, payload_digest: eventPayloadDigest(payload) };
+}
+function assertEventSemantics(event, records) {
+  const diagnostics = validateCanonicalSemantics({
+    workstreams: records.workstreams,
+    actors: records.actors,
+    events: [{ path: `continuity/events/${event.event_id}.yaml`, value: event }],
+    checkpoints: []
+  });
+  if (diagnostics.length === 0) return;
+  const detail = diagnostics.slice(0, 6).map((diagnostic2) => `${diagnostic2.code}: ${diagnostic2.message}`).join("; ");
+  throw new RecordingError(
+    "PCP_RECORD_ATTRIBUTION_INVALID",
+    `Event attribution or workstream references are invalid: ${detail}`
+  );
+}
+async function appendWal2(walPath, sequence, action, eventId, status) {
+  const handle = await open3(walPath, "a");
+  try {
+    await handle.writeFile(`${JSON.stringify({ sequence, action, event_id: eventId, status })}
+`);
+    await handle.sync();
+  } finally {
+    await handle.close();
+  }
+}
+async function writeDurableFile(file, contents) {
+  const handle = await open3(file, "wx");
+  try {
+    await handle.writeFile(contents, "utf8");
+    await handle.sync();
+  } finally {
+    await handle.close();
+  }
+}
+function injectedFailure(sequence, options) {
+  if (options.fail_after_operation === sequence) {
+    throw new RecordingError(
+      "PCP_FAULT_INJECTED",
+      `Injected event-recording failure after operation ${sequence}.`,
+      true
+    );
+  }
+}
+async function verifyRollback(root, expectedActive, expectedArchiveIds) {
+  const failures = [];
+  try {
+    const active = await loadActiveEvents(root);
+    const actual = active.map((event) => `${event.event_id}:${event.digest}`);
+    const expected = expectedActive.map((event) => `${event.event_id}:${event.digest}`);
+    if (JSON.stringify(actual) !== JSON.stringify(expected)) {
+      failures.push("active event identities or contents differ from the preimage");
+    }
+  } catch (error2) {
+    failures.push(error2 instanceof Error ? error2.message : String(error2));
+  }
+  try {
+    const archiveIds = await loadArchiveIds(root);
+    if (JSON.stringify(archiveIds) !== JSON.stringify(expectedArchiveIds)) {
+      failures.push("archive event identities differ from the preimage");
+    }
+  } catch (error2) {
+    failures.push(error2 instanceof Error ? error2.message : String(error2));
+  }
+  return failures;
+}
+async function executeEventTransaction(root, event, activeEvents, archiveIds, options) {
+  const rotation = activeEvents.length === ACTIVE_EVENT_LIMIT ? activeEvents.slice(0, ARCHIVE_BATCH_SIZE) : [];
+  const archiveIdSet = new Set(archiveIds);
+  const archiveCollision = rotation.find((event2) => archiveIdSet.has(event2.event_id));
+  if (archiveCollision !== void 0) {
+    throw new RecordingError(
+      "PCP_RECORD_ARCHIVE_COLLISION",
+      `Cannot rotate ${archiveCollision.event_id} because that identity already exists in the archive.`
+    );
+  }
+  const eventRoot = path14.join(root, ...ACTIVE_EVENT_DIRECTORY.split("/"));
+  const archiveRoot = path14.join(root, ...ARCHIVE_EVENT_DIRECTORY.split("/"));
+  const eventPath = path14.join(eventRoot, `${event.event_id}.yaml`);
+  const temporaryEventPath = path14.join(eventRoot, `.${event.event_id}.${randomUUID2()}.tmp`);
+  const moved = [];
+  let eventInstalled = false;
+  let operation = 0;
+  let recoveryRoot;
+  let walPath;
+  try {
+    recoveryRoot = await mkdtemp3(
+      path14.join(tmpdir4(), `pcp-event-transaction-${rootDigest(root).slice(0, 12)}-`)
+    );
+    walPath = path14.join(recoveryRoot, "operations.jsonl");
+    await writeFile4(walPath, "", { flag: "wx" });
+    await writeDurableFile(temporaryEventPath, stringify3(event));
+    for (const source of rotation) {
+      operation += 1;
+      await appendWal2(walPath, operation, "archive", source.event_id, "prepared");
+      await rename2(source.absolute_path, path14.join(archiveRoot, `${source.event_id}.yaml`));
+      moved.push(source);
+      await appendWal2(walPath, operation, "archive", source.event_id, "applied");
+      injectedFailure(operation, options);
+    }
+    operation += 1;
+    await appendWal2(walPath, operation, "record", event.event_id, "prepared");
+    await rename2(temporaryEventPath, eventPath);
+    eventInstalled = true;
+    await appendWal2(walPath, operation, "record", event.event_id, "applied");
+    injectedFailure(operation, options);
+    const live = await validateCanonicalLayer(root, { archive_content: "filenames-only" });
+    if (!live.valid) {
+      throw new RecordingError(
+        "PCP_RECORD_LIVE_INVALID",
+        `Recorded continuity state is invalid: ${validationSummary(live)}`,
+        true
+      );
+    }
+    operation += 1;
+    injectedFailure(operation, options);
+    await rm3(recoveryRoot, { recursive: true, force: false });
+    return {
+      schema_version: 1,
+      command: "record",
+      status: "recorded",
+      event_id: event.event_id,
+      event_path: `${ACTIVE_EVENT_DIRECTORY}/${event.event_id}.yaml`,
+      payload_digest: event.payload_digest,
+      occurred_at: event.occurred_at,
+      summary: event.summary,
+      active_events: activeEvents.length - rotation.length + 1,
+      archived_events_moved: rotation.length,
+      event_created: true,
+      mutated: true
+    };
+  } catch (error2) {
+    const rollbackFailures = [];
+    if (eventInstalled) {
+      try {
+        await unlink3(eventPath);
+        if (walPath !== void 0) {
+          await appendWal2(
+            walPath,
+            rotation.length + 1,
+            "record",
+            event.event_id,
+            "rolled-back"
+          ).catch(() => void 0);
+        }
+      } catch (rollbackError) {
+        if (rollbackError.code !== "ENOENT") {
+          rollbackFailures.push(
+            rollbackError instanceof Error ? rollbackError.message : String(rollbackError)
+          );
+        }
+      }
+    }
+    await unlink3(temporaryEventPath).catch((rollbackError) => {
+      if (rollbackError.code !== "ENOENT") {
+        rollbackFailures.push(
+          rollbackError instanceof Error ? rollbackError.message : String(rollbackError)
+        );
+      }
+    });
+    for (const source of [...moved].reverse()) {
+      try {
+        await rename2(path14.join(archiveRoot, `${source.event_id}.yaml`), source.absolute_path);
+        if (walPath !== void 0) {
+          await appendWal2(
+            walPath,
+            rotation.indexOf(source) + 1,
+            "archive",
+            source.event_id,
+            "rolled-back"
+          ).catch(() => void 0);
+        }
+      } catch (rollbackError) {
+        rollbackFailures.push(
+          rollbackError instanceof Error ? rollbackError.message : String(rollbackError)
+        );
+      }
+    }
+    rollbackFailures.push(...await verifyRollback(root, activeEvents, archiveIds));
+    if (rollbackFailures.length > 0) {
+      throw new RecordingError(
+        "PCP_RECORD_ROLLBACK_FAILED",
+        `Event recording failed (${error2 instanceof Error ? error2.message : String(error2)}) and exact rollback could not be verified: ${rollbackFailures.join("; ")}`,
+        true,
+        true
+      );
+    }
+    if (recoveryRoot !== void 0) {
+      try {
+        await rm3(recoveryRoot, { recursive: true, force: true });
+      } catch (cleanupError) {
+        throw new RecordingError(
+          "PCP_RECORD_RECOVERY_CLEANUP_FAILED",
+          `Event recording failed and project state was restored, but recovery data could not be removed: ${cleanupError instanceof Error ? cleanupError.message : String(cleanupError)}`,
+          false,
+          true
+        );
+      }
+    }
+    if (error2 instanceof RecordingError) {
+      throw new RecordingError(error2.code, error2.message, false, false);
+    }
+    throw new RecordingError(
+      "PCP_RECORD_TRANSACTION_FAILED",
+      error2 instanceof Error ? error2.message : String(error2)
+    );
+  }
+}
+async function recordEventUnderLock(root, input, options) {
+  await assertValidOperationalLayer(root);
+  const [activeEvents, archiveIds, semanticRecords] = await Promise.all([
+    loadActiveEvents(root),
+    loadArchiveIds(root),
+    loadSemanticRecords(root)
+  ]);
+  if (activeEvents.length > ACTIVE_EVENT_LIMIT) {
+    throw new RecordingError(
+      "PCP_RECORD_ACTIVE_LIMIT_EXCEEDED",
+      `Active continuity history already exceeds ${ACTIVE_EVENT_LIMIT}; repair it before recording.`
+    );
+  }
+  if (input.change_key !== void 0) {
+    const normalizedKey = input.change_key.trim();
+    const duplicate = activeEvents.find((item) => item.event.change_key === normalizedKey);
+    if (duplicate !== void 0) {
+      throw new RecordingError(
+        "PCP_RECORD_DUPLICATE_CHANGE",
+        `Active event ${duplicate.event_id} already records change key ${normalizedKey}.`
+      );
+    }
+  }
+  const event = normalizeEventInput(
+    input,
+    nextEventId([...activeEvents.map((item) => item.event_id), ...archiveIds])
+  );
+  const schema4 = validateSchema("event", event);
+  if (!schema4.valid) {
+    throw new RecordingError(
+      "PCP_RECORD_EVENT_INVALID",
+      "The normalized event failed its canonical release schema."
+    );
+  }
+  assertEventSemantics(event, semanticRecords);
+  return executeEventTransaction(root, event, activeEvents, archiveIds, options);
+}
+async function recordEvent(projectRoot, inputPath, options = {}) {
+  const root = path14.resolve(projectRoot);
+  try {
+    const input = await loadEventInput(inputPath, root);
+    return await withContinuityLock(root, () => recordEventUnderLock(root, input, options));
+  } catch (error2) {
+    if (error2 instanceof ContinuityLockError) {
+      throw new RecordingError(
+        "PCP_RECORD_LOCKED",
+        "Another actor registration or continuity operation is still running for this project."
+      );
+    }
+    if (error2 instanceof RecordingError) throw error2;
+    throw new RecordingError(
+      "PCP_RECORD_FAILED",
+      error2 instanceof Error ? error2.message : String(error2)
+    );
+  }
+}
+
+// src/domain/workstreams.ts
+var WorkstreamError = class extends Error {
+  constructor(code2, message, mutated = false, recovery_retained = false) {
+    super(message);
+    this.code = code2;
+    this.mutated = mutated;
+    this.recovery_retained = recovery_retained;
+    this.name = "WorkstreamError";
+  }
+  code;
+  mutated;
+  recovery_retained;
+};
+function sorted(values) {
+  return [...values].sort((left, right) => left.localeCompare(right));
+}
+function normalizeEvidence(evidence) {
+  return evidence.map((item) => ({ criterion: item.criterion.trim(), proof: item.proof.trim() })).sort(
+    (left, right) => left.criterion.localeCompare(right.criterion) || left.proof.localeCompare(right.proof)
+  );
+}
+function normalizeWorkstream(workstream) {
+  return {
+    workstream_id: workstream.workstream_id,
+    name: workstream.name.trim(),
+    kind: workstream.kind,
+    status: workstream.status,
+    paths: sorted(workstream.paths),
+    areas: sorted(workstream.areas),
+    dependencies: sorted(workstream.dependencies),
+    completion: {
+      criteria: sorted(workstream.completion.criteria.map((criterion) => criterion.trim())),
+      evidence: normalizeEvidence(workstream.completion.evidence),
+      ...workstream.completion.announcement === void 0 ? {} : { announcement: workstream.completion.announcement.trim() }
+    }
+  };
+}
+function replaceWorkstream(registry, workstream) {
+  return {
+    schema_version: 1,
+    workstreams: [
+      ...registry.workstreams.filter((item) => item.workstream_id !== workstream.workstream_id),
+      workstream
+    ].sort((left, right) => left.workstream_id.localeCompare(right.workstream_id))
+  };
+}
+function existingWorkstream(registry, workstreamId) {
+  const existing = registry.workstreams.find((item) => item.workstream_id === workstreamId);
+  if (existing === void 0) {
+    throw new WorkstreamError(
+      "PCP_WORKSTREAM_NOT_FOUND",
+      `Workstream ${workstreamId} does not exist.`
+    );
+  }
+  return existing;
+}
+function assertUpdateTransition(previous, next) {
+  if (previous.kind !== next.kind) {
+    throw new WorkstreamError(
+      "PCP_WORKSTREAM_KIND_IMMUTABLE",
+      `Workstream ${previous.workstream_id} cannot change kind from ${previous.kind} to ${next.kind}.`
+    );
+  }
+  if (previous.status === "complete" || previous.status === "cancelled") {
+    throw new WorkstreamError(
+      "PCP_WORKSTREAM_TERMINAL",
+      `Workstream ${previous.workstream_id} is ${previous.status} and cannot be updated.`
+    );
+  }
+  if (next.status === "complete") {
+    throw new WorkstreamError(
+      "PCP_WORKSTREAM_COMPLETE_REQUIRED",
+      `Use the complete operation to finish workstream ${previous.workstream_id}.`
+    );
+  }
+  const allowed = {
+    planned: ["planned", "active", "blocked", "cancelled"],
+    active: ["active", "blocked", "cancelled"],
+    blocked: ["blocked", "active", "cancelled"],
+    complete: [],
+    cancelled: []
+  };
+  if (!allowed[previous.status].includes(next.status)) {
+    throw new WorkstreamError(
+      "PCP_WORKSTREAM_TRANSITION_INVALID",
+      `Workstream ${previous.workstream_id} cannot move from ${previous.status} to ${next.status}.`
+    );
+  }
+}
+function prepareCreate(registry, input) {
+  const workstream = normalizeWorkstream(input.workstream);
+  if (registry.workstreams.some((item) => item.workstream_id === workstream.workstream_id)) {
+    throw new WorkstreamError(
+      "PCP_WORKSTREAM_EXISTS",
+      `Workstream ${workstream.workstream_id} already exists.`
+    );
+  }
+  if (workstream.status === "complete" || workstream.status === "cancelled") {
+    throw new WorkstreamError(
+      "PCP_WORKSTREAM_CREATE_STATUS_INVALID",
+      "A new workstream must start as planned, active, or blocked."
+    );
+  }
+  return { registry: replaceWorkstream(registry, workstream), workstream };
+}
+function prepareUpdate(registry, input) {
+  const workstream = normalizeWorkstream(input.workstream);
+  const previous = existingWorkstream(registry, workstream.workstream_id);
+  assertUpdateTransition(previous, workstream);
+  if (canonicalJson(previous) === canonicalJson(workstream)) {
+    throw new WorkstreamError(
+      "PCP_WORKSTREAM_NO_CHANGE",
+      `Workstream ${workstream.workstream_id} already has the requested state.`
+    );
+  }
+  return { registry: replaceWorkstream(registry, workstream), workstream };
+}
+function prepareCompletion(registry, input) {
+  const previous = existingWorkstream(registry, input.workstream_id);
+  if (previous.status !== "active" && previous.status !== "blocked") {
+    throw new WorkstreamError(
+      "PCP_WORKSTREAM_NOT_COMPLETABLE",
+      `Workstream ${previous.workstream_id} is ${previous.status}; only active or blocked work can be completed.`
+    );
+  }
+  const evidence = normalizeEvidence(input.evidence);
+  const criterionCounts = /* @__PURE__ */ new Map();
+  for (const item of evidence) {
+    criterionCounts.set(item.criterion, (criterionCounts.get(item.criterion) ?? 0) + 1);
+  }
+  const criteria = previous.completion.criteria.map((criterion) => criterion.trim());
+  const unknown = evidence.find((item) => !criteria.includes(item.criterion));
+  if (unknown !== void 0) {
+    throw new WorkstreamError(
+      "PCP_WORKSTREAM_EVIDENCE_UNKNOWN",
+      `Completion evidence does not match a criterion: ${unknown.criterion}`
+    );
+  }
+  const duplicate = [...criterionCounts].find(([, count]) => count !== 1);
+  if (duplicate !== void 0) {
+    throw new WorkstreamError(
+      "PCP_WORKSTREAM_EVIDENCE_DUPLICATE",
+      `Completion criterion has more than one proof: ${duplicate[0]}`
+    );
+  }
+  const missing = criteria.find((criterion) => !criterionCounts.has(criterion));
+  if (missing !== void 0 || evidence.length !== criteria.length) {
+    throw new WorkstreamError(
+      "PCP_WORKSTREAM_EVIDENCE_INCOMPLETE",
+      `Completion requires exactly one proof for every criterion${missing === void 0 ? "." : `; missing: ${missing}`}`
+    );
+  }
+  for (const dependencyId of previous.dependencies) {
+    const dependency = existingWorkstream(registry, dependencyId);
+    if (dependency.status !== "complete") {
+      throw new WorkstreamError(
+        "PCP_WORKSTREAM_DEPENDENCY_INCOMPLETE",
+        `Workstream ${previous.workstream_id} cannot complete before ${dependencyId}.`
+      );
+    }
+  }
+  const workstream = normalizeWorkstream({
+    ...previous,
+    status: "complete",
+    completion: {
+      criteria: previous.completion.criteria,
+      evidence,
+      announcement: input.announcement.trim()
+    }
+  });
+  return { registry: replaceWorkstream(registry, workstream), workstream };
+}
+function prepareWorkstreamMutation(registry, input) {
+  if (input.operation === "create") return prepareCreate(registry, input);
+  if (input.operation === "update") return prepareUpdate(registry, input);
+  return prepareCompletion(registry, input);
+}
+
+// src/application/manage-workstreams.ts
+var WORKSTREAM_PATH2 = ".pcp/state/workstreams.yaml";
+var STATUS_VIEW_PATH = ".pcp/views/10-status.generated.md";
+var STATUS_SOURCES = [
+  "state/project.yaml",
+  "state/projects.yaml",
+  "state/workstreams.yaml",
+  "state/vcs-policy.yaml"
+];
+var MAXIMUM_INPUT_BYTES = 64 * 1024;
+function sha2562(value) {
+  return createHash9("sha256").update(value).digest("hex");
+}
+function rootDigest2(root) {
+  const resolved = path15.resolve(root);
+  return sha2562(process.platform === "win32" ? resolved.toLowerCase() : resolved);
+}
+function isInside6(root, candidate) {
+  const relative = path15.relative(root, candidate);
+  return relative === "" || !relative.startsWith(`..${path15.sep}`) && relative !== ".." && !path15.isAbsolute(relative);
+}
+function layerSummary(report) {
+  return report.diagnostics.slice(0, 4).map((diagnostic2) => `${diagnostic2.path}: ${diagnostic2.message}`).join("; ");
+}
+async function assertValidOperationalLayer2(root) {
+  const report = await validateCanonicalLayer(root, { archive_content: "filenames-only" });
+  if (report.valid) return;
+  const detail = layerSummary(report);
+  throw new WorkstreamError(
+    "PCP_WORKSTREAM_INVALID_LAYER",
+    `Workstream operations require a valid installed PCP layer${detail.length === 0 ? "." : `: ${detail}`}`
+  );
+}
+function inputFailure2(message) {
+  return new WorkstreamError("PCP_WORKSTREAM_INPUT_INVALID", message);
+}
+async function loadWorkstreamInput(inputPath, projectRoot, expectedOperation) {
+  const resolvedInput = path15.resolve(inputPath);
+  if (isInside6(projectRoot, resolvedInput)) {
+    throw new WorkstreamError(
+      "PCP_WORKSTREAM_INPUT_INSIDE_PROJECT",
+      "Store transient workstream input outside the managed project so it cannot become duplicate project state."
+    );
+  }
+  let metadata;
+  try {
+    metadata = await lstat7(resolvedInput);
+  } catch (error2) {
+    throw new WorkstreamError(
+      "PCP_WORKSTREAM_INPUT_UNREADABLE",
+      `Cannot read workstream input: ${error2 instanceof Error ? error2.message : String(error2)}`
+    );
+  }
+  if (!metadata.isFile() || metadata.isSymbolicLink() || metadata.size > MAXIMUM_INPUT_BYTES) {
+    throw new WorkstreamError(
+      "PCP_WORKSTREAM_INPUT_UNSAFE",
+      "Workstream input must be a regular non-symlink file no larger than 64 KiB."
+    );
+  }
+  try {
+    const [physicalInput, physicalProjectRoot] = await Promise.all([
+      realpath3(resolvedInput),
+      realpath3(projectRoot)
+    ]);
+    if (isInside6(physicalProjectRoot, physicalInput)) {
+      throw new WorkstreamError(
+        "PCP_WORKSTREAM_INPUT_INSIDE_PROJECT",
+        "Store transient workstream input outside the managed project so it cannot become duplicate project state."
+      );
+    }
+  } catch (error2) {
+    if (error2 instanceof WorkstreamError) throw error2;
+    throw new WorkstreamError(
+      "PCP_WORKSTREAM_INPUT_UNREADABLE",
+      `Cannot resolve workstream input safely: ${error2 instanceof Error ? error2.message : String(error2)}`
+    );
+  }
+  const contents = await readFile13(resolvedInput, "utf8").catch((error2) => {
+    throw new WorkstreamError(
+      "PCP_WORKSTREAM_INPUT_UNREADABLE",
+      `Cannot read workstream input: ${error2 instanceof Error ? error2.message : String(error2)}`
+    );
+  });
+  const document = parseDocument(contents, {
+    prettyErrors: false,
+    strict: true,
+    uniqueKeys: true
+  });
+  if (document.errors.length > 0) {
+    throw inputFailure2(
+      `Workstream input is not valid YAML: ${document.errors.map((error2) => error2.message).join("; ")}`
+    );
+  }
+  let value;
+  try {
+    value = document.toJS({ mapAsMap: false, maxAliasCount: 50 });
+  } catch (error2) {
+    throw inputFailure2(
+      `Workstream input cannot be decoded safely: ${error2 instanceof Error ? error2.message : String(error2)}`
+    );
+  }
+  const validation = validateSchema("workstream-operation-input", value);
+  if (!validation.valid) {
+    const detail = validation.diagnostics.slice(0, 8).map((diagnostic2) => `${diagnostic2.path}: ${diagnostic2.message}`).join("; ");
+    throw inputFailure2(`Workstream input fails its release schema: ${detail}`);
+  }
+  const input = value;
+  if (input.operation !== expectedOperation) {
+    throw inputFailure2(
+      `The ${expectedOperation} command requires operation: ${expectedOperation}, not ${input.operation}.`
+    );
+  }
+  return input;
+}
+function parseRegistry(bytes) {
+  const document = parseDocument(bytes.toString("utf8"), {
+    prettyErrors: false,
+    strict: true,
+    uniqueKeys: true
+  });
+  if (document.errors.length > 0) {
+    throw new WorkstreamError(
+      "PCP_WORKSTREAM_REGISTRY_INVALID",
+      "The canonical workstream registry is not valid YAML."
+    );
+  }
+  const value = document.toJS({ mapAsMap: false, maxAliasCount: 50 });
+  const schema4 = validateSchema("workstreams", value);
+  if (!schema4.valid) {
+    throw new WorkstreamError(
+      "PCP_WORKSTREAM_REGISTRY_INVALID",
+      "The canonical workstream registry fails its release schema."
+    );
+  }
+  return value;
+}
+function parseSource(contents, relativePath) {
+  const document = parseDocument(contents, {
+    prettyErrors: false,
+    strict: true,
+    uniqueKeys: true
+  });
+  if (document.errors.length > 0) {
+    throw new WorkstreamError(
+      "PCP_WORKSTREAM_RENDER_SOURCE_INVALID",
+      `Cannot render the status view because ${relativePath} is not valid YAML.`
+    );
+  }
+  const value = document.toJS({ mapAsMap: false, maxAliasCount: 50 });
+  if (typeof value !== "object" || value === null || Array.isArray(value)) {
+    throw new WorkstreamError(
+      "PCP_WORKSTREAM_RENDER_SOURCE_INVALID",
+      `Cannot render the status view because ${relativePath} is not an object.`
+    );
+  }
+  return value;
+}
+async function desiredStatusView(root, workstreamContents, registry) {
+  const layerRoot = path15.join(root, ".pcp");
+  const contents = await Promise.all(
+    STATUS_SOURCES.map(async (relativePath) => ({
+      path: relativePath,
+      contents: relativePath === "state/workstreams.yaml" ? workstreamContents : await readFile13(path15.join(layerRoot, ...relativePath.split("/")), "utf8")
+    }))
+  );
+  const values = /* @__PURE__ */ new Map();
+  for (const source of contents) {
+    values.set(
+      source.path,
+      source.path === "state/workstreams.yaml" ? registry : parseSource(source.contents, source.path)
+    );
+  }
+  const sourceDigest = canonicalSourceDigestFromContents(contents);
+  return Buffer.from(renderCanonicalStatusView(values, sourceDigest), "utf8");
+}
+async function loadRegistry(root) {
+  const absolutePath = path15.join(root, ...WORKSTREAM_PATH2.split("/"));
+  const metadata = await lstat7(absolutePath).catch((error2) => {
+    throw new WorkstreamError(
+      "PCP_WORKSTREAM_REGISTRY_UNREADABLE",
+      `Cannot read the canonical workstream registry: ${error2 instanceof Error ? error2.message : String(error2)}`
+    );
+  });
+  if (!metadata.isFile() || metadata.isSymbolicLink()) {
+    throw new WorkstreamError(
+      "PCP_WORKSTREAM_REGISTRY_UNSAFE",
+      "The canonical workstream registry must be a regular non-symlink file."
+    );
+  }
+  const bytes = await readFile13(absolutePath);
+  return {
+    absolute_path: absolutePath,
+    bytes,
+    digest: sha2562(bytes),
+    registry: parseRegistry(bytes)
+  };
+}
+function assertRegistrySemantics(registry) {
+  const diagnostics = validateCanonicalSemantics({
+    workstreams: { path: "state/workstreams.yaml", value: registry },
+    actors: [],
+    events: [],
+    checkpoints: []
+  });
+  if (diagnostics.length === 0) return;
+  const detail = diagnostics.slice(0, 8).map((diagnostic2) => `${diagnostic2.code}: ${diagnostic2.message}`).join("; ");
+  throw new WorkstreamError(
+    "PCP_WORKSTREAM_STATE_INVALID",
+    `The requested workstream state is inconsistent: ${detail}`
+  );
+}
+async function writeDurableExclusive(file, bytes) {
+  const handle = await open4(file, "wx");
+  try {
+    await handle.writeFile(bytes);
+    await handle.sync();
+  } finally {
+    await handle.close();
+  }
+}
+async function exists(file) {
+  try {
+    await lstat7(file);
+    return true;
+  } catch (error2) {
+    if (error2.code === "ENOENT") return false;
+    throw error2;
+  }
+}
+async function replaceWithTemporary(target, temporary) {
+  try {
+    await rename3(temporary, target);
+  } catch (error2) {
+    const code2 = error2.code;
+    if (code2 !== "EEXIST" && code2 !== "EPERM") throw error2;
+    const held = `${temporary}.previous`;
+    await rename3(target, held);
+    try {
+      await rename3(temporary, target);
+      await unlink4(held);
+    } catch (replacementError) {
+      if (await exists(target)) await unlink4(target);
+      await rename3(held, target);
+      throw replacementError;
+    }
+  }
+}
+async function installBytes(target, bytes) {
+  const temporary = path15.join(
+    path15.dirname(target),
+    `.${path15.basename(target)}.${randomUUID3()}.tmp`
+  );
+  try {
+    await writeDurableExclusive(temporary, bytes);
+    await replaceWithTemporary(target, temporary);
+  } finally {
+    if (await exists(temporary)) await unlink4(temporary);
+  }
+}
+async function restoreRegistry(target, bytes, metadata) {
+  await installBytes(target, bytes);
+  await chmod2(target, metadata.mode);
+  await utimes2(target, metadata.atime, metadata.mtime);
+}
+function eventInput(input, workstreamId) {
+  return {
+    schema_version: 1,
+    ...input.occurred_at === void 0 ? {} : { occurred_at: input.occurred_at },
+    actor: input.actor,
+    recorded_by: input.recorded_by,
+    basis: input.basis,
+    ...input.change_key === void 0 ? {} : { change_key: input.change_key },
+    kind: "workstream",
+    scopes: ["workstream-registry"],
+    workstreams: [workstreamId],
+    summary: input.summary,
+    ...input.rationale === void 0 ? {} : { rationale: input.rationale },
+    affected_paths: [WORKSTREAM_PATH2, STATUS_VIEW_PATH]
+  };
+}
+function injectedFailure2(operation, options) {
+  if (options.fail_after_operation === operation) {
+    throw new WorkstreamError(
+      "PCP_FAULT_INJECTED",
+      `Injected workstream failure after operation ${operation}.`,
+      true
+    );
+  }
+}
+async function executeMutation(root, loaded, input, nextRegistry, workstreamId, options) {
+  const nextBytes = Buffer.from(stringify3(nextRegistry), "utf8");
+  const nextDigest = sha2562(nextBytes);
+  const statusViewPath = path15.join(root, ...STATUS_VIEW_PATH.split("/"));
+  const [metadata, viewMetadata, viewBytes, nextViewBytes] = await Promise.all([
+    stat4(loaded.absolute_path),
+    stat4(statusViewPath),
+    readFile13(statusViewPath),
+    desiredStatusView(root, nextBytes.toString("utf8"), nextRegistry)
+  ]);
+  const registryMetadata = {
+    mode: metadata.mode,
+    atime: metadata.atime,
+    mtime: metadata.mtime
+  };
+  const statusViewMetadata = {
+    mode: viewMetadata.mode,
+    atime: viewMetadata.atime,
+    mtime: viewMetadata.mtime
+  };
+  let recoveryRoot;
+  let registryInstalled = false;
+  let statusViewInstalled = false;
+  try {
+    recoveryRoot = await mkdtemp4(
+      path15.join(tmpdir5(), `pcp-workstream-transaction-${rootDigest2(root).slice(0, 12)}-`)
+    );
+    await writeDurableExclusive(path15.join(recoveryRoot, "workstreams.preimage"), loaded.bytes);
+    await writeDurableExclusive(path15.join(recoveryRoot, "status-view.preimage"), viewBytes);
+    await writeDurableExclusive(
+      path15.join(recoveryRoot, "transaction.json"),
+      Buffer.from(
+        `${JSON.stringify({
+          schema_version: 1,
+          target: WORKSTREAM_PATH2,
+          digest_before: loaded.digest,
+          digest_after: nextDigest,
+          generated_view: STATUS_VIEW_PATH,
+          generated_view_digest_before: sha2562(viewBytes),
+          generated_view_digest_after: sha2562(nextViewBytes)
+        })}
+`,
+        "utf8"
+      )
+    );
+    await installBytes(loaded.absolute_path, nextBytes);
+    registryInstalled = true;
+    injectedFailure2(1, options);
+    await installBytes(statusViewPath, nextViewBytes);
+    statusViewInstalled = true;
+    injectedFailure2(2, options);
+    const nestedFailure = options.fail_after_operation === void 0 || options.fail_after_operation <= 2 ? void 0 : options.fail_after_operation - 2;
+    const recorded = await recordEventUnderLock(root, eventInput(input, workstreamId), {
+      ...nestedFailure === void 0 ? {} : { fail_after_operation: nestedFailure }
+    });
+    let recoveryRetained = false;
+    try {
+      await rm4(recoveryRoot, { recursive: true, force: false });
+    } catch {
+      recoveryRetained = true;
+    }
+    return {
+      schema_version: 1,
+      command: "workstream",
+      operation: input.operation,
+      status: input.operation === "create" ? "created" : input.operation === "update" ? "updated" : "completed",
+      workstream_id: workstreamId,
+      registry_path: WORKSTREAM_PATH2,
+      registry_digest_before: loaded.digest,
+      registry_digest_after: nextDigest,
+      event_id: recorded.event_id,
+      event_path: recorded.event_path,
+      event_payload_digest: recorded.payload_digest,
+      announcement: input.operation === "complete" ? input.announcement.trim() : null,
+      event_created: true,
+      mutated: true,
+      recovery_retained: recoveryRetained
+    };
+  } catch (error2) {
+    const rollbackFailures = [];
+    if (statusViewInstalled) {
+      try {
+        await restoreRegistry(statusViewPath, viewBytes, statusViewMetadata);
+      } catch (rollbackError) {
+        rollbackFailures.push(
+          rollbackError instanceof Error ? rollbackError.message : String(rollbackError)
+        );
+      }
+    }
+    if (registryInstalled) {
+      try {
+        await restoreRegistry(loaded.absolute_path, loaded.bytes, registryMetadata);
+      } catch (rollbackError) {
+        rollbackFailures.push(
+          rollbackError instanceof Error ? rollbackError.message : String(rollbackError)
+        );
+      }
+    }
+    try {
+      const restored = await readFile13(loaded.absolute_path);
+      if (!restored.equals(loaded.bytes)) {
+        rollbackFailures.push("workstream registry bytes differ from the preimage");
+      }
+    } catch (rollbackError) {
+      rollbackFailures.push(
+        rollbackError instanceof Error ? rollbackError.message : String(rollbackError)
+      );
+    }
+    try {
+      const restoredView = await readFile13(statusViewPath);
+      if (!restoredView.equals(viewBytes)) {
+        rollbackFailures.push("generated status view bytes differ from the preimage");
+      }
+    } catch (rollbackError) {
+      rollbackFailures.push(
+        rollbackError instanceof Error ? rollbackError.message : String(rollbackError)
+      );
+    }
+    if (rollbackFailures.length === 0) {
+      const report = await validateCanonicalLayer(root, { archive_content: "filenames-only" });
+      if (!report.valid)
+        rollbackFailures.push(`restored layer is invalid: ${layerSummary(report)}`);
+    }
+    if (rollbackFailures.length > 0) {
+      throw new WorkstreamError(
+        "PCP_WORKSTREAM_ROLLBACK_FAILED",
+        `Workstream mutation failed (${error2 instanceof Error ? error2.message : String(error2)}) and exact rollback could not be verified: ${rollbackFailures.join("; ")}`,
+        true,
+        true
+      );
+    }
+    let recoveryRetained = error2 instanceof RecordingError && error2.recovery_retained;
+    if (recoveryRoot !== void 0) {
+      try {
+        await rm4(recoveryRoot, { recursive: true, force: true });
+      } catch {
+        recoveryRetained = true;
+      }
+    }
+    const code2 = error2 instanceof WorkstreamError || error2 instanceof RecordingError ? error2.code : "PCP_WORKSTREAM_TRANSACTION_FAILED";
+    throw new WorkstreamError(
+      code2,
+      error2 instanceof Error ? error2.message : String(error2),
+      false,
+      recoveryRetained
+    );
+  }
+}
+async function underLock(root, operation) {
+  try {
+    return await withContinuityLock(root, operation);
+  } catch (error2) {
+    if (error2 instanceof ContinuityLockError) {
+      throw new WorkstreamError(
+        "PCP_WORKSTREAM_LOCKED",
+        "Another actor registration or continuity operation is still running for this project."
+      );
+    }
+    throw error2;
+  }
+}
+async function validateWorkstreamRegistry(projectRoot, workstreamId) {
+  const root = path15.resolve(projectRoot);
+  return underLock(root, async () => {
+    await assertValidOperationalLayer2(root);
+    const loaded = await loadRegistry(root);
+    const workstream = workstreamId === void 0 ? null : loaded.registry.workstreams.find((item) => item.workstream_id === workstreamId) ?? void 0;
+    if (workstream === void 0) {
+      throw new WorkstreamError(
+        "PCP_WORKSTREAM_NOT_FOUND",
+        `Workstream ${workstreamId ?? ""} does not exist.`
+      );
+    }
+    return {
+      schema_version: 1,
+      command: "workstream",
+      operation: "validate",
+      status: "valid",
+      registry_path: WORKSTREAM_PATH2,
+      registry_digest: loaded.digest,
+      workstream_count: loaded.registry.workstreams.length,
+      workstream,
+      diagnostics: [],
+      event_created: false,
+      mutated: false
+    };
+  });
+}
+async function mutateWorkstream(projectRoot, operation, inputPath, options = {}) {
+  const root = path15.resolve(projectRoot);
+  const input = await loadWorkstreamInput(inputPath, root, operation);
+  return underLock(root, async () => {
+    await assertValidOperationalLayer2(root);
+    const loaded = await loadRegistry(root);
+    if (input.expected_registry_digest !== loaded.digest) {
+      throw new WorkstreamError(
+        "PCP_WORKSTREAM_REGISTRY_CHANGED",
+        "The workstream registry changed after this operation was prepared; validate and rebuild the input."
+      );
+    }
+    const prepared = prepareWorkstreamMutation(loaded.registry, input);
+    const schema4 = validateSchema("workstreams", prepared.registry);
+    if (!schema4.valid) {
+      throw new WorkstreamError(
+        "PCP_WORKSTREAM_STATE_INVALID",
+        "The requested workstream state fails its release schema."
+      );
+    }
+    assertRegistrySemantics(prepared.registry);
+    return executeMutation(
+      root,
+      loaded,
+      input,
+      prepared.registry,
+      prepared.workstream.workstream_id,
+      options
+    );
+  });
+}
+
+// src/application/register-actor.ts
+import { mkdir as mkdir4, open as open5, readFile as readFile14, readdir as readdir5, rm as rm5, unlink as unlink5 } from "node:fs/promises";
+import path16 from "node:path";
+
+// src/domain/registration.ts
+var ACTOR_TYPES = ["agent", "human"];
+var ACTOR_CLIENTS = [
+  "codex",
+  "antigravity",
+  "claude-code-desktop",
+  "github-copilot-vscode",
+  "cursor",
+  "human",
+  "other"
+];
+var RegistrationError = class extends Error {
+  constructor(code2, message, mutated = false) {
+    super(message);
+    this.code = code2;
+    this.mutated = mutated;
+    this.name = "RegistrationError";
+  }
+  code;
+  mutated;
+};
+var SLUG_PATTERN = /^[a-z0-9]+(?:-[a-z0-9]+)*$/u;
+var ACTOR_ID_PATTERN = /^[a-z0-9]+(?:-[a-z0-9]+)*-[0-9A-HJKMNP-TV-Z]{10}$/u;
+var nextExecutionId = monotonicFactory();
+function isActorType(value) {
+  return ACTOR_TYPES.some((candidate) => candidate === value);
+}
+function isActorClient(value) {
+  return ACTOR_CLIENTS.some((candidate) => candidate === value);
+}
+function normalizeMachineLabel(hostname2) {
+  const label = hostname2.normalize("NFKD").toLowerCase().replaceAll(/[^a-z0-9]+/gu, "-").replaceAll(/^-+|-+$/gu, "").slice(0, 128).replaceAll(/-+$/gu, "");
+  if (label.length === 0) {
+    throw new RegistrationError(
+      "PCP_REGISTRATION_MACHINE_LABEL_INVALID",
+      "The machine name cannot be converted to a PCP machine label; pass --machine-label."
+    );
+  }
+  return label;
+}
+function normalizeActorIdentity(input) {
+  const actorType = input.actor_type ?? "agent";
+  if (!isActorType(actorType)) {
+    throw new RegistrationError(
+      "PCP_REGISTRATION_ACTOR_TYPE_INVALID",
+      `Actor type must be one of: ${ACTOR_TYPES.join(", ")}.`
+    );
+  }
+  const client = input.client ?? (actorType === "human" ? "human" : void 0);
+  if (client === void 0) {
+    throw new RegistrationError(
+      "PCP_REGISTRATION_CLIENT_REQUIRED",
+      `Agent registration requires --client (${ACTOR_CLIENTS.filter((item) => item !== "human").join(", ")}).`
+    );
+  }
+  if (!isActorClient(client)) {
+    throw new RegistrationError(
+      "PCP_REGISTRATION_CLIENT_INVALID",
+      `Client must be one of: ${ACTOR_CLIENTS.join(", ")}.`
+    );
+  }
+  if (actorType === "human" && client !== "human") {
+    throw new RegistrationError(
+      "PCP_REGISTRATION_CLIENT_MISMATCH",
+      "Human registration must use the human client."
+    );
+  }
+  if (actorType === "agent" && client === "human") {
+    throw new RegistrationError(
+      "PCP_REGISTRATION_CLIENT_MISMATCH",
+      "Agent registration cannot use the human client."
+    );
+  }
+  if (!SLUG_PATTERN.test(input.machine_label) || input.machine_label.length > 128) {
+    throw new RegistrationError(
+      "PCP_REGISTRATION_MACHINE_LABEL_INVALID",
+      "Machine label must be a lowercase kebab-case slug with at most 128 characters."
+    );
+  }
+  if (input.actor_id !== void 0 && !ACTOR_ID_PATTERN.test(input.actor_id)) {
+    throw new RegistrationError(
+      "PCP_REGISTRATION_ACTOR_ID_INVALID",
+      "Actor ID must end in a 10-character uppercase Crockford suffix."
+    );
+  }
+  return {
+    actor_type: actorType,
+    client,
+    machine_label: input.machine_label,
+    ...input.actor_id === void 0 ? {} : { actor_id: input.actor_id }
+  };
+}
+function createActorId(identity) {
+  const actorLabel = identity.actor_type === "human" ? "human" : identity.client;
+  return `${actorLabel}-${identity.machine_label}-${ulid().slice(-10)}`;
+}
+function createExecutionId() {
+  return nextExecutionId();
+}
+function actorIdentityMatches(profile, identity) {
+  return profile.actor_type === identity.actor_type && profile.client === identity.client && profile.machine_label === identity.machine_label;
+}
+
+// src/application/register-actor.ts
+var ACTOR_DIRECTORY2 = ".pcp/continuity/actors";
+var CACHE_DIRECTORY = ".pcp/runtime/actors";
+function portablePath(value) {
+  return value.split(path16.sep).join("/");
+}
+function profileRelativePath(actorId) {
+  return `${ACTOR_DIRECTORY2}/${actorId}.yaml`;
+}
+function cacheRelativePath(identity) {
+  return `${CACHE_DIRECTORY}/${identity.actor_type}-${identity.client}-${identity.machine_label}.json`;
+}
+function validationSummary2(report) {
+  return report.diagnostics.slice(0, 3).map((diagnostic2) => `${diagnostic2.path}: ${diagnostic2.message}`).join("; ");
+}
+async function assertValidCanonicalLayer(projectRoot) {
+  const report = await validateCanonicalLayer(projectRoot, { archive_content: "filenames-only" });
+  if (report.valid) return;
+  const detail = validationSummary2(report);
+  throw new RegistrationError(
+    "PCP_REGISTRATION_INVALID_LAYER",
+    `Actor registration requires a valid installed PCP layer${detail.length === 0 ? "." : `: ${detail}`}`
+  );
+}
+async function readOptionalText(file) {
+  try {
+    return await readFile14(file, "utf8");
+  } catch (error2) {
+    if (error2.code === "ENOENT") return void 0;
+    throw error2;
+  }
+}
+function actorProfile(value, relativePath) {
+  const result = validateSchema("actor-profile", value);
+  if (!result.valid) {
+    throw new RegistrationError(
+      "PCP_REGISTRATION_INVALID_LAYER",
+      `Actor profile failed its release schema: ${relativePath}.`
+    );
+  }
+  return value;
+}
+async function loadActorProfiles(projectRoot) {
+  const actorRoot = path16.join(projectRoot, ...ACTOR_DIRECTORY2.split("/"));
+  const entries = await readdir5(actorRoot, { withFileTypes: true });
+  const profiles = [];
+  for (const entry of entries.sort((left, right) => left.name.localeCompare(right.name))) {
+    if (!entry.isFile() || !entry.name.endsWith(".yaml")) continue;
+    const relativePath = `${ACTOR_DIRECTORY2}/${entry.name}`;
+    const contents = await readFile14(path16.join(actorRoot, entry.name), "utf8");
+    let value;
+    try {
+      value = parse(contents);
+    } catch {
+      throw new RegistrationError(
+        "PCP_REGISTRATION_INVALID_LAYER",
+        `Actor profile is not valid YAML: ${relativePath}.`
+      );
+    }
+    profiles.push(actorProfile(value, relativePath));
+  }
+  return profiles;
+}
+function parseIdentityCache(contents, identity) {
+  let value;
+  try {
+    value = JSON.parse(contents);
+  } catch {
+    throw new RegistrationError(
+      "PCP_REGISTRATION_CACHE_INVALID",
+      "The local actor identity cache is not valid JSON."
+    );
+  }
+  if (typeof value !== "object" || value === null || Array.isArray(value)) {
+    throw new RegistrationError(
+      "PCP_REGISTRATION_CACHE_INVALID",
+      "The local actor identity cache must be an object."
+    );
+  }
+  const record = value;
+  const expectedKeys = ["actor_id", "actor_type", "client", "machine_label", "schema_version"];
+  if (JSON.stringify(Object.keys(record).sort()) !== JSON.stringify(expectedKeys)) {
+    throw new RegistrationError(
+      "PCP_REGISTRATION_CACHE_INVALID",
+      "The local actor identity cache has an unexpected shape."
+    );
+  }
+  let normalized;
+  try {
+    normalized = normalizeActorIdentity({
+      actor_type: typeof record.actor_type === "string" ? record.actor_type : "",
+      client: typeof record.client === "string" ? record.client : "",
+      machine_label: typeof record.machine_label === "string" ? record.machine_label : "",
+      actor_id: typeof record.actor_id === "string" ? record.actor_id : ""
+    });
+  } catch {
+    throw new RegistrationError(
+      "PCP_REGISTRATION_CACHE_INVALID",
+      "The local actor identity cache contains invalid identity fields."
+    );
+  }
+  if (record.schema_version !== 1 || !sameIdentity(normalized, identity)) {
+    throw new RegistrationError(
+      "PCP_REGISTRATION_CACHE_MISMATCH",
+      "The local actor identity cache does not match the requested client and machine."
+    );
+  }
+  if (normalized.actor_id === void 0) {
+    throw new RegistrationError(
+      "PCP_REGISTRATION_CACHE_INVALID",
+      "The local actor identity cache has no actor ID."
+    );
+  }
+  return {
+    schema_version: 1,
+    actor_id: normalized.actor_id,
+    actor_type: normalized.actor_type,
+    client: normalized.client,
+    machine_label: normalized.machine_label
+  };
+}
+function sameIdentity(left, right) {
+  return left.actor_type === right.actor_type && left.client === right.client && left.machine_label === right.machine_label;
+}
+async function createExclusiveFile(file, contents, onCreate) {
+  const handle = await open5(file, "wx");
+  try {
+    onCreate();
+    await handle.writeFile(contents, "utf8");
+    await handle.sync();
+  } finally {
+    await handle.close();
+  }
+}
+async function rollbackUnlink(file, failures) {
+  await unlink5(file).catch((error2) => {
+    if (error2.code !== "ENOENT") failures.push(error2);
+  });
+}
+async function rollbackCreatedPaths(input) {
+  const failures = [];
+  if (input.cache_path !== void 0) {
+    await rollbackUnlink(input.cache_path, failures);
+  }
+  if (input.profile_path !== void 0) {
+    await rollbackUnlink(input.profile_path, failures);
+  }
+  if (input.runtime_root !== void 0) {
+    await rm5(input.runtime_root, { recursive: true, force: true }).catch(
+      (error2) => failures.push(error2)
+    );
+  }
+  return failures.length === 0;
+}
+function cacheValue(profile) {
+  return {
+    schema_version: 1,
+    actor_id: profile.actor_id,
+    actor_type: profile.actor_type,
+    client: profile.client,
+    machine_label: profile.machine_label
+  };
+}
+async function withActorRegistrationLock(root, operation) {
+  try {
+    return await withContinuityLock(root, operation);
+  } catch (error2) {
+    if (error2 instanceof ContinuityLockError) {
+      throw new RegistrationError(
+        "PCP_REGISTRATION_LOCKED",
+        "Another actor registration or continuity operation is still running for this project."
+      );
+    }
+    throw error2;
+  }
+}
+async function registerActor(projectRoot, input) {
+  const root = path16.resolve(projectRoot);
+  const identity = normalizeActorIdentity(input);
+  const executionId = createExecutionId();
+  return withActorRegistrationLock(root, async () => {
+    let createdProfilePath;
+    let createdCachePath;
+    let createdRuntimeRoot;
+    try {
+      await assertValidCanonicalLayer(root);
+      const profiles = await loadActorProfiles(root);
+      const profilesById = new Map(profiles.map((profile) => [profile.actor_id, profile]));
+      const cachePath = path16.join(root, ...cacheRelativePath(identity).split("/"));
+      const cachedContents = await readOptionalText(cachePath);
+      let selected;
+      if (cachedContents !== void 0) {
+        const cached = parseIdentityCache(cachedContents, identity);
+        if (identity.actor_id !== void 0 && identity.actor_id !== cached.actor_id) {
+          throw new RegistrationError(
+            "PCP_REGISTRATION_CACHE_MISMATCH",
+            "The requested actor ID disagrees with the cached project identity."
+          );
+        }
+        selected = profilesById.get(cached.actor_id);
+        if (selected === void 0) {
+          throw new RegistrationError(
+            "PCP_REGISTRATION_STALE_CACHE",
+            "The cached actor profile is missing; restore or explicitly repair identity state."
+          );
+        }
+        if (!actorIdentityMatches(selected, identity)) {
+          throw new RegistrationError(
+            "PCP_REGISTRATION_CACHE_MISMATCH",
+            "The cached actor profile no longer matches its client and machine identity."
+          );
+        }
+      } else if (identity.actor_id !== void 0) {
+        selected = profilesById.get(identity.actor_id);
+        if (selected === void 0) {
+          throw new RegistrationError(
+            "PCP_REGISTRATION_ACTOR_NOT_FOUND",
+            "The requested actor profile does not exist in this project."
+          );
+        }
+        if (!actorIdentityMatches(selected, identity)) {
+          throw new RegistrationError(
+            "PCP_REGISTRATION_ACTOR_MISMATCH",
+            "The requested actor profile belongs to a different client or machine."
+          );
+        }
+      } else {
+        const matches = profiles.filter((profile) => actorIdentityMatches(profile, identity));
+        if (matches.length > 1) {
+          throw new RegistrationError(
+            "PCP_REGISTRATION_AMBIGUOUS",
+            "Multiple actor profiles match this client and machine; rerun with --actor-id."
+          );
+        }
+        selected = matches[0];
+      }
+      let profileCreated = false;
+      if (selected === void 0) {
+        selected = {
+          schema_version: 1,
+          actor_id: createActorId(identity),
+          actor_type: identity.actor_type,
+          client: identity.client,
+          machine_label: identity.machine_label,
+          first_seen: (/* @__PURE__ */ new Date()).toISOString(),
+          checkpoint_paths: []
+        };
+        const schemaResult = validateSchema("actor-profile", selected);
+        if (!schemaResult.valid) {
+          throw new RegistrationError(
+            "PCP_REGISTRATION_PROFILE_INVALID",
+            "The generated actor profile did not satisfy the release schema."
+          );
+        }
+        const newProfilePath = path16.join(
+          root,
+          ...profileRelativePath(selected.actor_id).split("/")
+        );
+        await createExclusiveFile(newProfilePath, stringify3(selected), () => {
+          createdProfilePath = newProfilePath;
+        });
+        profileCreated = true;
+        await assertValidCanonicalLayer(root);
+      }
+      let cacheCreated = false;
+      if (cachedContents === void 0) {
+        const cacheDirectory = path16.dirname(cachePath);
+        createdRuntimeRoot = await mkdir4(cacheDirectory, { recursive: true });
+        await createExclusiveFile(
+          cachePath,
+          `${JSON.stringify(cacheValue(selected), null, 2)}
+`,
+          () => {
+            createdCachePath = cachePath;
+          }
+        );
+        cacheCreated = true;
+      }
+      await assertValidCanonicalLayer(root);
+      return {
+        schema_version: 1,
+        command: "register",
+        status: profileCreated ? "created" : "recovered",
+        actor_id: selected.actor_id,
+        actor_type: selected.actor_type,
+        client: selected.client,
+        machine_label: selected.machine_label,
+        profile_path: portablePath(profileRelativePath(selected.actor_id)),
+        execution_id: executionId,
+        profile_created: profileCreated,
+        cache_created: cacheCreated,
+        event_created: false,
+        mutated: profileCreated || cacheCreated
+      };
+    } catch (error2) {
+      const rolledBack = await rollbackCreatedPaths({
+        ...createdCachePath === void 0 ? {} : { cache_path: createdCachePath },
+        ...createdProfilePath === void 0 ? {} : { profile_path: createdProfilePath },
+        ...createdRuntimeRoot === void 0 ? {} : { runtime_root: createdRuntimeRoot }
+      });
+      if (!rolledBack) {
+        throw new RegistrationError(
+          "PCP_REGISTRATION_ROLLBACK_FAILED",
+          "Actor registration failed and its new files could not be fully removed.",
+          true
+        );
+      }
+      if (error2 instanceof RegistrationError) {
+        throw new RegistrationError(error2.code, error2.message, false);
+      }
+      throw new RegistrationError(
+        "PCP_REGISTRATION_FAILED",
+        error2 instanceof Error ? error2.message : String(error2),
+        false
+      );
+    }
+  });
+}
+
+// src/application/report-status.ts
+import { randomUUID as randomUUID4 } from "node:crypto";
+import { lstat as lstat8, mkdir as mkdir5, open as open6, readFile as readFile15, readdir as readdir6, rename as rename4, unlink as unlink6 } from "node:fs/promises";
+import path17 from "node:path";
+
+// src/domain/reconciliation.ts
+var ReconciliationError = class extends Error {
+  constructor(code2, message, mutated = false) {
+    super(message);
+    this.code = code2;
+    this.mutated = mutated;
+    this.name = "ReconciliationError";
+  }
+  code;
+  mutated;
+};
+var SLUG_PATTERN2 = /^[a-z0-9]+(?:-[a-z0-9]+)*$/u;
+var SHARED_SCOPE_REASONS = /* @__PURE__ */ new Map([
+  ["protocol", "shared-protocol"],
+  ["policy", "shared-policy"],
+  ["shared-policy", "shared-policy"],
+  ["operations", "shared-policy"],
+  ["project-registry", "project-registry"],
+  ["workstream-registry", "workstream-registry"],
+  ["registry", "shared-project-state"],
+  ["project-state", "shared-project-state"],
+  ["shared", "shared-project-state"]
+]);
+var REASON_ORDER = [
+  "global",
+  "active-workstream",
+  "dependency-workstream",
+  "scope",
+  "path-overlap",
+  "shared-protocol",
+  "shared-policy",
+  "project-registry",
+  "workstream-registry",
+  "shared-project-state"
+];
+function sortedUnique(values) {
+  return [...new Set(values)].sort((left, right) => left.localeCompare(right));
+}
+function assertSlug(value, field) {
+  if (!SLUG_PATTERN2.test(value) || value.length > 128) {
+    throw new ReconciliationError(
+      "PCP_STATUS_SCOPE_INVALID",
+      `${field} must be a lowercase kebab-case slug with at most 128 characters.`
+    );
+  }
+}
+function assertPortablePath(value) {
+  const segments = value.split("/");
+  if (value.length === 0 || value.length > 1024 || value.startsWith("/") || /^[A-Za-z]:/u.test(value) || value.includes("\\") || value.includes("//") || segments.includes("..") || value !== "." && (segments.includes(".") || value.endsWith("/"))) {
+    throw new ReconciliationError(
+      "PCP_STATUS_PATH_INVALID",
+      `Status paths must be portable project-relative paths: ${value || "<empty>"}.`
+    );
+  }
+}
+function normalizedSlugs(values, field) {
+  for (const value of values ?? []) assertSlug(value, field);
+  return sortedUnique(values ?? []);
+}
+function normalizedPaths(values) {
+  for (const value of values ?? []) assertPortablePath(value);
+  return sortedUnique(values ?? []);
+}
+function resolveReconciliationSelection(workstreams, input) {
+  const requestedWorkstream = input.workstream_id;
+  if (requestedWorkstream !== void 0) assertSlug(requestedWorkstream, "Workstream ID");
+  const byId = new Map(workstreams.map((workstream) => [workstream.workstream_id, workstream]));
+  const selectedIds = /* @__PURE__ */ new Set();
+  const dependencies = /* @__PURE__ */ new Set();
+  if (requestedWorkstream !== void 0) {
+    if (!byId.has(requestedWorkstream)) {
+      throw new ReconciliationError(
+        "PCP_STATUS_WORKSTREAM_NOT_FOUND",
+        `Workstream ${requestedWorkstream} does not exist.`
+      );
+    }
+    const visit3 = (workstreamId) => {
+      if (selectedIds.has(workstreamId)) return;
+      selectedIds.add(workstreamId);
+      const workstream = byId.get(workstreamId);
+      if (workstream === void 0) {
+        throw new ReconciliationError(
+          "PCP_STATUS_INVALID_LAYER",
+          `Workstream ${workstreamId} has an unknown dependency.`
+        );
+      }
+      for (const dependency of workstream.dependencies) {
+        dependencies.add(dependency);
+        visit3(dependency);
+      }
+    };
+    visit3(requestedWorkstream);
+    dependencies.delete(requestedWorkstream);
+  }
+  const selectedWorkstreams = [...selectedIds].map((id) => byId.get(id)).filter((workstream) => workstream !== void 0);
+  const scopes = normalizedSlugs(
+    [...input.scopes ?? [], ...selectedWorkstreams.flatMap((item) => item.areas)],
+    "Scope"
+  );
+  const paths = normalizedPaths([
+    ...input.paths ?? [],
+    ...selectedWorkstreams.flatMap((item) => item.paths)
+  ]);
+  return {
+    workstream_id: requestedWorkstream ?? null,
+    workstreams: sortedUnique(selectedIds),
+    dependencies: sortedUnique(dependencies),
+    scopes,
+    paths,
+    global: requestedWorkstream === void 0 && scopes.length === 0 && paths.length === 0
+  };
+}
+function withoutLayerPrefix(value) {
+  return value.startsWith(".pcp/") ? value.slice(".pcp/".length) : value;
+}
+function wildcardRoot(value) {
+  const wildcard = value.search(/[*?[]/u);
+  const root = wildcard === -1 ? value : value.slice(0, wildcard);
+  return root.replace(/\/+$/u, "") || ".";
+}
+function pathsOverlap(left, right) {
+  const leftRoot = wildcardRoot(left);
+  const rightRoot = wildcardRoot(right);
+  return leftRoot === "." || rightRoot === "." || leftRoot === rightRoot || leftRoot.startsWith(`${rightRoot}/`) || rightRoot.startsWith(`${leftRoot}/`);
+}
+function sharedPathReason(value) {
+  const relative = withoutLayerPrefix(value);
+  if (relative === "pcp.yaml" || relative === "protocol" || relative.startsWith("protocol/")) {
+    return "shared-protocol";
+  }
+  if (relative === "state/vcs-policy.yaml" || relative === "operations" || relative.startsWith("operations/")) {
+    return "shared-policy";
+  }
+  if (relative === "state/projects.yaml") return "project-registry";
+  if (relative === "state/workstreams.yaml") return "workstream-registry";
+  if (relative === "state/project.yaml") return "shared-project-state";
+  return void 0;
+}
+function classifyEventRelevance(event, selection) {
+  const reasons = /* @__PURE__ */ new Set();
+  if (selection.global) reasons.add("global");
+  for (const workstream of event.workstreams) {
+    if (workstream === selection.workstream_id) reasons.add("active-workstream");
+    if (selection.dependencies.includes(workstream)) reasons.add("dependency-workstream");
+  }
+  if (event.scopes.some((scope) => selection.scopes.includes(scope))) reasons.add("scope");
+  if (event.affected_paths.some(
+    (affectedPath) => selection.paths.some((selectedPath) => pathsOverlap(affectedPath, selectedPath))
+  )) {
+    reasons.add("path-overlap");
+  }
+  for (const scope of event.scopes) {
+    const reason = SHARED_SCOPE_REASONS.get(scope);
+    if (reason !== void 0) reasons.add(reason);
+  }
+  for (const affectedPath of event.affected_paths) {
+    const reason = sharedPathReason(affectedPath);
+    if (reason !== void 0) reasons.add(reason);
+  }
+  const ordered = REASON_ORDER.filter((reason) => reasons.has(reason));
+  return { relevant: ordered.length > 0, reasons: ordered };
+}
+function checkpointIdentity(checkpoint) {
+  return JSON.stringify({
+    actor_id: checkpoint.actor_id,
+    workstream_id: checkpoint.workstream_id,
+    scopes: sortedUnique(checkpoint.scopes),
+    paths: sortedUnique(checkpoint.paths),
+    dependencies: sortedUnique(checkpoint.dependencies)
+  });
+}
+function baselineContextPaths(selection) {
+  return sortedUnique([
+    ".pcp/pcp.yaml",
+    ".pcp/protocol/00-index.md",
+    ".pcp/knowledge/00-index.md",
+    ".pcp/operations/00-index.md",
+    ".pcp/state/project.yaml",
+    ".pcp/state/projects.yaml",
+    ".pcp/state/workstreams.yaml",
+    ".pcp/state/vcs-policy.yaml",
+    ...selection.paths
+  ]);
+}
+function reconciliationDigest(value) {
+  return sha256(JSON.stringify(value));
+}
+
+// src/application/report-status.ts
+var ACTOR_DIRECTORY3 = "continuity/actors";
+var ACTIVE_EVENT_DIRECTORY2 = "continuity/events";
+var ARCHIVE_EVENT_DIRECTORY2 = "continuity/archive";
+var CHECKPOINT_DIRECTORY = "continuity/checkpoints";
+var ULID_PATTERN = /^[0-7][0-9A-HJKMNP-TV-Z]{25}$/u;
+function statusError(code2, message) {
+  return new ReconciliationError(code2, message);
+}
+function layerPath(relativePath) {
+  return `.pcp/${relativePath}`;
+}
+async function assertNoSymlinkFromLayer(layerRoot, target) {
+  let current = target;
+  while (true) {
+    const metadata = await lstat8(current);
+    if (metadata.isSymbolicLink()) throw new Error("path has a symbolic-link boundary");
+    if (current === layerRoot) return;
+    current = path17.dirname(current);
+  }
+}
+function parseYaml(contents, relativePath) {
+  const document = parseDocument(contents, { prettyErrors: false, uniqueKeys: true });
+  if (document.errors.length > 0) {
+    throw statusError(
+      "PCP_STATUS_INVALID_LAYER",
+      `${layerPath(relativePath)} is not valid YAML: ${document.errors[0]?.message ?? "parse failure"}`
+    );
+  }
+  try {
+    return document.toJS({ maxAliasCount: 50 });
+  } catch (error2) {
+    throw statusError(
+      "PCP_STATUS_INVALID_LAYER",
+      `${layerPath(relativePath)} cannot be decoded safely: ${error2 instanceof Error ? error2.message : String(error2)}`
+    );
+  }
+}
+async function readSchemaFile(layerRoot, relativePath, schema4) {
+  const absolutePath = path17.join(layerRoot, ...relativePath.split("/"));
+  let contents;
+  try {
+    await assertNoSymlinkFromLayer(layerRoot, absolutePath);
+    const metadata = await lstat8(absolutePath);
+    if (!metadata.isFile() || metadata.isSymbolicLink()) {
+      throw new Error("path is not a regular file");
+    }
+    contents = await readFile15(absolutePath, "utf8");
+  } catch (error2) {
+    throw statusError(
+      "PCP_STATUS_INVALID_LAYER",
+      `Cannot read required PCP state ${layerPath(relativePath)}: ${error2 instanceof Error ? error2.message : String(error2)}`
+    );
+  }
+  const value = parseYaml(contents, relativePath);
+  const result = validateSchema(schema4, value);
+  if (!result.valid) {
+    const detail = result.diagnostics.slice(0, 3).map((diagnostic2) => `${diagnostic2.path} ${diagnostic2.message}`).join("; ");
+    throw statusError(
+      "PCP_STATUS_INVALID_LAYER",
+      `${layerPath(relativePath)} fails the ${schema4} schema: ${detail}`
+    );
+  }
+  return { path: relativePath, value, contents };
+}
+async function readSchemaDirectory(layerRoot, relativeDirectory, schema4) {
+  const absoluteDirectory = path17.join(layerRoot, ...relativeDirectory.split("/"));
+  let entries;
+  try {
+    await assertNoSymlinkFromLayer(layerRoot, absoluteDirectory);
+    const metadata = await lstat8(absoluteDirectory);
+    if (!metadata.isDirectory() || metadata.isSymbolicLink()) {
+      throw new Error("path is not a regular directory");
+    }
+    entries = await readdir6(absoluteDirectory, { withFileTypes: true });
+  } catch (error2) {
+    throw statusError(
+      "PCP_STATUS_INVALID_LAYER",
+      `Cannot read required PCP directory ${layerPath(relativeDirectory)}: ${error2 instanceof Error ? error2.message : String(error2)}`
+    );
+  }
+  const records = [];
+  for (const entry of entries.sort((left, right) => left.name.localeCompare(right.name))) {
+    if (entry.isSymbolicLink()) {
+      throw statusError(
+        "PCP_STATUS_INVALID_LAYER",
+        `Symlinks are not allowed in ${layerPath(relativeDirectory)}.`
+      );
+    }
+    if (!entry.isFile()) continue;
+    if (entry.name.endsWith(".yml")) {
+      throw statusError(
+        "PCP_STATUS_INVALID_LAYER",
+        `${layerPath(`${relativeDirectory}/${entry.name}`)} must use the canonical .yaml suffix.`
+      );
+    }
+    if (!entry.name.endsWith(".yaml")) continue;
+    records.push(await readSchemaFile(layerRoot, `${relativeDirectory}/${entry.name}`, schema4));
+  }
+  return records;
+}
+async function listArchiveEventIds(layerRoot) {
+  const absoluteDirectory = path17.join(layerRoot, ...ARCHIVE_EVENT_DIRECTORY2.split("/"));
+  let entries;
+  try {
+    await assertNoSymlinkFromLayer(layerRoot, absoluteDirectory);
+    const metadata = await lstat8(absoluteDirectory);
+    if (!metadata.isDirectory() || metadata.isSymbolicLink()) {
+      throw new Error("path is not a regular directory");
+    }
+    entries = await readdir6(absoluteDirectory, { withFileTypes: true });
+  } catch (error2) {
+    throw statusError(
+      "PCP_STATUS_INVALID_LAYER",
+      `Cannot inspect ${layerPath(ARCHIVE_EVENT_DIRECTORY2)}: ${error2 instanceof Error ? error2.message : String(error2)}`
+    );
+  }
+  const ids = [];
+  for (const entry of entries.sort((left, right) => left.name.localeCompare(right.name))) {
+    if (entry.isSymbolicLink()) {
+      throw statusError(
+        "PCP_STATUS_INVALID_LAYER",
+        `Symlinks are not allowed in ${layerPath(ARCHIVE_EVENT_DIRECTORY2)}.`
+      );
+    }
+    if (!entry.isFile()) continue;
+    if (entry.name.endsWith(".yml")) {
+      throw statusError(
+        "PCP_STATUS_INVALID_LAYER",
+        `${layerPath(`${ARCHIVE_EVENT_DIRECTORY2}/${entry.name}`)} must use the canonical .yaml suffix.`
+      );
+    }
+    if (!entry.name.endsWith(".yaml")) continue;
+    const eventId = entry.name.slice(0, -".yaml".length);
+    if (!ULID_PATTERN.test(eventId)) {
+      throw statusError(
+        "PCP_STATUS_INVALID_LAYER",
+        `Archived event filename must be a ULID: ${layerPath(`${ARCHIVE_EVENT_DIRECTORY2}/${entry.name}`)}.`
+      );
+    }
+    ids.push(eventId);
+  }
+  return ids;
+}
+function semanticFailure(records) {
+  const diagnostics = validateCanonicalSemantics(records);
+  if (diagnostics.length === 0) return;
+  if (diagnostics.some((diagnostic2) => diagnostic2.code === "checkpoint.duplicate-scope")) {
+    throw statusError(
+      "PCP_STATUS_CHECKPOINT_AMBIGUOUS",
+      "Multiple checkpoints claim the same actor and scoped reconciliation identity."
+    );
+  }
+  const detail = diagnostics.slice(0, 3).map((diagnostic2) => `${layerPath(diagnostic2.path)}: ${diagnostic2.message}`).join("; ");
+  throw statusError("PCP_STATUS_INVALID_LAYER", `PCP continuity state is inconsistent: ${detail}`);
+}
+async function loadOperationalContinuityState(root) {
+  const layerRoot = path17.join(root, ".pcp");
+  const [
+    manifest,
+    project,
+    projectRegistry,
+    workstreamRegistry,
+    vcsPolicy,
+    actors,
+    activeEvents,
+    checkpoints,
+    archiveEventIds
+  ] = await Promise.all([
+    readSchemaFile(layerRoot, "pcp.yaml", "pcp-manifest"),
+    readSchemaFile(layerRoot, "state/project.yaml", "project"),
+    readSchemaFile(layerRoot, "state/projects.yaml", "project-registry"),
+    readSchemaFile(layerRoot, "state/workstreams.yaml", "workstreams"),
+    readSchemaFile(layerRoot, "state/vcs-policy.yaml", "vcs-policy"),
+    readSchemaDirectory(layerRoot, ACTOR_DIRECTORY3, "actor-profile"),
+    readSchemaDirectory(layerRoot, ACTIVE_EVENT_DIRECTORY2, "event"),
+    readSchemaDirectory(layerRoot, CHECKPOINT_DIRECTORY, "checkpoint"),
+    listArchiveEventIds(layerRoot)
+  ]);
+  const archiveStubs = archiveEventIds.map((eventId) => ({
+    path: `${ARCHIVE_EVENT_DIRECTORY2}/${eventId}.yaml`,
+    value: { event_id: eventId }
+  }));
+  semanticFailure({
+    project,
+    project_registry: projectRegistry,
+    workstreams: workstreamRegistry,
+    vcs_policy: vcsPolicy,
+    actors,
+    events: [...activeEvents, ...archiveStubs],
+    checkpoints
+  });
+  if (activeEvents.length > manifest.value.continuity.active_event_limit) {
+    throw statusError(
+      "PCP_STATUS_INVALID_LAYER",
+      `Active event count ${activeEvents.length} exceeds the configured limit ${manifest.value.continuity.active_event_limit}.`
+    );
+  }
+  return {
+    manifest: manifest.value,
+    actors,
+    workstreams: workstreamRegistry.value.workstreams,
+    active_events: activeEvents.sort(
+      (left, right) => left.value.event_id.localeCompare(right.value.event_id)
+    ),
+    archive_event_ids: archiveEventIds.sort((left, right) => left.localeCompare(right)),
+    checkpoints
+  };
+}
+function change(event, relevanceReasons) {
+  return {
+    event_id: event.event_id,
+    occurred_at: event.occurred_at,
+    kind: event.kind,
+    summary: event.summary,
+    scopes: [...event.scopes].sort(),
+    workstreams: [...event.workstreams].sort(),
+    affected_paths: [...event.affected_paths].sort(),
+    relevance_reasons: relevanceReasons
+  };
+}
+function uniquePaths(values) {
+  return [...new Set(values)].sort((left, right) => left.localeCompare(right));
+}
+function findCheckpoint(state, actorId, selection) {
+  const identity = checkpointIdentity({
+    actor_id: actorId,
+    workstream_id: selection.workstream_id,
+    scopes: selection.scopes,
+    paths: selection.paths,
+    dependencies: selection.dependencies
+  });
+  const matches = state.checkpoints.filter(
+    (checkpoint) => checkpointIdentity(checkpoint.value) === identity
+  );
+  if (matches.length > 1) {
+    throw statusError(
+      "PCP_STATUS_CHECKPOINT_AMBIGUOUS",
+      "Multiple checkpoints claim the same actor and scoped reconciliation identity."
+    );
+  }
+  return matches[0];
+}
+function initialCheckpointState(checkpoint, activeFloor, hasArchivedEvents, newerEventCount) {
+  if (checkpoint === void 0) return "missing";
+  if (activeFloor !== null && (checkpoint.value.last_event_id === null && hasArchivedEvents || checkpoint.value.last_event_id !== null && checkpoint.value.last_event_id < activeFloor)) {
+    return "behind-active-floor";
+  }
+  return newerEventCount > 0 ? "changes-pending" : "current";
+}
+function previewStatus(state, input) {
+  const actorMatches = state.actors.filter((record) => record.value.actor_id === input.actor_id);
+  if (actorMatches.length === 0) {
+    throw statusError(
+      "PCP_STATUS_ACTOR_NOT_FOUND",
+      `Actor ${input.actor_id || "<empty>"} is not registered in this project.`
+    );
+  }
+  const actor = actorMatches[0];
+  if (actor.value.actor_type !== "agent") {
+    throw statusError(
+      "PCP_STATUS_AGENT_REQUIRED",
+      "Scoped checkpoints are available to agents only."
+    );
+  }
+  const selection = resolveReconciliationSelection(state.workstreams, {
+    ...input.workstream_id === void 0 ? {} : { workstream_id: input.workstream_id },
+    ...input.scopes === void 0 ? {} : { scopes: input.scopes },
+    ...input.paths === void 0 ? {} : { paths: input.paths }
+  });
+  const checkpoint = findCheckpoint(state, input.actor_id, selection);
+  const activeFloor = state.active_events[0]?.value.event_id ?? null;
+  const newestActive = state.active_events.at(-1)?.value.event_id ?? null;
+  const checkpointLast = checkpoint?.value.last_event_id ?? null;
+  const beforeFloor = checkpoint !== void 0 && activeFloor !== null && (checkpointLast === null && state.archive_event_ids.length > 0 || checkpointLast !== null && checkpointLast < activeFloor);
+  const newerEvents = state.active_events.map((record) => record.value).filter(
+    (event) => checkpoint === void 0 || beforeFloor || checkpointLast === null || event.event_id > checkpointLast
+  );
+  const checkpointState = initialCheckpointState(
+    checkpoint,
+    activeFloor,
+    state.archive_event_ids.length > 0,
+    newerEvents.length
+  );
+  const baselineRequired = checkpointState === "missing" || checkpointState === "behind-active-floor";
+  const baselineReason = checkpointState === "missing" ? "first-scope-baseline" : checkpointState === "behind-active-floor" ? "checkpoint-before-active-floor" : null;
+  const relevantChanges = [];
+  const outOfScopeChanges = [];
+  for (const event of newerEvents) {
+    const classification = classifyEventRelevance(event, selection);
+    const item = change(event, classification.reasons);
+    (classification.relevant ? relevantChanges : outOfScopeChanges).push(item);
+  }
+  const baselinePaths = baselineRequired ? baselineContextPaths(selection) : [];
+  const requiredContextPaths = uniquePaths([
+    ...baselinePaths,
+    ...relevantChanges.flatMap((item) => item.affected_paths)
+  ]);
+  const acknowledgementRequired = baselineRequired || newerEvents.length > 0;
+  const digestPayload = {
+    schema_version: 1,
+    actor_id: input.actor_id,
+    selection,
+    checkpoint: checkpoint === void 0 ? null : {
+      checkpoint_id: checkpoint.value.checkpoint_id,
+      last_event_id: checkpoint.value.last_event_id,
+      reconciled_at: checkpoint.value.reconciled_at
+    },
+    checkpoint_state: checkpointState,
+    active_floor_event_id: activeFloor,
+    newest_active_event_id: newestActive,
+    baseline: {
+      required: baselineRequired,
+      reason: baselineReason,
+      context_paths: baselinePaths
+    },
+    relevant_changes: relevantChanges,
+    out_of_scope_changes: outOfScopeChanges
+  };
+  return {
+    result: {
+      schema_version: 1,
+      command: "status",
+      mode: "preview",
+      actor_id: input.actor_id,
+      selection,
+      checkpoint: {
+        state: checkpointState,
+        previous_state: null,
+        checkpoint_id: checkpoint?.value.checkpoint_id ?? null,
+        checkpoint_path: checkpoint === void 0 ? null : layerPath(checkpoint.path),
+        last_event_id: checkpointLast,
+        active_floor_event_id: activeFloor,
+        newest_active_event_id: newestActive
+      },
+      baseline: {
+        required: baselineRequired,
+        reason: baselineReason,
+        context_paths: baselinePaths
+      },
+      relevant_changes: relevantChanges,
+      out_of_scope_changes: outOfScopeChanges,
+      required_context_paths: requiredContextPaths,
+      status_digest: reconciliationDigest(digestPayload),
+      acknowledgement: { required: acknowledgementRequired, accepted: false },
+      event_created: false,
+      mutated: false
+    },
+    ...checkpoint === void 0 ? {} : { checkpoint },
+    target_last_event_id: newestActive
+  };
+}
+async function fileContentsOrUndefined(file) {
+  try {
+    return await readFile15(file, "utf8");
+  } catch (error2) {
+    if (error2.code === "ENOENT") return void 0;
+    throw error2;
+  }
+}
+async function writeDurableFile2(file, contents) {
+  const handle = await open6(file, "wx");
+  try {
+    await handle.writeFile(contents, "utf8");
+    await handle.sync();
+  } finally {
+    await handle.close();
+  }
+}
+async function writeCheckpoint(root, checkpoint, existing) {
+  const result = validateSchema("checkpoint", checkpoint);
+  if (!result.valid) {
+    throw statusError(
+      "PCP_STATUS_CHECKPOINT_INVALID",
+      "The generated reconciliation checkpoint failed its release schema."
+    );
+  }
+  const relativePath = `${CHECKPOINT_DIRECTORY}/${checkpoint.checkpoint_id}.yaml`;
+  const directory = path17.join(root, ".pcp", ...CHECKPOINT_DIRECTORY.split("/"));
+  const target = path17.join(root, ".pcp", ...relativePath.split("/"));
+  await mkdir5(directory, { recursive: true });
+  if (existing !== void 0) {
+    const current = await fileContentsOrUndefined(target);
+    if (current !== existing.contents) {
+      throw statusError(
+        "PCP_STATUS_SOURCE_CHANGED",
+        "The scoped checkpoint changed after status was recomputed."
+      );
+    }
+  } else if (await fileContentsOrUndefined(target) !== void 0) {
+    throw statusError(
+      "PCP_STATUS_SOURCE_CHANGED",
+      "A checkpoint with the generated identity appeared before acknowledgement."
+    );
+  }
+  const contents = stringify3(checkpoint);
+  const temporary = path17.join(directory, `.${checkpoint.checkpoint_id}.${randomUUID4()}.tmp`);
+  const previous = `${temporary}.previous`;
+  await writeDurableFile2(temporary, contents);
+  let previousHeld = false;
+  let replacementInstalled = false;
+  try {
+    if (existing === void 0) {
+      await rename4(temporary, target);
+      return layerPath(relativePath);
+    }
+    try {
+      await rename4(temporary, target);
+      return layerPath(relativePath);
+    } catch (error2) {
+      const code2 = error2.code;
+      if (code2 !== "EEXIST" && code2 !== "EPERM") throw error2;
+    }
+    await rename4(target, previous);
+    previousHeld = true;
+    await rename4(temporary, target);
+    replacementInstalled = true;
+    if (previousHeld) {
+      await unlink6(previous);
+      previousHeld = false;
+    }
+    return layerPath(relativePath);
+  } catch (error2) {
+    const rollbackFailures = [];
+    if (replacementInstalled) {
+      await unlink6(target).catch((rollbackError) => rollbackFailures.push(rollbackError));
+    }
+    if (previousHeld) {
+      await rename4(previous, target).catch(
+        (rollbackError) => rollbackFailures.push(rollbackError)
+      );
+    }
+    if (rollbackFailures.length > 0) {
+      throw new ReconciliationError(
+        "PCP_STATUS_ROLLBACK_FAILED",
+        `Checkpoint acknowledgement failed (${error2 instanceof Error ? error2.message : String(error2)}) and its prior state could not be restored.`,
+        true
+      );
+    }
+    throw error2;
+  } finally {
+    await unlink6(temporary).catch((error2) => {
+      if (error2.code !== "ENOENT") throw error2;
+    });
+  }
+}
+async function reportStatusLocked(root, input) {
+  const state = await loadOperationalContinuityState(root);
+  const preview = previewStatus(state, input);
+  if (input.acknowledge === void 0) return preview.result;
+  if (input.acknowledge !== preview.result.status_digest) {
+    throw statusError(
+      "PCP_STATUS_DIGEST_MISMATCH",
+      "Status changed or the acknowledgement digest is incorrect; review a fresh preview."
+    );
+  }
+  if (!preview.result.acknowledgement.required) {
+    return {
+      ...preview.result,
+      mode: "acknowledge",
+      checkpoint: {
+        ...preview.result.checkpoint,
+        previous_state: preview.result.checkpoint.state
+      },
+      acknowledgement: { required: false, accepted: true }
+    };
+  }
+  const checkpoint = {
+    schema_version: 1,
+    checkpoint_id: preview.checkpoint?.value.checkpoint_id ?? ulid(),
+    actor_id: input.actor_id,
+    workstream_id: preview.result.selection.workstream_id,
+    last_event_id: preview.target_last_event_id,
+    reconciled_at: (/* @__PURE__ */ new Date()).toISOString(),
+    scopes: preview.result.selection.scopes,
+    paths: preview.result.selection.paths,
+    dependencies: preview.result.selection.dependencies
+  };
+  const checkpointPath = await writeCheckpoint(root, checkpoint, preview.checkpoint);
+  return {
+    ...preview.result,
+    mode: "acknowledge",
+    checkpoint: {
+      ...preview.result.checkpoint,
+      state: "current",
+      previous_state: preview.result.checkpoint.state,
+      checkpoint_id: checkpoint.checkpoint_id,
+      checkpoint_path: checkpointPath,
+      last_event_id: checkpoint.last_event_id
+    },
+    acknowledgement: { required: true, accepted: true },
+    mutated: true
+  };
+}
+async function reportStatus(projectRoot, input) {
+  const root = path17.resolve(projectRoot);
+  try {
+    return await withContinuityLock(root, () => reportStatusLocked(root, input));
+  } catch (error2) {
+    if (error2 instanceof ContinuityLockError) {
+      throw statusError(
+        "PCP_STATUS_LOCKED",
+        "Another actor registration or continuity operation is still running for this project."
+      );
+    }
+    if (error2 instanceof ReconciliationError) throw error2;
+    throw statusError("PCP_STATUS_FAILED", error2 instanceof Error ? error2.message : String(error2));
+  }
+}
+
 // src/domain/release.ts
 var PCP_NAME = "Persistent Context Protocol";
 var PCP_VERSION = "0.1.0";
-var PCP_RELEASE_STAGE = "state-c-translation-preview";
+var PCP_RELEASE_STAGE = "workstream-operations";
 var PCP_COMMANDS = [
   "inspect",
   "adopt",
@@ -23998,10 +26944,10 @@ function formatAdoption(result) {
     }
     output += line("Operations:");
     for (const operation of result.plan.operations) {
-      const digest = operation.content_digest === void 0 ? "" : ` sha256:${operation.content_digest}`;
+      const digest2 = operation.content_digest === void 0 ? "" : ` sha256:${operation.content_digest}`;
       const source = operation.source_path === void 0 ? "" : ` from:${operation.source_path}`;
       output += line(
-        `- ${operation.operation_id} ${operation.action} ${operation.path}${source}${digest}`
+        `- ${operation.operation_id} ${operation.action} ${operation.path}${source}${digest2}`
       );
     }
     output += line(`Validations: ${result.plan.validations.join(", ")}`);
@@ -24080,6 +27026,82 @@ function formatInspection(result) {
 `;
 }
 
+// src/presentation/format-recording.ts
+function formatRecording(result) {
+  return [
+    `Recorded event ${result.event_id}.`,
+    `Summary: ${result.summary}`,
+    `Path: ${result.event_path}`,
+    `Payload digest: ${result.payload_digest}`,
+    `Active events: ${result.active_events}`,
+    `Archived in this operation: ${result.archived_events_moved}`,
+    ""
+  ].join("\n");
+}
+
+// src/presentation/format-registration.ts
+function formatRegistration(result) {
+  const verb = result.status === "created" ? "Created" : "Recovered";
+  return [
+    `${verb} actor ${result.actor_id}.`,
+    `Execution: ${result.execution_id}`,
+    `Profile: ${result.profile_path}`,
+    "Continuity event: none",
+    ""
+  ].join("\n");
+}
+
+// src/presentation/format-status.ts
+function countLabel(count, singular) {
+  return `${count} ${singular}${count === 1 ? "" : "s"}`;
+}
+function formatStatus(result) {
+  const lines = [
+    `PCP status for ${result.actor_id}`,
+    `Checkpoint: ${result.checkpoint.state}`,
+    `Relevant: ${countLabel(result.relevant_changes.length, "change")}`,
+    `Out of scope: ${countLabel(result.out_of_scope_changes.length, "change")}`
+  ];
+  if (result.baseline.required) {
+    lines.push(`Baseline required: ${result.baseline.context_paths.join(", ")}`);
+  } else if (result.required_context_paths.length > 0) {
+    lines.push(`Read current state: ${result.required_context_paths.join(", ")}`);
+  }
+  if (result.mode === "acknowledge") {
+    lines.push(
+      result.mutated ? `Acknowledged ${result.status_digest}; checkpoint advanced.` : `Acknowledged ${result.status_digest}; checkpoint was already current.`
+    );
+  } else if (result.acknowledgement.required) {
+    lines.push(`After absorbing this context, acknowledge digest ${result.status_digest}.`);
+  } else {
+    lines.push("No acknowledgement is needed.");
+  }
+  return `${lines.join("\n")}
+`;
+}
+
+// src/presentation/format-workstream.ts
+function formatWorkstream(result) {
+  if (result.operation === "validate") {
+    return [
+      `Validated ${result.workstream_count} workstream${result.workstream_count === 1 ? "" : "s"}.`,
+      `Registry digest: ${result.registry_digest}`,
+      ...result.workstream === null ? [] : [
+        `Selected: ${result.workstream.workstream_id} (${result.workstream.status}, ${result.workstream.kind})`
+      ],
+      ""
+    ].join("\n");
+  }
+  return [
+    `${result.status[0]?.toUpperCase()}${result.status.slice(1)} workstream ${result.workstream_id}.`,
+    `Event: ${result.event_id}`,
+    `Registry digest: ${result.registry_digest_after}`,
+    ...result.announcement === null ? [] : [`Announcement: ${result.announcement}`],
+    ...result.recovery_retained ? ["Warning: recovery material was retained."] : [],
+    ""
+  ].join("\n");
+}
+
 // src/cli/main.ts
 var commandDescriptions = {
   inspect: "Inspect and classify a candidate project without mutation",
@@ -24123,6 +27145,44 @@ function reportAdoptionError(error2) {
   );
   process.exitCode = 2;
 }
+function reportRegistrationError(error2) {
+  const code2 = error2 instanceof RegistrationError ? error2.code : "PCP_REGISTRATION_FAILED";
+  const message = error2 instanceof Error ? error2.message : String(error2);
+  const mutated = error2 instanceof RegistrationError ? error2.mutated : false;
+  process.stderr.write(`${JSON.stringify({ code: code2, message, mutated })}
+`);
+  process.exitCode = 2;
+}
+function reportStatusError(error2) {
+  const code2 = error2 instanceof ReconciliationError ? error2.code : "PCP_STATUS_FAILED";
+  const message = error2 instanceof Error ? error2.message : String(error2);
+  const mutated = error2 instanceof ReconciliationError ? error2.mutated : false;
+  process.stderr.write(`${JSON.stringify({ code: code2, message, mutated })}
+`);
+  process.exitCode = 2;
+}
+function reportRecordingError(error2) {
+  const code2 = error2 instanceof RecordingError ? error2.code : "PCP_RECORD_FAILED";
+  const message = error2 instanceof Error ? error2.message : String(error2);
+  const mutated = error2 instanceof RecordingError ? error2.mutated : false;
+  const recoveryRetained = error2 instanceof RecordingError ? error2.recovery_retained : false;
+  process.stderr.write(
+    `${JSON.stringify({ code: code2, message, mutated, recovery_retained: recoveryRetained })}
+`
+  );
+  process.exitCode = 2;
+}
+function reportWorkstreamError(error2) {
+  const code2 = error2 instanceof WorkstreamError ? error2.code : "PCP_WORKSTREAM_FAILED";
+  const message = error2 instanceof Error ? error2.message : String(error2);
+  const mutated = error2 instanceof WorkstreamError ? error2.mutated : false;
+  const recoveryRetained = error2 instanceof WorkstreamError ? error2.recovery_retained : false;
+  process.stderr.write(
+    `${JSON.stringify({ code: code2, message, mutated, recovery_retained: recoveryRetained })}
+`
+  );
+  process.exitCode = 2;
+}
 function addInspectCommand(program2) {
   return program2.command("inspect").description(commandDescriptions.inspect).argument("[directory]", "candidate project root").option("--candidate <directory>", "candidate project root").option("--json", "emit stable structured JSON").action(async (directory, options) => {
     try {
@@ -24152,11 +27212,62 @@ function addAdoptCommand(program2) {
     }
   });
 }
+function addRegisterCommand(program2) {
+  return program2.command("register").description(commandDescriptions.register).argument("[directory]", "managed project root").option("--candidate <directory>", "managed project root").option("--actor-type <agent|human>", "durable actor type", "agent").option("--client <client>", "agent client; omit only for a human").option("--machine-label <slug>", "stable lowercase machine label").option("--actor-id <id>", "recover one known profile when matches are ambiguous").option("--json", "emit stable structured JSON").action(async (directory, options) => {
+    try {
+      const result = await registerActor(options.candidate ?? directory ?? ".", {
+        machine_label: options.machineLabel ?? normalizeMachineLabel(hostname()),
+        ...options.actorType === void 0 ? {} : { actor_type: options.actorType },
+        ...options.client === void 0 ? {} : { client: options.client },
+        ...options.actorId === void 0 ? {} : { actor_id: options.actorId }
+      });
+      process.stdout.write(
+        options.json === true ? `${JSON.stringify(result, null, 2)}
+` : formatRegistration(result)
+      );
+    } catch (error2) {
+      reportRegistrationError(error2);
+    }
+  });
+}
+function addStatusCommand(program2) {
+  return program2.command("status").description(commandDescriptions.status).argument("[directory]", "managed project root").option("--candidate <directory>", "managed project root").requiredOption("--actor-id <id>", "registered agent actor ID").option("--workstream <id>", "active workstream ID").option("--scope <scope...>", "additional semantic scopes").option("--path <path...>", "additional project-relative paths").option("--acknowledge <digest>", "advance only the matching recomputed status digest").option("--json", "emit stable structured JSON").action(async (directory, options) => {
+    try {
+      const result = await reportStatus(options.candidate ?? directory ?? ".", {
+        actor_id: options.actorId,
+        ...options.workstream === void 0 ? {} : { workstream_id: options.workstream },
+        ...options.scope === void 0 ? {} : { scopes: options.scope },
+        ...options.path === void 0 ? {} : { paths: options.path },
+        ...options.acknowledge === void 0 ? {} : { acknowledge: options.acknowledge }
+      });
+      process.stdout.write(
+        options.json === true ? `${JSON.stringify(result, null, 2)}
+` : formatStatus(result)
+      );
+    } catch (error2) {
+      reportStatusError(error2);
+    }
+  });
+}
+function addRecordCommand(program2) {
+  return program2.command("record").description(commandDescriptions.record).argument("[directory]", "managed project root").option("--candidate <directory>", "managed project root").requiredOption("--input <event.yaml>", "external continuity event input").option("--json", "emit stable structured JSON").action(async (directory, options) => {
+    try {
+      const result = await recordEvent(options.candidate ?? directory ?? ".", options.input);
+      process.stdout.write(
+        options.json === true ? `${JSON.stringify(result, null, 2)}
+` : formatRecording(result)
+      );
+    } catch (error2) {
+      reportRecordingError(error2);
+    }
+  });
+}
 function addValidateCommand(program2) {
-  return program2.command("validate").description(commandDescriptions.validate).argument("[directory]", "managed project root", ".").option("--clean-genesis", "require zero actor profiles and zero active or archived events").option("--json", "emit stable structured JSON").action(async (directory, options) => {
+  return program2.command("validate").description(commandDescriptions.validate).argument("[directory]", "managed project root", ".").option("--clean-genesis", "require zero actor profiles and zero active or archived events").option("--archive-index-only", "validate archive filenames without reading archived content").option("--json", "emit stable structured JSON").action(async (directory, options) => {
     try {
       const report = await validateCanonicalLayer(directory, {
-        clean_genesis: options.cleanGenesis === true
+        clean_genesis: options.cleanGenesis === true,
+        archive_content: options.archiveIndexOnly === true ? "filenames-only" : "full"
       });
       const output = { ...report, command: "validate", mutated: false };
       process.stdout.write(
@@ -24185,6 +27296,72 @@ function addRenderCommand(program2) {
     }
   });
 }
+function addWorkstreamCommand(program2) {
+  const command = program2.command("workstream").description(commandDescriptions.workstream);
+  command.action(() => {
+    command.outputHelp();
+  });
+  command.command("create").description("Create one digest-bound canonical workstream").argument("[directory]", "managed project root").option("--candidate <directory>", "managed project root").requiredOption("--input <workstream.yaml>", "external workstream operation input").option("--json", "emit stable structured JSON").action(async (directory, options) => {
+    try {
+      const result = await mutateWorkstream(
+        options.candidate ?? directory ?? ".",
+        "create",
+        options.input
+      );
+      process.stdout.write(
+        options.json === true ? `${JSON.stringify(result, null, 2)}
+` : formatWorkstream(result)
+      );
+    } catch (error2) {
+      reportWorkstreamError(error2);
+    }
+  });
+  command.command("update").description("Replace one nonterminal workstream using the current registry digest").argument("[directory]", "managed project root").option("--candidate <directory>", "managed project root").requiredOption("--input <workstream.yaml>", "external workstream operation input").option("--json", "emit stable structured JSON").action(async (directory, options) => {
+    try {
+      const result = await mutateWorkstream(
+        options.candidate ?? directory ?? ".",
+        "update",
+        options.input
+      );
+      process.stdout.write(
+        options.json === true ? `${JSON.stringify(result, null, 2)}
+` : formatWorkstream(result)
+      );
+    } catch (error2) {
+      reportWorkstreamError(error2);
+    }
+  });
+  command.command("validate").description("Validate canonical workstreams and return the exact registry digest").argument("[directory]", "managed project root").option("--candidate <directory>", "managed project root").option("--workstream <id>", "select one workstream").option("--json", "emit stable structured JSON").action(async (directory, options) => {
+    try {
+      const result = await validateWorkstreamRegistry(
+        options.candidate ?? directory ?? ".",
+        options.workstream
+      );
+      process.stdout.write(
+        options.json === true ? `${JSON.stringify(result, null, 2)}
+` : formatWorkstream(result)
+      );
+    } catch (error2) {
+      reportWorkstreamError(error2);
+    }
+  });
+  command.command("complete").description("Complete one active or blocked workstream with criterion-bound evidence").argument("[directory]", "managed project root").option("--candidate <directory>", "managed project root").requiredOption("--input <workstream.yaml>", "external workstream operation input").option("--json", "emit stable structured JSON").action(async (directory, options) => {
+    try {
+      const result = await mutateWorkstream(
+        options.candidate ?? directory ?? ".",
+        "complete",
+        options.input
+      );
+      process.stdout.write(
+        options.json === true ? `${JSON.stringify(result, null, 2)}
+` : formatWorkstream(result)
+      );
+    } catch (error2) {
+      reportWorkstreamError(error2);
+    }
+  });
+  return command;
+}
 function reportOperationError(code2, error2, mutationPossible) {
   const message = error2 instanceof Error ? error2.message : String(error2);
   process.stderr.write(`${JSON.stringify({ code: code2, message, mutated: false, mutationPossible })}
@@ -24194,15 +27371,9 @@ function reportOperationError(code2, error2, mutationPossible) {
 function addUnavailableCommand(program2, commandName) {
   const command = program2.command(commandName).description(commandDescriptions[commandName]);
   switch (commandName) {
-    case "record":
-      command.requiredOption("--input <event.yaml>", "event candidate to validate and record");
-      break;
     case "upgrade":
     case "repair":
       command.option("--apply <digest>", "apply only the matching preview digest");
-      break;
-    case "workstream":
-      command.argument("[operation]", "create, update, validate, or complete");
       break;
     default:
       break;
@@ -24220,10 +27391,18 @@ function createProgram() {
       addInspectCommand(program2);
     } else if (commandName === "adopt") {
       addAdoptCommand(program2);
+    } else if (commandName === "register") {
+      addRegisterCommand(program2);
+    } else if (commandName === "status") {
+      addStatusCommand(program2);
+    } else if (commandName === "record") {
+      addRecordCommand(program2);
     } else if (commandName === "validate") {
       addValidateCommand(program2);
     } else if (commandName === "render") {
       addRenderCommand(program2);
+    } else if (commandName === "workstream") {
+      addWorkstreamCommand(program2);
     } else {
       addUnavailableCommand(program2, commandName);
     }

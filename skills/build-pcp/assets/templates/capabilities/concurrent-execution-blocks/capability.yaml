@@ -1,13 +1,13 @@
 schema_version: 1
 capability_id: concurrent-execution-blocks
 name: Concurrent Execution Blocks
-description: Adds dependency-aware parallel work guidance and an inert workstream scaffold over the generic workstream schema.
+description: Adds dependency-aware parallel work guidance and a human-readable scaffold over the core workstream lifecycle.
 dependencies: []
 manifest_value: concurrent-execution-blocks
 overlay_root: overlay
 index_entries:
   - folder: protocol
-    path: 80-concurrent-execution-blocks.md
+    path: 90-concurrent-execution-blocks.md
     title: Concurrent Execution Blocks
   - folder: templates
     path: 40-workstream.md

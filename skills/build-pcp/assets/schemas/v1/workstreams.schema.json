@@ -61,7 +61,7 @@
             "criteria": {
               "type": "array",
               "items": {
-                "$ref": "urn:pcp:schema:v1:common#/$defs/nonEmptyString"
+                "$ref": "#/$defs/criterion"
               },
               "minItems": 1,
               "uniqueItems": true
@@ -69,13 +69,44 @@
             "evidence": {
               "type": "array",
               "items": {
-                "$ref": "urn:pcp:schema:v1:common#/$defs/nonEmptyString"
+                "$ref": "#/$defs/completionEvidence"
               },
               "uniqueItems": true
+            },
+            "announcement": {
+              "$ref": "#/$defs/announcement"
             }
           }
         }
       }
+    },
+    "criterion": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 1000,
+      "pattern": "\\S"
+    },
+    "completionEvidence": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["criterion", "proof"],
+      "properties": {
+        "criterion": {
+          "$ref": "#/$defs/criterion"
+        },
+        "proof": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 4096,
+          "pattern": "\\S"
+        }
+      }
+    },
+    "announcement": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 1000,
+      "pattern": "\\S"
     }
   }
 }

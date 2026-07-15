@@ -1,6 +1,11 @@
-import { describe, expect, it, vi } from 'vitest';
+import { cp, mkdtemp, rm } from 'node:fs/promises';
+import { tmpdir } from 'node:os';
+import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
+import { describe, expect, it, vi } from 'vitest';
+
+import { registerActor } from '../../src/application/register-actor.js';
 import { createProgram, runCli } from '../../src/cli/main.js';
 import { PCP_COMMANDS } from '../../src/domain/release.js';
 
@@ -25,13 +30,13 @@ describe('pcp command surface', () => {
     }
   });
 
-  it('fails closed for an unimplemented lifecycle operation', async () => {
+  it('fails closed for a lifecycle operation that remains unavailable', async () => {
     const errorOutput = vi.spyOn(process.stderr, 'write').mockImplementation(() => true);
     const previousExitCode = process.exitCode;
     process.exitCode = undefined;
 
     try {
-      await createProgram().parseAsync(['node', 'pcp', 'register']);
+      await createProgram().parseAsync(['node', 'pcp', 'upgrade']);
       expect(process.exitCode).toBe(2);
       expect(errorOutput).toHaveBeenCalledWith(
         expect.stringContaining('"code":"PCP_OPERATION_UNAVAILABLE"'),
@@ -40,6 +45,102 @@ describe('pcp command surface', () => {
     } finally {
       process.exitCode = previousExitCode;
       errorOutput.mockRestore();
+    }
+  });
+
+  it('registers an actor with structured JSON output', async () => {
+    const output = vi.spyOn(process.stdout, 'write').mockImplementation(() => true);
+    const previousExitCode = process.exitCode;
+    process.exitCode = undefined;
+    const root = await mkdtemp(path.join(tmpdir(), 'pcp-program-registration-'));
+    const template = fileURLToPath(new URL('../../templates/core/.pcp/', import.meta.url));
+    await cp(template, path.join(root, '.pcp'), { recursive: true });
+
+    try {
+      await createProgram().parseAsync([
+        'node',
+        'pcp',
+        'register',
+        root,
+        '--client',
+        'codex',
+        '--machine-label',
+        'cli-machine',
+        '--json',
+      ]);
+      const serialized = String(output.mock.calls.at(-1)?.[0]);
+      expect(JSON.parse(serialized)).toMatchObject({
+        command: 'register',
+        status: 'created',
+        client: 'codex',
+        machine_label: 'cli-machine',
+        event_created: false,
+        mutated: true,
+      });
+      expect(process.exitCode).toBeUndefined();
+    } finally {
+      process.exitCode = previousExitCode;
+      output.mockRestore();
+      await rm(root, { recursive: true, force: true });
+    }
+  });
+
+  it('previews and acknowledges scoped status with structured JSON', async () => {
+    const output = vi.spyOn(process.stdout, 'write').mockImplementation(() => true);
+    const previousExitCode = process.exitCode;
+    process.exitCode = undefined;
+    const root = await mkdtemp(path.join(tmpdir(), 'pcp-program-status-'));
+    const template = fileURLToPath(new URL('../../templates/core/.pcp/', import.meta.url));
+    await cp(template, path.join(root, '.pcp'), { recursive: true });
+    const actor = await registerActor(root, { client: 'codex', machine_label: 'cli-machine' });
+
+    try {
+      await createProgram().parseAsync([
+        'node',
+        'pcp',
+        'status',
+        root,
+        '--actor-id',
+        actor.actor_id,
+        '--scope',
+        'implementation',
+        '--json',
+      ]);
+      const preview = JSON.parse(String(output.mock.calls.at(-1)?.[0])) as Record<string, unknown>;
+      expect(preview).toMatchObject({
+        command: 'status',
+        mode: 'preview',
+        mutated: false,
+        event_created: false,
+      });
+      expect(preview.status_digest).toMatch(/^[a-f0-9]{64}$/u);
+
+      await createProgram().parseAsync([
+        'node',
+        'pcp',
+        'status',
+        root,
+        '--actor-id',
+        actor.actor_id,
+        '--scope',
+        'implementation',
+        '--acknowledge',
+        String(preview.status_digest),
+        '--json',
+      ]);
+      expect(JSON.parse(String(output.mock.calls.at(-1)?.[0]))).toMatchObject({
+        command: 'status',
+        mode: 'acknowledge',
+        checkpoint: { state: 'current', previous_state: 'missing' },
+        acknowledgement: { accepted: true },
+        mutated: true,
+        event_created: false,
+      });
+      expect(process.exitCode).toBeUndefined();
+    } finally {
+      process.exitCode = previousExitCode;
+      output.mockRestore();
+      await rm(root, { recursive: true, force: true });
     }
   });
 

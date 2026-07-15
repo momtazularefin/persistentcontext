@@ -1,4 +1,5 @@
 import type { CanonicalDiagnostic } from './canonical-validation.js';
+import { eventPayloadDigest } from './recording.js';
 
 export interface CanonicalRecord {
   path: string;
@@ -113,12 +114,84 @@ function validateWorkstreams(records: CanonicalSemanticRecords): CanonicalDiagno
     }
 
     const completion = objectValue(workstream.completion);
-    if (workstream.status === 'complete' && stringArray(completion?.evidence).length === 0) {
+    const criteria = stringArray(completion?.criteria);
+    const evidence = objectArray(completion?.evidence);
+    const evidenceCounts = new Map<string, number>();
+    for (const item of evidence) {
+      const criterion = stringValue(item.criterion);
+      if (criterion === undefined) continue;
+      evidenceCounts.set(criterion, (evidenceCounts.get(criterion) ?? 0) + 1);
+      if (!criteria.includes(criterion)) {
+        diagnostics.push(
+          error(
+            'workstream.evidence-unknown-criterion',
+            records.workstreams.path,
+            `Workstream ${id} has evidence for an unknown criterion: ${criterion}`,
+          ),
+        );
+      }
+    }
+    for (const [criterion, count] of evidenceCounts) {
+      if (count > 1) {
+        diagnostics.push(
+          error(
+            'workstream.duplicate-criterion-evidence',
+            records.workstreams.path,
+            `Workstream ${id} has multiple evidence records for criterion: ${criterion}`,
+          ),
+        );
+      }
+    }
+
+    if (workstream.status === 'complete') {
+      if (evidence.length === 0) {
+        diagnostics.push(
+          error(
+            'workstream.completion-without-evidence',
+            records.workstreams.path,
+            `Complete workstream ${id} has no completion evidence.`,
+          ),
+        );
+      }
+      for (const criterion of criteria) {
+        if (!evidenceCounts.has(criterion)) {
+          diagnostics.push(
+            error(
+              'workstream.criterion-without-evidence',
+              records.workstreams.path,
+              `Complete workstream ${id} has no evidence for criterion: ${criterion}`,
+            ),
+          );
+        }
+      }
+      for (const dependency of stringArray(workstream.dependencies)) {
+        const dependencyState = byId.get(dependency);
+        if (dependencyState !== undefined && dependencyState.status !== 'complete') {
+          diagnostics.push(
+            error(
+              'workstream.incomplete-dependency',
+              records.workstreams.path,
+              `Complete workstream ${id} depends on incomplete workstream ${dependency}.`,
+            ),
+          );
+        }
+      }
+      const announcement = stringValue(completion?.announcement);
+      if (announcement === undefined || announcement.trim().length === 0) {
+        diagnostics.push(
+          error(
+            'workstream.completion-without-announcement',
+            records.workstreams.path,
+            `Complete workstream ${id} has no completion announcement.`,
+          ),
+        );
+      }
+    } else if (completion?.announcement !== undefined) {
       diagnostics.push(
         error(
-          'workstream.completion-without-evidence',
+          'workstream.announcement-before-completion',
           records.workstreams.path,
-          `Complete workstream ${id} has no completion evidence.`,
+          `Workstream ${id} cannot announce completion while its status is ${String(workstream.status)}.`,
         ),
       );
     }
@@ -170,6 +243,23 @@ function validateActors(records: CanonicalSemanticRecords): CanonicalDiagnostic[
         ),
       );
     }
+    const actorType = stringValue(profile?.actor_type);
+    const client = stringValue(profile?.client);
+    const machineLabel = stringValue(profile?.machine_label);
+    const actorLabel = actorType === 'human' ? 'human' : client;
+    if (
+      actorLabel !== undefined &&
+      machineLabel !== undefined &&
+      !id.startsWith(`${actorLabel}-${machineLabel}-`)
+    ) {
+      diagnostics.push(
+        error(
+          'identity.actor-id-components',
+          record.path,
+          `Actor ID must start with ${actorLabel}-${machineLabel}-.`,
+        ),
+      );
+    }
     const previous = seen.get(id);
     if (previous !== undefined) {
       diagnostics.push(
@@ -185,6 +275,9 @@ function validateActors(records: CanonicalSemanticRecords): CanonicalDiagnostic[
 function validateEvents(records: CanonicalSemanticRecords): CanonicalDiagnostic[] {
   const diagnostics: CanonicalDiagnostic[] = [];
   const seen = new Map<string, string>();
+  const changeKeys = new Map<string, string>();
+  const activeEvents: Array<{ id: string; path: string }> = [];
+  const archivedEvents: Array<{ id: string; path: string }> = [];
   const actorTypes = new Map(
     records.actors
       .map((record) => {
@@ -220,6 +313,39 @@ function validateEvents(records: CanonicalSemanticRecords): CanonicalDiagnostic[
     } else {
       seen.set(id, record.path);
     }
+    const payloadDigest = stringValue(event?.payload_digest);
+    if (payloadDigest !== undefined && event !== undefined) {
+      const payload = { ...event };
+      delete payload.payload_digest;
+      if (eventPayloadDigest(payload) !== payloadDigest) {
+        diagnostics.push(
+          error(
+            'event.payload-digest-mismatch',
+            record.path,
+            `Event ${id} payload no longer matches its recorded digest.`,
+          ),
+        );
+      }
+    }
+    const changeKey = stringValue(event?.change_key);
+    if (changeKey !== undefined) {
+      const previousChange = changeKeys.get(changeKey);
+      if (previousChange !== undefined) {
+        diagnostics.push(
+          error(
+            'event.duplicate-change-key',
+            record.path,
+            `Change key ${changeKey} duplicates ${previousChange}.`,
+          ),
+        );
+      } else {
+        changeKeys.set(changeKey, record.path);
+      }
+    }
+    (record.path.startsWith('continuity/archive/') ? archivedEvents : activeEvents).push({
+      id,
+      path: record.path,
+    });
 
     const actor = objectValue(event?.actor);
     const recorder = objectValue(event?.recorded_by);
@@ -283,6 +409,15 @@ function validateEvents(records: CanonicalSemanticRecords): CanonicalDiagnostic[
         ),
       );
     }
+    if (basis !== 'system' && (actorType === 'system' || recorderType === 'system')) {
+      diagnostics.push(
+        error(
+          'event.system-reference-basis',
+          record.path,
+          'A system actor or recorder requires a system-basis event.',
+        ),
+      );
+    }
     for (const workstreamId of stringArray(event?.workstreams)) {
       if (!workstreamIds.has(workstreamId)) {
         diagnostics.push(
@@ -295,11 +430,29 @@ function validateEvents(records: CanonicalSemanticRecords): CanonicalDiagnostic[
       }
     }
   }
+  const oldestActive = activeEvents.sort((left, right) => left.id.localeCompare(right.id))[0];
+  const newestArchive = archivedEvents
+    .sort((left, right) => left.id.localeCompare(right.id))
+    .at(-1);
+  if (
+    oldestActive !== undefined &&
+    newestArchive !== undefined &&
+    newestArchive.id.localeCompare(oldestActive.id) >= 0
+  ) {
+    diagnostics.push(
+      error(
+        'event.archive-order',
+        newestArchive.path,
+        `Archived event ${newestArchive.id} must be older than the active-event floor ${oldestActive.id}.`,
+      ),
+    );
+  }
   return diagnostics;
 }
 
 function validateCheckpoints(records: CanonicalSemanticRecords): CanonicalDiagnostic[] {
   const diagnostics: CanonicalDiagnostic[] = [];
+  const checkpointIdentities = new Map<string, string>();
   const actorTypes = new Map(
     records.actors
       .map((record) => {
@@ -366,6 +519,17 @@ function validateCheckpoints(records: CanonicalSemanticRecords): CanonicalDiagno
         ),
       );
     }
+    for (const dependency of stringArray(checkpoint?.dependencies)) {
+      if (!workstreamIds.has(dependency)) {
+        diagnostics.push(
+          error(
+            'checkpoint.unknown-dependency',
+            record.path,
+            `Checkpoint references unknown dependency workstream ${dependency}.`,
+          ),
+        );
+      }
+    }
     const eventId = stringValue(checkpoint?.last_event_id);
     if (eventId !== undefined && !eventIds.has(eventId)) {
       diagnostics.push(
@@ -375,6 +539,28 @@ function validateCheckpoints(records: CanonicalSemanticRecords): CanonicalDiagno
           `Checkpoint references unknown event ${eventId}.`,
         ),
       );
+    }
+
+    if (actorId !== undefined) {
+      const identity = JSON.stringify({
+        actor_id: actorId,
+        workstream_id: workstreamId ?? null,
+        scopes: stringArray(checkpoint?.scopes).sort(),
+        paths: stringArray(checkpoint?.paths).sort(),
+        dependencies: stringArray(checkpoint?.dependencies).sort(),
+      });
+      const previous = checkpointIdentities.get(identity);
+      if (previous !== undefined) {
+        diagnostics.push(
+          error(
+            'checkpoint.duplicate-scope',
+            record.path,
+            `Checkpoint duplicates the actor and scope identity in ${previous}.`,
+          ),
+        );
+      } else {
+        checkpointIdentities.set(identity, record.path);
+      }
     }
   }
   return diagnostics;

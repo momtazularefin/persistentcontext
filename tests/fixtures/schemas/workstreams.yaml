@@ -20,3 +20,7 @@ invalid:
   - name: missing completion criteria
     operation: delete
     path: workstreams.0.completion.criteria
+  - name: completion evidence must map a criterion to proof
+    operation: set
+    path: workstreams.0.completion.evidence
+    value: [Tests passed.]

@@ -1,9 +1,14 @@
 import { pathToFileURL } from 'node:url';
+import { hostname } from 'node:os';
 
 import { Command } from 'commander';
 
 import { adoptProject } from '../application/adopt-project.js';
 import { inspectRepository } from '../application/inspect-repository.js';
+import { mutateWorkstream, validateWorkstreamRegistry } from '../application/manage-workstreams.js';
+import { recordEvent } from '../application/record-event.js';
+import { registerActor } from '../application/register-actor.js';
+import { reportStatus } from '../application/report-status.js';
 import { renderCanonicalViews } from '../application/render-canonical-views.js';
 import { validateCanonicalLayer } from '../application/validate-canonical-layer.js';
 import {
@@ -15,12 +20,20 @@ import {
 } from '../domain/release.js';
 import { AdoptionError } from '../domain/adoption.js';
 import { InspectionError } from '../domain/inspection.js';
+import { RecordingError } from '../domain/recording.js';
+import { normalizeMachineLabel, RegistrationError } from '../domain/registration.js';
+import { ReconciliationError } from '../domain/reconciliation.js';
+import { WorkstreamError } from '../domain/workstreams.js';
 import { formatAdoption } from '../presentation/format-adoption.js';
 import {
   formatCanonicalRender,
   formatCanonicalValidation,
 } from '../presentation/format-canonical.js';
 import { formatInspection } from '../presentation/format-inspection.js';
+import { formatRecording } from '../presentation/format-recording.js';
+import { formatRegistration } from '../presentation/format-registration.js';
+import { formatStatus } from '../presentation/format-status.js';
+import { formatWorkstream } from '../presentation/format-workstream.js';
 
 const commandDescriptions: Record<PcpCommandName, string> = {
   inspect: 'Inspect and classify a candidate project without mutation',
@@ -60,13 +73,46 @@ interface AdoptOptions {
   json?: boolean;
 }
 
+interface RegisterOptions {
+  candidate?: string;
+  actorType?: string;
+  client?: string;
+  machineLabel?: string;
+  actorId?: string;
+  json?: boolean;
+}
+
+interface StatusOptions {
+  candidate?: string;
+  actorId: string;
+  workstream?: string;
+  scope?: string[];
+  path?: string[];
+  acknowledge?: string;
+  json?: boolean;
+}
+
+interface RecordOptions {
+  candidate?: string;
+  input: string;
+  json?: boolean;
+}
+
 interface ValidateOptions {
   cleanGenesis?: boolean;
+  archiveIndexOnly?: boolean;
   json?: boolean;
 }
 
 interface RenderOptions {
   check?: boolean;
+  json?: boolean;
+}
+
+interface WorkstreamOptions {
+  candidate?: string;
+  input: string;
+  workstream?: string;
   json?: boolean;
 }
 
@@ -82,6 +128,44 @@ function reportAdoptionError(error: unknown): void {
   const message = error instanceof Error ? error.message : String(error);
   const mutated = error instanceof AdoptionError ? error.mutated : false;
   const recoveryRetained = error instanceof AdoptionError && error.recoveryRoot !== undefined;
+  process.stderr.write(
+    `${JSON.stringify({ code, message, mutated, recovery_retained: recoveryRetained })}\n`,
+  );
+  process.exitCode = 2;
+}
+
+function reportRegistrationError(error: unknown): void {
+  const code = error instanceof RegistrationError ? error.code : 'PCP_REGISTRATION_FAILED';
+  const message = error instanceof Error ? error.message : String(error);
+  const mutated = error instanceof RegistrationError ? error.mutated : false;
+  process.stderr.write(`${JSON.stringify({ code, message, mutated })}\n`);
+  process.exitCode = 2;
+}
+
+function reportStatusError(error: unknown): void {
+  const code = error instanceof ReconciliationError ? error.code : 'PCP_STATUS_FAILED';
+  const message = error instanceof Error ? error.message : String(error);
+  const mutated = error instanceof ReconciliationError ? error.mutated : false;
+  process.stderr.write(`${JSON.stringify({ code, message, mutated })}\n`);
+  process.exitCode = 2;
+}
+
+function reportRecordingError(error: unknown): void {
+  const code = error instanceof RecordingError ? error.code : 'PCP_RECORD_FAILED';
+  const message = error instanceof Error ? error.message : String(error);
+  const mutated = error instanceof RecordingError ? error.mutated : false;
+  const recoveryRetained = error instanceof RecordingError ? error.recovery_retained : false;
+  process.stderr.write(
+    `${JSON.stringify({ code, message, mutated, recovery_retained: recoveryRetained })}\n`,
+  );
+  process.exitCode = 2;
+}
+
+function reportWorkstreamError(error: unknown): void {
+  const code = error instanceof WorkstreamError ? error.code : 'PCP_WORKSTREAM_FAILED';
+  const message = error instanceof Error ? error.message : String(error);
+  const mutated = error instanceof WorkstreamError ? error.mutated : false;
+  const recoveryRetained = error instanceof WorkstreamError ? error.recovery_retained : false;
   process.stderr.write(
     `${JSON.stringify({ code, message, mutated, recovery_retained: recoveryRetained })}\n`,
   );
@@ -131,17 +215,99 @@ function addAdoptCommand(program: Command): Command {
     });
 }
 
+function addRegisterCommand(program: Command): Command {
+  return program
+    .command('register')
+    .description(commandDescriptions.register)
+    .argument('[directory]', 'managed project root')
+    .option('--candidate <directory>', 'managed project root')
+    .option('--actor-type <agent|human>', 'durable actor type', 'agent')
+    .option('--client <client>', 'agent client; omit only for a human')
+    .option('--machine-label <slug>', 'stable lowercase machine label')
+    .option('--actor-id <id>', 'recover one known profile when matches are ambiguous')
+    .option('--json', 'emit stable structured JSON')
+    .action(async (directory: string | undefined, options: RegisterOptions) => {
+      try {
+        const result = await registerActor(options.candidate ?? directory ?? '.', {
+          machine_label: options.machineLabel ?? normalizeMachineLabel(hostname()),
+          ...(options.actorType === undefined ? {} : { actor_type: options.actorType }),
+          ...(options.client === undefined ? {} : { client: options.client }),
+          ...(options.actorId === undefined ? {} : { actor_id: options.actorId }),
+        });
+        process.stdout.write(
+          options.json === true
+            ? `${JSON.stringify(result, null, 2)}\n`
+            : formatRegistration(result),
+        );
+      } catch (error) {
+        reportRegistrationError(error);
+      }
+    });
+}
+
+function addStatusCommand(program: Command): Command {
+  return program
+    .command('status')
+    .description(commandDescriptions.status)
+    .argument('[directory]', 'managed project root')
+    .option('--candidate <directory>', 'managed project root')
+    .requiredOption('--actor-id <id>', 'registered agent actor ID')
+    .option('--workstream <id>', 'active workstream ID')
+    .option('--scope <scope...>', 'additional semantic scopes')
+    .option('--path <path...>', 'additional project-relative paths')
+    .option('--acknowledge <digest>', 'advance only the matching recomputed status digest')
+    .option('--json', 'emit stable structured JSON')
+    .action(async (directory: string | undefined, options: StatusOptions) => {
+      try {
+        const result = await reportStatus(options.candidate ?? directory ?? '.', {
+          actor_id: options.actorId,
+          ...(options.workstream === undefined ? {} : { workstream_id: options.workstream }),
+          ...(options.scope === undefined ? {} : { scopes: options.scope }),
+          ...(options.path === undefined ? {} : { paths: options.path }),
+          ...(options.acknowledge === undefined ? {} : { acknowledge: options.acknowledge }),
+        });
+        process.stdout.write(
+          options.json === true ? `${JSON.stringify(result, null, 2)}\n` : formatStatus(result),
+        );
+      } catch (error) {
+        reportStatusError(error);
+      }
+    });
+}
+
+function addRecordCommand(program: Command): Command {
+  return program
+    .command('record')
+    .description(commandDescriptions.record)
+    .argument('[directory]', 'managed project root')
+    .option('--candidate <directory>', 'managed project root')
+    .requiredOption('--input <event.yaml>', 'external continuity event input')
+    .option('--json', 'emit stable structured JSON')
+    .action(async (directory: string | undefined, options: RecordOptions) => {
+      try {
+        const result = await recordEvent(options.candidate ?? directory ?? '.', options.input);
+        process.stdout.write(
+          options.json === true ? `${JSON.stringify(result, null, 2)}\n` : formatRecording(result),
+        );
+      } catch (error) {
+        reportRecordingError(error);
+      }
+    });
+}
+
 function addValidateCommand(program: Command): Command {
   return program
     .command('validate')
     .description(commandDescriptions.validate)
     .argument('[directory]', 'managed project root', '.')
     .option('--clean-genesis', 'require zero actor profiles and zero active or archived events')
+    .option('--archive-index-only', 'validate archive filenames without reading archived content')
     .option('--json', 'emit stable structured JSON')
     .action(async (directory: string, options: ValidateOptions) => {
       try {
         const report = await validateCanonicalLayer(directory, {
           clean_genesis: options.cleanGenesis === true,
+          archive_content: options.archiveIndexOnly === true ? 'filenames-only' : 'full',
         });
         const output = { ...report, command: 'validate', mutated: false };
         process.stdout.write(
@@ -180,6 +346,102 @@ function addRenderCommand(program: Command): Command {
     });
 }
 
+function addWorkstreamCommand(program: Command): Command {
+  const command = program.command('workstream').description(commandDescriptions.workstream);
+  command.action(() => {
+    command.outputHelp();
+  });
+
+  command
+    .command('create')
+    .description('Create one digest-bound canonical workstream')
+    .argument('[directory]', 'managed project root')
+    .option('--candidate <directory>', 'managed project root')
+    .requiredOption('--input <workstream.yaml>', 'external workstream operation input')
+    .option('--json', 'emit stable structured JSON')
+    .action(async (directory: string | undefined, options: WorkstreamOptions) => {
+      try {
+        const result = await mutateWorkstream(
+          options.candidate ?? directory ?? '.',
+          'create',
+          options.input,
+        );
+        process.stdout.write(
+          options.json === true ? `${JSON.stringify(result, null, 2)}\n` : formatWorkstream(result),
+        );
+      } catch (error) {
+        reportWorkstreamError(error);
+      }
+    });
+
+  command
+    .command('update')
+    .description('Replace one nonterminal workstream using the current registry digest')
+    .argument('[directory]', 'managed project root')
+    .option('--candidate <directory>', 'managed project root')
+    .requiredOption('--input <workstream.yaml>', 'external workstream operation input')
+    .option('--json', 'emit stable structured JSON')
+    .action(async (directory: string | undefined, options: WorkstreamOptions) => {
+      try {
+        const result = await mutateWorkstream(
+          options.candidate ?? directory ?? '.',
+          'update',
+          options.input,
+        );
+        process.stdout.write(
+          options.json === true ? `${JSON.stringify(result, null, 2)}\n` : formatWorkstream(result),
+        );
+      } catch (error) {
+        reportWorkstreamError(error);
+      }
+    });
+
+  command
+    .command('validate')
+    .description('Validate canonical workstreams and return the exact registry digest')
+    .argument('[directory]', 'managed project root')
+    .option('--candidate <directory>', 'managed project root')
+    .option('--workstream <id>', 'select one workstream')
+    .option('--json', 'emit stable structured JSON')
+    .action(async (directory: string | undefined, options: WorkstreamOptions) => {
+      try {
+        const result = await validateWorkstreamRegistry(
+          options.candidate ?? directory ?? '.',
+          options.workstream,
+        );
+        process.stdout.write(
+          options.json === true ? `${JSON.stringify(result, null, 2)}\n` : formatWorkstream(result),
+        );
+      } catch (error) {
+        reportWorkstreamError(error);
+      }
+    });
+
+  command
+    .command('complete')
+    .description('Complete one active or blocked workstream with criterion-bound evidence')
+    .argument('[directory]', 'managed project root')
+    .option('--candidate <directory>', 'managed project root')
+    .requiredOption('--input <workstream.yaml>', 'external workstream operation input')
+    .option('--json', 'emit stable structured JSON')
+    .action(async (directory: string | undefined, options: WorkstreamOptions) => {
+      try {
+        const result = await mutateWorkstream(
+          options.candidate ?? directory ?? '.',
+          'complete',
+          options.input,
+        );
+        process.stdout.write(
+          options.json === true ? `${JSON.stringify(result, null, 2)}\n` : formatWorkstream(result),
+        );
+      } catch (error) {
+        reportWorkstreamError(error);
+      }
+    });
+
+  return command;
+}
+
 function reportOperationError(code: string, error: unknown, mutationPossible: boolean): void {
   const message = error instanceof Error ? error.message : String(error);
   process.stderr.write(`${JSON.stringify({ code, message, mutated: false, mutationPossible })}\n`);
@@ -190,15 +452,9 @@ function addUnavailableCommand(program: Command, commandName: PcpCommandName): C
   const command = program.command(commandName).description(commandDescriptions[commandName]);
 
   switch (commandName) {
-    case 'record':
-      command.requiredOption('--input <event.yaml>', 'event candidate to validate and record');
-      break;
     case 'upgrade':
     case 'repair':
       command.option('--apply <digest>', 'apply only the matching preview digest');
-      break;
-    case 'workstream':
-      command.argument('[operation]', 'create, update, validate, or complete');
       break;
     default:
       break;
@@ -224,10 +480,18 @@ export function createProgram(): Command {
       addInspectCommand(program);
     } else if (commandName === 'adopt') {
       addAdoptCommand(program);
+    } else if (commandName === 'register') {
+      addRegisterCommand(program);
+    } else if (commandName === 'status') {
+      addStatusCommand(program);
+    } else if (commandName === 'record') {
+      addRecordCommand(program);
     } else if (commandName === 'validate') {
       addValidateCommand(program);
     } else if (commandName === 'render') {
       addRenderCommand(program);
+    } else if (commandName === 'workstream') {
+      addWorkstreamCommand(program);
     } else {
       addUnavailableCommand(program, commandName);
     }

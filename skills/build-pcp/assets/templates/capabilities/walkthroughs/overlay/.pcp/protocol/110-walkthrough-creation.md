@@ -1,5 +1,5 @@
 ---
-doc: protocol/100-walkthrough-creation.md
+doc: protocol/110-walkthrough-creation.md
 type: protocol
 status: static
 version: 1.0.0

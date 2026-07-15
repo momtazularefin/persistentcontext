@@ -171,6 +171,321 @@ try {
     throw new Error('Bundled pcp adoption apply returned an unexpected result.');
   }
 
+  const registrationArguments = [
+    fileURLToPath(skillBundle),
+    'register',
+    adoptionCandidate,
+    '--client',
+    'codex',
+    '--machine-label',
+    'distribution-machine',
+    '--json',
+  ];
+  const firstRegistration = spawnSync(process.execPath, registrationArguments, {
+    encoding: 'utf8',
+    windowsHide: true,
+  });
+  if (firstRegistration.status !== 0) {
+    throw new Error(
+      `Bundled pcp registration failed: ${firstRegistration.stderr || firstRegistration.stdout}`,
+    );
+  }
+  const firstRegistrationResult = JSON.parse(firstRegistration.stdout);
+  if (
+    firstRegistrationResult.status !== 'created' ||
+    firstRegistrationResult.profile_created !== true ||
+    firstRegistrationResult.cache_created !== true ||
+    firstRegistrationResult.event_created !== false ||
+    firstRegistrationResult.mutated !== true
+  ) {
+    throw new Error('Bundled pcp first registration returned an unexpected result.');
+  }
+
+  const secondRegistration = spawnSync(process.execPath, registrationArguments, {
+    encoding: 'utf8',
+    windowsHide: true,
+  });
+  if (secondRegistration.status !== 0) {
+    throw new Error(
+      `Bundled pcp repeat registration failed: ${secondRegistration.stderr || secondRegistration.stdout}`,
+    );
+  }
+  const secondRegistrationResult = JSON.parse(secondRegistration.stdout);
+  if (
+    secondRegistrationResult.status !== 'recovered' ||
+    secondRegistrationResult.actor_id !== firstRegistrationResult.actor_id ||
+    secondRegistrationResult.execution_id === firstRegistrationResult.execution_id ||
+    secondRegistrationResult.profile_created !== false ||
+    secondRegistrationResult.cache_created !== false ||
+    secondRegistrationResult.event_created !== false ||
+    secondRegistrationResult.mutated !== false
+  ) {
+    throw new Error('Bundled pcp repeat registration returned an unexpected result.');
+  }
+  const registrationEvents = (
+    await readdir(join(adoptionCandidate, '.pcp', 'continuity', 'events'))
+  ).filter((entry) => entry.endsWith('.yaml'));
+  if (registrationEvents.length !== 0) {
+    throw new Error('Bundled pcp registration created a continuity event.');
+  }
+
+  const workstreamValidation = spawnSync(
+    process.execPath,
+    [fileURLToPath(skillBundle), 'workstream', 'validate', adoptionCandidate, '--json'],
+    { encoding: 'utf8', windowsHide: true },
+  );
+  if (workstreamValidation.status !== 0) {
+    throw new Error(
+      `Bundled pcp workstream validation failed: ${workstreamValidation.stderr || workstreamValidation.stdout}`,
+    );
+  }
+  const workstreamValidationResult = JSON.parse(workstreamValidation.stdout);
+  if (
+    workstreamValidationResult.status !== 'valid' ||
+    workstreamValidationResult.workstream_count !== 0 ||
+    workstreamValidationResult.event_created !== false ||
+    workstreamValidationResult.mutated !== false ||
+    !/^[a-f0-9]{64}$/.test(workstreamValidationResult.registry_digest ?? '')
+  ) {
+    throw new Error('Bundled pcp workstream validation returned an unexpected result.');
+  }
+
+  const workstreamInput = join(adoptionRoot, 'workstream.json');
+  await writeFile(
+    workstreamInput,
+    `${JSON.stringify(
+      {
+        schema_version: 1,
+        operation: 'create',
+        expected_registry_digest: workstreamValidationResult.registry_digest,
+        actor: { type: 'agent', id: firstRegistrationResult.actor_id },
+        recorded_by: { type: 'agent', id: firstRegistrationResult.actor_id },
+        basis: 'self',
+        summary: 'Created the distribution verification workstream.',
+        workstream: {
+          workstream_id: 'distribution-verification',
+          name: 'Distribution verification',
+          kind: 'ceb',
+          status: 'active',
+          paths: ['dist', 'skills/build-pcp'],
+          areas: ['distribution'],
+          dependencies: [],
+          completion: { criteria: ['Bundled lifecycle passes.'], evidence: [] },
+        },
+      },
+      null,
+      2,
+    )}\n`,
+    'utf8',
+  );
+  const workstreamCreation = spawnSync(
+    process.execPath,
+    [
+      fileURLToPath(skillBundle),
+      'workstream',
+      'create',
+      adoptionCandidate,
+      '--input',
+      workstreamInput,
+      '--json',
+    ],
+    { encoding: 'utf8', windowsHide: true },
+  );
+  if (workstreamCreation.status !== 0) {
+    throw new Error(
+      `Bundled pcp workstream creation failed: ${workstreamCreation.stderr || workstreamCreation.stdout}`,
+    );
+  }
+  const workstreamCreationResult = JSON.parse(workstreamCreation.stdout);
+  if (
+    workstreamCreationResult.status !== 'created' ||
+    workstreamCreationResult.event_created !== true ||
+    workstreamCreationResult.mutated !== true ||
+    workstreamCreationResult.recovery_retained !== false ||
+    !/^[a-f0-9]{64}$/.test(workstreamCreationResult.registry_digest_after ?? '') ||
+    !/^[a-f0-9]{64}$/.test(workstreamCreationResult.event_payload_digest ?? '')
+  ) {
+    throw new Error('Bundled pcp workstream creation returned an unexpected result.');
+  }
+
+  await writeFile(
+    workstreamInput,
+    `${JSON.stringify(
+      {
+        schema_version: 1,
+        operation: 'complete',
+        expected_registry_digest: workstreamCreationResult.registry_digest_after,
+        actor: { type: 'agent', id: firstRegistrationResult.actor_id },
+        recorded_by: { type: 'agent', id: firstRegistrationResult.actor_id },
+        basis: 'self',
+        summary: 'Completed the distribution verification workstream.',
+        workstream_id: 'distribution-verification',
+        evidence: [
+          {
+            criterion: 'Bundled lifecycle passes.',
+            proof: 'The bundled create and complete commands returned accepted results.',
+          },
+        ],
+        announcement: 'Distribution verification is complete.',
+      },
+      null,
+      2,
+    )}\n`,
+    'utf8',
+  );
+  const workstreamCompletion = spawnSync(
+    process.execPath,
+    [
+      fileURLToPath(skillBundle),
+      'workstream',
+      'complete',
+      adoptionCandidate,
+      '--input',
+      workstreamInput,
+      '--json',
+    ],
+    { encoding: 'utf8', windowsHide: true },
+  );
+  if (workstreamCompletion.status !== 0) {
+    throw new Error(
+      `Bundled pcp workstream completion failed: ${workstreamCompletion.stderr || workstreamCompletion.stdout}`,
+    );
+  }
+  const workstreamCompletionResult = JSON.parse(workstreamCompletion.stdout);
+  if (
+    workstreamCompletionResult.status !== 'completed' ||
+    workstreamCompletionResult.announcement !== 'Distribution verification is complete.' ||
+    workstreamCompletionResult.event_created !== true ||
+    workstreamCompletionResult.mutated !== true ||
+    !/^[a-f0-9]{64}$/.test(workstreamCompletionResult.event_payload_digest ?? '')
+  ) {
+    throw new Error('Bundled pcp workstream completion returned an unexpected result.');
+  }
+
+  const eventInput = join(adoptionRoot, 'event.json');
+  await writeFile(
+    eventInput,
+    `${JSON.stringify(
+      {
+        schema_version: 1,
+        actor: { type: 'agent', id: firstRegistrationResult.actor_id },
+        recorded_by: { type: 'agent', id: firstRegistrationResult.actor_id },
+        basis: 'self',
+        kind: 'code',
+        scopes: ['distribution'],
+        workstreams: [],
+        summary: 'Verified immutable event recording in the packaged engine.',
+        affected_paths: ['README.md'],
+      },
+      null,
+      2,
+    )}\n`,
+    'utf8',
+  );
+  const recording = spawnSync(
+    process.execPath,
+    [fileURLToPath(skillBundle), 'record', adoptionCandidate, '--input', eventInput, '--json'],
+    { encoding: 'utf8', windowsHide: true },
+  );
+  if (recording.status !== 0) {
+    throw new Error(`Bundled pcp recording failed: ${recording.stderr || recording.stdout}`);
+  }
+  const recordingResult = JSON.parse(recording.stdout);
+  if (
+    recordingResult.status !== 'recorded' ||
+    recordingResult.event_created !== true ||
+    recordingResult.mutated !== true ||
+    recordingResult.active_events !== 3 ||
+    recordingResult.archived_events_moved !== 0 ||
+    !/^[0-7][0-9A-HJKMNP-TV-Z]{25}$/.test(recordingResult.event_id ?? '') ||
+    !/^[a-f0-9]{64}$/.test(recordingResult.payload_digest ?? '')
+  ) {
+    throw new Error('Bundled pcp record returned an unexpected result.');
+  }
+  const recordedEvents = (
+    await readdir(join(adoptionCandidate, '.pcp', 'continuity', 'events'))
+  ).filter((entry) => entry.endsWith('.yaml'));
+  if (recordedEvents.length !== 3) {
+    throw new Error('Bundled workstream and record commands did not create three events.');
+  }
+
+  const statusArguments = [
+    fileURLToPath(skillBundle),
+    'status',
+    adoptionCandidate,
+    '--actor-id',
+    firstRegistrationResult.actor_id,
+    '--scope',
+    'distribution',
+    '--json',
+  ];
+  const statusPreview = spawnSync(process.execPath, statusArguments, {
+    encoding: 'utf8',
+    windowsHide: true,
+  });
+  if (statusPreview.status !== 0) {
+    throw new Error(
+      `Bundled pcp status preview failed: ${statusPreview.stderr || statusPreview.stdout}`,
+    );
+  }
+  const statusPreviewResult = JSON.parse(statusPreview.stdout);
+  if (
+    statusPreviewResult.mode !== 'preview' ||
+    statusPreviewResult.checkpoint?.state !== 'missing' ||
+    statusPreviewResult.acknowledgement?.required !== true ||
+    statusPreviewResult.event_created !== false ||
+    statusPreviewResult.mutated !== false ||
+    !/^[a-f0-9]{64}$/.test(statusPreviewResult.status_digest ?? '')
+  ) {
+    throw new Error('Bundled pcp status preview returned an unexpected result.');
+  }
+
+  const statusAcknowledgement = spawnSync(
+    process.execPath,
+    [...statusArguments.slice(0, -1), '--acknowledge', statusPreviewResult.status_digest, '--json'],
+    { encoding: 'utf8', windowsHide: true },
+  );
+  if (statusAcknowledgement.status !== 0) {
+    throw new Error(
+      `Bundled pcp status acknowledgement failed: ${statusAcknowledgement.stderr || statusAcknowledgement.stdout}`,
+    );
+  }
+  const statusAcknowledgementResult = JSON.parse(statusAcknowledgement.stdout);
+  if (
+    statusAcknowledgementResult.mode !== 'acknowledge' ||
+    statusAcknowledgementResult.checkpoint?.state !== 'current' ||
+    statusAcknowledgementResult.acknowledgement?.accepted !== true ||
+    statusAcknowledgementResult.event_created !== false ||
+    statusAcknowledgementResult.mutated !== true
+  ) {
+    throw new Error('Bundled pcp status acknowledgement returned an unexpected result.');
+  }
+
+  const currentStatus = spawnSync(process.execPath, statusArguments, {
+    encoding: 'utf8',
+    windowsHide: true,
+  });
+  const currentStatusResult =
+    currentStatus.status === 0 ? JSON.parse(currentStatus.stdout) : undefined;
+  if (
+    currentStatusResult?.checkpoint?.state !== 'current' ||
+    currentStatusResult?.acknowledgement?.required !== false ||
+    currentStatusResult?.mutated !== false
+  ) {
+    throw new Error(
+      `Bundled pcp repeat status failed: ${currentStatus.stderr || currentStatus.stdout}`,
+    );
+  }
+  const statusCheckpoints = (
+    await readdir(join(adoptionCandidate, '.pcp', 'continuity', 'checkpoints'))
+  ).filter((entry) => entry.endsWith('.yaml'));
+  const statusEvents = (
+    await readdir(join(adoptionCandidate, '.pcp', 'continuity', 'events'))
+  ).filter((entry) => entry.endsWith('.yaml'));
+  if (statusCheckpoints.length !== 1 || statusEvents.length !== 3) {
+    throw new Error('Bundled pcp status did not preserve checkpoint-only acknowledgement.');
+  }
+
   const managedInspection = spawnSync(
     process.execPath,
     [fileURLToPath(skillBundle), 'inspect', adoptionCandidate, '--json'],
