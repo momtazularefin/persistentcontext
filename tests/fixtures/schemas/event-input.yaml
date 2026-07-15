@@ -9,12 +9,16 @@ valid:
     type: agent
     id: codex-laptop-01ARZ3NDEK
   basis: reported
+  change_key: git:24d0b9de58f6a869e9e599ecb90de972dfcdcf49
   kind: vcs
   scopes: [version-control]
   workstreams: []
   summary: Human signed the scoped-status commit.
   affected_paths: [.git]
 invalid:
+  - name: reported change has no stable change key
+    operation: delete
+    path: change_key
   - name: unsupported recording basis
     operation: set
     path: basis

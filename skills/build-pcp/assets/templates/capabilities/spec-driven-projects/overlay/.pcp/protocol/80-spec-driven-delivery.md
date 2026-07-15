@@ -1,5 +1,5 @@
 ---
-doc: protocol/70-spec-driven-delivery.md
+doc: protocol/80-spec-driven-delivery.md
 type: protocol
 status: static
 version: 1.0.0

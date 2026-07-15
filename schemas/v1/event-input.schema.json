@@ -31,6 +31,9 @@
     "basis": {
       "enum": ["self", "reported", "observed", "system"]
     },
+    "change_key": {
+      "$ref": "urn:pcp:schema:v1:event#/$defs/changeKey"
+    },
     "kind": {
       "enum": [
         "code",
@@ -69,6 +72,18 @@
     },
     {
       "properties": { "affected_paths": { "type": "array", "minItems": 1 } }
+    }
+  ],
+  "allOf": [
+    {
+      "if": {
+        "properties": { "basis": { "enum": ["reported", "observed"] } },
+        "required": ["basis"]
+      },
+      "then": {
+        "properties": { "change_key": {} },
+        "required": ["change_key"]
+      }
     }
   ]
 }

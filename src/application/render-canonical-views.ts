@@ -157,7 +157,7 @@ function renderWorkstreams(workstreams: Array<Record<string, unknown>>): string[
     '| --- | --- | --- | --- | --- | --- |',
     ...workstreams.map((workstream) => {
       const completion = objectValue(workstream.completion);
-      return `| ${code(workstream.workstream_id)} | ${tableCell(workstream.name)} | ${code(workstream.kind)} | ${code(workstream.status)} | ${codeList(workstream.dependencies)} | ${stringArray(completion.evidence).length} item(s) |`;
+      return `| ${code(workstream.workstream_id)} | ${tableCell(workstream.name)} | ${code(workstream.kind)} | ${code(workstream.status)} | ${codeList(workstream.dependencies)} | ${objectArray(completion.evidence).length} item(s) |`;
     }),
   ];
 }

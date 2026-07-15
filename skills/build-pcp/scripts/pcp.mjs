@@ -327,7 +327,7 @@ var require_ignore = __commonJS({
       //   path matching.
       // - check `string` either `MODE_IGNORE` or `MODE_CHECK_IGNORE`
       // @returns {TestResult} true if a file is ignored
-      test(path17, checkUnignored, mode) {
+      test(path18, checkUnignored, mode) {
         let ignored = false;
         let unignored = false;
         let matchedRule;
@@ -336,7 +336,7 @@ var require_ignore = __commonJS({
           if (unignored === negative && ignored !== unignored || negative && !ignored && !unignored && !checkUnignored) {
             return;
           }
-          const matched = rule[mode].test(path17);
+          const matched = rule[mode].test(path18);
           if (!matched) {
             return;
           }
@@ -357,17 +357,17 @@ var require_ignore = __commonJS({
     var throwError = (message, Ctor) => {
       throw new Ctor(message);
     };
-    var checkPath = (path17, originalPath, doThrow) => {
-      if (!isString(path17)) {
+    var checkPath = (path18, originalPath, doThrow) => {
+      if (!isString(path18)) {
         return doThrow(
           `path must be a string, but got \`${originalPath}\``,
           TypeError
         );
       }
-      if (!path17) {
+      if (!path18) {
         return doThrow(`path must not be empty`, TypeError);
       }
-      if (checkPath.isNotRelative(path17)) {
+      if (checkPath.isNotRelative(path18)) {
         const r = "`path.relative()`d";
         return doThrow(
           `path should be a ${r} string, but got "${originalPath}"`,
@@ -376,7 +376,7 @@ var require_ignore = __commonJS({
       }
       return true;
     };
-    var isNotRelative = (path17) => REGEX_TEST_INVALID_PATH.test(path17);
+    var isNotRelative = (path18) => REGEX_TEST_INVALID_PATH.test(path18);
     checkPath.isNotRelative = isNotRelative;
     checkPath.convert = (p) => p;
     var Ignore = class {
@@ -406,19 +406,19 @@ var require_ignore = __commonJS({
       }
       // @returns {TestResult}
       _test(originalPath, cache, checkUnignored, slices) {
-        const path17 = originalPath && checkPath.convert(originalPath);
+        const path18 = originalPath && checkPath.convert(originalPath);
         checkPath(
-          path17,
+          path18,
           originalPath,
           this._strictPathCheck ? throwError : RETURN_FALSE
         );
-        return this._t(path17, cache, checkUnignored, slices);
+        return this._t(path18, cache, checkUnignored, slices);
       }
-      checkIgnore(path17) {
-        if (!REGEX_TEST_TRAILING_SLASH.test(path17)) {
-          return this.test(path17);
+      checkIgnore(path18) {
+        if (!REGEX_TEST_TRAILING_SLASH.test(path18)) {
+          return this.test(path18);
         }
-        const slices = path17.split(SLASH).filter(Boolean);
+        const slices = path18.split(SLASH).filter(Boolean);
         slices.pop();
         if (slices.length) {
           const parent = this._t(
@@ -431,18 +431,18 @@ var require_ignore = __commonJS({
             return parent;
           }
         }
-        return this._rules.test(path17, false, MODE_CHECK_IGNORE);
+        return this._rules.test(path18, false, MODE_CHECK_IGNORE);
       }
-      _t(path17, cache, checkUnignored, slices) {
-        if (path17 in cache) {
-          return cache[path17];
+      _t(path18, cache, checkUnignored, slices) {
+        if (path18 in cache) {
+          return cache[path18];
         }
         if (!slices) {
-          slices = path17.split(SLASH).filter(Boolean);
+          slices = path18.split(SLASH).filter(Boolean);
         }
         slices.pop();
         if (!slices.length) {
-          return cache[path17] = this._rules.test(path17, checkUnignored, MODE_IGNORE);
+          return cache[path18] = this._rules.test(path18, checkUnignored, MODE_IGNORE);
         }
         const parent = this._t(
           slices.join(SLASH) + SLASH,
@@ -450,29 +450,29 @@ var require_ignore = __commonJS({
           checkUnignored,
           slices
         );
-        return cache[path17] = parent.ignored ? parent : this._rules.test(path17, checkUnignored, MODE_IGNORE);
+        return cache[path18] = parent.ignored ? parent : this._rules.test(path18, checkUnignored, MODE_IGNORE);
       }
-      ignores(path17) {
-        return this._test(path17, this._ignoreCache, false).ignored;
+      ignores(path18) {
+        return this._test(path18, this._ignoreCache, false).ignored;
       }
       createFilter() {
-        return (path17) => !this.ignores(path17);
+        return (path18) => !this.ignores(path18);
       }
       filter(paths) {
         return makeArray(paths).filter(this.createFilter());
       }
       // @returns {TestResult}
-      test(path17) {
-        return this._test(path17, this._testCache, true);
+      test(path18) {
+        return this._test(path18, this._testCache, true);
       }
     };
     var factory = (options) => new Ignore(options);
-    var isPathValid = (path17) => checkPath(path17 && checkPath.convert(path17), path17, RETURN_FALSE);
+    var isPathValid = (path18) => checkPath(path18 && checkPath.convert(path18), path18, RETURN_FALSE);
     var setupWindows = () => {
       const makePosix = (str) => /^\\\\\?\\/.test(str) || /["<>|\u0000-\u001F]+/u.test(str) ? str : str.replace(/\\/g, "/");
       checkPath.convert = makePosix;
       const REGEX_TEST_WINDOWS_PATH_ABSOLUTE = /^[a-z]:\//i;
-      checkPath.isNotRelative = (path17) => REGEX_TEST_WINDOWS_PATH_ABSOLUTE.test(path17) || isNotRelative(path17);
+      checkPath.isNotRelative = (path18) => REGEX_TEST_WINDOWS_PATH_ABSOLUTE.test(path18) || isNotRelative(path18);
     };
     if (
       // Detect `process` so that it can run in browsers.
@@ -3683,8 +3683,8 @@ var require_utils = __commonJS({
       }
       return ind;
     }
-    function removeDotSegments(path17) {
-      let input = path17;
+    function removeDotSegments(path18) {
+      let input = path18;
       const output = [];
       let nextSlash = -1;
       let len = 0;
@@ -3936,8 +3936,8 @@ var require_schemes = __commonJS({
         wsComponent.secure = void 0;
       }
       if (wsComponent.resourceName) {
-        const [path17, query] = wsComponent.resourceName.split("?");
-        wsComponent.path = path17 && path17 !== "/" ? path17 : void 0;
+        const [path18, query] = wsComponent.resourceName.split("?");
+        wsComponent.path = path18 && path18 !== "/" ? path18 : void 0;
         wsComponent.query = query;
         wsComponent.resourceName = void 0;
       }
@@ -11282,9 +11282,9 @@ Expecting one of '${allowedValues.join("', '")}'`);
    * @param {string} [path]
    * @return {(string|null|Command)}
    */
-  executableDir(path17) {
-    if (path17 === void 0) return this._executableDir;
-    this._executableDir = path17;
+  executableDir(path18) {
+    if (path18 === void 0) return this._executableDir;
+    this._executableDir = path18;
     return this;
   }
   /**
@@ -12031,8 +12031,8 @@ async function scanDirectory(root, absoluteDirectory, relativeDirectory, inherit
       continue;
     }
     if (metadata.isFile()) {
-      const sha2562 = await sha256File(absoluteEntry);
-      inventory.files.push({ path: portableEntry, size: metadata.size, sha256: sha2562 });
+      const sha2563 = await sha256File(absoluteEntry);
+      inventory.files.push({ path: portableEntry, size: metadata.size, sha256: sha2563 });
       inventory.bytes += metadata.size;
     }
   }
@@ -12637,17 +12637,17 @@ function visit(node, visitor) {
 visit.BREAK = BREAK;
 visit.SKIP = SKIP;
 visit.REMOVE = REMOVE;
-function visit_(key, node, visitor, path17) {
-  const ctrl = callVisitor(key, node, visitor, path17);
+function visit_(key, node, visitor, path18) {
+  const ctrl = callVisitor(key, node, visitor, path18);
   if (isNode(ctrl) || isPair(ctrl)) {
-    replaceNode(key, path17, ctrl);
-    return visit_(key, ctrl, visitor, path17);
+    replaceNode(key, path18, ctrl);
+    return visit_(key, ctrl, visitor, path18);
   }
   if (typeof ctrl !== "symbol") {
     if (isCollection(node)) {
-      path17 = Object.freeze(path17.concat(node));
+      path18 = Object.freeze(path18.concat(node));
       for (let i = 0; i < node.items.length; ++i) {
-        const ci = visit_(i, node.items[i], visitor, path17);
+        const ci = visit_(i, node.items[i], visitor, path18);
         if (typeof ci === "number")
           i = ci - 1;
         else if (ci === BREAK)
@@ -12658,13 +12658,13 @@ function visit_(key, node, visitor, path17) {
         }
       }
     } else if (isPair(node)) {
-      path17 = Object.freeze(path17.concat(node));
-      const ck = visit_("key", node.key, visitor, path17);
+      path18 = Object.freeze(path18.concat(node));
+      const ck = visit_("key", node.key, visitor, path18);
       if (ck === BREAK)
         return BREAK;
       else if (ck === REMOVE)
         node.key = null;
-      const cv = visit_("value", node.value, visitor, path17);
+      const cv = visit_("value", node.value, visitor, path18);
       if (cv === BREAK)
         return BREAK;
       else if (cv === REMOVE)
@@ -12685,17 +12685,17 @@ async function visitAsync(node, visitor) {
 visitAsync.BREAK = BREAK;
 visitAsync.SKIP = SKIP;
 visitAsync.REMOVE = REMOVE;
-async function visitAsync_(key, node, visitor, path17) {
-  const ctrl = await callVisitor(key, node, visitor, path17);
+async function visitAsync_(key, node, visitor, path18) {
+  const ctrl = await callVisitor(key, node, visitor, path18);
   if (isNode(ctrl) || isPair(ctrl)) {
-    replaceNode(key, path17, ctrl);
-    return visitAsync_(key, ctrl, visitor, path17);
+    replaceNode(key, path18, ctrl);
+    return visitAsync_(key, ctrl, visitor, path18);
   }
   if (typeof ctrl !== "symbol") {
     if (isCollection(node)) {
-      path17 = Object.freeze(path17.concat(node));
+      path18 = Object.freeze(path18.concat(node));
       for (let i = 0; i < node.items.length; ++i) {
-        const ci = await visitAsync_(i, node.items[i], visitor, path17);
+        const ci = await visitAsync_(i, node.items[i], visitor, path18);
         if (typeof ci === "number")
           i = ci - 1;
         else if (ci === BREAK)
@@ -12706,13 +12706,13 @@ async function visitAsync_(key, node, visitor, path17) {
         }
       }
     } else if (isPair(node)) {
-      path17 = Object.freeze(path17.concat(node));
-      const ck = await visitAsync_("key", node.key, visitor, path17);
+      path18 = Object.freeze(path18.concat(node));
+      const ck = await visitAsync_("key", node.key, visitor, path18);
       if (ck === BREAK)
         return BREAK;
       else if (ck === REMOVE)
         node.key = null;
-      const cv = await visitAsync_("value", node.value, visitor, path17);
+      const cv = await visitAsync_("value", node.value, visitor, path18);
       if (cv === BREAK)
         return BREAK;
       else if (cv === REMOVE)
@@ -12739,23 +12739,23 @@ function initVisitor(visitor) {
   }
   return visitor;
 }
-function callVisitor(key, node, visitor, path17) {
+function callVisitor(key, node, visitor, path18) {
   if (typeof visitor === "function")
-    return visitor(key, node, path17);
+    return visitor(key, node, path18);
   if (isMap(node))
-    return visitor.Map?.(key, node, path17);
+    return visitor.Map?.(key, node, path18);
   if (isSeq(node))
-    return visitor.Seq?.(key, node, path17);
+    return visitor.Seq?.(key, node, path18);
   if (isPair(node))
-    return visitor.Pair?.(key, node, path17);
+    return visitor.Pair?.(key, node, path18);
   if (isScalar(node))
-    return visitor.Scalar?.(key, node, path17);
+    return visitor.Scalar?.(key, node, path18);
   if (isAlias(node))
-    return visitor.Alias?.(key, node, path17);
+    return visitor.Alias?.(key, node, path18);
   return void 0;
 }
-function replaceNode(key, path17, node) {
-  const parent = path17[path17.length - 1];
+function replaceNode(key, path18, node) {
+  const parent = path18[path18.length - 1];
   if (isCollection(parent)) {
     parent.items[key] = node;
   } else if (isPair(parent)) {
@@ -13284,10 +13284,10 @@ function createNode(value, tagName, ctx) {
 }
 
 // node_modules/yaml/browser/dist/nodes/Collection.js
-function collectionFromPath(schema4, path17, value) {
+function collectionFromPath(schema4, path18, value) {
   let v = value;
-  for (let i = path17.length - 1; i >= 0; --i) {
-    const k = path17[i];
+  for (let i = path18.length - 1; i >= 0; --i) {
+    const k = path18[i];
     if (typeof k === "number" && Number.isInteger(k) && k >= 0) {
       const a = [];
       a[k] = v;
@@ -13306,7 +13306,7 @@ function collectionFromPath(schema4, path17, value) {
     sourceObjects: /* @__PURE__ */ new Map()
   });
 }
-var isEmptyPath = (path17) => path17 == null || typeof path17 === "object" && !!path17[Symbol.iterator]().next().done;
+var isEmptyPath = (path18) => path18 == null || typeof path18 === "object" && !!path18[Symbol.iterator]().next().done;
 var Collection = class extends NodeBase {
   constructor(type, schema4) {
     super(type);
@@ -13336,11 +13336,11 @@ var Collection = class extends NodeBase {
    * be a Pair instance or a `{ key, value }` object, which may not have a key
    * that already exists in the map.
    */
-  addIn(path17, value) {
-    if (isEmptyPath(path17))
+  addIn(path18, value) {
+    if (isEmptyPath(path18))
       this.add(value);
     else {
-      const [key, ...rest] = path17;
+      const [key, ...rest] = path18;
       const node = this.get(key, true);
       if (isCollection(node))
         node.addIn(rest, value);
@@ -13354,8 +13354,8 @@ var Collection = class extends NodeBase {
    * Removes a value from the collection.
    * @returns `true` if the item was found and removed.
    */
-  deleteIn(path17) {
-    const [key, ...rest] = path17;
+  deleteIn(path18) {
+    const [key, ...rest] = path18;
     if (rest.length === 0)
       return this.delete(key);
     const node = this.get(key, true);
@@ -13369,8 +13369,8 @@ var Collection = class extends NodeBase {
    * scalar values from their surrounding node; to disable set `keepScalar` to
    * `true` (collections are always returned intact).
    */
-  getIn(path17, keepScalar) {
-    const [key, ...rest] = path17;
+  getIn(path18, keepScalar) {
+    const [key, ...rest] = path18;
     const node = this.get(key, true);
     if (rest.length === 0)
       return !keepScalar && isScalar(node) ? node.value : node;
@@ -13388,8 +13388,8 @@ var Collection = class extends NodeBase {
   /**
    * Checks if the collection includes a value with the key `key`.
    */
-  hasIn(path17) {
-    const [key, ...rest] = path17;
+  hasIn(path18) {
+    const [key, ...rest] = path18;
     if (rest.length === 0)
       return this.has(key);
     const node = this.get(key, true);
@@ -13399,8 +13399,8 @@ var Collection = class extends NodeBase {
    * Sets a value in this collection. For `!!set`, `value` needs to be a
    * boolean to add/remove the item from the set.
    */
-  setIn(path17, value) {
-    const [key, ...rest] = path17;
+  setIn(path18, value) {
+    const [key, ...rest] = path18;
     if (rest.length === 0) {
       this.set(key, value);
     } else {
@@ -15539,9 +15539,9 @@ var Document = class _Document {
       this.contents.add(value);
   }
   /** Adds a value to the document. */
-  addIn(path17, value) {
+  addIn(path18, value) {
     if (assertCollection(this.contents))
-      this.contents.addIn(path17, value);
+      this.contents.addIn(path18, value);
   }
   /**
    * Create a new `Alias` node, ensuring that the target `node` has the required anchor.
@@ -15616,14 +15616,14 @@ var Document = class _Document {
    * Removes a value from the document.
    * @returns `true` if the item was found and removed.
    */
-  deleteIn(path17) {
-    if (isEmptyPath(path17)) {
+  deleteIn(path18) {
+    if (isEmptyPath(path18)) {
       if (this.contents == null)
         return false;
       this.contents = null;
       return true;
     }
-    return assertCollection(this.contents) ? this.contents.deleteIn(path17) : false;
+    return assertCollection(this.contents) ? this.contents.deleteIn(path18) : false;
   }
   /**
    * Returns item at `key`, or `undefined` if not found. By default unwraps
@@ -15638,10 +15638,10 @@ var Document = class _Document {
    * scalar values from their surrounding node; to disable set `keepScalar` to
    * `true` (collections are always returned intact).
    */
-  getIn(path17, keepScalar) {
-    if (isEmptyPath(path17))
+  getIn(path18, keepScalar) {
+    if (isEmptyPath(path18))
       return !keepScalar && isScalar(this.contents) ? this.contents.value : this.contents;
-    return isCollection(this.contents) ? this.contents.getIn(path17, keepScalar) : void 0;
+    return isCollection(this.contents) ? this.contents.getIn(path18, keepScalar) : void 0;
   }
   /**
    * Checks if the document includes a value with the key `key`.
@@ -15652,10 +15652,10 @@ var Document = class _Document {
   /**
    * Checks if the document includes a value at `path`.
    */
-  hasIn(path17) {
-    if (isEmptyPath(path17))
+  hasIn(path18) {
+    if (isEmptyPath(path18))
       return this.contents !== void 0;
-    return isCollection(this.contents) ? this.contents.hasIn(path17) : false;
+    return isCollection(this.contents) ? this.contents.hasIn(path18) : false;
   }
   /**
    * Sets a value in this document. For `!!set`, `value` needs to be a
@@ -15672,13 +15672,13 @@ var Document = class _Document {
    * Sets a value in this document. For `!!set`, `value` needs to be a
    * boolean to add/remove the item from the set.
    */
-  setIn(path17, value) {
-    if (isEmptyPath(path17)) {
+  setIn(path18, value) {
+    if (isEmptyPath(path18)) {
       this.contents = value;
     } else if (this.contents == null) {
-      this.contents = collectionFromPath(this.schema, Array.from(path17), value);
+      this.contents = collectionFromPath(this.schema, Array.from(path18), value);
     } else if (assertCollection(this.contents)) {
-      this.contents.setIn(path17, value);
+      this.contents.setIn(path18, value);
     }
   }
   /**
@@ -17228,9 +17228,9 @@ function visit2(cst, visitor) {
 visit2.BREAK = BREAK2;
 visit2.SKIP = SKIP2;
 visit2.REMOVE = REMOVE2;
-visit2.itemAtPath = (cst, path17) => {
+visit2.itemAtPath = (cst, path18) => {
   let item = cst;
-  for (const [field, index] of path17) {
+  for (const [field, index] of path18) {
     const tok = item?.[field];
     if (tok && "items" in tok) {
       item = tok.items[index];
@@ -17239,23 +17239,23 @@ visit2.itemAtPath = (cst, path17) => {
   }
   return item;
 };
-visit2.parentCollection = (cst, path17) => {
-  const parent = visit2.itemAtPath(cst, path17.slice(0, -1));
-  const field = path17[path17.length - 1][0];
+visit2.parentCollection = (cst, path18) => {
+  const parent = visit2.itemAtPath(cst, path18.slice(0, -1));
+  const field = path18[path18.length - 1][0];
   const coll = parent?.[field];
   if (coll && "items" in coll)
     return coll;
   throw new Error("Parent collection not found");
 };
-function _visit(path17, item, visitor) {
-  let ctrl = visitor(item, path17);
+function _visit(path18, item, visitor) {
+  let ctrl = visitor(item, path18);
   if (typeof ctrl === "symbol")
     return ctrl;
   for (const field of ["key", "value"]) {
     const token = item[field];
     if (token && "items" in token) {
       for (let i = 0; i < token.items.length; ++i) {
-        const ci = _visit(Object.freeze(path17.concat([[field, i]])), token.items[i], visitor);
+        const ci = _visit(Object.freeze(path18.concat([[field, i]])), token.items[i], visitor);
         if (typeof ci === "number")
           i = ci - 1;
         else if (ci === BREAK2)
@@ -17266,10 +17266,10 @@ function _visit(path17, item, visitor) {
         }
       }
       if (typeof ctrl === "function" && field === "key")
-        ctrl = ctrl(item, path17);
+        ctrl = ctrl(item, path18);
     }
   }
-  return typeof ctrl === "function" ? ctrl(item, path17) : ctrl;
+  return typeof ctrl === "function" ? ctrl(item, path18) : ctrl;
 }
 
 // node_modules/yaml/browser/dist/parse/cst.js
@@ -20142,6 +20142,7 @@ var event_schema_default = {
   required: [
     "schema_version",
     "event_id",
+    "payload_digest",
     "occurred_at",
     "actor",
     "recorded_by",
@@ -20159,6 +20160,9 @@ var event_schema_default = {
     event_id: {
       $ref: "urn:pcp:schema:v1:common#/$defs/ulid"
     },
+    payload_digest: {
+      $ref: "urn:pcp:schema:v1:common#/$defs/sha256"
+    },
     occurred_at: {
       $ref: "urn:pcp:schema:v1:common#/$defs/dateTime"
     },
@@ -20170,6 +20174,9 @@ var event_schema_default = {
     },
     basis: {
       enum: ["self", "reported", "observed", "system"]
+    },
+    change_key: {
+      $ref: "#/$defs/changeKey"
     },
     kind: {
       enum: [
@@ -20211,7 +20218,25 @@ var event_schema_default = {
       properties: { affected_paths: { type: "array", minItems: 1 } }
     }
   ],
+  allOf: [
+    {
+      if: {
+        properties: { basis: { enum: ["reported", "observed"] } },
+        required: ["basis"]
+      },
+      then: {
+        properties: { change_key: {} },
+        required: ["change_key"]
+      }
+    }
+  ],
   $defs: {
+    changeKey: {
+      type: "string",
+      minLength: 1,
+      maxLength: 240,
+      pattern: "\\S"
+    },
     summary: {
       type: "string",
       minLength: 1,
@@ -20261,6 +20286,9 @@ var event_input_schema_default = {
     basis: {
       enum: ["self", "reported", "observed", "system"]
     },
+    change_key: {
+      $ref: "urn:pcp:schema:v1:event#/$defs/changeKey"
+    },
     kind: {
       enum: [
         "code",
@@ -20299,6 +20327,18 @@ var event_input_schema_default = {
     },
     {
       properties: { affected_paths: { type: "array", minItems: 1 } }
+    }
+  ],
+  allOf: [
+    {
+      if: {
+        properties: { basis: { enum: ["reported", "observed"] } },
+        required: ["basis"]
+      },
+      then: {
+        properties: { change_key: {} },
+        required: ["change_key"]
+      }
     }
   ]
 };
@@ -21086,7 +21126,7 @@ var workstreams_schema_default = {
             criteria: {
               type: "array",
               items: {
-                $ref: "urn:pcp:schema:v1:common#/$defs/nonEmptyString"
+                $ref: "#/$defs/criterion"
               },
               minItems: 1,
               uniqueItems: true
@@ -21094,15 +21134,157 @@ var workstreams_schema_default = {
             evidence: {
               type: "array",
               items: {
-                $ref: "urn:pcp:schema:v1:common#/$defs/nonEmptyString"
+                $ref: "#/$defs/completionEvidence"
               },
               uniqueItems: true
+            },
+            announcement: {
+              $ref: "#/$defs/announcement"
             }
           }
         }
       }
+    },
+    criterion: {
+      type: "string",
+      minLength: 1,
+      maxLength: 1e3,
+      pattern: "\\S"
+    },
+    completionEvidence: {
+      type: "object",
+      additionalProperties: false,
+      required: ["criterion", "proof"],
+      properties: {
+        criterion: {
+          $ref: "#/$defs/criterion"
+        },
+        proof: {
+          type: "string",
+          minLength: 1,
+          maxLength: 4096,
+          pattern: "\\S"
+        }
+      }
+    },
+    announcement: {
+      type: "string",
+      minLength: 1,
+      maxLength: 1e3,
+      pattern: "\\S"
     }
   }
+};
+
+// schemas/v1/workstream-operation-input.schema.json
+var workstream_operation_input_schema_default = {
+  $schema: "https://json-schema.org/draft/2020-12/schema",
+  $id: "urn:pcp:schema:v1:workstream-operation-input",
+  title: "PCP workstream mutation input",
+  type: "object",
+  additionalProperties: false,
+  required: [
+    "schema_version",
+    "operation",
+    "expected_registry_digest",
+    "actor",
+    "recorded_by",
+    "basis",
+    "summary"
+  ],
+  properties: {
+    schema_version: {
+      $ref: "urn:pcp:schema:v1:common#/$defs/schemaVersion"
+    },
+    operation: {
+      enum: ["create", "update", "complete"]
+    },
+    expected_registry_digest: {
+      $ref: "urn:pcp:schema:v1:common#/$defs/sha256"
+    },
+    occurred_at: {
+      $ref: "urn:pcp:schema:v1:common#/$defs/dateTime"
+    },
+    actor: {
+      $ref: "urn:pcp:schema:v1:common#/$defs/actorReference"
+    },
+    recorded_by: {
+      $ref: "urn:pcp:schema:v1:common#/$defs/actorReference"
+    },
+    basis: {
+      enum: ["self", "reported", "observed", "system"]
+    },
+    change_key: {
+      $ref: "urn:pcp:schema:v1:event#/$defs/changeKey"
+    },
+    summary: {
+      $ref: "urn:pcp:schema:v1:event#/$defs/summary"
+    },
+    rationale: {
+      $ref: "urn:pcp:schema:v1:event#/$defs/rationale"
+    },
+    workstream: {
+      $ref: "urn:pcp:schema:v1:workstreams#/$defs/workstream"
+    },
+    workstream_id: {
+      $ref: "urn:pcp:schema:v1:common#/$defs/slug"
+    },
+    evidence: {
+      type: "array",
+      items: {
+        $ref: "urn:pcp:schema:v1:workstreams#/$defs/completionEvidence"
+      },
+      minItems: 1,
+      uniqueItems: true
+    },
+    announcement: {
+      $ref: "urn:pcp:schema:v1:workstreams#/$defs/announcement"
+    }
+  },
+  oneOf: [
+    {
+      properties: {
+        operation: { const: "create" },
+        workstream: {},
+        workstream_id: false,
+        evidence: false,
+        announcement: false
+      },
+      required: ["workstream"]
+    },
+    {
+      properties: {
+        operation: { const: "update" },
+        workstream: {},
+        workstream_id: false,
+        evidence: false,
+        announcement: false
+      },
+      required: ["workstream"]
+    },
+    {
+      properties: {
+        operation: { const: "complete" },
+        workstream: false,
+        workstream_id: {},
+        evidence: {},
+        announcement: {}
+      },
+      required: ["workstream_id", "evidence", "announcement"]
+    }
+  ],
+  allOf: [
+    {
+      if: {
+        properties: { basis: { enum: ["reported", "observed"] } },
+        required: ["basis"]
+      },
+      then: {
+        properties: { change_key: {} },
+        required: ["change_key"]
+      }
+    }
+  ]
 };
 
 // src/domain/schema-catalog.ts
@@ -21120,6 +21302,7 @@ var SCHEMA_CATALOG = {
   "project-registry": project_registry_schema_default,
   project: project_schema_default,
   "vcs-policy": vcs_policy_schema_default,
+  "workstream-operation-input": workstream_operation_input_schema_default,
   workstreams: workstreams_schema_default
 };
 var SUPPORTING_SCHEMAS = [common_schema_default];
@@ -21787,7 +21970,7 @@ function renderWorkstreams(workstreams) {
     "| --- | --- | --- | --- | --- | --- |",
     ...workstreams.map((workstream) => {
       const completion = objectValue(workstream.completion);
-      return `| ${code(workstream.workstream_id)} | ${tableCell(workstream.name)} | ${code(workstream.kind)} | ${code(workstream.status)} | ${codeList(workstream.dependencies)} | ${stringArray(completion.evidence).length} item(s) |`;
+      return `| ${code(workstream.workstream_id)} | ${tableCell(workstream.name)} | ${code(workstream.kind)} | ${code(workstream.status)} | ${codeList(workstream.dependencies)} | ${objectArray(completion.evidence).length} item(s) |`;
     })
   ];
 }
@@ -21982,6 +22165,29 @@ async function renderCanonicalViews(projectRoot, options = {}) {
 import { readdir as readdir2, readFile as readFile8, stat as stat2 } from "node:fs/promises";
 import path10 from "node:path";
 
+// src/domain/recording.ts
+import { createHash as createHash6 } from "node:crypto";
+function eventPayloadDigest(payload) {
+  return createHash6("sha256").update(canonicalJson(payload)).digest("hex");
+}
+var RecordingError = class extends Error {
+  constructor(code2, message, mutated = false, recovery_retained = false) {
+    super(message);
+    this.code = code2;
+    this.mutated = mutated;
+    this.recovery_retained = recovery_retained;
+    this.name = "RecordingError";
+  }
+  code;
+  mutated;
+  recovery_retained;
+};
+function nextEventId(existingIds, now = Date.now()) {
+  const newest = [...existingIds].sort((left, right) => left.localeCompare(right)).at(-1);
+  const timestamp2 = newest === void 0 ? now : Math.max(now, decodeTime(newest) + 1);
+  return ulid(timestamp2);
+}
+
 // src/domain/canonical-semantics.ts
 function objectValue2(value) {
   return typeof value === "object" && value !== null && !Array.isArray(value) ? value : void 0;
@@ -21995,8 +22201,8 @@ function objectArray2(value) {
 function stringArray2(value) {
   return Array.isArray(value) ? value.filter((item) => typeof item === "string") : [];
 }
-function error(code2, path17, message) {
-  return { severity: "error", code: code2, path: path17, message };
+function error(code2, path18, message) {
+  return { severity: "error", code: code2, path: path18, message };
 }
 function validateProjectIdentity(records) {
   const diagnostics = [];
@@ -22065,12 +22271,83 @@ function validateWorkstreams(records) {
       }
     }
     const completion = objectValue2(workstream.completion);
-    if (workstream.status === "complete" && stringArray2(completion?.evidence).length === 0) {
+    const criteria = stringArray2(completion?.criteria);
+    const evidence = objectArray2(completion?.evidence);
+    const evidenceCounts = /* @__PURE__ */ new Map();
+    for (const item of evidence) {
+      const criterion = stringValue(item.criterion);
+      if (criterion === void 0) continue;
+      evidenceCounts.set(criterion, (evidenceCounts.get(criterion) ?? 0) + 1);
+      if (!criteria.includes(criterion)) {
+        diagnostics.push(
+          error(
+            "workstream.evidence-unknown-criterion",
+            records.workstreams.path,
+            `Workstream ${id} has evidence for an unknown criterion: ${criterion}`
+          )
+        );
+      }
+    }
+    for (const [criterion, count] of evidenceCounts) {
+      if (count > 1) {
+        diagnostics.push(
+          error(
+            "workstream.duplicate-criterion-evidence",
+            records.workstreams.path,
+            `Workstream ${id} has multiple evidence records for criterion: ${criterion}`
+          )
+        );
+      }
+    }
+    if (workstream.status === "complete") {
+      if (evidence.length === 0) {
+        diagnostics.push(
+          error(
+            "workstream.completion-without-evidence",
+            records.workstreams.path,
+            `Complete workstream ${id} has no completion evidence.`
+          )
+        );
+      }
+      for (const criterion of criteria) {
+        if (!evidenceCounts.has(criterion)) {
+          diagnostics.push(
+            error(
+              "workstream.criterion-without-evidence",
+              records.workstreams.path,
+              `Complete workstream ${id} has no evidence for criterion: ${criterion}`
+            )
+          );
+        }
+      }
+      for (const dependency of stringArray2(workstream.dependencies)) {
+        const dependencyState = byId.get(dependency);
+        if (dependencyState !== void 0 && dependencyState.status !== "complete") {
+          diagnostics.push(
+            error(
+              "workstream.incomplete-dependency",
+              records.workstreams.path,
+              `Complete workstream ${id} depends on incomplete workstream ${dependency}.`
+            )
+          );
+        }
+      }
+      const announcement = stringValue(completion?.announcement);
+      if (announcement === void 0 || announcement.trim().length === 0) {
+        diagnostics.push(
+          error(
+            "workstream.completion-without-announcement",
+            records.workstreams.path,
+            `Complete workstream ${id} has no completion announcement.`
+          )
+        );
+      }
+    } else if (completion?.announcement !== void 0) {
       diagnostics.push(
         error(
-          "workstream.completion-without-evidence",
+          "workstream.announcement-before-completion",
           records.workstreams.path,
-          `Complete workstream ${id} has no completion evidence.`
+          `Workstream ${id} cannot announce completion while its status is ${String(workstream.status)}.`
         )
       );
     }
@@ -22146,6 +22423,7 @@ function validateActors(records) {
 function validateEvents(records) {
   const diagnostics = [];
   const seen = /* @__PURE__ */ new Map();
+  const changeKeys = /* @__PURE__ */ new Map();
   const activeEvents = [];
   const archivedEvents = [];
   const actorTypes = new Map(
@@ -22177,6 +22455,35 @@ function validateEvents(records) {
       );
     } else {
       seen.set(id, record.path);
+    }
+    const payloadDigest = stringValue(event?.payload_digest);
+    if (payloadDigest !== void 0 && event !== void 0) {
+      const payload = { ...event };
+      delete payload.payload_digest;
+      if (eventPayloadDigest(payload) !== payloadDigest) {
+        diagnostics.push(
+          error(
+            "event.payload-digest-mismatch",
+            record.path,
+            `Event ${id} payload no longer matches its recorded digest.`
+          )
+        );
+      }
+    }
+    const changeKey = stringValue(event?.change_key);
+    if (changeKey !== void 0) {
+      const previousChange = changeKeys.get(changeKey);
+      if (previousChange !== void 0) {
+        diagnostics.push(
+          error(
+            "event.duplicate-change-key",
+            record.path,
+            `Change key ${changeKey} duplicates ${previousChange}.`
+          )
+        );
+      } else {
+        changeKeys.set(changeKey, record.path);
+      }
     }
     (record.path.startsWith("continuity/archive/") ? archivedEvents : activeEvents).push({
       id,
@@ -24186,8 +24493,26 @@ async function adoptProject(candidate = ".", options = {}) {
   };
 }
 
+// src/application/manage-workstreams.ts
+import { createHash as createHash9, randomUUID as randomUUID3 } from "node:crypto";
+import {
+  chmod as chmod2,
+  lstat as lstat7,
+  mkdtemp as mkdtemp4,
+  open as open4,
+  readFile as readFile13,
+  realpath as realpath3,
+  rename as rename3,
+  rm as rm4,
+  stat as stat4,
+  unlink as unlink4,
+  utimes as utimes2
+} from "node:fs/promises";
+import { tmpdir as tmpdir5 } from "node:os";
+import path15 from "node:path";
+
 // src/application/record-event.ts
-import { createHash as createHash7, randomUUID as randomUUID2 } from "node:crypto";
+import { createHash as createHash8, randomUUID as randomUUID2 } from "node:crypto";
 import {
   lstat as lstat6,
   mkdtemp as mkdtemp3,
@@ -24203,27 +24528,8 @@ import {
 import { tmpdir as tmpdir4 } from "node:os";
 import path14 from "node:path";
 
-// src/domain/recording.ts
-var RecordingError = class extends Error {
-  constructor(code2, message, mutated = false, recovery_retained = false) {
-    super(message);
-    this.code = code2;
-    this.mutated = mutated;
-    this.recovery_retained = recovery_retained;
-    this.name = "RecordingError";
-  }
-  code;
-  mutated;
-  recovery_retained;
-};
-function nextEventId(existingIds, now = Date.now()) {
-  const newest = [...existingIds].sort((left, right) => left.localeCompare(right)).at(-1);
-  const timestamp2 = newest === void 0 ? now : Math.max(now, decodeTime(newest) + 1);
-  return ulid(timestamp2);
-}
-
 // src/infrastructure/continuity-lock.ts
-import { createHash as createHash6, randomUUID } from "node:crypto";
+import { createHash as createHash7, randomUUID } from "node:crypto";
 import { mkdir as mkdir3, open as open2, readFile as readFile11, stat as stat3, unlink as unlink2 } from "node:fs/promises";
 import { tmpdir as tmpdir3 } from "node:os";
 import path13 from "node:path";
@@ -24239,7 +24545,7 @@ var ContinuityLockError = class extends Error {
 function lockDigest(root) {
   const resolved = path13.resolve(root);
   const portableRoot = process.platform === "win32" ? resolved.toLowerCase() : resolved;
-  return createHash6("sha256").update(portableRoot).digest("hex");
+  return createHash7("sha256").update(portableRoot).digest("hex");
 }
 async function removeStaleLock(lockPath) {
   try {
@@ -24330,7 +24636,7 @@ function isInside5(root, candidate) {
   return relative === "" || !relative.startsWith(`..${path14.sep}`) && relative !== ".." && !path14.isAbsolute(relative);
 }
 function digest(value) {
-  return createHash7("sha256").update(value).digest("hex");
+  return createHash8("sha256").update(value).digest("hex");
 }
 function rootDigest(root) {
   const resolved = path14.resolve(root);
@@ -24438,7 +24744,8 @@ async function loadActiveEvents(root) {
       event_id: name.slice(0, -".yaml".length),
       absolute_path: absolutePath,
       contents,
-      digest: digest(contents)
+      digest: digest(contents),
+      event: parse(contents.toString("utf8"))
     });
   }
   return events;
@@ -24465,13 +24772,14 @@ async function loadSemanticRecords(root) {
   };
 }
 function normalizeEventInput(input, eventId) {
-  return {
+  const payload = {
     schema_version: 1,
     event_id: eventId,
     occurred_at: input.occurred_at ?? (/* @__PURE__ */ new Date()).toISOString(),
     actor: input.actor,
     recorded_by: input.recorded_by,
     basis: input.basis,
+    ...input.change_key === void 0 ? {} : { change_key: input.change_key.trim() },
     kind: input.kind,
     scopes: [...input.scopes].sort((left, right) => left.localeCompare(right)),
     workstreams: [...input.workstreams].sort((left, right) => left.localeCompare(right)),
@@ -24479,6 +24787,7 @@ function normalizeEventInput(input, eventId) {
     ...input.rationale === void 0 ? {} : { rationale: input.rationale.trim() },
     affected_paths: [...input.affected_paths].sort((left, right) => left.localeCompare(right))
   };
+  return { ...payload, payload_digest: eventPayloadDigest(payload) };
 }
 function assertEventSemantics(event, records) {
   const diagnostics = validateCanonicalSemantics({
@@ -24601,6 +24910,7 @@ async function executeEventTransaction(root, event, activeEvents, archiveIds, op
       status: "recorded",
       event_id: event.event_id,
       event_path: `${ACTIVE_EVENT_DIRECTORY}/${event.event_id}.yaml`,
+      payload_digest: event.payload_digest,
       occurred_at: event.occurred_at,
       summary: event.summary,
       active_events: activeEvents.length - rotation.length + 1,
@@ -24685,7 +24995,7 @@ async function executeEventTransaction(root, event, activeEvents, archiveIds, op
     );
   }
 }
-async function recordEventLocked(root, input, options) {
+async function recordEventUnderLock(root, input, options) {
   await assertValidOperationalLayer(root);
   const [activeEvents, archiveIds, semanticRecords] = await Promise.all([
     loadActiveEvents(root),
@@ -24697,6 +25007,16 @@ async function recordEventLocked(root, input, options) {
       "PCP_RECORD_ACTIVE_LIMIT_EXCEEDED",
       `Active continuity history already exceeds ${ACTIVE_EVENT_LIMIT}; repair it before recording.`
     );
+  }
+  if (input.change_key !== void 0) {
+    const normalizedKey = input.change_key.trim();
+    const duplicate = activeEvents.find((item) => item.event.change_key === normalizedKey);
+    if (duplicate !== void 0) {
+      throw new RecordingError(
+        "PCP_RECORD_DUPLICATE_CHANGE",
+        `Active event ${duplicate.event_id} already records change key ${normalizedKey}.`
+      );
+    }
   }
   const event = normalizeEventInput(
     input,
@@ -24716,7 +25036,7 @@ async function recordEvent(projectRoot, inputPath, options = {}) {
   const root = path14.resolve(projectRoot);
   try {
     const input = await loadEventInput(inputPath, root);
-    return await withContinuityLock(root, () => recordEventLocked(root, input, options));
+    return await withContinuityLock(root, () => recordEventUnderLock(root, input, options));
   } catch (error2) {
     if (error2 instanceof ContinuityLockError) {
       throw new RecordingError(
@@ -24732,9 +25052,696 @@ async function recordEvent(projectRoot, inputPath, options = {}) {
   }
 }
 
+// src/domain/workstreams.ts
+var WorkstreamError = class extends Error {
+  constructor(code2, message, mutated = false, recovery_retained = false) {
+    super(message);
+    this.code = code2;
+    this.mutated = mutated;
+    this.recovery_retained = recovery_retained;
+    this.name = "WorkstreamError";
+  }
+  code;
+  mutated;
+  recovery_retained;
+};
+function sorted(values) {
+  return [...values].sort((left, right) => left.localeCompare(right));
+}
+function normalizeEvidence(evidence) {
+  return evidence.map((item) => ({ criterion: item.criterion.trim(), proof: item.proof.trim() })).sort(
+    (left, right) => left.criterion.localeCompare(right.criterion) || left.proof.localeCompare(right.proof)
+  );
+}
+function normalizeWorkstream(workstream) {
+  return {
+    workstream_id: workstream.workstream_id,
+    name: workstream.name.trim(),
+    kind: workstream.kind,
+    status: workstream.status,
+    paths: sorted(workstream.paths),
+    areas: sorted(workstream.areas),
+    dependencies: sorted(workstream.dependencies),
+    completion: {
+      criteria: sorted(workstream.completion.criteria.map((criterion) => criterion.trim())),
+      evidence: normalizeEvidence(workstream.completion.evidence),
+      ...workstream.completion.announcement === void 0 ? {} : { announcement: workstream.completion.announcement.trim() }
+    }
+  };
+}
+function replaceWorkstream(registry, workstream) {
+  return {
+    schema_version: 1,
+    workstreams: [
+      ...registry.workstreams.filter((item) => item.workstream_id !== workstream.workstream_id),
+      workstream
+    ].sort((left, right) => left.workstream_id.localeCompare(right.workstream_id))
+  };
+}
+function existingWorkstream(registry, workstreamId) {
+  const existing = registry.workstreams.find((item) => item.workstream_id === workstreamId);
+  if (existing === void 0) {
+    throw new WorkstreamError(
+      "PCP_WORKSTREAM_NOT_FOUND",
+      `Workstream ${workstreamId} does not exist.`
+    );
+  }
+  return existing;
+}
+function assertUpdateTransition(previous, next) {
+  if (previous.kind !== next.kind) {
+    throw new WorkstreamError(
+      "PCP_WORKSTREAM_KIND_IMMUTABLE",
+      `Workstream ${previous.workstream_id} cannot change kind from ${previous.kind} to ${next.kind}.`
+    );
+  }
+  if (previous.status === "complete" || previous.status === "cancelled") {
+    throw new WorkstreamError(
+      "PCP_WORKSTREAM_TERMINAL",
+      `Workstream ${previous.workstream_id} is ${previous.status} and cannot be updated.`
+    );
+  }
+  if (next.status === "complete") {
+    throw new WorkstreamError(
+      "PCP_WORKSTREAM_COMPLETE_REQUIRED",
+      `Use the complete operation to finish workstream ${previous.workstream_id}.`
+    );
+  }
+  const allowed = {
+    planned: ["planned", "active", "blocked", "cancelled"],
+    active: ["active", "blocked", "cancelled"],
+    blocked: ["blocked", "active", "cancelled"],
+    complete: [],
+    cancelled: []
+  };
+  if (!allowed[previous.status].includes(next.status)) {
+    throw new WorkstreamError(
+      "PCP_WORKSTREAM_TRANSITION_INVALID",
+      `Workstream ${previous.workstream_id} cannot move from ${previous.status} to ${next.status}.`
+    );
+  }
+}
+function prepareCreate(registry, input) {
+  const workstream = normalizeWorkstream(input.workstream);
+  if (registry.workstreams.some((item) => item.workstream_id === workstream.workstream_id)) {
+    throw new WorkstreamError(
+      "PCP_WORKSTREAM_EXISTS",
+      `Workstream ${workstream.workstream_id} already exists.`
+    );
+  }
+  if (workstream.status === "complete" || workstream.status === "cancelled") {
+    throw new WorkstreamError(
+      "PCP_WORKSTREAM_CREATE_STATUS_INVALID",
+      "A new workstream must start as planned, active, or blocked."
+    );
+  }
+  return { registry: replaceWorkstream(registry, workstream), workstream };
+}
+function prepareUpdate(registry, input) {
+  const workstream = normalizeWorkstream(input.workstream);
+  const previous = existingWorkstream(registry, workstream.workstream_id);
+  assertUpdateTransition(previous, workstream);
+  if (canonicalJson(previous) === canonicalJson(workstream)) {
+    throw new WorkstreamError(
+      "PCP_WORKSTREAM_NO_CHANGE",
+      `Workstream ${workstream.workstream_id} already has the requested state.`
+    );
+  }
+  return { registry: replaceWorkstream(registry, workstream), workstream };
+}
+function prepareCompletion(registry, input) {
+  const previous = existingWorkstream(registry, input.workstream_id);
+  if (previous.status !== "active" && previous.status !== "blocked") {
+    throw new WorkstreamError(
+      "PCP_WORKSTREAM_NOT_COMPLETABLE",
+      `Workstream ${previous.workstream_id} is ${previous.status}; only active or blocked work can be completed.`
+    );
+  }
+  const evidence = normalizeEvidence(input.evidence);
+  const criterionCounts = /* @__PURE__ */ new Map();
+  for (const item of evidence) {
+    criterionCounts.set(item.criterion, (criterionCounts.get(item.criterion) ?? 0) + 1);
+  }
+  const criteria = previous.completion.criteria.map((criterion) => criterion.trim());
+  const unknown = evidence.find((item) => !criteria.includes(item.criterion));
+  if (unknown !== void 0) {
+    throw new WorkstreamError(
+      "PCP_WORKSTREAM_EVIDENCE_UNKNOWN",
+      `Completion evidence does not match a criterion: ${unknown.criterion}`
+    );
+  }
+  const duplicate = [...criterionCounts].find(([, count]) => count !== 1);
+  if (duplicate !== void 0) {
+    throw new WorkstreamError(
+      "PCP_WORKSTREAM_EVIDENCE_DUPLICATE",
+      `Completion criterion has more than one proof: ${duplicate[0]}`
+    );
+  }
+  const missing = criteria.find((criterion) => !criterionCounts.has(criterion));
+  if (missing !== void 0 || evidence.length !== criteria.length) {
+    throw new WorkstreamError(
+      "PCP_WORKSTREAM_EVIDENCE_INCOMPLETE",
+      `Completion requires exactly one proof for every criterion${missing === void 0 ? "." : `; missing: ${missing}`}`
+    );
+  }
+  for (const dependencyId of previous.dependencies) {
+    const dependency = existingWorkstream(registry, dependencyId);
+    if (dependency.status !== "complete") {
+      throw new WorkstreamError(
+        "PCP_WORKSTREAM_DEPENDENCY_INCOMPLETE",
+        `Workstream ${previous.workstream_id} cannot complete before ${dependencyId}.`
+      );
+    }
+  }
+  const workstream = normalizeWorkstream({
+    ...previous,
+    status: "complete",
+    completion: {
+      criteria: previous.completion.criteria,
+      evidence,
+      announcement: input.announcement.trim()
+    }
+  });
+  return { registry: replaceWorkstream(registry, workstream), workstream };
+}
+function prepareWorkstreamMutation(registry, input) {
+  if (input.operation === "create") return prepareCreate(registry, input);
+  if (input.operation === "update") return prepareUpdate(registry, input);
+  return prepareCompletion(registry, input);
+}
+
+// src/application/manage-workstreams.ts
+var WORKSTREAM_PATH2 = ".pcp/state/workstreams.yaml";
+var STATUS_VIEW_PATH = ".pcp/views/10-status.generated.md";
+var STATUS_SOURCES = [
+  "state/project.yaml",
+  "state/projects.yaml",
+  "state/workstreams.yaml",
+  "state/vcs-policy.yaml"
+];
+var MAXIMUM_INPUT_BYTES = 64 * 1024;
+function sha2562(value) {
+  return createHash9("sha256").update(value).digest("hex");
+}
+function rootDigest2(root) {
+  const resolved = path15.resolve(root);
+  return sha2562(process.platform === "win32" ? resolved.toLowerCase() : resolved);
+}
+function isInside6(root, candidate) {
+  const relative = path15.relative(root, candidate);
+  return relative === "" || !relative.startsWith(`..${path15.sep}`) && relative !== ".." && !path15.isAbsolute(relative);
+}
+function layerSummary(report) {
+  return report.diagnostics.slice(0, 4).map((diagnostic2) => `${diagnostic2.path}: ${diagnostic2.message}`).join("; ");
+}
+async function assertValidOperationalLayer2(root) {
+  const report = await validateCanonicalLayer(root, { archive_content: "filenames-only" });
+  if (report.valid) return;
+  const detail = layerSummary(report);
+  throw new WorkstreamError(
+    "PCP_WORKSTREAM_INVALID_LAYER",
+    `Workstream operations require a valid installed PCP layer${detail.length === 0 ? "." : `: ${detail}`}`
+  );
+}
+function inputFailure2(message) {
+  return new WorkstreamError("PCP_WORKSTREAM_INPUT_INVALID", message);
+}
+async function loadWorkstreamInput(inputPath, projectRoot, expectedOperation) {
+  const resolvedInput = path15.resolve(inputPath);
+  if (isInside6(projectRoot, resolvedInput)) {
+    throw new WorkstreamError(
+      "PCP_WORKSTREAM_INPUT_INSIDE_PROJECT",
+      "Store transient workstream input outside the managed project so it cannot become duplicate project state."
+    );
+  }
+  let metadata;
+  try {
+    metadata = await lstat7(resolvedInput);
+  } catch (error2) {
+    throw new WorkstreamError(
+      "PCP_WORKSTREAM_INPUT_UNREADABLE",
+      `Cannot read workstream input: ${error2 instanceof Error ? error2.message : String(error2)}`
+    );
+  }
+  if (!metadata.isFile() || metadata.isSymbolicLink() || metadata.size > MAXIMUM_INPUT_BYTES) {
+    throw new WorkstreamError(
+      "PCP_WORKSTREAM_INPUT_UNSAFE",
+      "Workstream input must be a regular non-symlink file no larger than 64 KiB."
+    );
+  }
+  try {
+    const [physicalInput, physicalProjectRoot] = await Promise.all([
+      realpath3(resolvedInput),
+      realpath3(projectRoot)
+    ]);
+    if (isInside6(physicalProjectRoot, physicalInput)) {
+      throw new WorkstreamError(
+        "PCP_WORKSTREAM_INPUT_INSIDE_PROJECT",
+        "Store transient workstream input outside the managed project so it cannot become duplicate project state."
+      );
+    }
+  } catch (error2) {
+    if (error2 instanceof WorkstreamError) throw error2;
+    throw new WorkstreamError(
+      "PCP_WORKSTREAM_INPUT_UNREADABLE",
+      `Cannot resolve workstream input safely: ${error2 instanceof Error ? error2.message : String(error2)}`
+    );
+  }
+  const contents = await readFile13(resolvedInput, "utf8").catch((error2) => {
+    throw new WorkstreamError(
+      "PCP_WORKSTREAM_INPUT_UNREADABLE",
+      `Cannot read workstream input: ${error2 instanceof Error ? error2.message : String(error2)}`
+    );
+  });
+  const document = parseDocument(contents, {
+    prettyErrors: false,
+    strict: true,
+    uniqueKeys: true
+  });
+  if (document.errors.length > 0) {
+    throw inputFailure2(
+      `Workstream input is not valid YAML: ${document.errors.map((error2) => error2.message).join("; ")}`
+    );
+  }
+  let value;
+  try {
+    value = document.toJS({ mapAsMap: false, maxAliasCount: 50 });
+  } catch (error2) {
+    throw inputFailure2(
+      `Workstream input cannot be decoded safely: ${error2 instanceof Error ? error2.message : String(error2)}`
+    );
+  }
+  const validation = validateSchema("workstream-operation-input", value);
+  if (!validation.valid) {
+    const detail = validation.diagnostics.slice(0, 8).map((diagnostic2) => `${diagnostic2.path}: ${diagnostic2.message}`).join("; ");
+    throw inputFailure2(`Workstream input fails its release schema: ${detail}`);
+  }
+  const input = value;
+  if (input.operation !== expectedOperation) {
+    throw inputFailure2(
+      `The ${expectedOperation} command requires operation: ${expectedOperation}, not ${input.operation}.`
+    );
+  }
+  return input;
+}
+function parseRegistry(bytes) {
+  const document = parseDocument(bytes.toString("utf8"), {
+    prettyErrors: false,
+    strict: true,
+    uniqueKeys: true
+  });
+  if (document.errors.length > 0) {
+    throw new WorkstreamError(
+      "PCP_WORKSTREAM_REGISTRY_INVALID",
+      "The canonical workstream registry is not valid YAML."
+    );
+  }
+  const value = document.toJS({ mapAsMap: false, maxAliasCount: 50 });
+  const schema4 = validateSchema("workstreams", value);
+  if (!schema4.valid) {
+    throw new WorkstreamError(
+      "PCP_WORKSTREAM_REGISTRY_INVALID",
+      "The canonical workstream registry fails its release schema."
+    );
+  }
+  return value;
+}
+function parseSource(contents, relativePath) {
+  const document = parseDocument(contents, {
+    prettyErrors: false,
+    strict: true,
+    uniqueKeys: true
+  });
+  if (document.errors.length > 0) {
+    throw new WorkstreamError(
+      "PCP_WORKSTREAM_RENDER_SOURCE_INVALID",
+      `Cannot render the status view because ${relativePath} is not valid YAML.`
+    );
+  }
+  const value = document.toJS({ mapAsMap: false, maxAliasCount: 50 });
+  if (typeof value !== "object" || value === null || Array.isArray(value)) {
+    throw new WorkstreamError(
+      "PCP_WORKSTREAM_RENDER_SOURCE_INVALID",
+      `Cannot render the status view because ${relativePath} is not an object.`
+    );
+  }
+  return value;
+}
+async function desiredStatusView(root, workstreamContents, registry) {
+  const layerRoot = path15.join(root, ".pcp");
+  const contents = await Promise.all(
+    STATUS_SOURCES.map(async (relativePath) => ({
+      path: relativePath,
+      contents: relativePath === "state/workstreams.yaml" ? workstreamContents : await readFile13(path15.join(layerRoot, ...relativePath.split("/")), "utf8")
+    }))
+  );
+  const values = /* @__PURE__ */ new Map();
+  for (const source of contents) {
+    values.set(
+      source.path,
+      source.path === "state/workstreams.yaml" ? registry : parseSource(source.contents, source.path)
+    );
+  }
+  const sourceDigest = canonicalSourceDigestFromContents(contents);
+  return Buffer.from(renderCanonicalStatusView(values, sourceDigest), "utf8");
+}
+async function loadRegistry(root) {
+  const absolutePath = path15.join(root, ...WORKSTREAM_PATH2.split("/"));
+  const metadata = await lstat7(absolutePath).catch((error2) => {
+    throw new WorkstreamError(
+      "PCP_WORKSTREAM_REGISTRY_UNREADABLE",
+      `Cannot read the canonical workstream registry: ${error2 instanceof Error ? error2.message : String(error2)}`
+    );
+  });
+  if (!metadata.isFile() || metadata.isSymbolicLink()) {
+    throw new WorkstreamError(
+      "PCP_WORKSTREAM_REGISTRY_UNSAFE",
+      "The canonical workstream registry must be a regular non-symlink file."
+    );
+  }
+  const bytes = await readFile13(absolutePath);
+  return {
+    absolute_path: absolutePath,
+    bytes,
+    digest: sha2562(bytes),
+    registry: parseRegistry(bytes)
+  };
+}
+function assertRegistrySemantics(registry) {
+  const diagnostics = validateCanonicalSemantics({
+    workstreams: { path: "state/workstreams.yaml", value: registry },
+    actors: [],
+    events: [],
+    checkpoints: []
+  });
+  if (diagnostics.length === 0) return;
+  const detail = diagnostics.slice(0, 8).map((diagnostic2) => `${diagnostic2.code}: ${diagnostic2.message}`).join("; ");
+  throw new WorkstreamError(
+    "PCP_WORKSTREAM_STATE_INVALID",
+    `The requested workstream state is inconsistent: ${detail}`
+  );
+}
+async function writeDurableExclusive(file, bytes) {
+  const handle = await open4(file, "wx");
+  try {
+    await handle.writeFile(bytes);
+    await handle.sync();
+  } finally {
+    await handle.close();
+  }
+}
+async function exists(file) {
+  try {
+    await lstat7(file);
+    return true;
+  } catch (error2) {
+    if (error2.code === "ENOENT") return false;
+    throw error2;
+  }
+}
+async function replaceWithTemporary(target, temporary) {
+  try {
+    await rename3(temporary, target);
+  } catch (error2) {
+    const code2 = error2.code;
+    if (code2 !== "EEXIST" && code2 !== "EPERM") throw error2;
+    const held = `${temporary}.previous`;
+    await rename3(target, held);
+    try {
+      await rename3(temporary, target);
+      await unlink4(held);
+    } catch (replacementError) {
+      if (await exists(target)) await unlink4(target);
+      await rename3(held, target);
+      throw replacementError;
+    }
+  }
+}
+async function installBytes(target, bytes) {
+  const temporary = path15.join(
+    path15.dirname(target),
+    `.${path15.basename(target)}.${randomUUID3()}.tmp`
+  );
+  try {
+    await writeDurableExclusive(temporary, bytes);
+    await replaceWithTemporary(target, temporary);
+  } finally {
+    if (await exists(temporary)) await unlink4(temporary);
+  }
+}
+async function restoreRegistry(target, bytes, metadata) {
+  await installBytes(target, bytes);
+  await chmod2(target, metadata.mode);
+  await utimes2(target, metadata.atime, metadata.mtime);
+}
+function eventInput(input, workstreamId) {
+  return {
+    schema_version: 1,
+    ...input.occurred_at === void 0 ? {} : { occurred_at: input.occurred_at },
+    actor: input.actor,
+    recorded_by: input.recorded_by,
+    basis: input.basis,
+    ...input.change_key === void 0 ? {} : { change_key: input.change_key },
+    kind: "workstream",
+    scopes: ["workstream-registry"],
+    workstreams: [workstreamId],
+    summary: input.summary,
+    ...input.rationale === void 0 ? {} : { rationale: input.rationale },
+    affected_paths: [WORKSTREAM_PATH2, STATUS_VIEW_PATH]
+  };
+}
+function injectedFailure2(operation, options) {
+  if (options.fail_after_operation === operation) {
+    throw new WorkstreamError(
+      "PCP_FAULT_INJECTED",
+      `Injected workstream failure after operation ${operation}.`,
+      true
+    );
+  }
+}
+async function executeMutation(root, loaded, input, nextRegistry, workstreamId, options) {
+  const nextBytes = Buffer.from(stringify3(nextRegistry), "utf8");
+  const nextDigest = sha2562(nextBytes);
+  const statusViewPath = path15.join(root, ...STATUS_VIEW_PATH.split("/"));
+  const [metadata, viewMetadata, viewBytes, nextViewBytes] = await Promise.all([
+    stat4(loaded.absolute_path),
+    stat4(statusViewPath),
+    readFile13(statusViewPath),
+    desiredStatusView(root, nextBytes.toString("utf8"), nextRegistry)
+  ]);
+  const registryMetadata = {
+    mode: metadata.mode,
+    atime: metadata.atime,
+    mtime: metadata.mtime
+  };
+  const statusViewMetadata = {
+    mode: viewMetadata.mode,
+    atime: viewMetadata.atime,
+    mtime: viewMetadata.mtime
+  };
+  let recoveryRoot;
+  let registryInstalled = false;
+  let statusViewInstalled = false;
+  try {
+    recoveryRoot = await mkdtemp4(
+      path15.join(tmpdir5(), `pcp-workstream-transaction-${rootDigest2(root).slice(0, 12)}-`)
+    );
+    await writeDurableExclusive(path15.join(recoveryRoot, "workstreams.preimage"), loaded.bytes);
+    await writeDurableExclusive(path15.join(recoveryRoot, "status-view.preimage"), viewBytes);
+    await writeDurableExclusive(
+      path15.join(recoveryRoot, "transaction.json"),
+      Buffer.from(
+        `${JSON.stringify({
+          schema_version: 1,
+          target: WORKSTREAM_PATH2,
+          digest_before: loaded.digest,
+          digest_after: nextDigest,
+          generated_view: STATUS_VIEW_PATH,
+          generated_view_digest_before: sha2562(viewBytes),
+          generated_view_digest_after: sha2562(nextViewBytes)
+        })}
+`,
+        "utf8"
+      )
+    );
+    await installBytes(loaded.absolute_path, nextBytes);
+    registryInstalled = true;
+    injectedFailure2(1, options);
+    await installBytes(statusViewPath, nextViewBytes);
+    statusViewInstalled = true;
+    injectedFailure2(2, options);
+    const nestedFailure = options.fail_after_operation === void 0 || options.fail_after_operation <= 2 ? void 0 : options.fail_after_operation - 2;
+    const recorded = await recordEventUnderLock(root, eventInput(input, workstreamId), {
+      ...nestedFailure === void 0 ? {} : { fail_after_operation: nestedFailure }
+    });
+    let recoveryRetained = false;
+    try {
+      await rm4(recoveryRoot, { recursive: true, force: false });
+    } catch {
+      recoveryRetained = true;
+    }
+    return {
+      schema_version: 1,
+      command: "workstream",
+      operation: input.operation,
+      status: input.operation === "create" ? "created" : input.operation === "update" ? "updated" : "completed",
+      workstream_id: workstreamId,
+      registry_path: WORKSTREAM_PATH2,
+      registry_digest_before: loaded.digest,
+      registry_digest_after: nextDigest,
+      event_id: recorded.event_id,
+      event_path: recorded.event_path,
+      event_payload_digest: recorded.payload_digest,
+      announcement: input.operation === "complete" ? input.announcement.trim() : null,
+      event_created: true,
+      mutated: true,
+      recovery_retained: recoveryRetained
+    };
+  } catch (error2) {
+    const rollbackFailures = [];
+    if (statusViewInstalled) {
+      try {
+        await restoreRegistry(statusViewPath, viewBytes, statusViewMetadata);
+      } catch (rollbackError) {
+        rollbackFailures.push(
+          rollbackError instanceof Error ? rollbackError.message : String(rollbackError)
+        );
+      }
+    }
+    if (registryInstalled) {
+      try {
+        await restoreRegistry(loaded.absolute_path, loaded.bytes, registryMetadata);
+      } catch (rollbackError) {
+        rollbackFailures.push(
+          rollbackError instanceof Error ? rollbackError.message : String(rollbackError)
+        );
+      }
+    }
+    try {
+      const restored = await readFile13(loaded.absolute_path);
+      if (!restored.equals(loaded.bytes)) {
+        rollbackFailures.push("workstream registry bytes differ from the preimage");
+      }
+    } catch (rollbackError) {
+      rollbackFailures.push(
+        rollbackError instanceof Error ? rollbackError.message : String(rollbackError)
+      );
+    }
+    try {
+      const restoredView = await readFile13(statusViewPath);
+      if (!restoredView.equals(viewBytes)) {
+        rollbackFailures.push("generated status view bytes differ from the preimage");
+      }
+    } catch (rollbackError) {
+      rollbackFailures.push(
+        rollbackError instanceof Error ? rollbackError.message : String(rollbackError)
+      );
+    }
+    if (rollbackFailures.length === 0) {
+      const report = await validateCanonicalLayer(root, { archive_content: "filenames-only" });
+      if (!report.valid)
+        rollbackFailures.push(`restored layer is invalid: ${layerSummary(report)}`);
+    }
+    if (rollbackFailures.length > 0) {
+      throw new WorkstreamError(
+        "PCP_WORKSTREAM_ROLLBACK_FAILED",
+        `Workstream mutation failed (${error2 instanceof Error ? error2.message : String(error2)}) and exact rollback could not be verified: ${rollbackFailures.join("; ")}`,
+        true,
+        true
+      );
+    }
+    let recoveryRetained = error2 instanceof RecordingError && error2.recovery_retained;
+    if (recoveryRoot !== void 0) {
+      try {
+        await rm4(recoveryRoot, { recursive: true, force: true });
+      } catch {
+        recoveryRetained = true;
+      }
+    }
+    const code2 = error2 instanceof WorkstreamError || error2 instanceof RecordingError ? error2.code : "PCP_WORKSTREAM_TRANSACTION_FAILED";
+    throw new WorkstreamError(
+      code2,
+      error2 instanceof Error ? error2.message : String(error2),
+      false,
+      recoveryRetained
+    );
+  }
+}
+async function underLock(root, operation) {
+  try {
+    return await withContinuityLock(root, operation);
+  } catch (error2) {
+    if (error2 instanceof ContinuityLockError) {
+      throw new WorkstreamError(
+        "PCP_WORKSTREAM_LOCKED",
+        "Another actor registration or continuity operation is still running for this project."
+      );
+    }
+    throw error2;
+  }
+}
+async function validateWorkstreamRegistry(projectRoot, workstreamId) {
+  const root = path15.resolve(projectRoot);
+  return underLock(root, async () => {
+    await assertValidOperationalLayer2(root);
+    const loaded = await loadRegistry(root);
+    const workstream = workstreamId === void 0 ? null : loaded.registry.workstreams.find((item) => item.workstream_id === workstreamId) ?? void 0;
+    if (workstream === void 0) {
+      throw new WorkstreamError(
+        "PCP_WORKSTREAM_NOT_FOUND",
+        `Workstream ${workstreamId ?? ""} does not exist.`
+      );
+    }
+    return {
+      schema_version: 1,
+      command: "workstream",
+      operation: "validate",
+      status: "valid",
+      registry_path: WORKSTREAM_PATH2,
+      registry_digest: loaded.digest,
+      workstream_count: loaded.registry.workstreams.length,
+      workstream,
+      diagnostics: [],
+      event_created: false,
+      mutated: false
+    };
+  });
+}
+async function mutateWorkstream(projectRoot, operation, inputPath, options = {}) {
+  const root = path15.resolve(projectRoot);
+  const input = await loadWorkstreamInput(inputPath, root, operation);
+  return underLock(root, async () => {
+    await assertValidOperationalLayer2(root);
+    const loaded = await loadRegistry(root);
+    if (input.expected_registry_digest !== loaded.digest) {
+      throw new WorkstreamError(
+        "PCP_WORKSTREAM_REGISTRY_CHANGED",
+        "The workstream registry changed after this operation was prepared; validate and rebuild the input."
+      );
+    }
+    const prepared = prepareWorkstreamMutation(loaded.registry, input);
+    const schema4 = validateSchema("workstreams", prepared.registry);
+    if (!schema4.valid) {
+      throw new WorkstreamError(
+        "PCP_WORKSTREAM_STATE_INVALID",
+        "The requested workstream state fails its release schema."
+      );
+    }
+    assertRegistrySemantics(prepared.registry);
+    return executeMutation(
+      root,
+      loaded,
+      input,
+      prepared.registry,
+      prepared.workstream.workstream_id,
+      options
+    );
+  });
+}
+
 // src/application/register-actor.ts
-import { mkdir as mkdir4, open as open4, readFile as readFile13, readdir as readdir5, rm as rm4, unlink as unlink4 } from "node:fs/promises";
-import path15 from "node:path";
+import { mkdir as mkdir4, open as open5, readFile as readFile14, readdir as readdir5, rm as rm5, unlink as unlink5 } from "node:fs/promises";
+import path16 from "node:path";
 
 // src/domain/registration.ts
 var ACTOR_TYPES = ["agent", "human"];
@@ -24843,7 +25850,7 @@ function actorIdentityMatches(profile, identity) {
 var ACTOR_DIRECTORY2 = ".pcp/continuity/actors";
 var CACHE_DIRECTORY = ".pcp/runtime/actors";
 function portablePath(value) {
-  return value.split(path15.sep).join("/");
+  return value.split(path16.sep).join("/");
 }
 function profileRelativePath(actorId) {
   return `${ACTOR_DIRECTORY2}/${actorId}.yaml`;
@@ -24865,7 +25872,7 @@ async function assertValidCanonicalLayer(projectRoot) {
 }
 async function readOptionalText(file) {
   try {
-    return await readFile13(file, "utf8");
+    return await readFile14(file, "utf8");
   } catch (error2) {
     if (error2.code === "ENOENT") return void 0;
     throw error2;
@@ -24882,13 +25889,13 @@ function actorProfile(value, relativePath) {
   return value;
 }
 async function loadActorProfiles(projectRoot) {
-  const actorRoot = path15.join(projectRoot, ...ACTOR_DIRECTORY2.split("/"));
+  const actorRoot = path16.join(projectRoot, ...ACTOR_DIRECTORY2.split("/"));
   const entries = await readdir5(actorRoot, { withFileTypes: true });
   const profiles = [];
   for (const entry of entries.sort((left, right) => left.name.localeCompare(right.name))) {
     if (!entry.isFile() || !entry.name.endsWith(".yaml")) continue;
     const relativePath = `${ACTOR_DIRECTORY2}/${entry.name}`;
-    const contents = await readFile13(path15.join(actorRoot, entry.name), "utf8");
+    const contents = await readFile14(path16.join(actorRoot, entry.name), "utf8");
     let value;
     try {
       value = parse(contents);
@@ -24964,7 +25971,7 @@ function sameIdentity(left, right) {
   return left.actor_type === right.actor_type && left.client === right.client && left.machine_label === right.machine_label;
 }
 async function createExclusiveFile(file, contents, onCreate) {
-  const handle = await open4(file, "wx");
+  const handle = await open5(file, "wx");
   try {
     onCreate();
     await handle.writeFile(contents, "utf8");
@@ -24974,7 +25981,7 @@ async function createExclusiveFile(file, contents, onCreate) {
   }
 }
 async function rollbackUnlink(file, failures) {
-  await unlink4(file).catch((error2) => {
+  await unlink5(file).catch((error2) => {
     if (error2.code !== "ENOENT") failures.push(error2);
   });
 }
@@ -24987,7 +25994,7 @@ async function rollbackCreatedPaths(input) {
     await rollbackUnlink(input.profile_path, failures);
   }
   if (input.runtime_root !== void 0) {
-    await rm4(input.runtime_root, { recursive: true, force: true }).catch(
+    await rm5(input.runtime_root, { recursive: true, force: true }).catch(
       (error2) => failures.push(error2)
     );
   }
@@ -25016,7 +26023,7 @@ async function withActorRegistrationLock(root, operation) {
   }
 }
 async function registerActor(projectRoot, input) {
-  const root = path15.resolve(projectRoot);
+  const root = path16.resolve(projectRoot);
   const identity = normalizeActorIdentity(input);
   const executionId = createExecutionId();
   return withActorRegistrationLock(root, async () => {
@@ -25027,7 +26034,7 @@ async function registerActor(projectRoot, input) {
       await assertValidCanonicalLayer(root);
       const profiles = await loadActorProfiles(root);
       const profilesById = new Map(profiles.map((profile) => [profile.actor_id, profile]));
-      const cachePath = path15.join(root, ...cacheRelativePath(identity).split("/"));
+      const cachePath = path16.join(root, ...cacheRelativePath(identity).split("/"));
       const cachedContents = await readOptionalText(cachePath);
       let selected;
       if (cachedContents !== void 0) {
@@ -25093,7 +26100,7 @@ async function registerActor(projectRoot, input) {
             "The generated actor profile did not satisfy the release schema."
           );
         }
-        const newProfilePath = path15.join(
+        const newProfilePath = path16.join(
           root,
           ...profileRelativePath(selected.actor_id).split("/")
         );
@@ -25105,7 +26112,7 @@ async function registerActor(projectRoot, input) {
       }
       let cacheCreated = false;
       if (cachedContents === void 0) {
-        const cacheDirectory = path15.dirname(cachePath);
+        const cacheDirectory = path16.dirname(cachePath);
         createdRuntimeRoot = await mkdir4(cacheDirectory, { recursive: true });
         await createExclusiveFile(
           cachePath,
@@ -25159,9 +26166,9 @@ async function registerActor(projectRoot, input) {
 }
 
 // src/application/report-status.ts
-import { randomUUID as randomUUID3 } from "node:crypto";
-import { lstat as lstat7, mkdir as mkdir5, open as open5, readFile as readFile14, readdir as readdir6, rename as rename3, unlink as unlink5 } from "node:fs/promises";
-import path16 from "node:path";
+import { randomUUID as randomUUID4 } from "node:crypto";
+import { lstat as lstat8, mkdir as mkdir5, open as open6, readFile as readFile15, readdir as readdir6, rename as rename4, unlink as unlink6 } from "node:fs/promises";
+import path17 from "node:path";
 
 // src/domain/reconciliation.ts
 var ReconciliationError = class extends Error {
@@ -25366,10 +26373,10 @@ function layerPath(relativePath) {
 async function assertNoSymlinkFromLayer(layerRoot, target) {
   let current = target;
   while (true) {
-    const metadata = await lstat7(current);
+    const metadata = await lstat8(current);
     if (metadata.isSymbolicLink()) throw new Error("path has a symbolic-link boundary");
     if (current === layerRoot) return;
-    current = path16.dirname(current);
+    current = path17.dirname(current);
   }
 }
 function parseYaml(contents, relativePath) {
@@ -25390,15 +26397,15 @@ function parseYaml(contents, relativePath) {
   }
 }
 async function readSchemaFile(layerRoot, relativePath, schema4) {
-  const absolutePath = path16.join(layerRoot, ...relativePath.split("/"));
+  const absolutePath = path17.join(layerRoot, ...relativePath.split("/"));
   let contents;
   try {
     await assertNoSymlinkFromLayer(layerRoot, absolutePath);
-    const metadata = await lstat7(absolutePath);
+    const metadata = await lstat8(absolutePath);
     if (!metadata.isFile() || metadata.isSymbolicLink()) {
       throw new Error("path is not a regular file");
     }
-    contents = await readFile14(absolutePath, "utf8");
+    contents = await readFile15(absolutePath, "utf8");
   } catch (error2) {
     throw statusError(
       "PCP_STATUS_INVALID_LAYER",
@@ -25417,11 +26424,11 @@ async function readSchemaFile(layerRoot, relativePath, schema4) {
   return { path: relativePath, value, contents };
 }
 async function readSchemaDirectory(layerRoot, relativeDirectory, schema4) {
-  const absoluteDirectory = path16.join(layerRoot, ...relativeDirectory.split("/"));
+  const absoluteDirectory = path17.join(layerRoot, ...relativeDirectory.split("/"));
   let entries;
   try {
     await assertNoSymlinkFromLayer(layerRoot, absoluteDirectory);
-    const metadata = await lstat7(absoluteDirectory);
+    const metadata = await lstat8(absoluteDirectory);
     if (!metadata.isDirectory() || metadata.isSymbolicLink()) {
       throw new Error("path is not a regular directory");
     }
@@ -25453,11 +26460,11 @@ async function readSchemaDirectory(layerRoot, relativeDirectory, schema4) {
   return records;
 }
 async function listArchiveEventIds(layerRoot) {
-  const absoluteDirectory = path16.join(layerRoot, ...ARCHIVE_EVENT_DIRECTORY2.split("/"));
+  const absoluteDirectory = path17.join(layerRoot, ...ARCHIVE_EVENT_DIRECTORY2.split("/"));
   let entries;
   try {
     await assertNoSymlinkFromLayer(layerRoot, absoluteDirectory);
-    const metadata = await lstat7(absoluteDirectory);
+    const metadata = await lstat8(absoluteDirectory);
     if (!metadata.isDirectory() || metadata.isSymbolicLink()) {
       throw new Error("path is not a regular directory");
     }
@@ -25508,7 +26515,7 @@ function semanticFailure(records) {
   throw statusError("PCP_STATUS_INVALID_LAYER", `PCP continuity state is inconsistent: ${detail}`);
 }
 async function loadOperationalContinuityState(root) {
-  const layerRoot = path16.join(root, ".pcp");
+  const layerRoot = path17.join(root, ".pcp");
   const [
     manifest,
     project,
@@ -25705,14 +26712,14 @@ function previewStatus(state, input) {
 }
 async function fileContentsOrUndefined(file) {
   try {
-    return await readFile14(file, "utf8");
+    return await readFile15(file, "utf8");
   } catch (error2) {
     if (error2.code === "ENOENT") return void 0;
     throw error2;
   }
 }
 async function writeDurableFile2(file, contents) {
-  const handle = await open5(file, "wx");
+  const handle = await open6(file, "wx");
   try {
     await handle.writeFile(contents, "utf8");
     await handle.sync();
@@ -25729,8 +26736,8 @@ async function writeCheckpoint(root, checkpoint, existing) {
     );
   }
   const relativePath = `${CHECKPOINT_DIRECTORY}/${checkpoint.checkpoint_id}.yaml`;
-  const directory = path16.join(root, ".pcp", ...CHECKPOINT_DIRECTORY.split("/"));
-  const target = path16.join(root, ".pcp", ...relativePath.split("/"));
+  const directory = path17.join(root, ".pcp", ...CHECKPOINT_DIRECTORY.split("/"));
+  const target = path17.join(root, ".pcp", ...relativePath.split("/"));
   await mkdir5(directory, { recursive: true });
   if (existing !== void 0) {
     const current = await fileContentsOrUndefined(target);
@@ -25747,39 +26754,39 @@ async function writeCheckpoint(root, checkpoint, existing) {
     );
   }
   const contents = stringify3(checkpoint);
-  const temporary = path16.join(directory, `.${checkpoint.checkpoint_id}.${randomUUID3()}.tmp`);
+  const temporary = path17.join(directory, `.${checkpoint.checkpoint_id}.${randomUUID4()}.tmp`);
   const previous = `${temporary}.previous`;
   await writeDurableFile2(temporary, contents);
   let previousHeld = false;
   let replacementInstalled = false;
   try {
     if (existing === void 0) {
-      await rename3(temporary, target);
+      await rename4(temporary, target);
       return layerPath(relativePath);
     }
     try {
-      await rename3(temporary, target);
+      await rename4(temporary, target);
       return layerPath(relativePath);
     } catch (error2) {
       const code2 = error2.code;
       if (code2 !== "EEXIST" && code2 !== "EPERM") throw error2;
     }
-    await rename3(target, previous);
+    await rename4(target, previous);
     previousHeld = true;
-    await rename3(temporary, target);
+    await rename4(temporary, target);
     replacementInstalled = true;
     if (previousHeld) {
-      await unlink5(previous);
+      await unlink6(previous);
       previousHeld = false;
     }
     return layerPath(relativePath);
   } catch (error2) {
     const rollbackFailures = [];
     if (replacementInstalled) {
-      await unlink5(target).catch((rollbackError) => rollbackFailures.push(rollbackError));
+      await unlink6(target).catch((rollbackError) => rollbackFailures.push(rollbackError));
     }
     if (previousHeld) {
-      await rename3(previous, target).catch(
+      await rename4(previous, target).catch(
         (rollbackError) => rollbackFailures.push(rollbackError)
       );
     }
@@ -25792,7 +26799,7 @@ async function writeCheckpoint(root, checkpoint, existing) {
     }
     throw error2;
   } finally {
-    await unlink5(temporary).catch((error2) => {
+    await unlink6(temporary).catch((error2) => {
       if (error2.code !== "ENOENT") throw error2;
     });
   }
@@ -25846,7 +26853,7 @@ async function reportStatusLocked(root, input) {
   };
 }
 async function reportStatus(projectRoot, input) {
-  const root = path16.resolve(projectRoot);
+  const root = path17.resolve(projectRoot);
   try {
     return await withContinuityLock(root, () => reportStatusLocked(root, input));
   } catch (error2) {
@@ -25864,7 +26871,7 @@ async function reportStatus(projectRoot, input) {
 // src/domain/release.ts
 var PCP_NAME = "Persistent Context Protocol";
 var PCP_VERSION = "0.1.0";
-var PCP_RELEASE_STAGE = "event-recording";
+var PCP_RELEASE_STAGE = "workstream-operations";
 var PCP_COMMANDS = [
   "inspect",
   "adopt",
@@ -26025,6 +27032,7 @@ function formatRecording(result) {
     `Recorded event ${result.event_id}.`,
     `Summary: ${result.summary}`,
     `Path: ${result.event_path}`,
+    `Payload digest: ${result.payload_digest}`,
     `Active events: ${result.active_events}`,
     `Archived in this operation: ${result.archived_events_moved}`,
     ""
@@ -26070,6 +27078,28 @@ function formatStatus(result) {
   }
   return `${lines.join("\n")}
 `;
+}
+
+// src/presentation/format-workstream.ts
+function formatWorkstream(result) {
+  if (result.operation === "validate") {
+    return [
+      `Validated ${result.workstream_count} workstream${result.workstream_count === 1 ? "" : "s"}.`,
+      `Registry digest: ${result.registry_digest}`,
+      ...result.workstream === null ? [] : [
+        `Selected: ${result.workstream.workstream_id} (${result.workstream.status}, ${result.workstream.kind})`
+      ],
+      ""
+    ].join("\n");
+  }
+  return [
+    `${result.status[0]?.toUpperCase()}${result.status.slice(1)} workstream ${result.workstream_id}.`,
+    `Event: ${result.event_id}`,
+    `Registry digest: ${result.registry_digest_after}`,
+    ...result.announcement === null ? [] : [`Announcement: ${result.announcement}`],
+    ...result.recovery_retained ? ["Warning: recovery material was retained."] : [],
+    ""
+  ].join("\n");
 }
 
 // src/cli/main.ts
@@ -26136,6 +27166,17 @@ function reportRecordingError(error2) {
   const message = error2 instanceof Error ? error2.message : String(error2);
   const mutated = error2 instanceof RecordingError ? error2.mutated : false;
   const recoveryRetained = error2 instanceof RecordingError ? error2.recovery_retained : false;
+  process.stderr.write(
+    `${JSON.stringify({ code: code2, message, mutated, recovery_retained: recoveryRetained })}
+`
+  );
+  process.exitCode = 2;
+}
+function reportWorkstreamError(error2) {
+  const code2 = error2 instanceof WorkstreamError ? error2.code : "PCP_WORKSTREAM_FAILED";
+  const message = error2 instanceof Error ? error2.message : String(error2);
+  const mutated = error2 instanceof WorkstreamError ? error2.mutated : false;
+  const recoveryRetained = error2 instanceof WorkstreamError ? error2.recovery_retained : false;
   process.stderr.write(
     `${JSON.stringify({ code: code2, message, mutated, recovery_retained: recoveryRetained })}
 `
@@ -26255,6 +27296,72 @@ function addRenderCommand(program2) {
     }
   });
 }
+function addWorkstreamCommand(program2) {
+  const command = program2.command("workstream").description(commandDescriptions.workstream);
+  command.action(() => {
+    command.outputHelp();
+  });
+  command.command("create").description("Create one digest-bound canonical workstream").argument("[directory]", "managed project root").option("--candidate <directory>", "managed project root").requiredOption("--input <workstream.yaml>", "external workstream operation input").option("--json", "emit stable structured JSON").action(async (directory, options) => {
+    try {
+      const result = await mutateWorkstream(
+        options.candidate ?? directory ?? ".",
+        "create",
+        options.input
+      );
+      process.stdout.write(
+        options.json === true ? `${JSON.stringify(result, null, 2)}
+` : formatWorkstream(result)
+      );
+    } catch (error2) {
+      reportWorkstreamError(error2);
+    }
+  });
+  command.command("update").description("Replace one nonterminal workstream using the current registry digest").argument("[directory]", "managed project root").option("--candidate <directory>", "managed project root").requiredOption("--input <workstream.yaml>", "external workstream operation input").option("--json", "emit stable structured JSON").action(async (directory, options) => {
+    try {
+      const result = await mutateWorkstream(
+        options.candidate ?? directory ?? ".",
+        "update",
+        options.input
+      );
+      process.stdout.write(
+        options.json === true ? `${JSON.stringify(result, null, 2)}
+` : formatWorkstream(result)
+      );
+    } catch (error2) {
+      reportWorkstreamError(error2);
+    }
+  });
+  command.command("validate").description("Validate canonical workstreams and return the exact registry digest").argument("[directory]", "managed project root").option("--candidate <directory>", "managed project root").option("--workstream <id>", "select one workstream").option("--json", "emit stable structured JSON").action(async (directory, options) => {
+    try {
+      const result = await validateWorkstreamRegistry(
+        options.candidate ?? directory ?? ".",
+        options.workstream
+      );
+      process.stdout.write(
+        options.json === true ? `${JSON.stringify(result, null, 2)}
+` : formatWorkstream(result)
+      );
+    } catch (error2) {
+      reportWorkstreamError(error2);
+    }
+  });
+  command.command("complete").description("Complete one active or blocked workstream with criterion-bound evidence").argument("[directory]", "managed project root").option("--candidate <directory>", "managed project root").requiredOption("--input <workstream.yaml>", "external workstream operation input").option("--json", "emit stable structured JSON").action(async (directory, options) => {
+    try {
+      const result = await mutateWorkstream(
+        options.candidate ?? directory ?? ".",
+        "complete",
+        options.input
+      );
+      process.stdout.write(
+        options.json === true ? `${JSON.stringify(result, null, 2)}
+` : formatWorkstream(result)
+      );
+    } catch (error2) {
+      reportWorkstreamError(error2);
+    }
+  });
+  return command;
+}
 function reportOperationError(code2, error2, mutationPossible) {
   const message = error2 instanceof Error ? error2.message : String(error2);
   process.stderr.write(`${JSON.stringify({ code: code2, message, mutated: false, mutationPossible })}
@@ -26267,9 +27374,6 @@ function addUnavailableCommand(program2, commandName) {
     case "upgrade":
     case "repair":
       command.option("--apply <digest>", "apply only the matching preview digest");
-      break;
-    case "workstream":
-      command.argument("[operation]", "create, update, validate, or complete");
       break;
     default:
       break;
@@ -26297,6 +27401,8 @@ function createProgram() {
       addValidateCommand(program2);
     } else if (commandName === "render") {
       addRenderCommand(program2);
+    } else if (commandName === "workstream") {
+      addWorkstreamCommand(program2);
     } else {
       addUnavailableCommand(program2, commandName);
     }

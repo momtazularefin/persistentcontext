@@ -63,9 +63,9 @@ affected_paths: [src/example.ts]
 node <pcp-engine> record <project-root> --input <external-event.yaml> --json
 ```
 
-Use `reported` when a human tells the recorder about an action and `observed` when the recorder notices it independently. Register the human first if no durable profile exists. Use `system` only with system as both actor and recorder. Keep summaries at or below 240 characters and rationale at or below 1,000. At least one scope, workstream, or affected path is required so reconciliation can locate the change.
+Use `reported` when a human tells the recorder about an action and `observed` when the recorder notices it independently. Register the human first if no durable profile exists. For either basis, supply a stable `change_key` from the external action, such as `git:<commit>`, `svn:<revision>`, or `filesystem:sha256:<snapshot-digest>`; never infer identity from matching prose or timestamps. Concurrent attempts with the same active key serialize so only one event is accepted. Use `system` only with system as both actor and recorder. Keep summaries at or below 240 characters and rationale at or below 1,000. At least one scope, workstream, or affected path is required so reconciliation can locate the change.
 
-The command validates the installed layer and attribution before mutation, serializes concurrent writers, and validates the live result. Keep at most 64 events in `continuity/events/`. Before adding event 65, the same transaction moves the oldest 32 immutable records to `continuity/archive/`; a caught failure restores exact active contents and archive identities. ULIDs remain unique and ordered across both locations. Archive history is explicit-audit material and is not part of normal agent reading.
+The command validates the installed layer and attribution before mutation, serializes concurrent writers, assigns a payload digest, and validates the live result. That digest detects an uncoordinated schema-valid payload rewrite; it is tamper evidence rather than a signature. Keep at most 64 events in `continuity/events/`. Before adding event 65, the same transaction moves the oldest 32 immutable records to `continuity/archive/`; a caught failure restores exact active contents and archive identities. ULIDs remain unique and ordered across both locations. Archive history is explicit-audit material and is not part of normal agent reading; only full explicit validation checks archived digests or duplicate change keys.
 
 ## Rendering
 
@@ -90,4 +90,63 @@ Treat a digest mismatch as stale output. Generated Markdown is never an independ
 
 ## Workstreams and CEBs
 
-Use generic workstream state for scope, dependencies, status, and completion evidence. Enable the Concurrent Execution Block capability when the project wants named parallel blocks. Complete a block only after detecting criteria, validating evidence, marking state, and announcing the result.
+Use generic workstream state for scope, dependencies, lifecycle, and completion evidence. First obtain the exact current registry digest without mutation:
+
+```text
+node <pcp-engine> workstream validate <project-root> [--workstream <id>] --json
+```
+
+Prepare a transient schema-valid input outside the managed project. `create` and `update` carry the complete desired workstream, not a partial patch:
+
+```yaml
+schema_version: 1
+operation: create
+expected_registry_digest: <digest-from-validate>
+actor: { type: agent, id: <performing-actor-id> }
+recorded_by: { type: agent, id: <recording-actor-id> }
+basis: self
+summary: Created the implementation workstream.
+workstream:
+  workstream_id: implementation
+  name: Implementation
+  kind: concurrent
+  status: planned
+  paths: [src, tests]
+  areas: [implementation, validation]
+  dependencies: []
+  completion:
+    criteria: [Implementation is reviewed., Tests pass.]
+    evidence: []
+```
+
+```text
+node <pcp-engine> workstream create <project-root> --input <external-workstream.yaml> --json
+node <pcp-engine> workstream update <project-root> --input <external-workstream.yaml> --json
+```
+
+Do not set `status: complete` through `update`. Complete active or blocked work with one exact criterion-to-proof mapping for every declared criterion and a concise announcement:
+
+```yaml
+schema_version: 1
+operation: complete
+expected_registry_digest: <digest-from-validate>
+actor: { type: agent, id: <performing-actor-id> }
+recorded_by: { type: agent, id: <recording-actor-id> }
+basis: self
+summary: Completed the implementation workstream.
+workstream_id: implementation
+evidence:
+  - criterion: Implementation is reviewed.
+    proof: Review decision is recorded in operations/30-decisions.md.
+  - criterion: Tests pass.
+    proof: The verified project test command passed.
+announcement: Implementation is complete; dependent work may begin.
+```
+
+```text
+node <pcp-engine> workstream complete <project-root> --input <external-workstream.yaml> --json
+```
+
+The digest prevents a stale plan from overwriting concurrent work. `complete` also requires every dependency to be complete. Successful mutation replaces the registry, regenerates its status view, and appends one workstream event under the same continuity lock; a caught failure restores all three histories exactly.
+
+Enable the Concurrent Execution Block capability when the project wants named parallel blocks. A CEB is simply `kind: ceb` plus the optional human guidance; it uses the same commands, registry, dependencies, evidence rules, and completion announcement.

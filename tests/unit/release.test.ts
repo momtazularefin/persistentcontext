@@ -6,6 +6,6 @@ describe('release identity', () => {
   it('uses the locked public identity', () => {
     expect(PCP_NAME).toBe('Persistent Context Protocol');
     expect(PCP_VERSION).toBe('0.1.0');
-    expect(PCP_RELEASE_STAGE).toBe('event-recording');
+    expect(PCP_RELEASE_STAGE).toBe('workstream-operations');
   });
 });

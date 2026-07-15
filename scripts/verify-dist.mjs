@@ -229,6 +229,139 @@ try {
     throw new Error('Bundled pcp registration created a continuity event.');
   }
 
+  const workstreamValidation = spawnSync(
+    process.execPath,
+    [fileURLToPath(skillBundle), 'workstream', 'validate', adoptionCandidate, '--json'],
+    { encoding: 'utf8', windowsHide: true },
+  );
+  if (workstreamValidation.status !== 0) {
+    throw new Error(
+      `Bundled pcp workstream validation failed: ${workstreamValidation.stderr || workstreamValidation.stdout}`,
+    );
+  }
+  const workstreamValidationResult = JSON.parse(workstreamValidation.stdout);
+  if (
+    workstreamValidationResult.status !== 'valid' ||
+    workstreamValidationResult.workstream_count !== 0 ||
+    workstreamValidationResult.event_created !== false ||
+    workstreamValidationResult.mutated !== false ||
+    !/^[a-f0-9]{64}$/.test(workstreamValidationResult.registry_digest ?? '')
+  ) {
+    throw new Error('Bundled pcp workstream validation returned an unexpected result.');
+  }
+
+  const workstreamInput = join(adoptionRoot, 'workstream.json');
+  await writeFile(
+    workstreamInput,
+    `${JSON.stringify(
+      {
+        schema_version: 1,
+        operation: 'create',
+        expected_registry_digest: workstreamValidationResult.registry_digest,
+        actor: { type: 'agent', id: firstRegistrationResult.actor_id },
+        recorded_by: { type: 'agent', id: firstRegistrationResult.actor_id },
+        basis: 'self',
+        summary: 'Created the distribution verification workstream.',
+        workstream: {
+          workstream_id: 'distribution-verification',
+          name: 'Distribution verification',
+          kind: 'ceb',
+          status: 'active',
+          paths: ['dist', 'skills/build-pcp'],
+          areas: ['distribution'],
+          dependencies: [],
+          completion: { criteria: ['Bundled lifecycle passes.'], evidence: [] },
+        },
+      },
+      null,
+      2,
+    )}\n`,
+    'utf8',
+  );
+  const workstreamCreation = spawnSync(
+    process.execPath,
+    [
+      fileURLToPath(skillBundle),
+      'workstream',
+      'create',
+      adoptionCandidate,
+      '--input',
+      workstreamInput,
+      '--json',
+    ],
+    { encoding: 'utf8', windowsHide: true },
+  );
+  if (workstreamCreation.status !== 0) {
+    throw new Error(
+      `Bundled pcp workstream creation failed: ${workstreamCreation.stderr || workstreamCreation.stdout}`,
+    );
+  }
+  const workstreamCreationResult = JSON.parse(workstreamCreation.stdout);
+  if (
+    workstreamCreationResult.status !== 'created' ||
+    workstreamCreationResult.event_created !== true ||
+    workstreamCreationResult.mutated !== true ||
+    workstreamCreationResult.recovery_retained !== false ||
+    !/^[a-f0-9]{64}$/.test(workstreamCreationResult.registry_digest_after ?? '') ||
+    !/^[a-f0-9]{64}$/.test(workstreamCreationResult.event_payload_digest ?? '')
+  ) {
+    throw new Error('Bundled pcp workstream creation returned an unexpected result.');
+  }
+
+  await writeFile(
+    workstreamInput,
+    `${JSON.stringify(
+      {
+        schema_version: 1,
+        operation: 'complete',
+        expected_registry_digest: workstreamCreationResult.registry_digest_after,
+        actor: { type: 'agent', id: firstRegistrationResult.actor_id },
+        recorded_by: { type: 'agent', id: firstRegistrationResult.actor_id },
+        basis: 'self',
+        summary: 'Completed the distribution verification workstream.',
+        workstream_id: 'distribution-verification',
+        evidence: [
+          {
+            criterion: 'Bundled lifecycle passes.',
+            proof: 'The bundled create and complete commands returned accepted results.',
+          },
+        ],
+        announcement: 'Distribution verification is complete.',
+      },
+      null,
+      2,
+    )}\n`,
+    'utf8',
+  );
+  const workstreamCompletion = spawnSync(
+    process.execPath,
+    [
+      fileURLToPath(skillBundle),
+      'workstream',
+      'complete',
+      adoptionCandidate,
+      '--input',
+      workstreamInput,
+      '--json',
+    ],
+    { encoding: 'utf8', windowsHide: true },
+  );
+  if (workstreamCompletion.status !== 0) {
+    throw new Error(
+      `Bundled pcp workstream completion failed: ${workstreamCompletion.stderr || workstreamCompletion.stdout}`,
+    );
+  }
+  const workstreamCompletionResult = JSON.parse(workstreamCompletion.stdout);
+  if (
+    workstreamCompletionResult.status !== 'completed' ||
+    workstreamCompletionResult.announcement !== 'Distribution verification is complete.' ||
+    workstreamCompletionResult.event_created !== true ||
+    workstreamCompletionResult.mutated !== true ||
+    !/^[a-f0-9]{64}$/.test(workstreamCompletionResult.event_payload_digest ?? '')
+  ) {
+    throw new Error('Bundled pcp workstream completion returned an unexpected result.');
+  }
+
   const eventInput = join(adoptionRoot, 'event.json');
   await writeFile(
     eventInput,
@@ -262,17 +395,18 @@ try {
     recordingResult.status !== 'recorded' ||
     recordingResult.event_created !== true ||
     recordingResult.mutated !== true ||
-    recordingResult.active_events !== 1 ||
+    recordingResult.active_events !== 3 ||
     recordingResult.archived_events_moved !== 0 ||
-    !/^[0-7][0-9A-HJKMNP-TV-Z]{25}$/.test(recordingResult.event_id ?? '')
+    !/^[0-7][0-9A-HJKMNP-TV-Z]{25}$/.test(recordingResult.event_id ?? '') ||
+    !/^[a-f0-9]{64}$/.test(recordingResult.payload_digest ?? '')
   ) {
     throw new Error('Bundled pcp record returned an unexpected result.');
   }
   const recordedEvents = (
     await readdir(join(adoptionCandidate, '.pcp', 'continuity', 'events'))
   ).filter((entry) => entry.endsWith('.yaml'));
-  if (recordedEvents.length !== 1) {
-    throw new Error('Bundled pcp record did not create exactly one continuity event.');
+  if (recordedEvents.length !== 3) {
+    throw new Error('Bundled workstream and record commands did not create three events.');
   }
 
   const statusArguments = [
@@ -348,7 +482,7 @@ try {
   const statusEvents = (
     await readdir(join(adoptionCandidate, '.pcp', 'continuity', 'events'))
   ).filter((entry) => entry.endsWith('.yaml'));
-  if (statusCheckpoints.length !== 1 || statusEvents.length !== 1) {
+  if (statusCheckpoints.length !== 1 || statusEvents.length !== 3) {
     throw new Error('Bundled pcp status did not preserve checkpoint-only acknowledgement.');
   }
 

@@ -13,6 +13,7 @@ import projectRegistrySchema from '../../schemas/v1/project-registry.schema.json
 import projectSchema from '../../schemas/v1/project.schema.json' with { type: 'json' };
 import vcsPolicySchema from '../../schemas/v1/vcs-policy.schema.json' with { type: 'json' };
 import workstreamsSchema from '../../schemas/v1/workstreams.schema.json' with { type: 'json' };
+import workstreamOperationInputSchema from '../../schemas/v1/workstream-operation-input.schema.json' with { type: 'json' };
 
 export const SCHEMA_CATALOG = {
   adapter: adapterSchema,
@@ -28,6 +29,7 @@ export const SCHEMA_CATALOG = {
   'project-registry': projectRegistrySchema,
   project: projectSchema,
   'vcs-policy': vcsPolicySchema,
+  'workstream-operation-input': workstreamOperationInputSchema,
   workstreams: workstreamsSchema,
 } as const;
 

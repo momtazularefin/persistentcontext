@@ -2,8 +2,8 @@
 doc: protocol/20-actor-continuity.md
 type: protocol
 status: static
-version: 1.3.0
-last_updated: 2026-07-15T15:40:00+06:00
+version: 1.4.0
+last_updated: 2026-07-15T17:35:00+06:00
 ownership: protocol
 ---
 
@@ -42,7 +42,9 @@ ownership: protocol
 - Describe the event in a schema-valid transient file outside the managed project, then run `pcp record --input <external-event.yaml>`; the engine assigns the globally ordered event ULID under the continuity lock.
 - Include at least one semantic scope, workstream, or affected project path. Keep the summary at or below 240 characters and optional rationale at or below 1,000 characters.
 - When a human reports a change or VCS operation, record the report without claiming independent verification. If later evidence disagrees, notify the human and record the correction.
-- The first agent that notices an unrecorded durable human change records it; do not duplicate an existing event.
+- Give every reported or observed change a stable `change_key` derived from its external identity, such as `git:<commit>`, `svn:<revision>`, or `filesystem:sha256:<snapshot-digest>`. Never derive it from summary prose or a timestamp.
+- The first agent that notices an unrecorded durable human change records it. The engine rejects a duplicate active-window `change_key`, including simultaneous reports serialized under the continuity lock.
+- The engine adds a SHA-256 payload digest to every accepted event. Validation detects a schema-valid payload rewrite that no longer matches that digest. This is tamper evidence, not actor authentication or a substitute for the selected VCS policy.
 - Do not record routine inspection, registration, synchronization, no-op rendering, or adoption.
 - Never edit an existing event; record a later corrective event when needed.
 
@@ -53,6 +55,7 @@ ownership: protocol
 - Recording and archive rotation form one validated transaction; a caught failure restores exact active contents and archive identities.
 - Event ULIDs remain globally unique and monotonic across active and archived history. No shared sequential counter is used.
 - Agents do not read archived events during normal work. Archive content access requires an explicit audit, recovery, or historical request; operational validation uses archive-index-only mode.
+- Explicit full archive validation checks payload digests and duplicate change keys across the content it audits.
 
 ## Parallel work
 

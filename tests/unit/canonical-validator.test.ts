@@ -8,6 +8,7 @@ import { monotonicFactory } from 'ulid';
 import { afterEach, describe, expect, it } from 'vitest';
 
 import { validateCanonicalLayer } from '../../src/application/validate-canonical-layer.js';
+import { eventPayloadDigest } from '../../src/domain/recording.js';
 import { canonicalSourceDigest } from '../../src/infrastructure/canonical-source-digest.js';
 
 const coreTemplate = fileURLToPath(new URL('../../templates/core/.pcp/', import.meta.url));
@@ -77,6 +78,7 @@ async function writeEvent(
     actor?: { type: 'human' | 'agent' | 'system'; id: string };
     recordedBy?: { type: 'human' | 'agent' | 'system'; id: string };
     basis?: 'self' | 'reported' | 'observed' | 'system';
+    changeKey?: string;
     kind?: 'code' | 'vcs';
     summary?: string;
     rationale?: string;
@@ -85,13 +87,14 @@ async function writeEvent(
   const id = options.id ?? eventId;
   const actor = options.actor ?? { type: 'agent', id: agentId };
   const recordedBy = options.recordedBy ?? actor;
-  const event = {
+  const payload = {
     schema_version: 1,
     event_id: id,
     occurred_at: '2026-07-12T13:05:00Z',
     actor,
     recorded_by: recordedBy,
     basis: options.basis ?? 'self',
+    ...(options.changeKey === undefined ? {} : { change_key: options.changeKey }),
     kind: options.kind ?? 'code',
     scopes: ['core'],
     workstreams: [],
@@ -99,6 +102,7 @@ async function writeEvent(
     ...(options.rationale === undefined ? {} : { rationale: options.rationale }),
     affected_paths: ['state/project.yaml'],
   };
+  const event = { ...payload, payload_digest: eventPayloadDigest(payload) };
   await writeFile(
     path.join(
       root,
@@ -282,6 +286,7 @@ describe('installed canonical layer validation', () => {
       actor: { type: 'human', id: humanId },
       recordedBy: { type: 'agent', id: agentId },
       basis: 'reported',
+      changeKey: 'git:04ed219fc18831f39f866b5209b48736e4e40095',
       kind: 'vcs',
       summary: 'Recorded the human-reported signed commit.',
     });
@@ -291,6 +296,8 @@ describe('installed canonical layer validation', () => {
       actor: { type: 'human', id: humanId },
       recordedBy: { type: 'agent', id: agentId },
       basis: 'observed',
+      changeKey:
+        'filesystem:sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
       kind: 'code',
       summary: 'Recorded a project file changed outside the agent workflow.',
     });
@@ -307,6 +314,38 @@ describe('installed canonical layer validation', () => {
 
     await rm(path.join(root, '.pcp', 'continuity', 'actors', `${humanId}.yaml`));
     expect(diagnosticCodes(await validateCanonicalLayer(root))).toContain('event.unknown-actor');
+  });
+
+  it('detects schema-valid event rewrites and duplicate change keys', async () => {
+    const root = await createProject();
+    await writeActor(root);
+    await writeActor(root, humanId, 'human');
+    const changeKey = 'git:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa';
+    await writeEvent(root, {
+      actor: { type: 'human', id: humanId },
+      recordedBy: { type: 'agent', id: agentId },
+      basis: 'reported',
+      changeKey,
+      kind: 'vcs',
+    });
+    const firstPath = path.join(root, '.pcp', 'continuity', 'events', `${eventId}.yaml`);
+    const first = await readYamlObject(firstPath);
+    first.summary = 'Rewrote this otherwise schema-valid event in place.';
+    await writeYamlObject(firstPath, first);
+
+    const secondId = '01ARZ3NDEKTSV4RRFFQ69G5FAW';
+    await writeEvent(root, {
+      id: secondId,
+      actor: { type: 'human', id: humanId },
+      recordedBy: { type: 'agent', id: agentId },
+      basis: 'reported',
+      changeKey,
+      kind: 'vcs',
+    });
+
+    const codes = diagnosticCodes(await validateCanonicalLayer(root));
+    expect(codes).toContain('event.payload-digest-mismatch');
+    expect(codes).toContain('event.duplicate-change-key');
   });
 
   it('rejects invalid reading order and orphan Markdown', async () => {

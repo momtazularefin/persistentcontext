@@ -13,6 +13,7 @@ import type {
   ReconciliationCheckpoint,
   WorkstreamState,
 } from '../../src/domain/reconciliation.js';
+import { eventPayloadDigest } from '../../src/domain/recording.js';
 import { formatStatus } from '../../src/presentation/format-status.js';
 
 const coreTemplate = fileURLToPath(new URL('../../templates/core/.pcp/', import.meta.url));
@@ -69,7 +70,7 @@ async function writeEvent(
   eventId: string,
   input: Partial<ContinuityEvent>,
 ): Promise<void> {
-  const event: ContinuityEvent = {
+  const payload = {
     schema_version: 1,
     event_id: eventId,
     occurred_at: '2026-07-15T00:00:00Z',
@@ -82,7 +83,12 @@ async function writeEvent(
     summary: 'Updated current project state.',
     affected_paths: [],
     ...input,
-  };
+  } as Record<string, unknown>;
+  delete payload.payload_digest;
+  const event = {
+    ...payload,
+    payload_digest: eventPayloadDigest(payload),
+  } as unknown as ContinuityEvent;
   await writeFile(
     path.join(root, '.pcp', 'continuity', 'events', `${eventId}.yaml`),
     stringify(event),

@@ -7,7 +7,7 @@ manifest_value: spec-driven-projects
 overlay_root: overlay
 index_entries:
   - folder: protocol
-    path: 70-spec-driven-delivery.md
+    path: 80-spec-driven-delivery.md
     title: Spec-driven delivery
   - folder: templates
     path: 30-project-spec.md

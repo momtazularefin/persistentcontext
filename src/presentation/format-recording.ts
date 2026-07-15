@@ -5,6 +5,7 @@ export function formatRecording(result: RecordEventResult): string {
     `Recorded event ${result.event_id}.`,
     `Summary: ${result.summary}`,
     `Path: ${result.event_path}`,
+    `Payload digest: ${result.payload_digest}`,
     `Active events: ${result.active_events}`,
     `Archived in this operation: ${result.archived_events_moved}`,
     '',

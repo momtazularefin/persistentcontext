@@ -13,7 +13,7 @@ import { registerActor } from '../../src/application/register-actor.js';
 import { validateCanonicalLayer } from '../../src/application/validate-canonical-layer.js';
 import { createProgram } from '../../src/cli/main.js';
 import type { ContinuityEvent } from '../../src/domain/reconciliation.js';
-import type { RecordEventInput } from '../../src/domain/recording.js';
+import { eventPayloadDigest, type RecordEventInput } from '../../src/domain/recording.js';
 import { formatRecording } from '../../src/presentation/format-recording.js';
 
 const coreTemplate = fileURLToPath(new URL('../../templates/core/.pcp/', import.meta.url));
@@ -72,7 +72,7 @@ async function writeHistoricalEvent(
   actorId: string,
   directory: 'events' | 'archive' = 'events',
 ): Promise<void> {
-  const event: ContinuityEvent = {
+  const payload = {
     schema_version: 1,
     event_id: eventId,
     occurred_at: '2024-07-03T09:46:40Z',
@@ -84,7 +84,8 @@ async function writeHistoricalEvent(
     workstreams: [],
     summary: `Recorded historical change ${eventId}.`,
     affected_paths: ['src/index.ts'],
-  };
+  } satisfies Omit<ContinuityEvent, 'payload_digest'>;
+  const event: ContinuityEvent = { ...payload, payload_digest: eventPayloadDigest(payload) };
   await writeFile(
     path.join(root, '.pcp', 'continuity', directory, `${eventId}.yaml`),
     stringify(event),
@@ -152,6 +153,8 @@ describe('continuity event recording', () => {
       mutated: true,
     });
     expect(result.event_id).toMatch(ulidPattern);
+    expect(result.payload_digest).toMatch(/^[a-f0-9]{64}$/u);
+    expect(result.payload_digest).toBe(event.payload_digest);
     expect(event).toMatchObject({
       event_id: result.event_id,
       actor: { type: 'agent', id: actor.actor_id },
@@ -162,6 +165,7 @@ describe('continuity event recording', () => {
       affected_paths: ['.pcp/protocol/20-actor-continuity.md', 'src/index.ts'],
     });
     expect(formatRecording(result)).toContain(`Recorded event ${result.event_id}.`);
+    expect(formatRecording(result)).toContain(`Payload digest: ${result.payload_digest}`);
     expect(await readFile(inputPath, 'utf8')).toContain('Added event recording.');
     expect((await validateCanonicalLayer(root)).valid).toBe(true);
   });
@@ -178,6 +182,7 @@ describe('continuity event recording', () => {
         actor: { type: 'human', id: human.actor_id },
         recorded_by: { type: 'agent', id: agent.actor_id },
         basis: 'reported',
+        change_key: 'git:04ed219fc18831f39f866b5209b48736e4e40095',
         kind: 'vcs',
         scopes: ['version-control'],
         summary: 'Human reported signing the reviewed commit.',
@@ -192,6 +197,39 @@ describe('continuity event recording', () => {
     expect(event.recorded_by).toEqual({ type: 'agent', id: agent.actor_id });
     expect(event.basis).toBe('reported');
     expect(event.summary.toLowerCase()).not.toContain('verified');
+  });
+
+  it('records a concurrently reported human change only once by stable change key', async () => {
+    const root = await createProject();
+    const agent = await registerActor(root, { client: 'codex', machine_label: 'dedupe-agent' });
+    const human = await registerActor(root, {
+      actor_type: 'human',
+      machine_label: 'dedupe-human',
+    });
+    const inputPath = await writeInput(
+      eventInput(agent.actor_id, {
+        actor: { type: 'human', id: human.actor_id },
+        recorded_by: { type: 'agent', id: agent.actor_id },
+        basis: 'reported',
+        change_key: 'git:55bde5ddc9091424c593449c06d433c6e27e8a75',
+        kind: 'vcs',
+        scopes: ['version-control'],
+        summary: 'Human reported one signed commit.',
+        affected_paths: ['.git'],
+      }),
+    );
+
+    const results = await Promise.allSettled([
+      recordEvent(root, inputPath),
+      recordEvent(root, inputPath),
+    ]);
+    expect(results.filter((result) => result.status === 'fulfilled')).toHaveLength(1);
+    const failure = results.find((result) => result.status === 'rejected');
+    expect((failure as PromiseRejectedResult).reason).toMatchObject({
+      code: 'PCP_RECORD_DUPLICATE_CHANGE',
+      mutated: false,
+    });
+    expect(await eventNames(root, 'events')).toHaveLength(1);
   });
 
   it('rejects invalid or unknown attribution without creating an event', async () => {
@@ -211,6 +249,7 @@ describe('continuity event recording', () => {
       eventInput(agent.actor_id, {
         actor: { type: 'agent', id: 'codex-missing-0123456789' },
         basis: 'reported',
+        change_key: 'external:unknown-actor-change',
       }),
     );
 

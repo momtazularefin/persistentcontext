@@ -7,7 +7,7 @@ manifest_value: scratch-space
 overlay_root: overlay
 index_entries:
   - folder: protocol
-    path: 90-scratch-space.md
+    path: 100-scratch-space.md
     title: Scratch space
 root_paths:
   - scratch/README.md

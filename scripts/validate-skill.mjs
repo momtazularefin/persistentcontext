@@ -58,6 +58,7 @@ const requiredAssets = [
   'schemas/v1/adoption-input.schema.json',
   'schemas/v1/event-input.schema.json',
   'schemas/v1/pcp-manifest.schema.json',
+  'schemas/v1/workstream-operation-input.schema.json',
   'templates/core/.pcp/pcp.yaml',
   'templates/core/.pcp/views/10-status.generated.md',
 ];

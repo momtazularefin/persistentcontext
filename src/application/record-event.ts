@@ -21,6 +21,7 @@ import { validateCanonicalSemantics, type CanonicalRecord } from '../domain/cano
 import type { CanonicalValidationReport } from '../domain/canonical-validation.js';
 import type { ContinuityEvent, WorkstreamState } from '../domain/reconciliation.js';
 import {
+  eventPayloadDigest,
   nextEventId,
   RecordingError,
   type RecordEventInput,
@@ -43,6 +44,7 @@ interface EventFile {
   absolute_path: string;
   contents: Buffer;
   digest: string;
+  event: ContinuityEvent;
 }
 
 export interface RecordEventOptions {
@@ -189,6 +191,7 @@ async function loadActiveEvents(root: string): Promise<EventFile[]> {
       absolute_path: absolutePath,
       contents,
       digest: digest(contents),
+      event: parse(contents.toString('utf8')) as ContinuityEvent,
     });
   }
   return events;
@@ -224,20 +227,22 @@ async function loadSemanticRecords(root: string): Promise<{
 }
 
 function normalizeEventInput(input: RecordEventInput, eventId: string): ContinuityEvent {
-  return {
+  const payload = {
     schema_version: 1,
     event_id: eventId,
     occurred_at: input.occurred_at ?? new Date().toISOString(),
     actor: input.actor,
     recorded_by: input.recorded_by,
     basis: input.basis,
+    ...(input.change_key === undefined ? {} : { change_key: input.change_key.trim() }),
     kind: input.kind,
     scopes: [...input.scopes].sort((left, right) => left.localeCompare(right)),
     workstreams: [...input.workstreams].sort((left, right) => left.localeCompare(right)),
     summary: input.summary.trim(),
     ...(input.rationale === undefined ? {} : { rationale: input.rationale.trim() }),
     affected_paths: [...input.affected_paths].sort((left, right) => left.localeCompare(right)),
-  };
+  } satisfies Omit<ContinuityEvent, 'payload_digest'>;
+  return { ...payload, payload_digest: eventPayloadDigest(payload) };
 }
 
 function assertEventSemantics(
@@ -394,6 +399,7 @@ async function executeEventTransaction(
       status: 'recorded',
       event_id: event.event_id,
       event_path: `${ACTIVE_EVENT_DIRECTORY}/${event.event_id}.yaml`,
+      payload_digest: event.payload_digest,
       occurred_at: event.occurred_at,
       summary: event.summary,
       active_events: activeEvents.length - rotation.length + 1,
@@ -480,7 +486,7 @@ async function executeEventTransaction(
   }
 }
 
-async function recordEventLocked(
+export async function recordEventUnderLock(
   root: string,
   input: RecordEventInput,
   options: RecordEventOptions,
@@ -496,6 +502,16 @@ async function recordEventLocked(
       'PCP_RECORD_ACTIVE_LIMIT_EXCEEDED',
       `Active continuity history already exceeds ${ACTIVE_EVENT_LIMIT}; repair it before recording.`,
     );
+  }
+  if (input.change_key !== undefined) {
+    const normalizedKey = input.change_key.trim();
+    const duplicate = activeEvents.find((item) => item.event.change_key === normalizedKey);
+    if (duplicate !== undefined) {
+      throw new RecordingError(
+        'PCP_RECORD_DUPLICATE_CHANGE',
+        `Active event ${duplicate.event_id} already records change key ${normalizedKey}.`,
+      );
+    }
   }
 
   const event = normalizeEventInput(
@@ -521,7 +537,7 @@ export async function recordEvent(
   const root = path.resolve(projectRoot);
   try {
     const input = await loadEventInput(inputPath, root);
-    return await withContinuityLock(root, () => recordEventLocked(root, input, options));
+    return await withContinuityLock(root, () => recordEventUnderLock(root, input, options));
   } catch (error) {
     if (error instanceof ContinuityLockError) {
       throw new RecordingError(

@@ -10,7 +10,11 @@ export interface WorkstreamState {
   dependencies: string[];
   completion: {
     criteria: string[];
-    evidence: string[];
+    evidence: Array<{
+      criterion: string;
+      proof: string;
+    }>;
+    announcement?: string;
   };
 }
 
@@ -22,10 +26,12 @@ export interface ActorReference {
 export interface ContinuityEvent {
   schema_version: 1;
   event_id: string;
+  payload_digest: string;
   occurred_at: string;
   actor: ActorReference;
   recorded_by: ActorReference;
   basis: 'self' | 'reported' | 'observed' | 'system';
+  change_key?: string;
   kind:
     | 'code'
     | 'documentation'

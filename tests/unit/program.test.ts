@@ -36,7 +36,7 @@ describe('pcp command surface', () => {
     process.exitCode = undefined;
 
     try {
-      await createProgram().parseAsync(['node', 'pcp', 'workstream']);
+      await createProgram().parseAsync(['node', 'pcp', 'upgrade']);
       expect(process.exitCode).toBe(2);
       expect(errorOutput).toHaveBeenCalledWith(
         expect.stringContaining('"code":"PCP_OPERATION_UNAVAILABLE"'),

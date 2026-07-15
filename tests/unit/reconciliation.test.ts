@@ -8,6 +8,7 @@ import {
   type ContinuityEvent,
   type WorkstreamState,
 } from '../../src/domain/reconciliation.js';
+import { eventPayloadDigest } from '../../src/domain/recording.js';
 
 function workstream(
   workstreamId: string,
@@ -26,7 +27,7 @@ function workstream(
 }
 
 function event(input: Partial<ContinuityEvent>): ContinuityEvent {
-  return {
+  const payload = {
     schema_version: 1,
     event_id: '01ARZ3NDEKTSV4RRFFQ69G5FAV',
     occurred_at: '2026-07-15T00:00:00Z',
@@ -39,7 +40,9 @@ function event(input: Partial<ContinuityEvent>): ContinuityEvent {
     summary: 'Changed current state.',
     affected_paths: [],
     ...input,
-  };
+  } as Record<string, unknown>;
+  delete payload.payload_digest;
+  return { ...payload, payload_digest: eventPayloadDigest(payload) } as unknown as ContinuityEvent;
 }
 
 describe('scoped reconciliation', () => {

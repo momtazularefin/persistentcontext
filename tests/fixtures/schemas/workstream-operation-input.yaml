@@ -1,0 +1,40 @@
+schema: workstream-operation-input
+valid:
+  schema_version: 1
+  operation: create
+  expected_registry_digest: aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
+  actor:
+    type: agent
+    id: codex-laptop-01ARZ3NDEK
+  recorded_by:
+    type: agent
+    id: codex-laptop-01ARZ3NDEK
+  basis: self
+  summary: Created the implementation workstream.
+  workstream:
+    workstream_id: implementation
+    name: Implementation
+    kind: concurrent
+    status: planned
+    paths: [src]
+    areas: [implementation]
+    dependencies: []
+    completion:
+      criteria: [All implementation checks pass.]
+      evidence: []
+invalid:
+  - name: reported workstream change has no stable change key
+    operation: set
+    path: basis
+    value: reported
+  - name: unsupported workstream operation
+    operation: set
+    path: operation
+    value: delete
+  - name: missing expected registry digest
+    operation: delete
+    path: expected_registry_digest
+  - name: create input has completion-only fields
+    operation: set
+    path: announcement
+    value: Implementation is complete.

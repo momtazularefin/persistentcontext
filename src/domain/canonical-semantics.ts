@@ -1,4 +1,5 @@
 import type { CanonicalDiagnostic } from './canonical-validation.js';
+import { eventPayloadDigest } from './recording.js';
 
 export interface CanonicalRecord {
   path: string;
@@ -113,12 +114,84 @@ function validateWorkstreams(records: CanonicalSemanticRecords): CanonicalDiagno
     }
 
     const completion = objectValue(workstream.completion);
-    if (workstream.status === 'complete' && stringArray(completion?.evidence).length === 0) {
+    const criteria = stringArray(completion?.criteria);
+    const evidence = objectArray(completion?.evidence);
+    const evidenceCounts = new Map<string, number>();
+    for (const item of evidence) {
+      const criterion = stringValue(item.criterion);
+      if (criterion === undefined) continue;
+      evidenceCounts.set(criterion, (evidenceCounts.get(criterion) ?? 0) + 1);
+      if (!criteria.includes(criterion)) {
+        diagnostics.push(
+          error(
+            'workstream.evidence-unknown-criterion',
+            records.workstreams.path,
+            `Workstream ${id} has evidence for an unknown criterion: ${criterion}`,
+          ),
+        );
+      }
+    }
+    for (const [criterion, count] of evidenceCounts) {
+      if (count > 1) {
+        diagnostics.push(
+          error(
+            'workstream.duplicate-criterion-evidence',
+            records.workstreams.path,
+            `Workstream ${id} has multiple evidence records for criterion: ${criterion}`,
+          ),
+        );
+      }
+    }
+
+    if (workstream.status === 'complete') {
+      if (evidence.length === 0) {
+        diagnostics.push(
+          error(
+            'workstream.completion-without-evidence',
+            records.workstreams.path,
+            `Complete workstream ${id} has no completion evidence.`,
+          ),
+        );
+      }
+      for (const criterion of criteria) {
+        if (!evidenceCounts.has(criterion)) {
+          diagnostics.push(
+            error(
+              'workstream.criterion-without-evidence',
+              records.workstreams.path,
+              `Complete workstream ${id} has no evidence for criterion: ${criterion}`,
+            ),
+          );
+        }
+      }
+      for (const dependency of stringArray(workstream.dependencies)) {
+        const dependencyState = byId.get(dependency);
+        if (dependencyState !== undefined && dependencyState.status !== 'complete') {
+          diagnostics.push(
+            error(
+              'workstream.incomplete-dependency',
+              records.workstreams.path,
+              `Complete workstream ${id} depends on incomplete workstream ${dependency}.`,
+            ),
+          );
+        }
+      }
+      const announcement = stringValue(completion?.announcement);
+      if (announcement === undefined || announcement.trim().length === 0) {
+        diagnostics.push(
+          error(
+            'workstream.completion-without-announcement',
+            records.workstreams.path,
+            `Complete workstream ${id} has no completion announcement.`,
+          ),
+        );
+      }
+    } else if (completion?.announcement !== undefined) {
       diagnostics.push(
         error(
-          'workstream.completion-without-evidence',
+          'workstream.announcement-before-completion',
           records.workstreams.path,
-          `Complete workstream ${id} has no completion evidence.`,
+          `Workstream ${id} cannot announce completion while its status is ${String(workstream.status)}.`,
         ),
       );
     }
@@ -202,6 +275,7 @@ function validateActors(records: CanonicalSemanticRecords): CanonicalDiagnostic[
 function validateEvents(records: CanonicalSemanticRecords): CanonicalDiagnostic[] {
   const diagnostics: CanonicalDiagnostic[] = [];
   const seen = new Map<string, string>();
+  const changeKeys = new Map<string, string>();
   const activeEvents: Array<{ id: string; path: string }> = [];
   const archivedEvents: Array<{ id: string; path: string }> = [];
   const actorTypes = new Map(
@@ -238,6 +312,35 @@ function validateEvents(records: CanonicalSemanticRecords): CanonicalDiagnostic[
       );
     } else {
       seen.set(id, record.path);
+    }
+    const payloadDigest = stringValue(event?.payload_digest);
+    if (payloadDigest !== undefined && event !== undefined) {
+      const payload = { ...event };
+      delete payload.payload_digest;
+      if (eventPayloadDigest(payload) !== payloadDigest) {
+        diagnostics.push(
+          error(
+            'event.payload-digest-mismatch',
+            record.path,
+            `Event ${id} payload no longer matches its recorded digest.`,
+          ),
+        );
+      }
+    }
+    const changeKey = stringValue(event?.change_key);
+    if (changeKey !== undefined) {
+      const previousChange = changeKeys.get(changeKey);
+      if (previousChange !== undefined) {
+        diagnostics.push(
+          error(
+            'event.duplicate-change-key',
+            record.path,
+            `Change key ${changeKey} duplicates ${previousChange}.`,
+          ),
+        );
+      } else {
+        changeKeys.set(changeKey, record.path);
+      }
     }
     (record.path.startsWith('continuity/archive/') ? archivedEvents : activeEvents).push({
       id,

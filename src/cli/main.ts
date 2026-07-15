@@ -5,6 +5,7 @@ import { Command } from 'commander';
 
 import { adoptProject } from '../application/adopt-project.js';
 import { inspectRepository } from '../application/inspect-repository.js';
+import { mutateWorkstream, validateWorkstreamRegistry } from '../application/manage-workstreams.js';
 import { recordEvent } from '../application/record-event.js';
 import { registerActor } from '../application/register-actor.js';
 import { reportStatus } from '../application/report-status.js';
@@ -22,6 +23,7 @@ import { InspectionError } from '../domain/inspection.js';
 import { RecordingError } from '../domain/recording.js';
 import { normalizeMachineLabel, RegistrationError } from '../domain/registration.js';
 import { ReconciliationError } from '../domain/reconciliation.js';
+import { WorkstreamError } from '../domain/workstreams.js';
 import { formatAdoption } from '../presentation/format-adoption.js';
 import {
   formatCanonicalRender,
@@ -31,6 +33,7 @@ import { formatInspection } from '../presentation/format-inspection.js';
 import { formatRecording } from '../presentation/format-recording.js';
 import { formatRegistration } from '../presentation/format-registration.js';
 import { formatStatus } from '../presentation/format-status.js';
+import { formatWorkstream } from '../presentation/format-workstream.js';
 
 const commandDescriptions: Record<PcpCommandName, string> = {
   inspect: 'Inspect and classify a candidate project without mutation',
@@ -106,6 +109,13 @@ interface RenderOptions {
   json?: boolean;
 }
 
+interface WorkstreamOptions {
+  candidate?: string;
+  input: string;
+  workstream?: string;
+  json?: boolean;
+}
+
 function reportInspectionError(error: unknown): void {
   const code = error instanceof InspectionError ? error.code : 'PCP_INSPECTION_FAILED';
   const message = error instanceof Error ? error.message : String(error);
@@ -145,6 +155,17 @@ function reportRecordingError(error: unknown): void {
   const message = error instanceof Error ? error.message : String(error);
   const mutated = error instanceof RecordingError ? error.mutated : false;
   const recoveryRetained = error instanceof RecordingError ? error.recovery_retained : false;
+  process.stderr.write(
+    `${JSON.stringify({ code, message, mutated, recovery_retained: recoveryRetained })}\n`,
+  );
+  process.exitCode = 2;
+}
+
+function reportWorkstreamError(error: unknown): void {
+  const code = error instanceof WorkstreamError ? error.code : 'PCP_WORKSTREAM_FAILED';
+  const message = error instanceof Error ? error.message : String(error);
+  const mutated = error instanceof WorkstreamError ? error.mutated : false;
+  const recoveryRetained = error instanceof WorkstreamError ? error.recovery_retained : false;
   process.stderr.write(
     `${JSON.stringify({ code, message, mutated, recovery_retained: recoveryRetained })}\n`,
   );
@@ -325,6 +346,102 @@ function addRenderCommand(program: Command): Command {
     });
 }
 
+function addWorkstreamCommand(program: Command): Command {
+  const command = program.command('workstream').description(commandDescriptions.workstream);
+  command.action(() => {
+    command.outputHelp();
+  });
+
+  command
+    .command('create')
+    .description('Create one digest-bound canonical workstream')
+    .argument('[directory]', 'managed project root')
+    .option('--candidate <directory>', 'managed project root')
+    .requiredOption('--input <workstream.yaml>', 'external workstream operation input')
+    .option('--json', 'emit stable structured JSON')
+    .action(async (directory: string | undefined, options: WorkstreamOptions) => {
+      try {
+        const result = await mutateWorkstream(
+          options.candidate ?? directory ?? '.',
+          'create',
+          options.input,
+        );
+        process.stdout.write(
+          options.json === true ? `${JSON.stringify(result, null, 2)}\n` : formatWorkstream(result),
+        );
+      } catch (error) {
+        reportWorkstreamError(error);
+      }
+    });
+
+  command
+    .command('update')
+    .description('Replace one nonterminal workstream using the current registry digest')
+    .argument('[directory]', 'managed project root')
+    .option('--candidate <directory>', 'managed project root')
+    .requiredOption('--input <workstream.yaml>', 'external workstream operation input')
+    .option('--json', 'emit stable structured JSON')
+    .action(async (directory: string | undefined, options: WorkstreamOptions) => {
+      try {
+        const result = await mutateWorkstream(
+          options.candidate ?? directory ?? '.',
+          'update',
+          options.input,
+        );
+        process.stdout.write(
+          options.json === true ? `${JSON.stringify(result, null, 2)}\n` : formatWorkstream(result),
+        );
+      } catch (error) {
+        reportWorkstreamError(error);
+      }
+    });
+
+  command
+    .command('validate')
+    .description('Validate canonical workstreams and return the exact registry digest')
+    .argument('[directory]', 'managed project root')
+    .option('--candidate <directory>', 'managed project root')
+    .option('--workstream <id>', 'select one workstream')
+    .option('--json', 'emit stable structured JSON')
+    .action(async (directory: string | undefined, options: WorkstreamOptions) => {
+      try {
+        const result = await validateWorkstreamRegistry(
+          options.candidate ?? directory ?? '.',
+          options.workstream,
+        );
+        process.stdout.write(
+          options.json === true ? `${JSON.stringify(result, null, 2)}\n` : formatWorkstream(result),
+        );
+      } catch (error) {
+        reportWorkstreamError(error);
+      }
+    });
+
+  command
+    .command('complete')
+    .description('Complete one active or blocked workstream with criterion-bound evidence')
+    .argument('[directory]', 'managed project root')
+    .option('--candidate <directory>', 'managed project root')
+    .requiredOption('--input <workstream.yaml>', 'external workstream operation input')
+    .option('--json', 'emit stable structured JSON')
+    .action(async (directory: string | undefined, options: WorkstreamOptions) => {
+      try {
+        const result = await mutateWorkstream(
+          options.candidate ?? directory ?? '.',
+          'complete',
+          options.input,
+        );
+        process.stdout.write(
+          options.json === true ? `${JSON.stringify(result, null, 2)}\n` : formatWorkstream(result),
+        );
+      } catch (error) {
+        reportWorkstreamError(error);
+      }
+    });
+
+  return command;
+}
+
 function reportOperationError(code: string, error: unknown, mutationPossible: boolean): void {
   const message = error instanceof Error ? error.message : String(error);
   process.stderr.write(`${JSON.stringify({ code, message, mutated: false, mutationPossible })}\n`);
@@ -338,9 +455,6 @@ function addUnavailableCommand(program: Command, commandName: PcpCommandName): C
     case 'upgrade':
     case 'repair':
       command.option('--apply <digest>', 'apply only the matching preview digest');
-      break;
-    case 'workstream':
-      command.argument('[operation]', 'create, update, validate, or complete');
       break;
     default:
       break;
@@ -376,6 +490,8 @@ export function createProgram(): Command {
       addValidateCommand(program);
     } else if (commandName === 'render') {
       addRenderCommand(program);
+    } else if (commandName === 'workstream') {
+      addWorkstreamCommand(program);
     } else {
       addUnavailableCommand(program, commandName);
     }

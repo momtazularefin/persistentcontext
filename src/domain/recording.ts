@@ -1,5 +1,8 @@
+import { createHash } from 'node:crypto';
+
 import { decodeTime, ulid } from 'ulid';
 
+import { canonicalJson } from './adoption.js';
 import type { ActorReference, ContinuityEvent } from './reconciliation.js';
 
 export interface RecordEventInput {
@@ -8,6 +11,7 @@ export interface RecordEventInput {
   actor: ActorReference;
   recorded_by: ActorReference;
   basis: ContinuityEvent['basis'];
+  change_key?: string;
   kind: ContinuityEvent['kind'];
   scopes: string[];
   workstreams: string[];
@@ -16,12 +20,17 @@ export interface RecordEventInput {
   affected_paths: string[];
 }
 
+export function eventPayloadDigest(payload: unknown): string {
+  return createHash('sha256').update(canonicalJson(payload)).digest('hex');
+}
+
 export interface RecordEventResult {
   schema_version: 1;
   command: 'record';
   status: 'recorded';
   event_id: string;
   event_path: string;
+  payload_digest: string;
   occurred_at: string;
   summary: string;
   active_events: number;
