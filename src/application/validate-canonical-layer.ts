@@ -583,6 +583,25 @@ export async function validateCanonicalLayer(
       );
       continue;
     }
+    if (
+      options.archive_content === 'filenames-only' &&
+      /^continuity\/archive\/[^/]+\.yaml$/.test(file.relative_path)
+    ) {
+      const eventId = path.basename(file.relative_path, '.yaml');
+      if (!/^[0-7][0-9A-HJKMNP-TV-Z]{25}$/u.test(eventId)) {
+        diagnostics.push(
+          issue(
+            'event.archive-filename',
+            file.relative_path,
+            'Archived event filename must be a ULID.',
+          ),
+        );
+      } else {
+        assignLoadedYaml(loadedYaml, file.relative_path, schema, { event_id: eventId });
+        addSemanticRecord(semanticRecords, loadedYaml.get(file.relative_path) as LoadedYaml);
+      }
+      continue;
+    }
     const contents = await readFile(file.absolute_path, 'utf8');
     const document = parseDocument(contents, { prettyErrors: false, uniqueKeys: true });
     if (document.errors.length > 0) {
@@ -685,7 +704,12 @@ export async function validateCanonicalLayer(
 
   for (const file of files.filter(
     (item) =>
-      TEXT_FILE_PATTERN.test(item.relative_path) && !item.relative_path.startsWith('runtime/'),
+      TEXT_FILE_PATTERN.test(item.relative_path) &&
+      !item.relative_path.startsWith('runtime/') &&
+      !(
+        options.archive_content === 'filenames-only' &&
+        item.relative_path.startsWith('continuity/archive/')
+      ),
   )) {
     validateTextSafety(file.relative_path, await readFile(file.absolute_path, 'utf8'), diagnostics);
   }

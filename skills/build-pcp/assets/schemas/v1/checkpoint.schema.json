@@ -12,6 +12,7 @@
     "last_event_id",
     "reconciled_at",
     "scopes",
+    "paths",
     "dependencies"
   ],
   "properties": {
@@ -24,7 +25,7 @@
     "actor_id": {
       "type": "string",
       "minLength": 1,
-      "maxLength": 160
+      "maxLength": 192
     },
     "workstream_id": {
       "anyOf": [{ "$ref": "urn:pcp:schema:v1:common#/$defs/slug" }, { "type": "null" }]
@@ -37,6 +38,9 @@
     },
     "scopes": {
       "$ref": "urn:pcp:schema:v1:common#/$defs/slugArray"
+    },
+    "paths": {
+      "$ref": "urn:pcp:schema:v1:common#/$defs/pathArray"
     },
     "dependencies": {
       "$ref": "urn:pcp:schema:v1:common#/$defs/slugArray"

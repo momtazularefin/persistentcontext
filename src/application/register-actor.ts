@@ -16,7 +16,7 @@ import {
   type NormalizedActorIdentity,
   type RegisterActorInput,
 } from '../domain/registration.js';
-import { withRegistrationLock } from '../infrastructure/registration-lock.js';
+import { ContinuityLockError, withContinuityLock } from '../infrastructure/continuity-lock.js';
 import { validateSchema } from '../infrastructure/schema-validator.js';
 
 const ACTOR_DIRECTORY = '.pcp/continuity/actors';
@@ -42,7 +42,7 @@ function validationSummary(report: Awaited<ReturnType<typeof validateCanonicalLa
 }
 
 async function assertValidCanonicalLayer(projectRoot: string): Promise<void> {
-  const report = await validateCanonicalLayer(projectRoot);
+  const report = await validateCanonicalLayer(projectRoot, { archive_content: 'filenames-only' });
   if (report.valid) return;
   const detail = validationSummary(report);
   throw new RegistrationError(
@@ -216,6 +216,20 @@ function cacheValue(profile: ActorProfile): ActorIdentityCache {
   };
 }
 
+async function withActorRegistrationLock<T>(root: string, operation: () => Promise<T>): Promise<T> {
+  try {
+    return await withContinuityLock(root, operation);
+  } catch (error) {
+    if (error instanceof ContinuityLockError) {
+      throw new RegistrationError(
+        'PCP_REGISTRATION_LOCKED',
+        'Another actor registration or continuity operation is still running for this project.',
+      );
+    }
+    throw error;
+  }
+}
+
 export async function registerActor(
   projectRoot: string,
   input: RegisterActorInput,
@@ -224,7 +238,7 @@ export async function registerActor(
   const identity = normalizeActorIdentity(input);
   const executionId = createExecutionId();
 
-  return withRegistrationLock(root, async () => {
+  return withActorRegistrationLock(root, async () => {
     let createdProfilePath: string | undefined;
     let createdCachePath: string | undefined;
     let createdRuntimeRoot: string | undefined;

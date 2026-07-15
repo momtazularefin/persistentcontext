@@ -6,6 +6,7 @@ import { Command } from 'commander';
 import { adoptProject } from '../application/adopt-project.js';
 import { inspectRepository } from '../application/inspect-repository.js';
 import { registerActor } from '../application/register-actor.js';
+import { reportStatus } from '../application/report-status.js';
 import { renderCanonicalViews } from '../application/render-canonical-views.js';
 import { validateCanonicalLayer } from '../application/validate-canonical-layer.js';
 import {
@@ -18,6 +19,7 @@ import {
 import { AdoptionError } from '../domain/adoption.js';
 import { InspectionError } from '../domain/inspection.js';
 import { normalizeMachineLabel, RegistrationError } from '../domain/registration.js';
+import { ReconciliationError } from '../domain/reconciliation.js';
 import { formatAdoption } from '../presentation/format-adoption.js';
 import {
   formatCanonicalRender,
@@ -25,6 +27,7 @@ import {
 } from '../presentation/format-canonical.js';
 import { formatInspection } from '../presentation/format-inspection.js';
 import { formatRegistration } from '../presentation/format-registration.js';
+import { formatStatus } from '../presentation/format-status.js';
 
 const commandDescriptions: Record<PcpCommandName, string> = {
   inspect: 'Inspect and classify a candidate project without mutation',
@@ -73,8 +76,19 @@ interface RegisterOptions {
   json?: boolean;
 }
 
+interface StatusOptions {
+  candidate?: string;
+  actorId: string;
+  workstream?: string;
+  scope?: string[];
+  path?: string[];
+  acknowledge?: string;
+  json?: boolean;
+}
+
 interface ValidateOptions {
   cleanGenesis?: boolean;
+  archiveIndexOnly?: boolean;
   json?: boolean;
 }
 
@@ -105,6 +119,14 @@ function reportRegistrationError(error: unknown): void {
   const code = error instanceof RegistrationError ? error.code : 'PCP_REGISTRATION_FAILED';
   const message = error instanceof Error ? error.message : String(error);
   const mutated = error instanceof RegistrationError ? error.mutated : false;
+  process.stderr.write(`${JSON.stringify({ code, message, mutated })}\n`);
+  process.exitCode = 2;
+}
+
+function reportStatusError(error: unknown): void {
+  const code = error instanceof ReconciliationError ? error.code : 'PCP_STATUS_FAILED';
+  const message = error instanceof Error ? error.message : String(error);
+  const mutated = error instanceof ReconciliationError ? error.mutated : false;
   process.stderr.write(`${JSON.stringify({ code, message, mutated })}\n`);
   process.exitCode = 2;
 }
@@ -182,17 +204,49 @@ function addRegisterCommand(program: Command): Command {
     });
 }
 
+function addStatusCommand(program: Command): Command {
+  return program
+    .command('status')
+    .description(commandDescriptions.status)
+    .argument('[directory]', 'managed project root')
+    .option('--candidate <directory>', 'managed project root')
+    .requiredOption('--actor-id <id>', 'registered agent actor ID')
+    .option('--workstream <id>', 'active workstream ID')
+    .option('--scope <scope...>', 'additional semantic scopes')
+    .option('--path <path...>', 'additional project-relative paths')
+    .option('--acknowledge <digest>', 'advance only the matching recomputed status digest')
+    .option('--json', 'emit stable structured JSON')
+    .action(async (directory: string | undefined, options: StatusOptions) => {
+      try {
+        const result = await reportStatus(options.candidate ?? directory ?? '.', {
+          actor_id: options.actorId,
+          ...(options.workstream === undefined ? {} : { workstream_id: options.workstream }),
+          ...(options.scope === undefined ? {} : { scopes: options.scope }),
+          ...(options.path === undefined ? {} : { paths: options.path }),
+          ...(options.acknowledge === undefined ? {} : { acknowledge: options.acknowledge }),
+        });
+        process.stdout.write(
+          options.json === true ? `${JSON.stringify(result, null, 2)}\n` : formatStatus(result),
+        );
+      } catch (error) {
+        reportStatusError(error);
+      }
+    });
+}
+
 function addValidateCommand(program: Command): Command {
   return program
     .command('validate')
     .description(commandDescriptions.validate)
     .argument('[directory]', 'managed project root', '.')
     .option('--clean-genesis', 'require zero actor profiles and zero active or archived events')
+    .option('--archive-index-only', 'validate archive filenames without reading archived content')
     .option('--json', 'emit stable structured JSON')
     .action(async (directory: string, options: ValidateOptions) => {
       try {
         const report = await validateCanonicalLayer(directory, {
           clean_genesis: options.cleanGenesis === true,
+          archive_content: options.archiveIndexOnly === true ? 'filenames-only' : 'full',
         });
         const output = { ...report, command: 'validate', mutated: false };
         process.stdout.write(
@@ -277,6 +331,8 @@ export function createProgram(): Command {
       addAdoptCommand(program);
     } else if (commandName === 'register') {
       addRegisterCommand(program);
+    } else if (commandName === 'status') {
+      addStatusCommand(program);
     } else if (commandName === 'validate') {
       addValidateCommand(program);
     } else if (commandName === 'render') {

@@ -4,10 +4,15 @@ import { tmpdir } from 'node:os';
 import path from 'node:path';
 import { setTimeout as delay } from 'node:timers/promises';
 
-import { RegistrationError } from '../domain/registration.js';
-
 const LOCK_WAIT_MS = 30_000;
 const STALE_LOCK_MS = 5 * 60_000;
+
+export class ContinuityLockError extends Error {
+  public constructor(message: string) {
+    super(message);
+    this.name = 'ContinuityLockError';
+  }
+}
 
 function lockDigest(root: string): string {
   const resolved = path.resolve(root);
@@ -35,8 +40,7 @@ async function removeStaleLock(lockPath: string): Promise<boolean> {
         process.kill(ownerPid, 0);
         return false;
       } catch (error) {
-        const code = (error as NodeJS.ErrnoException).code;
-        if (code !== 'ESRCH') return false;
+        if ((error as NodeJS.ErrnoException).code !== 'ESRCH') return false;
       }
     }
     await unlink(lockPath);
@@ -47,11 +51,11 @@ async function removeStaleLock(lockPath: string): Promise<boolean> {
   }
 }
 
-export async function withRegistrationLock<T>(
+export async function withContinuityLock<T>(
   projectRoot: string,
   operation: () => Promise<T>,
 ): Promise<T> {
-  const lockRoot = path.join(tmpdir(), 'pcp-registration-locks');
+  const lockRoot = path.join(tmpdir(), 'pcp-continuity-locks');
   await mkdir(lockRoot, { recursive: true });
   const lockPath = path.join(lockRoot, `${lockDigest(projectRoot)}.lock`);
   const token = randomUUID();
@@ -66,10 +70,7 @@ export async function withRegistrationLock<T>(
       if ((error as NodeJS.ErrnoException).code !== 'EEXIST') throw error;
       if (await removeStaleLock(lockPath)) continue;
       if (Date.now() >= deadline) {
-        throw new RegistrationError(
-          'PCP_REGISTRATION_LOCKED',
-          'Another actor registration is still running for this project.',
-        );
+        throw new ContinuityLockError('Another continuity operation is still running.');
       }
       await delay(20);
     }

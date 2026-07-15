@@ -2,8 +2,8 @@
 doc: protocol/20-actor-continuity.md
 type: protocol
 status: static
-version: 1.1.0
-last_updated: 2026-07-15T01:15:00Z
+version: 1.2.0
+last_updated: 2026-07-15T08:53:00Z
 ownership: protocol
 ---
 
@@ -19,15 +19,21 @@ ownership: protocol
 - Humans use the same ID pattern as agents. The first informed agent may register a human when recording a reported or observed human action.
 - Invoke registration once per execution. Keep the returned execution ULID and later event ULIDs separate from the durable actor ID.
 - Registration is an operational action and never creates a continuity event.
+- Normal registration validates archived event identities by filename only. It does not read archived event contents.
 
 ## Scoped reconciliation
 
-- A returning agent compares its scoped checkpoint with newer active events.
-- Reconcile events that affect the active workstream, dependency workstreams, overlapping paths, protocol, shared policy, or the project registry.
+- A returning agent runs `pcp status` with its stable actor ID and the current workstream, semantic scopes, or project paths. The exact normalized selection identifies one local checkpoint.
+- The engine expands the selected workstream through transitive dependencies, then compares that scoped checkpoint with newer active events.
+- Reconcile events that affect the active workstream, dependency workstreams, overlapping paths, protocol, shared policy, project state, or the project and workstream registries.
 - An unrelated event in another concurrent scope remains visible but does not trigger a full reread.
 - Read the current documents named by relevant events; do not reconstruct current state from event prose alone.
-- Advance a checkpoint only after the relevant current state has been absorbed.
+- The default status operation is read-only. It reports the relevant and out-of-scope changes, required current paths, and a digest bound to the complete observed status.
+- Advance a checkpoint only after the relevant current state has been absorbed by rerunning status with `--acknowledge <status-digest>`. The engine recomputes the same view under the continuity lock and refuses a stale or incorrect digest.
+- A successful acknowledgement advances the scoped checkpoint to the newest active event, including visible out-of-scope events, so already-seen changes do not repeat. It changes no project document and creates no continuity event.
+- If the checkpoint is already current, acknowledgement is unnecessary and a matching explicit acknowledgement is a no-op.
 - If a checkpoint predates the active-event floor, rebuild only the affected scope from canonical current state. Do not replay the archive as routine startup work.
+- Normal status may inspect archive filenames to detect that floor. It never reads archived event contents.
 
 ## Recording change
 
@@ -43,7 +49,7 @@ ownership: protocol
 - Keep at most 64 events in `continuity/events/`.
 - When an addition would exceed 64, move the oldest 32 immutable events to `continuity/archive/` in one maintenance operation.
 - Event ULIDs remain globally unique and monotonic across active and archived history. No shared sequential counter is used.
-- Agents do not read archived events during normal work. Archive access requires an explicit audit, recovery, or historical request.
+- Agents do not read archived events during normal work. Archive content access requires an explicit audit, recovery, or historical request; operational validation uses archive-index-only mode.
 
 ## Parallel work
 

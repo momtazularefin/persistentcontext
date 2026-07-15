@@ -301,6 +301,26 @@ describe('actor registration', () => {
     expect(await actorFiles(root)).toEqual([]);
     await expect(readdir(path.join(root, '.pcp', 'runtime', 'actors'))).rejects.toThrow();
   });
+
+  it('registers without reading archived event contents reserved for explicit audit', async () => {
+    const root = await createProject();
+    const archivedEvent = path.join(
+      root,
+      '.pcp',
+      'continuity',
+      'archive',
+      '01ARZ3NDEKTSV4RRFFQ69G5FAV.yaml',
+    );
+    await writeFile(archivedEvent, 'not: [valid yaml', 'utf8');
+
+    const result = await registerActor(root, {
+      client: 'codex',
+      machine_label: 'archive-safe-machine',
+    });
+
+    expect(result.status).toBe('created');
+    expect((await validateCanonicalLayer(root)).valid).toBe(false);
+  });
 });
 
 describe('registration identity input', () => {

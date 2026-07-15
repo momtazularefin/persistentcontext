@@ -399,19 +399,23 @@ source_digest: aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
   it('validates checkpoint references against durable identities and state', async () => {
     const root = await createProject();
     const checkpointId = '01ARZ3NDEKTSV4RRFFQ69G5FAW';
+    const duplicateCheckpointId = '01ARZ3NDEKTSV4RRFFQ69G5FAX';
     const directory = path.join(root, '.pcp', 'continuity', 'checkpoints');
+    const checkpoint = {
+      schema_version: 1,
+      checkpoint_id: checkpointId,
+      actor_id: agentId,
+      workstream_id: 'missing-workstream',
+      last_event_id: eventId,
+      reconciled_at: '2026-07-12T13:10:00Z',
+      scopes: [],
+      paths: [],
+      dependencies: ['missing-dependency'],
+    };
+    await writeFile(path.join(directory, `${checkpointId}.yaml`), stringify(checkpoint), 'utf8');
     await writeFile(
-      path.join(directory, `${checkpointId}.yaml`),
-      stringify({
-        schema_version: 1,
-        checkpoint_id: checkpointId,
-        actor_id: agentId,
-        workstream_id: 'missing-workstream',
-        last_event_id: eventId,
-        reconciled_at: '2026-07-12T13:10:00Z',
-        scopes: [],
-        dependencies: [],
-      }),
+      path.join(directory, `${duplicateCheckpointId}.yaml`),
+      stringify({ ...checkpoint, checkpoint_id: duplicateCheckpointId }),
       'utf8',
     );
 
@@ -419,6 +423,8 @@ source_digest: aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
     expect(codes).toContain('checkpoint.unknown-actor');
     expect(codes).toContain('checkpoint.unknown-workstream');
     expect(codes).toContain('checkpoint.unknown-event');
+    expect(codes).toContain('checkpoint.unknown-dependency');
+    expect(codes).toContain('checkpoint.duplicate-scope');
   });
 
   it('fails closed when a policy assigns credential management to an agent', async () => {

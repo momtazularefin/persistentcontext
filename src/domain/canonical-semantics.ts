@@ -317,6 +317,7 @@ function validateEvents(records: CanonicalSemanticRecords): CanonicalDiagnostic[
 
 function validateCheckpoints(records: CanonicalSemanticRecords): CanonicalDiagnostic[] {
   const diagnostics: CanonicalDiagnostic[] = [];
+  const checkpointIdentities = new Map<string, string>();
   const actorTypes = new Map(
     records.actors
       .map((record) => {
@@ -383,6 +384,17 @@ function validateCheckpoints(records: CanonicalSemanticRecords): CanonicalDiagno
         ),
       );
     }
+    for (const dependency of stringArray(checkpoint?.dependencies)) {
+      if (!workstreamIds.has(dependency)) {
+        diagnostics.push(
+          error(
+            'checkpoint.unknown-dependency',
+            record.path,
+            `Checkpoint references unknown dependency workstream ${dependency}.`,
+          ),
+        );
+      }
+    }
     const eventId = stringValue(checkpoint?.last_event_id);
     if (eventId !== undefined && !eventIds.has(eventId)) {
       diagnostics.push(
@@ -392,6 +404,28 @@ function validateCheckpoints(records: CanonicalSemanticRecords): CanonicalDiagno
           `Checkpoint references unknown event ${eventId}.`,
         ),
       );
+    }
+
+    if (actorId !== undefined) {
+      const identity = JSON.stringify({
+        actor_id: actorId,
+        workstream_id: workstreamId ?? null,
+        scopes: stringArray(checkpoint?.scopes).sort(),
+        paths: stringArray(checkpoint?.paths).sort(),
+        dependencies: stringArray(checkpoint?.dependencies).sort(),
+      });
+      const previous = checkpointIdentities.get(identity);
+      if (previous !== undefined) {
+        diagnostics.push(
+          error(
+            'checkpoint.duplicate-scope',
+            record.path,
+            `Checkpoint duplicates the actor and scope identity in ${previous}.`,
+          ),
+        );
+      } else {
+        checkpointIdentities.set(identity, record.path);
+      }
     }
   }
   return diagnostics;

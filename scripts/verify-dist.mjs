@@ -229,6 +229,83 @@ try {
     throw new Error('Bundled pcp registration created a continuity event.');
   }
 
+  const statusArguments = [
+    fileURLToPath(skillBundle),
+    'status',
+    adoptionCandidate,
+    '--actor-id',
+    firstRegistrationResult.actor_id,
+    '--scope',
+    'distribution',
+    '--json',
+  ];
+  const statusPreview = spawnSync(process.execPath, statusArguments, {
+    encoding: 'utf8',
+    windowsHide: true,
+  });
+  if (statusPreview.status !== 0) {
+    throw new Error(
+      `Bundled pcp status preview failed: ${statusPreview.stderr || statusPreview.stdout}`,
+    );
+  }
+  const statusPreviewResult = JSON.parse(statusPreview.stdout);
+  if (
+    statusPreviewResult.mode !== 'preview' ||
+    statusPreviewResult.checkpoint?.state !== 'missing' ||
+    statusPreviewResult.acknowledgement?.required !== true ||
+    statusPreviewResult.event_created !== false ||
+    statusPreviewResult.mutated !== false ||
+    !/^[a-f0-9]{64}$/.test(statusPreviewResult.status_digest ?? '')
+  ) {
+    throw new Error('Bundled pcp status preview returned an unexpected result.');
+  }
+
+  const statusAcknowledgement = spawnSync(
+    process.execPath,
+    [...statusArguments.slice(0, -1), '--acknowledge', statusPreviewResult.status_digest, '--json'],
+    { encoding: 'utf8', windowsHide: true },
+  );
+  if (statusAcknowledgement.status !== 0) {
+    throw new Error(
+      `Bundled pcp status acknowledgement failed: ${statusAcknowledgement.stderr || statusAcknowledgement.stdout}`,
+    );
+  }
+  const statusAcknowledgementResult = JSON.parse(statusAcknowledgement.stdout);
+  if (
+    statusAcknowledgementResult.mode !== 'acknowledge' ||
+    statusAcknowledgementResult.checkpoint?.state !== 'current' ||
+    statusAcknowledgementResult.acknowledgement?.accepted !== true ||
+    statusAcknowledgementResult.event_created !== false ||
+    statusAcknowledgementResult.mutated !== true
+  ) {
+    throw new Error('Bundled pcp status acknowledgement returned an unexpected result.');
+  }
+
+  const currentStatus = spawnSync(process.execPath, statusArguments, {
+    encoding: 'utf8',
+    windowsHide: true,
+  });
+  const currentStatusResult =
+    currentStatus.status === 0 ? JSON.parse(currentStatus.stdout) : undefined;
+  if (
+    currentStatusResult?.checkpoint?.state !== 'current' ||
+    currentStatusResult?.acknowledgement?.required !== false ||
+    currentStatusResult?.mutated !== false
+  ) {
+    throw new Error(
+      `Bundled pcp repeat status failed: ${currentStatus.stderr || currentStatus.stdout}`,
+    );
+  }
+  const statusCheckpoints = (
+    await readdir(join(adoptionCandidate, '.pcp', 'continuity', 'checkpoints'))
+  ).filter((entry) => entry.endsWith('.yaml'));
+  const statusEvents = (
+    await readdir(join(adoptionCandidate, '.pcp', 'continuity', 'events'))
+  ).filter((entry) => entry.endsWith('.yaml'));
+  if (statusCheckpoints.length !== 1 || statusEvents.length !== 0) {
+    throw new Error('Bundled pcp status did not preserve checkpoint-only acknowledgement.');
+  }
+
   const managedInspection = spawnSync(
     process.execPath,
     [fileURLToPath(skillBundle), 'inspect', adoptionCandidate, '--json'],

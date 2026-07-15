@@ -1,7 +1,7 @@
 0513cb36153b9a4d301a50a7286518279fce1f6bf0a61efeeb42100cdb9af044  schemas/v1/actor-profile.schema.json
 caa83ef5b0b966450d7b9f4313a3bef83ccc99b8137acfadc9d4a1b472330749  schemas/v1/adapter.schema.json
 ef59efd5f387325c493a03fdb8f0ef2910a8334a8e495d0830be8ddc4444b96c  schemas/v1/adoption-input.schema.json
-1fd554be63ea05e513e66508958d625cde5818426c8f56b493e74fbeb13e295e  schemas/v1/checkpoint.schema.json
+70293d89a6fdeb61a0427cbc2331fa9df9cad693e7e3309d97a3920fea564c00  schemas/v1/checkpoint.schema.json
 169958acd1aca243fc76806be9f4ac3425af361fae624ce1a76bf1795f5ce4ba  schemas/v1/common.schema.json
 a0952ce133ad26999ca2e2e86a1db45f118c79ccaa2497350258883bb8a1eafc  schemas/v1/coverage.schema.json
 1ffd02248cdf82eb1096451b45354f9ef7d599aa6207612df842e3bf77063b0b  schemas/v1/event.schema.json
@@ -26,10 +26,10 @@ bf542a3c66a216d1b594589d68c6423e5ed57561cc1de439e188cec81abfe8c5  templates/capa
 e8cb06fafbd5a392ce12ac150ea79d5cb4fff620bce542b7bbb00c6ad326c37e  templates/capabilities/walkthroughs/overlay/.pcp/templates/50-walkthrough.md
 579cc58c48feedbcee1a0412029d9a4eb0289d3f9f091b52ff1ff996a426e5e5  templates/core/.pcp/.gitignore
 274a0e021651c6356561425f9b0546a095083bd6f1535d66b546a2faf47d645b  templates/core/.pcp/00-index.md
-93e4ce9e40b567c699bbfdc3b54aa7714b69069c1419cc6e495ce97df3a4af36  templates/core/.pcp/continuity/00-index.md
+827892b5a1b778e2a5b41bf460971146a5445bf89bb1479e5483e117c051e47f  templates/core/.pcp/continuity/00-index.md
 b5327ce9714eb3d9c7c1f940e86ce36b55bac5a6b82e4cc32cc2b1967e066b6a  templates/core/.pcp/continuity/actors/00-index.md
-ed83060b54d01fa45938d2cc25ac658fbc26280a3797f9351517d734a09dc3c2  templates/core/.pcp/continuity/archive/00-index.md
-f0dd3a8dfa3b24f5f701fcd3d1726986c0d6f7df38eeabb3190c0bd4e807bb84  templates/core/.pcp/continuity/checkpoints/00-index.md
+9a9c64950f8b67bc07c1ff91e85cb9c7af25a0f61faf7b23a4228c9b48dd5342  templates/core/.pcp/continuity/archive/00-index.md
+a5188c1b49755318cbd66a0c311e54049eff89b87c8dd680930964c928340bbd  templates/core/.pcp/continuity/checkpoints/00-index.md
 a5f80f7fa53bc6aa6429aa28543ebb00f850a9989945faa48a95a8f9a528e365  templates/core/.pcp/continuity/events/00-index.md
 0891f8ce1ea078ecad9a24ac58503e15dd96a4ffc6505dc1eeb55347f3320107  templates/core/.pcp/knowledge/00-index.md
 b5967acf76480a8534031a2184b79198adb73b33f6a0e72dfd384e271a670a11  templates/core/.pcp/knowledge/10-overview.md
@@ -45,7 +45,7 @@ eae0427e7bf75c63898b9a7d7c5c8bf49fe759ffcc23094bd16f9f1321bf5040  templates/core
 2f8c13741ed1e0e481a1de6e7536b947c553b419a8ec33dd47e3b0f5c2c8102d  templates/core/.pcp/projects/00-index.md
 5d5abb1db0f041dda23afe5f132a7f421dc94ead42a840d530aaa0320bbd5d2a  templates/core/.pcp/protocol/00-index.md
 06c643233e85dbd18be3e4df0c049760585dfd549481edfb4c78338af3973d36  templates/core/.pcp/protocol/10-context-contract.md
-02e0bf9d66543ba3b42b0e92b9c6a956dc210f93dc6ae8d23e439d6bade790c1  templates/core/.pcp/protocol/20-actor-continuity.md
+65293fc1d664fa0b83264a70db8214f61a229fd4ead0b3b88bf465118606c8d9  templates/core/.pcp/protocol/20-actor-continuity.md
 9f5fa9cf552101ef46870f7bf0a54cb2c1025564bdb1dadea879e5790ac8a91f  templates/core/.pcp/protocol/30-exploration.md
 643b2ce47ef752c6bf44ca77037c3dcc05d7402a6217a41e99f66adcf6fcecb3  templates/core/.pcp/protocol/40-documentation.md
 7329741ddcff076bd5e144d17a8a9b394da219ece9ce3071fbe4e8e9c14a6e4c  templates/core/.pcp/protocol/50-portability-and-safety.md
