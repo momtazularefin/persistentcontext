@@ -327,7 +327,7 @@ var require_ignore = __commonJS({
       //   path matching.
       // - check `string` either `MODE_IGNORE` or `MODE_CHECK_IGNORE`
       // @returns {TestResult} true if a file is ignored
-      test(path18, checkUnignored, mode) {
+      test(path19, checkUnignored, mode) {
         let ignored = false;
         let unignored = false;
         let matchedRule;
@@ -336,7 +336,7 @@ var require_ignore = __commonJS({
           if (unignored === negative && ignored !== unignored || negative && !ignored && !unignored && !checkUnignored) {
             return;
           }
-          const matched = rule[mode].test(path18);
+          const matched = rule[mode].test(path19);
           if (!matched) {
             return;
           }
@@ -357,17 +357,17 @@ var require_ignore = __commonJS({
     var throwError = (message, Ctor) => {
       throw new Ctor(message);
     };
-    var checkPath = (path18, originalPath, doThrow) => {
-      if (!isString(path18)) {
+    var checkPath = (path19, originalPath, doThrow) => {
+      if (!isString(path19)) {
         return doThrow(
           `path must be a string, but got \`${originalPath}\``,
           TypeError
         );
       }
-      if (!path18) {
+      if (!path19) {
         return doThrow(`path must not be empty`, TypeError);
       }
-      if (checkPath.isNotRelative(path18)) {
+      if (checkPath.isNotRelative(path19)) {
         const r = "`path.relative()`d";
         return doThrow(
           `path should be a ${r} string, but got "${originalPath}"`,
@@ -376,7 +376,7 @@ var require_ignore = __commonJS({
       }
       return true;
     };
-    var isNotRelative = (path18) => REGEX_TEST_INVALID_PATH.test(path18);
+    var isNotRelative = (path19) => REGEX_TEST_INVALID_PATH.test(path19);
     checkPath.isNotRelative = isNotRelative;
     checkPath.convert = (p) => p;
     var Ignore = class {
@@ -406,19 +406,19 @@ var require_ignore = __commonJS({
       }
       // @returns {TestResult}
       _test(originalPath, cache, checkUnignored, slices) {
-        const path18 = originalPath && checkPath.convert(originalPath);
+        const path19 = originalPath && checkPath.convert(originalPath);
         checkPath(
-          path18,
+          path19,
           originalPath,
           this._strictPathCheck ? throwError : RETURN_FALSE
         );
-        return this._t(path18, cache, checkUnignored, slices);
+        return this._t(path19, cache, checkUnignored, slices);
       }
-      checkIgnore(path18) {
-        if (!REGEX_TEST_TRAILING_SLASH.test(path18)) {
-          return this.test(path18);
+      checkIgnore(path19) {
+        if (!REGEX_TEST_TRAILING_SLASH.test(path19)) {
+          return this.test(path19);
         }
-        const slices = path18.split(SLASH).filter(Boolean);
+        const slices = path19.split(SLASH).filter(Boolean);
         slices.pop();
         if (slices.length) {
           const parent = this._t(
@@ -431,18 +431,18 @@ var require_ignore = __commonJS({
             return parent;
           }
         }
-        return this._rules.test(path18, false, MODE_CHECK_IGNORE);
+        return this._rules.test(path19, false, MODE_CHECK_IGNORE);
       }
-      _t(path18, cache, checkUnignored, slices) {
-        if (path18 in cache) {
-          return cache[path18];
+      _t(path19, cache, checkUnignored, slices) {
+        if (path19 in cache) {
+          return cache[path19];
         }
         if (!slices) {
-          slices = path18.split(SLASH).filter(Boolean);
+          slices = path19.split(SLASH).filter(Boolean);
         }
         slices.pop();
         if (!slices.length) {
-          return cache[path18] = this._rules.test(path18, checkUnignored, MODE_IGNORE);
+          return cache[path19] = this._rules.test(path19, checkUnignored, MODE_IGNORE);
         }
         const parent = this._t(
           slices.join(SLASH) + SLASH,
@@ -450,29 +450,29 @@ var require_ignore = __commonJS({
           checkUnignored,
           slices
         );
-        return cache[path18] = parent.ignored ? parent : this._rules.test(path18, checkUnignored, MODE_IGNORE);
+        return cache[path19] = parent.ignored ? parent : this._rules.test(path19, checkUnignored, MODE_IGNORE);
       }
-      ignores(path18) {
-        return this._test(path18, this._ignoreCache, false).ignored;
+      ignores(path19) {
+        return this._test(path19, this._ignoreCache, false).ignored;
       }
       createFilter() {
-        return (path18) => !this.ignores(path18);
+        return (path19) => !this.ignores(path19);
       }
       filter(paths) {
         return makeArray(paths).filter(this.createFilter());
       }
       // @returns {TestResult}
-      test(path18) {
-        return this._test(path18, this._testCache, true);
+      test(path19) {
+        return this._test(path19, this._testCache, true);
       }
     };
     var factory = (options) => new Ignore(options);
-    var isPathValid = (path18) => checkPath(path18 && checkPath.convert(path18), path18, RETURN_FALSE);
+    var isPathValid = (path19) => checkPath(path19 && checkPath.convert(path19), path19, RETURN_FALSE);
     var setupWindows = () => {
       const makePosix = (str) => /^\\\\\?\\/.test(str) || /["<>|\u0000-\u001F]+/u.test(str) ? str : str.replace(/\\/g, "/");
       checkPath.convert = makePosix;
       const REGEX_TEST_WINDOWS_PATH_ABSOLUTE = /^[a-z]:\//i;
-      checkPath.isNotRelative = (path18) => REGEX_TEST_WINDOWS_PATH_ABSOLUTE.test(path18) || isNotRelative(path18);
+      checkPath.isNotRelative = (path19) => REGEX_TEST_WINDOWS_PATH_ABSOLUTE.test(path19) || isNotRelative(path19);
     };
     if (
       // Detect `process` so that it can run in browsers.
@@ -3683,8 +3683,8 @@ var require_utils = __commonJS({
       }
       return ind;
     }
-    function removeDotSegments(path18) {
-      let input = path18;
+    function removeDotSegments(path19) {
+      let input = path19;
       const output = [];
       let nextSlash = -1;
       let len = 0;
@@ -3936,8 +3936,8 @@ var require_schemes = __commonJS({
         wsComponent.secure = void 0;
       }
       if (wsComponent.resourceName) {
-        const [path18, query] = wsComponent.resourceName.split("?");
-        wsComponent.path = path18 && path18 !== "/" ? path18 : void 0;
+        const [path19, query] = wsComponent.resourceName.split("?");
+        wsComponent.path = path19 && path19 !== "/" ? path19 : void 0;
         wsComponent.query = query;
         wsComponent.resourceName = void 0;
       }
@@ -11282,9 +11282,9 @@ Expecting one of '${allowedValues.join("', '")}'`);
    * @param {string} [path]
    * @return {(string|null|Command)}
    */
-  executableDir(path18) {
-    if (path18 === void 0) return this._executableDir;
-    this._executableDir = path18;
+  executableDir(path19) {
+    if (path19 === void 0) return this._executableDir;
+    this._executableDir = path19;
     return this;
   }
   /**
@@ -12637,17 +12637,17 @@ function visit(node, visitor) {
 visit.BREAK = BREAK;
 visit.SKIP = SKIP;
 visit.REMOVE = REMOVE;
-function visit_(key, node, visitor, path18) {
-  const ctrl = callVisitor(key, node, visitor, path18);
+function visit_(key, node, visitor, path19) {
+  const ctrl = callVisitor(key, node, visitor, path19);
   if (isNode(ctrl) || isPair(ctrl)) {
-    replaceNode(key, path18, ctrl);
-    return visit_(key, ctrl, visitor, path18);
+    replaceNode(key, path19, ctrl);
+    return visit_(key, ctrl, visitor, path19);
   }
   if (typeof ctrl !== "symbol") {
     if (isCollection(node)) {
-      path18 = Object.freeze(path18.concat(node));
+      path19 = Object.freeze(path19.concat(node));
       for (let i = 0; i < node.items.length; ++i) {
-        const ci = visit_(i, node.items[i], visitor, path18);
+        const ci = visit_(i, node.items[i], visitor, path19);
         if (typeof ci === "number")
           i = ci - 1;
         else if (ci === BREAK)
@@ -12658,13 +12658,13 @@ function visit_(key, node, visitor, path18) {
         }
       }
     } else if (isPair(node)) {
-      path18 = Object.freeze(path18.concat(node));
-      const ck = visit_("key", node.key, visitor, path18);
+      path19 = Object.freeze(path19.concat(node));
+      const ck = visit_("key", node.key, visitor, path19);
       if (ck === BREAK)
         return BREAK;
       else if (ck === REMOVE)
         node.key = null;
-      const cv = visit_("value", node.value, visitor, path18);
+      const cv = visit_("value", node.value, visitor, path19);
       if (cv === BREAK)
         return BREAK;
       else if (cv === REMOVE)
@@ -12685,17 +12685,17 @@ async function visitAsync(node, visitor) {
 visitAsync.BREAK = BREAK;
 visitAsync.SKIP = SKIP;
 visitAsync.REMOVE = REMOVE;
-async function visitAsync_(key, node, visitor, path18) {
-  const ctrl = await callVisitor(key, node, visitor, path18);
+async function visitAsync_(key, node, visitor, path19) {
+  const ctrl = await callVisitor(key, node, visitor, path19);
   if (isNode(ctrl) || isPair(ctrl)) {
-    replaceNode(key, path18, ctrl);
-    return visitAsync_(key, ctrl, visitor, path18);
+    replaceNode(key, path19, ctrl);
+    return visitAsync_(key, ctrl, visitor, path19);
   }
   if (typeof ctrl !== "symbol") {
     if (isCollection(node)) {
-      path18 = Object.freeze(path18.concat(node));
+      path19 = Object.freeze(path19.concat(node));
       for (let i = 0; i < node.items.length; ++i) {
-        const ci = await visitAsync_(i, node.items[i], visitor, path18);
+        const ci = await visitAsync_(i, node.items[i], visitor, path19);
         if (typeof ci === "number")
           i = ci - 1;
         else if (ci === BREAK)
@@ -12706,13 +12706,13 @@ async function visitAsync_(key, node, visitor, path18) {
         }
       }
     } else if (isPair(node)) {
-      path18 = Object.freeze(path18.concat(node));
-      const ck = await visitAsync_("key", node.key, visitor, path18);
+      path19 = Object.freeze(path19.concat(node));
+      const ck = await visitAsync_("key", node.key, visitor, path19);
       if (ck === BREAK)
         return BREAK;
       else if (ck === REMOVE)
         node.key = null;
-      const cv = await visitAsync_("value", node.value, visitor, path18);
+      const cv = await visitAsync_("value", node.value, visitor, path19);
       if (cv === BREAK)
         return BREAK;
       else if (cv === REMOVE)
@@ -12739,23 +12739,23 @@ function initVisitor(visitor) {
   }
   return visitor;
 }
-function callVisitor(key, node, visitor, path18) {
+function callVisitor(key, node, visitor, path19) {
   if (typeof visitor === "function")
-    return visitor(key, node, path18);
+    return visitor(key, node, path19);
   if (isMap(node))
-    return visitor.Map?.(key, node, path18);
+    return visitor.Map?.(key, node, path19);
   if (isSeq(node))
-    return visitor.Seq?.(key, node, path18);
+    return visitor.Seq?.(key, node, path19);
   if (isPair(node))
-    return visitor.Pair?.(key, node, path18);
+    return visitor.Pair?.(key, node, path19);
   if (isScalar(node))
-    return visitor.Scalar?.(key, node, path18);
+    return visitor.Scalar?.(key, node, path19);
   if (isAlias(node))
-    return visitor.Alias?.(key, node, path18);
+    return visitor.Alias?.(key, node, path19);
   return void 0;
 }
-function replaceNode(key, path18, node) {
-  const parent = path18[path18.length - 1];
+function replaceNode(key, path19, node) {
+  const parent = path19[path19.length - 1];
   if (isCollection(parent)) {
     parent.items[key] = node;
   } else if (isPair(parent)) {
@@ -13284,10 +13284,10 @@ function createNode(value, tagName, ctx) {
 }
 
 // node_modules/yaml/browser/dist/nodes/Collection.js
-function collectionFromPath(schema4, path18, value) {
+function collectionFromPath(schema4, path19, value) {
   let v = value;
-  for (let i = path18.length - 1; i >= 0; --i) {
-    const k = path18[i];
+  for (let i = path19.length - 1; i >= 0; --i) {
+    const k = path19[i];
     if (typeof k === "number" && Number.isInteger(k) && k >= 0) {
       const a = [];
       a[k] = v;
@@ -13306,7 +13306,7 @@ function collectionFromPath(schema4, path18, value) {
     sourceObjects: /* @__PURE__ */ new Map()
   });
 }
-var isEmptyPath = (path18) => path18 == null || typeof path18 === "object" && !!path18[Symbol.iterator]().next().done;
+var isEmptyPath = (path19) => path19 == null || typeof path19 === "object" && !!path19[Symbol.iterator]().next().done;
 var Collection = class extends NodeBase {
   constructor(type, schema4) {
     super(type);
@@ -13336,11 +13336,11 @@ var Collection = class extends NodeBase {
    * be a Pair instance or a `{ key, value }` object, which may not have a key
    * that already exists in the map.
    */
-  addIn(path18, value) {
-    if (isEmptyPath(path18))
+  addIn(path19, value) {
+    if (isEmptyPath(path19))
       this.add(value);
     else {
-      const [key, ...rest] = path18;
+      const [key, ...rest] = path19;
       const node = this.get(key, true);
       if (isCollection(node))
         node.addIn(rest, value);
@@ -13354,8 +13354,8 @@ var Collection = class extends NodeBase {
    * Removes a value from the collection.
    * @returns `true` if the item was found and removed.
    */
-  deleteIn(path18) {
-    const [key, ...rest] = path18;
+  deleteIn(path19) {
+    const [key, ...rest] = path19;
     if (rest.length === 0)
       return this.delete(key);
     const node = this.get(key, true);
@@ -13369,8 +13369,8 @@ var Collection = class extends NodeBase {
    * scalar values from their surrounding node; to disable set `keepScalar` to
    * `true` (collections are always returned intact).
    */
-  getIn(path18, keepScalar) {
-    const [key, ...rest] = path18;
+  getIn(path19, keepScalar) {
+    const [key, ...rest] = path19;
     const node = this.get(key, true);
     if (rest.length === 0)
       return !keepScalar && isScalar(node) ? node.value : node;
@@ -13388,8 +13388,8 @@ var Collection = class extends NodeBase {
   /**
    * Checks if the collection includes a value with the key `key`.
    */
-  hasIn(path18) {
-    const [key, ...rest] = path18;
+  hasIn(path19) {
+    const [key, ...rest] = path19;
     if (rest.length === 0)
       return this.has(key);
     const node = this.get(key, true);
@@ -13399,8 +13399,8 @@ var Collection = class extends NodeBase {
    * Sets a value in this collection. For `!!set`, `value` needs to be a
    * boolean to add/remove the item from the set.
    */
-  setIn(path18, value) {
-    const [key, ...rest] = path18;
+  setIn(path19, value) {
+    const [key, ...rest] = path19;
     if (rest.length === 0) {
       this.set(key, value);
     } else {
@@ -15539,9 +15539,9 @@ var Document = class _Document {
       this.contents.add(value);
   }
   /** Adds a value to the document. */
-  addIn(path18, value) {
+  addIn(path19, value) {
     if (assertCollection(this.contents))
-      this.contents.addIn(path18, value);
+      this.contents.addIn(path19, value);
   }
   /**
    * Create a new `Alias` node, ensuring that the target `node` has the required anchor.
@@ -15616,14 +15616,14 @@ var Document = class _Document {
    * Removes a value from the document.
    * @returns `true` if the item was found and removed.
    */
-  deleteIn(path18) {
-    if (isEmptyPath(path18)) {
+  deleteIn(path19) {
+    if (isEmptyPath(path19)) {
       if (this.contents == null)
         return false;
       this.contents = null;
       return true;
     }
-    return assertCollection(this.contents) ? this.contents.deleteIn(path18) : false;
+    return assertCollection(this.contents) ? this.contents.deleteIn(path19) : false;
   }
   /**
    * Returns item at `key`, or `undefined` if not found. By default unwraps
@@ -15638,10 +15638,10 @@ var Document = class _Document {
    * scalar values from their surrounding node; to disable set `keepScalar` to
    * `true` (collections are always returned intact).
    */
-  getIn(path18, keepScalar) {
-    if (isEmptyPath(path18))
+  getIn(path19, keepScalar) {
+    if (isEmptyPath(path19))
       return !keepScalar && isScalar(this.contents) ? this.contents.value : this.contents;
-    return isCollection(this.contents) ? this.contents.getIn(path18, keepScalar) : void 0;
+    return isCollection(this.contents) ? this.contents.getIn(path19, keepScalar) : void 0;
   }
   /**
    * Checks if the document includes a value with the key `key`.
@@ -15652,10 +15652,10 @@ var Document = class _Document {
   /**
    * Checks if the document includes a value at `path`.
    */
-  hasIn(path18) {
-    if (isEmptyPath(path18))
+  hasIn(path19) {
+    if (isEmptyPath(path19))
       return this.contents !== void 0;
-    return isCollection(this.contents) ? this.contents.hasIn(path18) : false;
+    return isCollection(this.contents) ? this.contents.hasIn(path19) : false;
   }
   /**
    * Sets a value in this document. For `!!set`, `value` needs to be a
@@ -15672,13 +15672,13 @@ var Document = class _Document {
    * Sets a value in this document. For `!!set`, `value` needs to be a
    * boolean to add/remove the item from the set.
    */
-  setIn(path18, value) {
-    if (isEmptyPath(path18)) {
+  setIn(path19, value) {
+    if (isEmptyPath(path19)) {
       this.contents = value;
     } else if (this.contents == null) {
-      this.contents = collectionFromPath(this.schema, Array.from(path18), value);
+      this.contents = collectionFromPath(this.schema, Array.from(path19), value);
     } else if (assertCollection(this.contents)) {
-      this.contents.setIn(path18, value);
+      this.contents.setIn(path19, value);
     }
   }
   /**
@@ -17228,9 +17228,9 @@ function visit2(cst, visitor) {
 visit2.BREAK = BREAK2;
 visit2.SKIP = SKIP2;
 visit2.REMOVE = REMOVE2;
-visit2.itemAtPath = (cst, path18) => {
+visit2.itemAtPath = (cst, path19) => {
   let item = cst;
-  for (const [field, index] of path18) {
+  for (const [field, index] of path19) {
     const tok = item?.[field];
     if (tok && "items" in tok) {
       item = tok.items[index];
@@ -17239,23 +17239,23 @@ visit2.itemAtPath = (cst, path18) => {
   }
   return item;
 };
-visit2.parentCollection = (cst, path18) => {
-  const parent = visit2.itemAtPath(cst, path18.slice(0, -1));
-  const field = path18[path18.length - 1][0];
+visit2.parentCollection = (cst, path19) => {
+  const parent = visit2.itemAtPath(cst, path19.slice(0, -1));
+  const field = path19[path19.length - 1][0];
   const coll = parent?.[field];
   if (coll && "items" in coll)
     return coll;
   throw new Error("Parent collection not found");
 };
-function _visit(path18, item, visitor) {
-  let ctrl = visitor(item, path18);
+function _visit(path19, item, visitor) {
+  let ctrl = visitor(item, path19);
   if (typeof ctrl === "symbol")
     return ctrl;
   for (const field of ["key", "value"]) {
     const token = item[field];
     if (token && "items" in token) {
       for (let i = 0; i < token.items.length; ++i) {
-        const ci = _visit(Object.freeze(path18.concat([[field, i]])), token.items[i], visitor);
+        const ci = _visit(Object.freeze(path19.concat([[field, i]])), token.items[i], visitor);
         if (typeof ci === "number")
           i = ci - 1;
         else if (ci === BREAK2)
@@ -17266,10 +17266,10 @@ function _visit(path18, item, visitor) {
         }
       }
       if (typeof ctrl === "function" && field === "key")
-        ctrl = ctrl(item, path18);
+        ctrl = ctrl(item, path19);
     }
   }
-  return typeof ctrl === "function" ? ctrl(item, path18) : ctrl;
+  return typeof ctrl === "function" ? ctrl(item, path19) : ctrl;
 }
 
 // node_modules/yaml/browser/dist/parse/cst.js
@@ -22201,8 +22201,8 @@ function objectArray2(value) {
 function stringArray2(value) {
   return Array.isArray(value) ? value.filter((item) => typeof item === "string") : [];
 }
-function error(code2, path18, message) {
-  return { severity: "error", code: code2, path: path18, message };
+function error(code2, path19, message) {
+  return { severity: "error", code: code2, path: path19, message };
 }
 function validateProjectIdentity(records) {
   const diagnostics = [];
@@ -26183,10 +26183,277 @@ async function registerActor(projectRoot, input) {
   });
 }
 
+// src/application/repair-project.ts
+import { timingSafeEqual as timingSafeEqual2 } from "node:crypto";
+import { lstat as lstat8, readFile as readFile15 } from "node:fs/promises";
+import path17 from "node:path";
+
+// src/domain/repair.ts
+var RepairError = class extends Error {
+  constructor(code2, message, mutated = false, recovery_root) {
+    super(message);
+    this.code = code2;
+    this.mutated = mutated;
+    this.recovery_root = recovery_root;
+    this.name = "RepairError";
+  }
+  code;
+  mutated;
+  recovery_root;
+};
+
+// src/application/repair-project.ts
+var REPAIRABLE_CODES = /* @__PURE__ */ new Set(["adapter.digest", "adapter.target.read"]);
+function digestMatches2(expected, supplied) {
+  if (!/^[a-f0-9]{64}$/u.test(supplied)) return false;
+  return timingSafeEqual2(Buffer.from(expected, "hex"), Buffer.from(supplied, "hex"));
+}
+function inventoryBoundTimestamp(digest2) {
+  const window2 = 50 * 365 * 24 * 60 * 60 * 1e3;
+  const offset = Number(BigInt(`0x${digest2.slice(0, 12)}`) % BigInt(window2));
+  return new Date(Date.UTC(2020, 0, 1) + offset).toISOString();
+}
+async function metadataOrUndefined2(target) {
+  try {
+    return await lstat8(target);
+  } catch (error2) {
+    if (error2.code === "ENOENT") return void 0;
+    throw error2;
+  }
+}
+function portableParent(portablePath2) {
+  const parent = path17.posix.dirname(portablePath2);
+  return parent === "." ? void 0 : parent;
+}
+async function missingParents(root, portablePath2) {
+  const missing = [];
+  let parent = portableParent(portablePath2);
+  while (parent !== void 0) {
+    const absolute = path17.join(root, ...parent.split("/"));
+    const metadata = await metadataOrUndefined2(absolute);
+    if (metadata === void 0) {
+      missing.push(parent);
+    } else if (!metadata.isDirectory() || metadata.isSymbolicLink()) {
+      throw new RepairError(
+        "PCP_REPAIR_COLLISION",
+        `Adapter parent is not a regular directory: ${parent}`
+      );
+    }
+    parent = portableParent(parent);
+  }
+  return missing.reverse();
+}
+function expectedInventory(original, operations, contentByPath) {
+  const directories = new Set(original.directories);
+  const files = new Map(original.files.map((file) => [file.path, { ...file }]));
+  for (const operation of operations) {
+    if (operation.action === "mkdir") directories.add(operation.path);
+    if (operation.action === "write" || operation.action === "replace") {
+      const content = contentByPath.get(operation.path);
+      if (content === void 0 || operation.content_digest === void 0) {
+        throw new RepairError(
+          "PCP_REPAIR_PLAN_INVALID",
+          `Repair content is missing for ${operation.path}.`,
+          true
+        );
+      }
+      files.set(operation.path, {
+        path: operation.path,
+        size: content.length,
+        sha256: operation.content_digest
+      });
+    }
+  }
+  return {
+    directories: [...directories].sort(comparePortablePaths),
+    files: [...files.values()].sort((left, right) => comparePortablePaths(left.path, right.path)),
+    symlinks: original.symlinks,
+    nested_repositories: original.nestedRepositories
+  };
+}
+function comparableInventory2(inventory) {
+  return {
+    directories: inventory.directories,
+    files: inventory.files,
+    symlinks: inventory.symlinks,
+    nested_repositories: inventory.nestedRepositories
+  };
+}
+async function planRepairMaterial(candidate = ".") {
+  const root = await resolveCandidateRoot(candidate);
+  const inspection = await inspectRepository(root);
+  if (inspection.state !== "managed") {
+    throw new RepairError(
+      "PCP_REPAIR_NOT_MANAGED",
+      `Repair requires an installed PCP project; inspection classified this candidate as ${inspection.state}.`
+    );
+  }
+  const validation = await validateCanonicalLayer(root, { archive_content: "filenames-only" });
+  const blocking = validation.diagnostics.filter((item) => !REPAIRABLE_CODES.has(item.code));
+  if (blocking.length > 0) {
+    throw new RepairError(
+      "PCP_REPAIR_BLOCKED",
+      `Repair is limited to generated platform adapters; resolve canonical diagnostics first: ${blocking.slice(0, 8).map((item) => `${item.code} ${item.path}`).join("; ")}`
+    );
+  }
+  const adapters = renderPlatformAdapters();
+  const manifests = adapters.map((adapter) => adapter.manifest);
+  const operations = [];
+  const contentByPath = /* @__PURE__ */ new Map();
+  const plannedDirectories = /* @__PURE__ */ new Set();
+  for (const adapter of adapters) {
+    const targetPath = adapter.manifest.target_path;
+    const absolute = path17.join(root, ...targetPath.split("/"));
+    const metadata = await metadataOrUndefined2(absolute);
+    if (metadata === void 0) {
+      for (const directory of await missingParents(root, targetPath)) {
+        if (!plannedDirectories.has(directory)) {
+          plannedDirectories.add(directory);
+          operations.push({ action: "mkdir", path: directory });
+        }
+      }
+      operations.push({
+        action: "write",
+        path: targetPath,
+        content_digest: adapter.manifest.content_digest
+      });
+      contentByPath.set(targetPath, adapter.content);
+      continue;
+    }
+    if (!metadata.isFile() || metadata.isSymbolicLink()) {
+      throw new RepairError(
+        "PCP_REPAIR_COLLISION",
+        `Adapter target is not a regular file: ${targetPath}`
+      );
+    }
+    const current = await readFile15(absolute);
+    if (sha256(current) === adapter.manifest.content_digest) continue;
+    operations.push({
+      action: "replace",
+      path: targetPath,
+      content_digest: adapter.manifest.content_digest,
+      preimage_digest: sha256(current)
+    });
+    contentByPath.set(targetPath, adapter.content);
+  }
+  const repairPaths = operations.filter((operation) => operation.action === "write" || operation.action === "replace").map((operation) => operation.path);
+  const base = {
+    schema_version: 1,
+    command: "repair",
+    candidate: ".",
+    repair_paths: repairPaths,
+    diagnostics: validation.diagnostics,
+    adapters: manifests,
+    mutated: false
+  };
+  if (operations.length === 0) return { ...base, applicable: false };
+  const plan = createMutationPlan({
+    inventory: inspection.inventory,
+    generatedAt: inventoryBoundTimestamp(inspection.inventory.digest),
+    classification: "managed",
+    operations,
+    validations: [
+      "canonical-layer",
+      "desired-hashes",
+      "managed-project",
+      "platform-adapters",
+      "rollback"
+    ]
+  });
+  const preview = { ...base, applicable: true, plan };
+  return { inspection, preview, content_by_path: contentByPath };
+}
+function isRepairPlan(value) {
+  return "preview" in value;
+}
+async function repairProject(candidate = ".", options = {}) {
+  const planned = await planRepairMaterial(candidate);
+  if (!isRepairPlan(planned)) {
+    if (options.apply !== void 0) {
+      throw new RepairError("PCP_REPAIR_NOT_APPLICABLE", "No adapter repair is required.");
+    }
+    return planned;
+  }
+  if (options.apply === void 0) return planned.preview;
+  if (!digestMatches2(planned.preview.plan.plan_digest, options.apply)) {
+    throw new RepairError(
+      "PCP_PLAN_DIGEST_MISMATCH",
+      "The approved digest does not match the fully recomputed current repair plan."
+    );
+  }
+  const root = await resolveCandidateRoot(candidate);
+  const expected = expectedInventory(
+    planned.inspection.inventory,
+    planned.preview.plan.operations,
+    planned.content_by_path
+  );
+  let checkedFiles = 0;
+  let checkedAdapters = 0;
+  try {
+    const transaction = await executeFilesystemTransaction(
+      root,
+      planned.preview.plan,
+      planned.content_by_path,
+      {
+        ...options.fail_after_operation === void 0 ? {} : { fail_after_operation: options.fail_after_operation },
+        verify_source_stability: async () => {
+          const current = await inventoryRepository(root);
+          if (canonicalJson(comparableInventory2(current)) !== canonicalJson(expected)) {
+            throw new RepairError(
+              "PCP_SOURCE_CHANGED",
+              "Project content changed while the repair transaction was running.",
+              true
+            );
+          }
+        },
+        validate_live: async () => {
+          const canonical = await validateCanonicalLayer(root, {
+            archive_content: "filenames-only"
+          });
+          if (!canonical.valid) {
+            throw new RepairError(
+              "PCP_REPAIR_LIVE_INVALID",
+              `Repaired project failed canonical validation: ${canonical.diagnostics.slice(0, 8).map((item) => `${item.code} ${item.path}`).join("; ")}`,
+              true
+            );
+          }
+          const adapterValidation = await validatePlatformAdapters(root, planned.preview.adapters);
+          if (!adapterValidation.valid) {
+            throw new RepairError(
+              "PCP_REPAIR_LIVE_INVALID",
+              `Repaired adapters failed validation: ${adapterValidation.diagnostics.slice(0, 8).map((item) => `${item.code} ${item.path}`).join("; ")}`,
+              true
+            );
+          }
+          checkedFiles = canonical.checked_files;
+          checkedAdapters = adapterValidation.checked_adapters;
+        }
+      }
+    );
+    return {
+      schema_version: 1,
+      command: "repair",
+      candidate: ".",
+      plan_digest: planned.preview.plan.plan_digest,
+      repaired_paths: planned.preview.repair_paths,
+      applied_operations: transaction.applied_operations,
+      validation: { valid: true, checked_files: checkedFiles, checked_adapters: checkedAdapters },
+      recovery_cleaned: transaction.recovery_cleaned,
+      mutated: true
+    };
+  } catch (error2) {
+    if (error2 instanceof RepairError) throw error2;
+    if (error2 instanceof AdoptionError) {
+      throw new RepairError(error2.code, error2.message, error2.mutated, error2.recoveryRoot);
+    }
+    throw error2;
+  }
+}
+
 // src/application/report-status.ts
 import { randomUUID as randomUUID4 } from "node:crypto";
-import { lstat as lstat8, mkdir as mkdir5, open as open6, readFile as readFile15, readdir as readdir6, rename as rename4, unlink as unlink6 } from "node:fs/promises";
-import path17 from "node:path";
+import { lstat as lstat9, mkdir as mkdir5, open as open6, readFile as readFile16, readdir as readdir6, rename as rename4, unlink as unlink6 } from "node:fs/promises";
+import path18 from "node:path";
 
 // src/domain/reconciliation.ts
 var ReconciliationError = class extends Error {
@@ -26391,10 +26658,10 @@ function layerPath(relativePath) {
 async function assertNoSymlinkFromLayer(layerRoot, target) {
   let current = target;
   while (true) {
-    const metadata = await lstat8(current);
+    const metadata = await lstat9(current);
     if (metadata.isSymbolicLink()) throw new Error("path has a symbolic-link boundary");
     if (current === layerRoot) return;
-    current = path17.dirname(current);
+    current = path18.dirname(current);
   }
 }
 function parseYaml(contents, relativePath) {
@@ -26415,15 +26682,15 @@ function parseYaml(contents, relativePath) {
   }
 }
 async function readSchemaFile(layerRoot, relativePath, schema4) {
-  const absolutePath = path17.join(layerRoot, ...relativePath.split("/"));
+  const absolutePath = path18.join(layerRoot, ...relativePath.split("/"));
   let contents;
   try {
     await assertNoSymlinkFromLayer(layerRoot, absolutePath);
-    const metadata = await lstat8(absolutePath);
+    const metadata = await lstat9(absolutePath);
     if (!metadata.isFile() || metadata.isSymbolicLink()) {
       throw new Error("path is not a regular file");
     }
-    contents = await readFile15(absolutePath, "utf8");
+    contents = await readFile16(absolutePath, "utf8");
   } catch (error2) {
     throw statusError(
       "PCP_STATUS_INVALID_LAYER",
@@ -26442,11 +26709,11 @@ async function readSchemaFile(layerRoot, relativePath, schema4) {
   return { path: relativePath, value, contents };
 }
 async function readSchemaDirectory(layerRoot, relativeDirectory, schema4) {
-  const absoluteDirectory = path17.join(layerRoot, ...relativeDirectory.split("/"));
+  const absoluteDirectory = path18.join(layerRoot, ...relativeDirectory.split("/"));
   let entries;
   try {
     await assertNoSymlinkFromLayer(layerRoot, absoluteDirectory);
-    const metadata = await lstat8(absoluteDirectory);
+    const metadata = await lstat9(absoluteDirectory);
     if (!metadata.isDirectory() || metadata.isSymbolicLink()) {
       throw new Error("path is not a regular directory");
     }
@@ -26478,11 +26745,11 @@ async function readSchemaDirectory(layerRoot, relativeDirectory, schema4) {
   return records;
 }
 async function listArchiveEventIds(layerRoot) {
-  const absoluteDirectory = path17.join(layerRoot, ...ARCHIVE_EVENT_DIRECTORY2.split("/"));
+  const absoluteDirectory = path18.join(layerRoot, ...ARCHIVE_EVENT_DIRECTORY2.split("/"));
   let entries;
   try {
     await assertNoSymlinkFromLayer(layerRoot, absoluteDirectory);
-    const metadata = await lstat8(absoluteDirectory);
+    const metadata = await lstat9(absoluteDirectory);
     if (!metadata.isDirectory() || metadata.isSymbolicLink()) {
       throw new Error("path is not a regular directory");
     }
@@ -26533,7 +26800,7 @@ function semanticFailure(records) {
   throw statusError("PCP_STATUS_INVALID_LAYER", `PCP continuity state is inconsistent: ${detail}`);
 }
 async function loadOperationalContinuityState(root) {
-  const layerRoot = path17.join(root, ".pcp");
+  const layerRoot = path18.join(root, ".pcp");
   const [
     manifest,
     project,
@@ -26730,7 +26997,7 @@ function previewStatus(state, input) {
 }
 async function fileContentsOrUndefined(file) {
   try {
-    return await readFile15(file, "utf8");
+    return await readFile16(file, "utf8");
   } catch (error2) {
     if (error2.code === "ENOENT") return void 0;
     throw error2;
@@ -26754,8 +27021,8 @@ async function writeCheckpoint(root, checkpoint, existing) {
     );
   }
   const relativePath = `${CHECKPOINT_DIRECTORY}/${checkpoint.checkpoint_id}.yaml`;
-  const directory = path17.join(root, ".pcp", ...CHECKPOINT_DIRECTORY.split("/"));
-  const target = path17.join(root, ".pcp", ...relativePath.split("/"));
+  const directory = path18.join(root, ".pcp", ...CHECKPOINT_DIRECTORY.split("/"));
+  const target = path18.join(root, ".pcp", ...relativePath.split("/"));
   await mkdir5(directory, { recursive: true });
   if (existing !== void 0) {
     const current = await fileContentsOrUndefined(target);
@@ -26772,7 +27039,7 @@ async function writeCheckpoint(root, checkpoint, existing) {
     );
   }
   const contents = stringify3(checkpoint);
-  const temporary = path17.join(directory, `.${checkpoint.checkpoint_id}.${randomUUID4()}.tmp`);
+  const temporary = path18.join(directory, `.${checkpoint.checkpoint_id}.${randomUUID4()}.tmp`);
   const previous = `${temporary}.previous`;
   await writeDurableFile2(temporary, contents);
   let previousHeld = false;
@@ -26871,7 +27138,7 @@ async function reportStatusLocked(root, input) {
   };
 }
 async function reportStatus(projectRoot, input) {
-  const root = path17.resolve(projectRoot);
+  const root = path18.resolve(projectRoot);
   try {
     return await withContinuityLock(root, () => reportStatusLocked(root, input));
   } catch (error2) {
@@ -27069,6 +27336,27 @@ function formatRegistration(result) {
   ].join("\n");
 }
 
+// src/presentation/format-repair.ts
+function formatRepair(result) {
+  if (result.mutated) {
+    return `${[
+      `PCP repair applied: ${result.repaired_paths.length} adapter(s)`,
+      `Plan digest: ${result.plan_digest}`,
+      `Operations: ${result.applied_operations}`,
+      ...result.repaired_paths.map((repairPath) => `- ${repairPath}`)
+    ].join("\n")}
+`;
+  }
+  const lines = [
+    `PCP repair preview: ${result.applicable ? "approval required" : "current"}`,
+    `Repair paths: ${result.repair_paths.length}`,
+    ...result.repair_paths.map((repairPath) => `- ${repairPath}`)
+  ];
+  if (result.plan !== void 0) lines.push(`Plan digest: ${result.plan.plan_digest}`);
+  return `${lines.join("\n")}
+`;
+}
+
 // src/presentation/format-status.ts
 function countLabel(count, singular) {
   return `${count} ${singular}${count === 1 ? "" : "s"}`;
@@ -27195,6 +27483,17 @@ function reportWorkstreamError(error2) {
   const message = error2 instanceof Error ? error2.message : String(error2);
   const mutated = error2 instanceof WorkstreamError ? error2.mutated : false;
   const recoveryRetained = error2 instanceof WorkstreamError ? error2.recovery_retained : false;
+  process.stderr.write(
+    `${JSON.stringify({ code: code2, message, mutated, recovery_retained: recoveryRetained })}
+`
+  );
+  process.exitCode = 2;
+}
+function reportRepairError(error2) {
+  const code2 = error2 instanceof RepairError ? error2.code : "PCP_REPAIR_FAILED";
+  const message = error2 instanceof Error ? error2.message : String(error2);
+  const mutated = error2 instanceof RepairError ? error2.mutated : false;
+  const recoveryRetained = error2 instanceof RepairError && error2.recovery_root !== void 0;
   process.stderr.write(
     `${JSON.stringify({ code: code2, message, mutated, recovery_retained: recoveryRetained })}
 `
@@ -27380,6 +27679,21 @@ function addWorkstreamCommand(program2) {
   });
   return command;
 }
+function addRepairCommand(program2) {
+  return program2.command("repair").description(commandDescriptions.repair).argument("[directory]", "managed project root").option("--candidate <directory>", "managed project root").option("--apply <digest>", "apply only the matching fully recomputed preview digest").option("--json", "emit stable structured JSON").action(async (directory, options) => {
+    try {
+      const result = await repairProject(options.candidate ?? directory ?? ".", {
+        ...options.apply === void 0 ? {} : { apply: options.apply }
+      });
+      process.stdout.write(
+        options.json === true ? `${JSON.stringify(result, null, 2)}
+` : formatRepair(result)
+      );
+    } catch (error2) {
+      reportRepairError(error2);
+    }
+  });
+}
 function reportOperationError(code2, error2, mutationPossible) {
   const message = error2 instanceof Error ? error2.message : String(error2);
   process.stderr.write(`${JSON.stringify({ code: code2, message, mutated: false, mutationPossible })}
@@ -27390,7 +27704,6 @@ function addUnavailableCommand(program2, commandName) {
   const command = program2.command(commandName).description(commandDescriptions[commandName]);
   switch (commandName) {
     case "upgrade":
-    case "repair":
       command.option("--apply <digest>", "apply only the matching preview digest");
       break;
     default:
@@ -27421,6 +27734,8 @@ function createProgram() {
       addRenderCommand(program2);
     } else if (commandName === "workstream") {
       addWorkstreamCommand(program2);
+    } else if (commandName === "repair") {
+      addRepairCommand(program2);
     } else {
       addUnavailableCommand(program2, commandName);
     }

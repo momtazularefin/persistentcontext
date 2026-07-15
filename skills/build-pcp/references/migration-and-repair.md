@@ -32,4 +32,16 @@ State C becomes applicable only after the engine accepts complete reviewed cover
 
 ## Repair and upgrade
 
-Repair only mechanically recoverable drift and always preview structural writes. During upgrade, replace protocol-owned and generated files only. Preserve project-owned knowledge, policies, projects, workstreams, profiles, and events.
+Repair only mechanically recoverable generated-adapter drift. Preview without mutation:
+
+```text
+node <pcp-engine> repair <project-root> --json
+```
+
+If `applicable` is true, review every operation and apply only the returned digest:
+
+```text
+node <pcp-engine> repair <project-root> --apply <plan-digest> --json
+```
+
+The engine refuses unrelated canonical damage, manifest/source drift, symbolic links, and file/directory collisions. It binds replacements to exact preimages, writes missing adapters only through the structural transaction, validates the complete live layer, and restores every byte after a caught failure. Use `render` for generated status-view drift. Upgrade remains unavailable; do not replace protocol-owned files manually. A future upgrade may replace only protocol-owned and generated files while preserving project-owned knowledge, policies, projects, workstreams, profiles, and events.

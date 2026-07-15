@@ -519,6 +519,45 @@ try {
       `Bundled adopted-project inspection failed: ${managedInspection.stderr || managedInspection.stdout}`,
     );
   }
+
+  await writeFile(join(adoptionCandidate, 'AGENTS.md'), '# Drifted generated adapter\n', 'utf8');
+  const repairPreview = spawnSync(
+    process.execPath,
+    [fileURLToPath(skillBundle), 'repair', adoptionCandidate, '--json'],
+    { encoding: 'utf8', windowsHide: true },
+  );
+  const repairPreviewResult =
+    repairPreview.status === 0 ? JSON.parse(repairPreview.stdout) : undefined;
+  if (
+    repairPreviewResult?.applicable !== true ||
+    repairPreviewResult?.repair_paths?.[0] !== 'AGENTS.md' ||
+    !/^[a-f0-9]{64}$/.test(repairPreviewResult?.plan?.plan_digest ?? '') ||
+    repairPreviewResult?.mutated !== false
+  ) {
+    throw new Error(
+      `Bundled pcp repair preview failed: ${repairPreview.stderr || repairPreview.stdout}`,
+    );
+  }
+  const repairApply = spawnSync(
+    process.execPath,
+    [
+      fileURLToPath(skillBundle),
+      'repair',
+      adoptionCandidate,
+      '--apply',
+      repairPreviewResult.plan.plan_digest,
+      '--json',
+    ],
+    { encoding: 'utf8', windowsHide: true },
+  );
+  const repairApplyResult = repairApply.status === 0 ? JSON.parse(repairApply.stdout) : undefined;
+  if (
+    repairApplyResult?.mutated !== true ||
+    repairApplyResult?.validation?.checked_adapters !== 5 ||
+    repairApplyResult?.recovery_cleaned !== true
+  ) {
+    throw new Error(`Bundled pcp repair apply failed: ${repairApply.stderr || repairApply.stdout}`);
+  }
 } finally {
   await rm(adoptionRoot, { recursive: true, force: true });
 }

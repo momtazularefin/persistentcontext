@@ -25,6 +25,7 @@ describe('public project contract', () => {
     expect(readme).toContain('node dist/pcp.mjs render path/to/managed-project --check');
     expect(readme).toContain('node dist/pcp.mjs workstream validate path/to/managed-project');
     expect(readme).toContain('node dist/pcp.mjs workstream complete path/to/managed-project');
+    expect(readme).toContain('node dist/pcp.mjs repair path/to/managed-project --json');
     expect(readme).toContain('All adoption is preview-first');
     expect(readme).toContain('Every applicable State A, B, or C plan installs the same five');
     expect(readme).toContain('State C intake additionally discovers complete foreign directories');
@@ -38,6 +39,7 @@ describe('public project contract', () => {
     expect(readme).toContain('one proof per criterion');
     expect(readme).toContain('stable caller-supplied `change_key`');
     expect(readme).toContain('event payload digests and duplicate change keys');
+    expect(readme).toContain('`upgrade` remains unavailable');
   });
 
   it('normalizes text for deterministic cross-platform checks', async () => {

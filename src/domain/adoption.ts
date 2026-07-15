@@ -243,7 +243,7 @@ type MutationPlanInput = {
   operations: PlanOperationInput[];
   validations: string[];
 } & (
-  | { classification: 'A' | 'B'; coverageDigest?: never }
+  | { classification: 'A' | 'B' | 'managed'; coverageDigest?: never }
   | { classification: 'C'; coverageDigest: string }
 );
 

@@ -63,4 +63,18 @@ describe('build-pcp skill contract', () => {
     expect(operation).toContain('one exact criterion-to-proof mapping');
     expect(operation).toContain('same continuity lock');
   });
+
+  it('documents preview-first adapter repair while keeping upgrade unavailable', async () => {
+    const skill = await readFile(new URL('SKILL.md', skillRoot), 'utf8');
+    const migration = await readFile(
+      new URL('references/migration-and-repair.md', skillRoot),
+      'utf8',
+    );
+
+    expect(skill).toContain('generated-adapter `repair`');
+    expect(skill).toContain('`upgrade` returns `PCP_OPERATION_UNAVAILABLE`');
+    expect(migration).toContain('repair <project-root> --json');
+    expect(migration).toContain('repair <project-root> --apply <plan-digest> --json');
+    expect(migration).toContain('Use `render` for generated status-view drift');
+  });
 });
