@@ -202,6 +202,8 @@ function validateActors(records: CanonicalSemanticRecords): CanonicalDiagnostic[
 function validateEvents(records: CanonicalSemanticRecords): CanonicalDiagnostic[] {
   const diagnostics: CanonicalDiagnostic[] = [];
   const seen = new Map<string, string>();
+  const activeEvents: Array<{ id: string; path: string }> = [];
+  const archivedEvents: Array<{ id: string; path: string }> = [];
   const actorTypes = new Map(
     records.actors
       .map((record) => {
@@ -237,6 +239,10 @@ function validateEvents(records: CanonicalSemanticRecords): CanonicalDiagnostic[
     } else {
       seen.set(id, record.path);
     }
+    (record.path.startsWith('continuity/archive/') ? archivedEvents : activeEvents).push({
+      id,
+      path: record.path,
+    });
 
     const actor = objectValue(event?.actor);
     const recorder = objectValue(event?.recorded_by);
@@ -300,6 +306,15 @@ function validateEvents(records: CanonicalSemanticRecords): CanonicalDiagnostic[
         ),
       );
     }
+    if (basis !== 'system' && (actorType === 'system' || recorderType === 'system')) {
+      diagnostics.push(
+        error(
+          'event.system-reference-basis',
+          record.path,
+          'A system actor or recorder requires a system-basis event.',
+        ),
+      );
+    }
     for (const workstreamId of stringArray(event?.workstreams)) {
       if (!workstreamIds.has(workstreamId)) {
         diagnostics.push(
@@ -311,6 +326,23 @@ function validateEvents(records: CanonicalSemanticRecords): CanonicalDiagnostic[
         );
       }
     }
+  }
+  const oldestActive = activeEvents.sort((left, right) => left.id.localeCompare(right.id))[0];
+  const newestArchive = archivedEvents
+    .sort((left, right) => left.id.localeCompare(right.id))
+    .at(-1);
+  if (
+    oldestActive !== undefined &&
+    newestArchive !== undefined &&
+    newestArchive.id.localeCompare(oldestActive.id) >= 0
+  ) {
+    diagnostics.push(
+      error(
+        'event.archive-order',
+        newestArchive.path,
+        `Archived event ${newestArchive.id} must be older than the active-event floor ${oldestActive.id}.`,
+      ),
+    );
   }
   return diagnostics;
 }

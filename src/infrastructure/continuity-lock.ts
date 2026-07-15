@@ -67,7 +67,15 @@ export async function withContinuityLock<T>(
     try {
       handle = await open(lockPath, 'wx');
     } catch (error) {
-      if ((error as NodeJS.ErrnoException).code !== 'EEXIST') throw error;
+      const code = (error as NodeJS.ErrnoException).code;
+      if (process.platform === 'win32' && code === 'EPERM') {
+        if (Date.now() >= deadline) {
+          throw new ContinuityLockError('Another continuity operation is still running.');
+        }
+        await delay(20);
+        continue;
+      }
+      if (code !== 'EEXIST') throw error;
       if (await removeStaleLock(lockPath)) continue;
       if (Date.now() >= deadline) {
         throw new ContinuityLockError('Another continuity operation is still running.');

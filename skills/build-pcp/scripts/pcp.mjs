@@ -327,7 +327,7 @@ var require_ignore = __commonJS({
       //   path matching.
       // - check `string` either `MODE_IGNORE` or `MODE_CHECK_IGNORE`
       // @returns {TestResult} true if a file is ignored
-      test(path16, checkUnignored, mode) {
+      test(path17, checkUnignored, mode) {
         let ignored = false;
         let unignored = false;
         let matchedRule;
@@ -336,7 +336,7 @@ var require_ignore = __commonJS({
           if (unignored === negative && ignored !== unignored || negative && !ignored && !unignored && !checkUnignored) {
             return;
           }
-          const matched = rule[mode].test(path16);
+          const matched = rule[mode].test(path17);
           if (!matched) {
             return;
           }
@@ -357,17 +357,17 @@ var require_ignore = __commonJS({
     var throwError = (message, Ctor) => {
       throw new Ctor(message);
     };
-    var checkPath = (path16, originalPath, doThrow) => {
-      if (!isString(path16)) {
+    var checkPath = (path17, originalPath, doThrow) => {
+      if (!isString(path17)) {
         return doThrow(
           `path must be a string, but got \`${originalPath}\``,
           TypeError
         );
       }
-      if (!path16) {
+      if (!path17) {
         return doThrow(`path must not be empty`, TypeError);
       }
-      if (checkPath.isNotRelative(path16)) {
+      if (checkPath.isNotRelative(path17)) {
         const r = "`path.relative()`d";
         return doThrow(
           `path should be a ${r} string, but got "${originalPath}"`,
@@ -376,7 +376,7 @@ var require_ignore = __commonJS({
       }
       return true;
     };
-    var isNotRelative = (path16) => REGEX_TEST_INVALID_PATH.test(path16);
+    var isNotRelative = (path17) => REGEX_TEST_INVALID_PATH.test(path17);
     checkPath.isNotRelative = isNotRelative;
     checkPath.convert = (p) => p;
     var Ignore = class {
@@ -406,19 +406,19 @@ var require_ignore = __commonJS({
       }
       // @returns {TestResult}
       _test(originalPath, cache, checkUnignored, slices) {
-        const path16 = originalPath && checkPath.convert(originalPath);
+        const path17 = originalPath && checkPath.convert(originalPath);
         checkPath(
-          path16,
+          path17,
           originalPath,
           this._strictPathCheck ? throwError : RETURN_FALSE
         );
-        return this._t(path16, cache, checkUnignored, slices);
+        return this._t(path17, cache, checkUnignored, slices);
       }
-      checkIgnore(path16) {
-        if (!REGEX_TEST_TRAILING_SLASH.test(path16)) {
-          return this.test(path16);
+      checkIgnore(path17) {
+        if (!REGEX_TEST_TRAILING_SLASH.test(path17)) {
+          return this.test(path17);
         }
-        const slices = path16.split(SLASH).filter(Boolean);
+        const slices = path17.split(SLASH).filter(Boolean);
         slices.pop();
         if (slices.length) {
           const parent = this._t(
@@ -431,18 +431,18 @@ var require_ignore = __commonJS({
             return parent;
           }
         }
-        return this._rules.test(path16, false, MODE_CHECK_IGNORE);
+        return this._rules.test(path17, false, MODE_CHECK_IGNORE);
       }
-      _t(path16, cache, checkUnignored, slices) {
-        if (path16 in cache) {
-          return cache[path16];
+      _t(path17, cache, checkUnignored, slices) {
+        if (path17 in cache) {
+          return cache[path17];
         }
         if (!slices) {
-          slices = path16.split(SLASH).filter(Boolean);
+          slices = path17.split(SLASH).filter(Boolean);
         }
         slices.pop();
         if (!slices.length) {
-          return cache[path16] = this._rules.test(path16, checkUnignored, MODE_IGNORE);
+          return cache[path17] = this._rules.test(path17, checkUnignored, MODE_IGNORE);
         }
         const parent = this._t(
           slices.join(SLASH) + SLASH,
@@ -450,29 +450,29 @@ var require_ignore = __commonJS({
           checkUnignored,
           slices
         );
-        return cache[path16] = parent.ignored ? parent : this._rules.test(path16, checkUnignored, MODE_IGNORE);
+        return cache[path17] = parent.ignored ? parent : this._rules.test(path17, checkUnignored, MODE_IGNORE);
       }
-      ignores(path16) {
-        return this._test(path16, this._ignoreCache, false).ignored;
+      ignores(path17) {
+        return this._test(path17, this._ignoreCache, false).ignored;
       }
       createFilter() {
-        return (path16) => !this.ignores(path16);
+        return (path17) => !this.ignores(path17);
       }
       filter(paths) {
         return makeArray(paths).filter(this.createFilter());
       }
       // @returns {TestResult}
-      test(path16) {
-        return this._test(path16, this._testCache, true);
+      test(path17) {
+        return this._test(path17, this._testCache, true);
       }
     };
     var factory = (options) => new Ignore(options);
-    var isPathValid = (path16) => checkPath(path16 && checkPath.convert(path16), path16, RETURN_FALSE);
+    var isPathValid = (path17) => checkPath(path17 && checkPath.convert(path17), path17, RETURN_FALSE);
     var setupWindows = () => {
       const makePosix = (str) => /^\\\\\?\\/.test(str) || /["<>|\u0000-\u001F]+/u.test(str) ? str : str.replace(/\\/g, "/");
       checkPath.convert = makePosix;
       const REGEX_TEST_WINDOWS_PATH_ABSOLUTE = /^[a-z]:\//i;
-      checkPath.isNotRelative = (path16) => REGEX_TEST_WINDOWS_PATH_ABSOLUTE.test(path16) || isNotRelative(path16);
+      checkPath.isNotRelative = (path17) => REGEX_TEST_WINDOWS_PATH_ABSOLUTE.test(path17) || isNotRelative(path17);
     };
     if (
       // Detect `process` so that it can run in browsers.
@@ -3683,8 +3683,8 @@ var require_utils = __commonJS({
       }
       return ind;
     }
-    function removeDotSegments(path16) {
-      let input = path16;
+    function removeDotSegments(path17) {
+      let input = path17;
       const output = [];
       let nextSlash = -1;
       let len = 0;
@@ -3936,8 +3936,8 @@ var require_schemes = __commonJS({
         wsComponent.secure = void 0;
       }
       if (wsComponent.resourceName) {
-        const [path16, query] = wsComponent.resourceName.split("?");
-        wsComponent.path = path16 && path16 !== "/" ? path16 : void 0;
+        const [path17, query] = wsComponent.resourceName.split("?");
+        wsComponent.path = path17 && path17 !== "/" ? path17 : void 0;
         wsComponent.query = query;
         wsComponent.resourceName = void 0;
       }
@@ -11282,9 +11282,9 @@ Expecting one of '${allowedValues.join("', '")}'`);
    * @param {string} [path]
    * @return {(string|null|Command)}
    */
-  executableDir(path16) {
-    if (path16 === void 0) return this._executableDir;
-    this._executableDir = path16;
+  executableDir(path17) {
+    if (path17 === void 0) return this._executableDir;
+    this._executableDir = path17;
     return this;
   }
   /**
@@ -11601,6 +11601,22 @@ function incrementBase32(str) {
     return done;
   }
   throw new ULIDError(ULIDErrorCode.Base32IncorrectEncoding, "Failed incrementing string");
+}
+function decodeTime(id) {
+  if (id.length !== TIME_LEN + RANDOM_LEN) {
+    throw new ULIDError(ULIDErrorCode.DecodeTimeValueMalformed, "Malformed ULID");
+  }
+  const time = id.substr(0, TIME_LEN).toUpperCase().split("").reverse().reduce((carry, char, index) => {
+    const encodingIndex = ENCODING.indexOf(char);
+    if (encodingIndex === -1) {
+      throw new ULIDError(ULIDErrorCode.DecodeTimeInvalidCharacter, `Time decode error: Invalid character: ${char}`);
+    }
+    return carry += encodingIndex * Math.pow(ENCODING_LEN, index);
+  }, 0);
+  if (time > TIME_MAX) {
+    throw new ULIDError(ULIDErrorCode.DecodeTimeValueMalformed, `Malformed ULID: timestamp too large: ${time}`);
+  }
+  return time;
 }
 function detectPRNG(root) {
   const rootLookup = detectRoot();
@@ -12621,17 +12637,17 @@ function visit(node, visitor) {
 visit.BREAK = BREAK;
 visit.SKIP = SKIP;
 visit.REMOVE = REMOVE;
-function visit_(key, node, visitor, path16) {
-  const ctrl = callVisitor(key, node, visitor, path16);
+function visit_(key, node, visitor, path17) {
+  const ctrl = callVisitor(key, node, visitor, path17);
   if (isNode(ctrl) || isPair(ctrl)) {
-    replaceNode(key, path16, ctrl);
-    return visit_(key, ctrl, visitor, path16);
+    replaceNode(key, path17, ctrl);
+    return visit_(key, ctrl, visitor, path17);
   }
   if (typeof ctrl !== "symbol") {
     if (isCollection(node)) {
-      path16 = Object.freeze(path16.concat(node));
+      path17 = Object.freeze(path17.concat(node));
       for (let i = 0; i < node.items.length; ++i) {
-        const ci = visit_(i, node.items[i], visitor, path16);
+        const ci = visit_(i, node.items[i], visitor, path17);
         if (typeof ci === "number")
           i = ci - 1;
         else if (ci === BREAK)
@@ -12642,13 +12658,13 @@ function visit_(key, node, visitor, path16) {
         }
       }
     } else if (isPair(node)) {
-      path16 = Object.freeze(path16.concat(node));
-      const ck = visit_("key", node.key, visitor, path16);
+      path17 = Object.freeze(path17.concat(node));
+      const ck = visit_("key", node.key, visitor, path17);
       if (ck === BREAK)
         return BREAK;
       else if (ck === REMOVE)
         node.key = null;
-      const cv = visit_("value", node.value, visitor, path16);
+      const cv = visit_("value", node.value, visitor, path17);
       if (cv === BREAK)
         return BREAK;
       else if (cv === REMOVE)
@@ -12669,17 +12685,17 @@ async function visitAsync(node, visitor) {
 visitAsync.BREAK = BREAK;
 visitAsync.SKIP = SKIP;
 visitAsync.REMOVE = REMOVE;
-async function visitAsync_(key, node, visitor, path16) {
-  const ctrl = await callVisitor(key, node, visitor, path16);
+async function visitAsync_(key, node, visitor, path17) {
+  const ctrl = await callVisitor(key, node, visitor, path17);
   if (isNode(ctrl) || isPair(ctrl)) {
-    replaceNode(key, path16, ctrl);
-    return visitAsync_(key, ctrl, visitor, path16);
+    replaceNode(key, path17, ctrl);
+    return visitAsync_(key, ctrl, visitor, path17);
   }
   if (typeof ctrl !== "symbol") {
     if (isCollection(node)) {
-      path16 = Object.freeze(path16.concat(node));
+      path17 = Object.freeze(path17.concat(node));
       for (let i = 0; i < node.items.length; ++i) {
-        const ci = await visitAsync_(i, node.items[i], visitor, path16);
+        const ci = await visitAsync_(i, node.items[i], visitor, path17);
         if (typeof ci === "number")
           i = ci - 1;
         else if (ci === BREAK)
@@ -12690,13 +12706,13 @@ async function visitAsync_(key, node, visitor, path16) {
         }
       }
     } else if (isPair(node)) {
-      path16 = Object.freeze(path16.concat(node));
-      const ck = await visitAsync_("key", node.key, visitor, path16);
+      path17 = Object.freeze(path17.concat(node));
+      const ck = await visitAsync_("key", node.key, visitor, path17);
       if (ck === BREAK)
         return BREAK;
       else if (ck === REMOVE)
         node.key = null;
-      const cv = await visitAsync_("value", node.value, visitor, path16);
+      const cv = await visitAsync_("value", node.value, visitor, path17);
       if (cv === BREAK)
         return BREAK;
       else if (cv === REMOVE)
@@ -12723,23 +12739,23 @@ function initVisitor(visitor) {
   }
   return visitor;
 }
-function callVisitor(key, node, visitor, path16) {
+function callVisitor(key, node, visitor, path17) {
   if (typeof visitor === "function")
-    return visitor(key, node, path16);
+    return visitor(key, node, path17);
   if (isMap(node))
-    return visitor.Map?.(key, node, path16);
+    return visitor.Map?.(key, node, path17);
   if (isSeq(node))
-    return visitor.Seq?.(key, node, path16);
+    return visitor.Seq?.(key, node, path17);
   if (isPair(node))
-    return visitor.Pair?.(key, node, path16);
+    return visitor.Pair?.(key, node, path17);
   if (isScalar(node))
-    return visitor.Scalar?.(key, node, path16);
+    return visitor.Scalar?.(key, node, path17);
   if (isAlias(node))
-    return visitor.Alias?.(key, node, path16);
+    return visitor.Alias?.(key, node, path17);
   return void 0;
 }
-function replaceNode(key, path16, node) {
-  const parent = path16[path16.length - 1];
+function replaceNode(key, path17, node) {
+  const parent = path17[path17.length - 1];
   if (isCollection(parent)) {
     parent.items[key] = node;
   } else if (isPair(parent)) {
@@ -13268,10 +13284,10 @@ function createNode(value, tagName, ctx) {
 }
 
 // node_modules/yaml/browser/dist/nodes/Collection.js
-function collectionFromPath(schema4, path16, value) {
+function collectionFromPath(schema4, path17, value) {
   let v = value;
-  for (let i = path16.length - 1; i >= 0; --i) {
-    const k = path16[i];
+  for (let i = path17.length - 1; i >= 0; --i) {
+    const k = path17[i];
     if (typeof k === "number" && Number.isInteger(k) && k >= 0) {
       const a = [];
       a[k] = v;
@@ -13290,7 +13306,7 @@ function collectionFromPath(schema4, path16, value) {
     sourceObjects: /* @__PURE__ */ new Map()
   });
 }
-var isEmptyPath = (path16) => path16 == null || typeof path16 === "object" && !!path16[Symbol.iterator]().next().done;
+var isEmptyPath = (path17) => path17 == null || typeof path17 === "object" && !!path17[Symbol.iterator]().next().done;
 var Collection = class extends NodeBase {
   constructor(type, schema4) {
     super(type);
@@ -13320,11 +13336,11 @@ var Collection = class extends NodeBase {
    * be a Pair instance or a `{ key, value }` object, which may not have a key
    * that already exists in the map.
    */
-  addIn(path16, value) {
-    if (isEmptyPath(path16))
+  addIn(path17, value) {
+    if (isEmptyPath(path17))
       this.add(value);
     else {
-      const [key, ...rest] = path16;
+      const [key, ...rest] = path17;
       const node = this.get(key, true);
       if (isCollection(node))
         node.addIn(rest, value);
@@ -13338,8 +13354,8 @@ var Collection = class extends NodeBase {
    * Removes a value from the collection.
    * @returns `true` if the item was found and removed.
    */
-  deleteIn(path16) {
-    const [key, ...rest] = path16;
+  deleteIn(path17) {
+    const [key, ...rest] = path17;
     if (rest.length === 0)
       return this.delete(key);
     const node = this.get(key, true);
@@ -13353,8 +13369,8 @@ var Collection = class extends NodeBase {
    * scalar values from their surrounding node; to disable set `keepScalar` to
    * `true` (collections are always returned intact).
    */
-  getIn(path16, keepScalar) {
-    const [key, ...rest] = path16;
+  getIn(path17, keepScalar) {
+    const [key, ...rest] = path17;
     const node = this.get(key, true);
     if (rest.length === 0)
       return !keepScalar && isScalar(node) ? node.value : node;
@@ -13372,8 +13388,8 @@ var Collection = class extends NodeBase {
   /**
    * Checks if the collection includes a value with the key `key`.
    */
-  hasIn(path16) {
-    const [key, ...rest] = path16;
+  hasIn(path17) {
+    const [key, ...rest] = path17;
     if (rest.length === 0)
       return this.has(key);
     const node = this.get(key, true);
@@ -13383,8 +13399,8 @@ var Collection = class extends NodeBase {
    * Sets a value in this collection. For `!!set`, `value` needs to be a
    * boolean to add/remove the item from the set.
    */
-  setIn(path16, value) {
-    const [key, ...rest] = path16;
+  setIn(path17, value) {
+    const [key, ...rest] = path17;
     if (rest.length === 0) {
       this.set(key, value);
     } else {
@@ -15523,9 +15539,9 @@ var Document = class _Document {
       this.contents.add(value);
   }
   /** Adds a value to the document. */
-  addIn(path16, value) {
+  addIn(path17, value) {
     if (assertCollection(this.contents))
-      this.contents.addIn(path16, value);
+      this.contents.addIn(path17, value);
   }
   /**
    * Create a new `Alias` node, ensuring that the target `node` has the required anchor.
@@ -15600,14 +15616,14 @@ var Document = class _Document {
    * Removes a value from the document.
    * @returns `true` if the item was found and removed.
    */
-  deleteIn(path16) {
-    if (isEmptyPath(path16)) {
+  deleteIn(path17) {
+    if (isEmptyPath(path17)) {
       if (this.contents == null)
         return false;
       this.contents = null;
       return true;
     }
-    return assertCollection(this.contents) ? this.contents.deleteIn(path16) : false;
+    return assertCollection(this.contents) ? this.contents.deleteIn(path17) : false;
   }
   /**
    * Returns item at `key`, or `undefined` if not found. By default unwraps
@@ -15622,10 +15638,10 @@ var Document = class _Document {
    * scalar values from their surrounding node; to disable set `keepScalar` to
    * `true` (collections are always returned intact).
    */
-  getIn(path16, keepScalar) {
-    if (isEmptyPath(path16))
+  getIn(path17, keepScalar) {
+    if (isEmptyPath(path17))
       return !keepScalar && isScalar(this.contents) ? this.contents.value : this.contents;
-    return isCollection(this.contents) ? this.contents.getIn(path16, keepScalar) : void 0;
+    return isCollection(this.contents) ? this.contents.getIn(path17, keepScalar) : void 0;
   }
   /**
    * Checks if the document includes a value with the key `key`.
@@ -15636,10 +15652,10 @@ var Document = class _Document {
   /**
    * Checks if the document includes a value at `path`.
    */
-  hasIn(path16) {
-    if (isEmptyPath(path16))
+  hasIn(path17) {
+    if (isEmptyPath(path17))
       return this.contents !== void 0;
-    return isCollection(this.contents) ? this.contents.hasIn(path16) : false;
+    return isCollection(this.contents) ? this.contents.hasIn(path17) : false;
   }
   /**
    * Sets a value in this document. For `!!set`, `value` needs to be a
@@ -15656,13 +15672,13 @@ var Document = class _Document {
    * Sets a value in this document. For `!!set`, `value` needs to be a
    * boolean to add/remove the item from the set.
    */
-  setIn(path16, value) {
-    if (isEmptyPath(path16)) {
+  setIn(path17, value) {
+    if (isEmptyPath(path17)) {
       this.contents = value;
     } else if (this.contents == null) {
-      this.contents = collectionFromPath(this.schema, Array.from(path16), value);
+      this.contents = collectionFromPath(this.schema, Array.from(path17), value);
     } else if (assertCollection(this.contents)) {
-      this.contents.setIn(path16, value);
+      this.contents.setIn(path17, value);
     }
   }
   /**
@@ -17212,9 +17228,9 @@ function visit2(cst, visitor) {
 visit2.BREAK = BREAK2;
 visit2.SKIP = SKIP2;
 visit2.REMOVE = REMOVE2;
-visit2.itemAtPath = (cst, path16) => {
+visit2.itemAtPath = (cst, path17) => {
   let item = cst;
-  for (const [field, index] of path16) {
+  for (const [field, index] of path17) {
     const tok = item?.[field];
     if (tok && "items" in tok) {
       item = tok.items[index];
@@ -17223,23 +17239,23 @@ visit2.itemAtPath = (cst, path16) => {
   }
   return item;
 };
-visit2.parentCollection = (cst, path16) => {
-  const parent = visit2.itemAtPath(cst, path16.slice(0, -1));
-  const field = path16[path16.length - 1][0];
+visit2.parentCollection = (cst, path17) => {
+  const parent = visit2.itemAtPath(cst, path17.slice(0, -1));
+  const field = path17[path17.length - 1][0];
   const coll = parent?.[field];
   if (coll && "items" in coll)
     return coll;
   throw new Error("Parent collection not found");
 };
-function _visit(path16, item, visitor) {
-  let ctrl = visitor(item, path16);
+function _visit(path17, item, visitor) {
+  let ctrl = visitor(item, path17);
   if (typeof ctrl === "symbol")
     return ctrl;
   for (const field of ["key", "value"]) {
     const token = item[field];
     if (token && "items" in token) {
       for (let i = 0; i < token.items.length; ++i) {
-        const ci = _visit(Object.freeze(path16.concat([[field, i]])), token.items[i], visitor);
+        const ci = _visit(Object.freeze(path17.concat([[field, i]])), token.items[i], visitor);
         if (typeof ci === "number")
           i = ci - 1;
         else if (ci === BREAK2)
@@ -17250,10 +17266,10 @@ function _visit(path16, item, visitor) {
         }
       }
       if (typeof ctrl === "function" && field === "key")
-        ctrl = ctrl(item, path16);
+        ctrl = ctrl(item, path17);
     }
   }
-  return typeof ctrl === "function" ? ctrl(item, path16) : ctrl;
+  return typeof ctrl === "function" ? ctrl(item, path17) : ctrl;
 }
 
 // node_modules/yaml/browser/dist/parse/cst.js
@@ -20175,15 +20191,116 @@ var event_schema_default = {
       $ref: "urn:pcp:schema:v1:common#/$defs/slugArray"
     },
     summary: {
-      $ref: "urn:pcp:schema:v1:common#/$defs/nonEmptyString"
+      $ref: "#/$defs/summary"
     },
     rationale: {
-      $ref: "urn:pcp:schema:v1:common#/$defs/nonEmptyString"
+      $ref: "#/$defs/rationale"
     },
     affected_paths: {
       $ref: "urn:pcp:schema:v1:common#/$defs/pathArray"
     }
+  },
+  anyOf: [
+    {
+      properties: { scopes: { type: "array", minItems: 1 } }
+    },
+    {
+      properties: { workstreams: { type: "array", minItems: 1 } }
+    },
+    {
+      properties: { affected_paths: { type: "array", minItems: 1 } }
+    }
+  ],
+  $defs: {
+    summary: {
+      type: "string",
+      minLength: 1,
+      maxLength: 240,
+      pattern: "\\S"
+    },
+    rationale: {
+      type: "string",
+      minLength: 1,
+      maxLength: 1e3,
+      pattern: "\\S"
+    }
   }
+};
+
+// schemas/v1/event-input.schema.json
+var event_input_schema_default = {
+  $schema: "https://json-schema.org/draft/2020-12/schema",
+  $id: "urn:pcp:schema:v1:event-input",
+  title: "PCP continuity event recording input",
+  type: "object",
+  additionalProperties: false,
+  required: [
+    "schema_version",
+    "actor",
+    "recorded_by",
+    "basis",
+    "kind",
+    "scopes",
+    "workstreams",
+    "summary",
+    "affected_paths"
+  ],
+  properties: {
+    schema_version: {
+      $ref: "urn:pcp:schema:v1:common#/$defs/schemaVersion"
+    },
+    occurred_at: {
+      $ref: "urn:pcp:schema:v1:common#/$defs/dateTime"
+    },
+    actor: {
+      $ref: "urn:pcp:schema:v1:common#/$defs/actorReference"
+    },
+    recorded_by: {
+      $ref: "urn:pcp:schema:v1:common#/$defs/actorReference"
+    },
+    basis: {
+      enum: ["self", "reported", "observed", "system"]
+    },
+    kind: {
+      enum: [
+        "code",
+        "documentation",
+        "configuration",
+        "decision",
+        "research",
+        "operations",
+        "release",
+        "vcs",
+        "workstream"
+      ]
+    },
+    scopes: {
+      $ref: "urn:pcp:schema:v1:common#/$defs/slugArray"
+    },
+    workstreams: {
+      $ref: "urn:pcp:schema:v1:common#/$defs/slugArray"
+    },
+    summary: {
+      $ref: "urn:pcp:schema:v1:event#/$defs/summary"
+    },
+    rationale: {
+      $ref: "urn:pcp:schema:v1:event#/$defs/rationale"
+    },
+    affected_paths: {
+      $ref: "urn:pcp:schema:v1:common#/$defs/pathArray"
+    }
+  },
+  anyOf: [
+    {
+      properties: { scopes: { type: "array", minItems: 1 } }
+    },
+    {
+      properties: { workstreams: { type: "array", minItems: 1 } }
+    },
+    {
+      properties: { affected_paths: { type: "array", minItems: 1 } }
+    }
+  ]
 };
 
 // schemas/v1/frontmatter.schema.json
@@ -20996,6 +21113,7 @@ var SCHEMA_CATALOG = {
   checkpoint: checkpoint_schema_default,
   coverage: coverage_schema_default,
   event: event_schema_default,
+  "event-input": event_input_schema_default,
   frontmatter: frontmatter_schema_default,
   "mutation-plan": mutation_plan_schema_default,
   "pcp-manifest": pcp_manifest_schema_default,
@@ -21749,7 +21867,7 @@ async function renderCanonicalViews(projectRoot, options = {}) {
       diagnostics
     };
   }
-  const digest = canonicalSourceDigestFromContents(
+  const digest2 = canonicalSourceDigestFromContents(
     [...loadedSources].map(([sourcePath, source]) => ({
       path: sourcePath,
       contents: source.contents
@@ -21776,7 +21894,7 @@ async function renderCanonicalViews(projectRoot, options = {}) {
       diagnostics
     };
   }
-  if (currentSourceDigest !== digest) {
+  if (currentSourceDigest !== digest2) {
     return {
       valid: false,
       mode: options.check === true ? "check" : "write",
@@ -21793,7 +21911,7 @@ async function renderCanonicalViews(projectRoot, options = {}) {
   const sources = new Map(
     [...loadedSources].map(([sourcePath, source]) => [sourcePath, source.value])
   );
-  const desired = renderCanonicalStatusView(sources, digest);
+  const desired = renderCanonicalStatusView(sources, digest2);
   const absoluteViewPath = path9.join(layerRoot, VIEW_PATH);
   let current;
   try {
@@ -21877,8 +21995,8 @@ function objectArray2(value) {
 function stringArray2(value) {
   return Array.isArray(value) ? value.filter((item) => typeof item === "string") : [];
 }
-function error(code2, path16, message) {
-  return { severity: "error", code: code2, path: path16, message };
+function error(code2, path17, message) {
+  return { severity: "error", code: code2, path: path17, message };
 }
 function validateProjectIdentity(records) {
   const diagnostics = [];
@@ -22028,6 +22146,8 @@ function validateActors(records) {
 function validateEvents(records) {
   const diagnostics = [];
   const seen = /* @__PURE__ */ new Map();
+  const activeEvents = [];
+  const archivedEvents = [];
   const actorTypes = new Map(
     records.actors.map((record) => {
       const profile = objectValue2(record.value);
@@ -22058,6 +22178,10 @@ function validateEvents(records) {
     } else {
       seen.set(id, record.path);
     }
+    (record.path.startsWith("continuity/archive/") ? archivedEvents : activeEvents).push({
+      id,
+      path: record.path
+    });
     const actor = objectValue2(event?.actor);
     const recorder = objectValue2(event?.recorded_by);
     const actorType = stringValue(actor?.type);
@@ -22118,6 +22242,15 @@ function validateEvents(records) {
         )
       );
     }
+    if (basis !== "system" && (actorType === "system" || recorderType === "system")) {
+      diagnostics.push(
+        error(
+          "event.system-reference-basis",
+          record.path,
+          "A system actor or recorder requires a system-basis event."
+        )
+      );
+    }
     for (const workstreamId of stringArray2(event?.workstreams)) {
       if (!workstreamIds.has(workstreamId)) {
         diagnostics.push(
@@ -22129,6 +22262,17 @@ function validateEvents(records) {
         );
       }
     }
+  }
+  const oldestActive = activeEvents.sort((left, right) => left.id.localeCompare(right.id))[0];
+  const newestArchive = archivedEvents.sort((left, right) => left.id.localeCompare(right.id)).at(-1);
+  if (oldestActive !== void 0 && newestArchive !== void 0 && newestArchive.id.localeCompare(oldestActive.id) >= 0) {
+    diagnostics.push(
+      error(
+        "event.archive-order",
+        newestArchive.path,
+        `Archived event ${newestArchive.id} must be older than the active-event floor ${oldestActive.id}.`
+      )
+    );
   }
   return diagnostics;
 }
@@ -24042,9 +24186,555 @@ async function adoptProject(candidate = ".", options = {}) {
   };
 }
 
-// src/application/register-actor.ts
-import { mkdir as mkdir4, open as open3, readFile as readFile12, readdir as readdir4, rm as rm3, unlink as unlink3 } from "node:fs/promises";
+// src/application/record-event.ts
+import { createHash as createHash7, randomUUID as randomUUID2 } from "node:crypto";
+import {
+  lstat as lstat6,
+  mkdtemp as mkdtemp3,
+  open as open3,
+  readFile as readFile12,
+  readdir as readdir4,
+  realpath as realpath2,
+  rename as rename2,
+  rm as rm3,
+  unlink as unlink3,
+  writeFile as writeFile4
+} from "node:fs/promises";
+import { tmpdir as tmpdir4 } from "node:os";
 import path14 from "node:path";
+
+// src/domain/recording.ts
+var RecordingError = class extends Error {
+  constructor(code2, message, mutated = false, recovery_retained = false) {
+    super(message);
+    this.code = code2;
+    this.mutated = mutated;
+    this.recovery_retained = recovery_retained;
+    this.name = "RecordingError";
+  }
+  code;
+  mutated;
+  recovery_retained;
+};
+function nextEventId(existingIds, now = Date.now()) {
+  const newest = [...existingIds].sort((left, right) => left.localeCompare(right)).at(-1);
+  const timestamp2 = newest === void 0 ? now : Math.max(now, decodeTime(newest) + 1);
+  return ulid(timestamp2);
+}
+
+// src/infrastructure/continuity-lock.ts
+import { createHash as createHash6, randomUUID } from "node:crypto";
+import { mkdir as mkdir3, open as open2, readFile as readFile11, stat as stat3, unlink as unlink2 } from "node:fs/promises";
+import { tmpdir as tmpdir3 } from "node:os";
+import path13 from "node:path";
+import { setTimeout as delay } from "node:timers/promises";
+var LOCK_WAIT_MS = 3e4;
+var STALE_LOCK_MS = 5 * 6e4;
+var ContinuityLockError = class extends Error {
+  constructor(message) {
+    super(message);
+    this.name = "ContinuityLockError";
+  }
+};
+function lockDigest(root) {
+  const resolved = path13.resolve(root);
+  const portableRoot = process.platform === "win32" ? resolved.toLowerCase() : resolved;
+  return createHash6("sha256").update(portableRoot).digest("hex");
+}
+async function removeStaleLock(lockPath) {
+  try {
+    const metadata = await stat3(lockPath);
+    if (Date.now() - metadata.mtimeMs <= STALE_LOCK_MS) return false;
+    const contents = await readFile11(lockPath, "utf8");
+    let ownerPid;
+    try {
+      const value = JSON.parse(contents);
+      if (typeof value === "object" && value !== null && !Array.isArray(value)) {
+        const pid = value.pid;
+        if (typeof pid === "number" && Number.isSafeInteger(pid) && pid > 0) ownerPid = pid;
+      }
+    } catch {
+    }
+    if (ownerPid !== void 0) {
+      try {
+        process.kill(ownerPid, 0);
+        return false;
+      } catch (error2) {
+        if (error2.code !== "ESRCH") return false;
+      }
+    }
+    await unlink2(lockPath);
+    return true;
+  } catch (error2) {
+    if (error2.code === "ENOENT") return true;
+    throw error2;
+  }
+}
+async function withContinuityLock(projectRoot, operation) {
+  const lockRoot = path13.join(tmpdir3(), "pcp-continuity-locks");
+  await mkdir3(lockRoot, { recursive: true });
+  const lockPath = path13.join(lockRoot, `${lockDigest(projectRoot)}.lock`);
+  const token = randomUUID();
+  const lockContents = `${JSON.stringify({ token, pid: process.pid, created_at: (/* @__PURE__ */ new Date()).toISOString() })}
+`;
+  const deadline = Date.now() + LOCK_WAIT_MS;
+  let handle;
+  while (handle === void 0) {
+    try {
+      handle = await open2(lockPath, "wx");
+    } catch (error2) {
+      const code2 = error2.code;
+      if (process.platform === "win32" && code2 === "EPERM") {
+        if (Date.now() >= deadline) {
+          throw new ContinuityLockError("Another continuity operation is still running.");
+        }
+        await delay(20);
+        continue;
+      }
+      if (code2 !== "EEXIST") throw error2;
+      if (await removeStaleLock(lockPath)) continue;
+      if (Date.now() >= deadline) {
+        throw new ContinuityLockError("Another continuity operation is still running.");
+      }
+      await delay(20);
+    }
+  }
+  try {
+    await handle.writeFile(lockContents);
+    await handle.sync();
+    return await operation();
+  } finally {
+    await handle.close();
+    const current = await readFile11(lockPath, "utf8").catch((error2) => {
+      if (error2.code === "ENOENT") return void 0;
+      throw error2;
+    });
+    if (current === lockContents) {
+      await unlink2(lockPath).catch((error2) => {
+        if (error2.code !== "ENOENT") throw error2;
+      });
+    }
+  }
+}
+
+// src/application/record-event.ts
+var ACTIVE_EVENT_DIRECTORY = ".pcp/continuity/events";
+var ARCHIVE_EVENT_DIRECTORY = ".pcp/continuity/archive";
+var ACTOR_DIRECTORY = ".pcp/continuity/actors";
+var WORKSTREAM_PATH = ".pcp/state/workstreams.yaml";
+var ACTIVE_EVENT_LIMIT = 64;
+var ARCHIVE_BATCH_SIZE = 32;
+var MAXIMUM_EVENT_INPUT_BYTES = 64 * 1024;
+function isInside5(root, candidate) {
+  const relative = path14.relative(root, candidate);
+  return relative === "" || !relative.startsWith(`..${path14.sep}`) && relative !== ".." && !path14.isAbsolute(relative);
+}
+function digest(value) {
+  return createHash7("sha256").update(value).digest("hex");
+}
+function rootDigest(root) {
+  const resolved = path14.resolve(root);
+  return digest(process.platform === "win32" ? resolved.toLowerCase() : resolved);
+}
+function validationSummary(report) {
+  return report.diagnostics.slice(0, 4).map((diagnostic2) => `${diagnostic2.path}: ${diagnostic2.message}`).join("; ");
+}
+async function assertValidOperationalLayer(root) {
+  const report = await validateCanonicalLayer(root, { archive_content: "filenames-only" });
+  if (report.valid) return;
+  const detail = validationSummary(report);
+  throw new RecordingError(
+    "PCP_RECORD_INVALID_LAYER",
+    `Event recording requires a valid installed PCP layer${detail.length === 0 ? "." : `: ${detail}`}`
+  );
+}
+function inputFailure(message) {
+  return new RecordingError("PCP_RECORD_INPUT_INVALID", message);
+}
+async function loadEventInput(inputPath, projectRoot) {
+  const resolvedInput = path14.resolve(inputPath);
+  if (isInside5(projectRoot, resolvedInput)) {
+    throw new RecordingError(
+      "PCP_RECORD_INPUT_INSIDE_PROJECT",
+      "Store transient event input outside the managed project so it cannot become duplicate project state."
+    );
+  }
+  let metadata;
+  try {
+    metadata = await lstat6(resolvedInput);
+  } catch (error2) {
+    throw new RecordingError(
+      "PCP_RECORD_INPUT_UNREADABLE",
+      `Cannot read event input: ${error2 instanceof Error ? error2.message : String(error2)}`
+    );
+  }
+  if (!metadata.isFile() || metadata.isSymbolicLink() || metadata.size > MAXIMUM_EVENT_INPUT_BYTES) {
+    throw new RecordingError(
+      "PCP_RECORD_INPUT_UNSAFE",
+      "Event input must be a regular non-symlink file no larger than 64 KiB."
+    );
+  }
+  try {
+    const [physicalInput, physicalProjectRoot] = await Promise.all([
+      realpath2(resolvedInput),
+      realpath2(projectRoot)
+    ]);
+    if (isInside5(physicalProjectRoot, physicalInput)) {
+      throw new RecordingError(
+        "PCP_RECORD_INPUT_INSIDE_PROJECT",
+        "Store transient event input outside the managed project so it cannot become duplicate project state."
+      );
+    }
+  } catch (error2) {
+    if (error2 instanceof RecordingError) throw error2;
+    throw new RecordingError(
+      "PCP_RECORD_INPUT_UNREADABLE",
+      `Cannot resolve event input safely: ${error2 instanceof Error ? error2.message : String(error2)}`
+    );
+  }
+  const contents = await readFile12(resolvedInput, "utf8").catch((error2) => {
+    throw new RecordingError(
+      "PCP_RECORD_INPUT_UNREADABLE",
+      `Cannot read event input: ${error2 instanceof Error ? error2.message : String(error2)}`
+    );
+  });
+  const document = parseDocument(contents, {
+    prettyErrors: false,
+    strict: true,
+    uniqueKeys: true
+  });
+  if (document.errors.length > 0) {
+    throw inputFailure(
+      `Event input is not valid YAML: ${document.errors.map((error2) => error2.message).join("; ")}`
+    );
+  }
+  let value;
+  try {
+    value = document.toJS({ mapAsMap: false, maxAliasCount: 50 });
+  } catch (error2) {
+    throw inputFailure(
+      `Event input cannot be decoded safely: ${error2 instanceof Error ? error2.message : String(error2)}`
+    );
+  }
+  const validation = validateSchema("event-input", value);
+  if (!validation.valid) {
+    const detail = validation.diagnostics.slice(0, 8).map((diagnostic2) => `${diagnostic2.path}: ${diagnostic2.message}`).join("; ");
+    throw inputFailure(`Event input fails its release schema: ${detail}`);
+  }
+  return value;
+}
+async function listYamlNames(directory) {
+  const entries = await readdir4(directory, { withFileTypes: true });
+  return entries.filter((entry) => entry.isFile() && entry.name.endsWith(".yaml")).map((entry) => entry.name).sort((left, right) => left.localeCompare(right));
+}
+async function loadActiveEvents(root) {
+  const directory = path14.join(root, ...ACTIVE_EVENT_DIRECTORY.split("/"));
+  const names = await listYamlNames(directory);
+  const events = [];
+  for (const name of names) {
+    const absolutePath = path14.join(directory, name);
+    const contents = await readFile12(absolutePath);
+    events.push({
+      event_id: name.slice(0, -".yaml".length),
+      absolute_path: absolutePath,
+      contents,
+      digest: digest(contents)
+    });
+  }
+  return events;
+}
+async function loadArchiveIds(root) {
+  const directory = path14.join(root, ...ARCHIVE_EVENT_DIRECTORY.split("/"));
+  return (await listYamlNames(directory)).map((name) => name.slice(0, -".yaml".length));
+}
+async function loadSemanticRecords(root) {
+  const actorRoot = path14.join(root, ...ACTOR_DIRECTORY.split("/"));
+  const actorNames = await listYamlNames(actorRoot);
+  const actors = await Promise.all(
+    actorNames.map(async (name) => ({
+      path: `continuity/actors/${name}`,
+      value: parse(await readFile12(path14.join(actorRoot, name), "utf8"))
+    }))
+  );
+  return {
+    actors,
+    workstreams: {
+      path: "state/workstreams.yaml",
+      value: parse(await readFile12(path14.join(root, ...WORKSTREAM_PATH.split("/")), "utf8"))
+    }
+  };
+}
+function normalizeEventInput(input, eventId) {
+  return {
+    schema_version: 1,
+    event_id: eventId,
+    occurred_at: input.occurred_at ?? (/* @__PURE__ */ new Date()).toISOString(),
+    actor: input.actor,
+    recorded_by: input.recorded_by,
+    basis: input.basis,
+    kind: input.kind,
+    scopes: [...input.scopes].sort((left, right) => left.localeCompare(right)),
+    workstreams: [...input.workstreams].sort((left, right) => left.localeCompare(right)),
+    summary: input.summary.trim(),
+    ...input.rationale === void 0 ? {} : { rationale: input.rationale.trim() },
+    affected_paths: [...input.affected_paths].sort((left, right) => left.localeCompare(right))
+  };
+}
+function assertEventSemantics(event, records) {
+  const diagnostics = validateCanonicalSemantics({
+    workstreams: records.workstreams,
+    actors: records.actors,
+    events: [{ path: `continuity/events/${event.event_id}.yaml`, value: event }],
+    checkpoints: []
+  });
+  if (diagnostics.length === 0) return;
+  const detail = diagnostics.slice(0, 6).map((diagnostic2) => `${diagnostic2.code}: ${diagnostic2.message}`).join("; ");
+  throw new RecordingError(
+    "PCP_RECORD_ATTRIBUTION_INVALID",
+    `Event attribution or workstream references are invalid: ${detail}`
+  );
+}
+async function appendWal2(walPath, sequence, action, eventId, status) {
+  const handle = await open3(walPath, "a");
+  try {
+    await handle.writeFile(`${JSON.stringify({ sequence, action, event_id: eventId, status })}
+`);
+    await handle.sync();
+  } finally {
+    await handle.close();
+  }
+}
+async function writeDurableFile(file, contents) {
+  const handle = await open3(file, "wx");
+  try {
+    await handle.writeFile(contents, "utf8");
+    await handle.sync();
+  } finally {
+    await handle.close();
+  }
+}
+function injectedFailure(sequence, options) {
+  if (options.fail_after_operation === sequence) {
+    throw new RecordingError(
+      "PCP_FAULT_INJECTED",
+      `Injected event-recording failure after operation ${sequence}.`,
+      true
+    );
+  }
+}
+async function verifyRollback(root, expectedActive, expectedArchiveIds) {
+  const failures = [];
+  try {
+    const active = await loadActiveEvents(root);
+    const actual = active.map((event) => `${event.event_id}:${event.digest}`);
+    const expected = expectedActive.map((event) => `${event.event_id}:${event.digest}`);
+    if (JSON.stringify(actual) !== JSON.stringify(expected)) {
+      failures.push("active event identities or contents differ from the preimage");
+    }
+  } catch (error2) {
+    failures.push(error2 instanceof Error ? error2.message : String(error2));
+  }
+  try {
+    const archiveIds = await loadArchiveIds(root);
+    if (JSON.stringify(archiveIds) !== JSON.stringify(expectedArchiveIds)) {
+      failures.push("archive event identities differ from the preimage");
+    }
+  } catch (error2) {
+    failures.push(error2 instanceof Error ? error2.message : String(error2));
+  }
+  return failures;
+}
+async function executeEventTransaction(root, event, activeEvents, archiveIds, options) {
+  const rotation = activeEvents.length === ACTIVE_EVENT_LIMIT ? activeEvents.slice(0, ARCHIVE_BATCH_SIZE) : [];
+  const archiveIdSet = new Set(archiveIds);
+  const archiveCollision = rotation.find((event2) => archiveIdSet.has(event2.event_id));
+  if (archiveCollision !== void 0) {
+    throw new RecordingError(
+      "PCP_RECORD_ARCHIVE_COLLISION",
+      `Cannot rotate ${archiveCollision.event_id} because that identity already exists in the archive.`
+    );
+  }
+  const eventRoot = path14.join(root, ...ACTIVE_EVENT_DIRECTORY.split("/"));
+  const archiveRoot = path14.join(root, ...ARCHIVE_EVENT_DIRECTORY.split("/"));
+  const eventPath = path14.join(eventRoot, `${event.event_id}.yaml`);
+  const temporaryEventPath = path14.join(eventRoot, `.${event.event_id}.${randomUUID2()}.tmp`);
+  const moved = [];
+  let eventInstalled = false;
+  let operation = 0;
+  let recoveryRoot;
+  let walPath;
+  try {
+    recoveryRoot = await mkdtemp3(
+      path14.join(tmpdir4(), `pcp-event-transaction-${rootDigest(root).slice(0, 12)}-`)
+    );
+    walPath = path14.join(recoveryRoot, "operations.jsonl");
+    await writeFile4(walPath, "", { flag: "wx" });
+    await writeDurableFile(temporaryEventPath, stringify3(event));
+    for (const source of rotation) {
+      operation += 1;
+      await appendWal2(walPath, operation, "archive", source.event_id, "prepared");
+      await rename2(source.absolute_path, path14.join(archiveRoot, `${source.event_id}.yaml`));
+      moved.push(source);
+      await appendWal2(walPath, operation, "archive", source.event_id, "applied");
+      injectedFailure(operation, options);
+    }
+    operation += 1;
+    await appendWal2(walPath, operation, "record", event.event_id, "prepared");
+    await rename2(temporaryEventPath, eventPath);
+    eventInstalled = true;
+    await appendWal2(walPath, operation, "record", event.event_id, "applied");
+    injectedFailure(operation, options);
+    const live = await validateCanonicalLayer(root, { archive_content: "filenames-only" });
+    if (!live.valid) {
+      throw new RecordingError(
+        "PCP_RECORD_LIVE_INVALID",
+        `Recorded continuity state is invalid: ${validationSummary(live)}`,
+        true
+      );
+    }
+    operation += 1;
+    injectedFailure(operation, options);
+    await rm3(recoveryRoot, { recursive: true, force: false });
+    return {
+      schema_version: 1,
+      command: "record",
+      status: "recorded",
+      event_id: event.event_id,
+      event_path: `${ACTIVE_EVENT_DIRECTORY}/${event.event_id}.yaml`,
+      occurred_at: event.occurred_at,
+      summary: event.summary,
+      active_events: activeEvents.length - rotation.length + 1,
+      archived_events_moved: rotation.length,
+      event_created: true,
+      mutated: true
+    };
+  } catch (error2) {
+    const rollbackFailures = [];
+    if (eventInstalled) {
+      try {
+        await unlink3(eventPath);
+        if (walPath !== void 0) {
+          await appendWal2(
+            walPath,
+            rotation.length + 1,
+            "record",
+            event.event_id,
+            "rolled-back"
+          ).catch(() => void 0);
+        }
+      } catch (rollbackError) {
+        if (rollbackError.code !== "ENOENT") {
+          rollbackFailures.push(
+            rollbackError instanceof Error ? rollbackError.message : String(rollbackError)
+          );
+        }
+      }
+    }
+    await unlink3(temporaryEventPath).catch((rollbackError) => {
+      if (rollbackError.code !== "ENOENT") {
+        rollbackFailures.push(
+          rollbackError instanceof Error ? rollbackError.message : String(rollbackError)
+        );
+      }
+    });
+    for (const source of [...moved].reverse()) {
+      try {
+        await rename2(path14.join(archiveRoot, `${source.event_id}.yaml`), source.absolute_path);
+        if (walPath !== void 0) {
+          await appendWal2(
+            walPath,
+            rotation.indexOf(source) + 1,
+            "archive",
+            source.event_id,
+            "rolled-back"
+          ).catch(() => void 0);
+        }
+      } catch (rollbackError) {
+        rollbackFailures.push(
+          rollbackError instanceof Error ? rollbackError.message : String(rollbackError)
+        );
+      }
+    }
+    rollbackFailures.push(...await verifyRollback(root, activeEvents, archiveIds));
+    if (rollbackFailures.length > 0) {
+      throw new RecordingError(
+        "PCP_RECORD_ROLLBACK_FAILED",
+        `Event recording failed (${error2 instanceof Error ? error2.message : String(error2)}) and exact rollback could not be verified: ${rollbackFailures.join("; ")}`,
+        true,
+        true
+      );
+    }
+    if (recoveryRoot !== void 0) {
+      try {
+        await rm3(recoveryRoot, { recursive: true, force: true });
+      } catch (cleanupError) {
+        throw new RecordingError(
+          "PCP_RECORD_RECOVERY_CLEANUP_FAILED",
+          `Event recording failed and project state was restored, but recovery data could not be removed: ${cleanupError instanceof Error ? cleanupError.message : String(cleanupError)}`,
+          false,
+          true
+        );
+      }
+    }
+    if (error2 instanceof RecordingError) {
+      throw new RecordingError(error2.code, error2.message, false, false);
+    }
+    throw new RecordingError(
+      "PCP_RECORD_TRANSACTION_FAILED",
+      error2 instanceof Error ? error2.message : String(error2)
+    );
+  }
+}
+async function recordEventLocked(root, input, options) {
+  await assertValidOperationalLayer(root);
+  const [activeEvents, archiveIds, semanticRecords] = await Promise.all([
+    loadActiveEvents(root),
+    loadArchiveIds(root),
+    loadSemanticRecords(root)
+  ]);
+  if (activeEvents.length > ACTIVE_EVENT_LIMIT) {
+    throw new RecordingError(
+      "PCP_RECORD_ACTIVE_LIMIT_EXCEEDED",
+      `Active continuity history already exceeds ${ACTIVE_EVENT_LIMIT}; repair it before recording.`
+    );
+  }
+  const event = normalizeEventInput(
+    input,
+    nextEventId([...activeEvents.map((item) => item.event_id), ...archiveIds])
+  );
+  const schema4 = validateSchema("event", event);
+  if (!schema4.valid) {
+    throw new RecordingError(
+      "PCP_RECORD_EVENT_INVALID",
+      "The normalized event failed its canonical release schema."
+    );
+  }
+  assertEventSemantics(event, semanticRecords);
+  return executeEventTransaction(root, event, activeEvents, archiveIds, options);
+}
+async function recordEvent(projectRoot, inputPath, options = {}) {
+  const root = path14.resolve(projectRoot);
+  try {
+    const input = await loadEventInput(inputPath, root);
+    return await withContinuityLock(root, () => recordEventLocked(root, input, options));
+  } catch (error2) {
+    if (error2 instanceof ContinuityLockError) {
+      throw new RecordingError(
+        "PCP_RECORD_LOCKED",
+        "Another actor registration or continuity operation is still running for this project."
+      );
+    }
+    if (error2 instanceof RecordingError) throw error2;
+    throw new RecordingError(
+      "PCP_RECORD_FAILED",
+      error2 instanceof Error ? error2.message : String(error2)
+    );
+  }
+}
+
+// src/application/register-actor.ts
+import { mkdir as mkdir4, open as open4, readFile as readFile13, readdir as readdir5, rm as rm4, unlink as unlink4 } from "node:fs/promises";
+import path15 from "node:path";
 
 // src/domain/registration.ts
 var ACTOR_TYPES = ["agent", "human"];
@@ -24149,112 +24839,25 @@ function actorIdentityMatches(profile, identity) {
   return profile.actor_type === identity.actor_type && profile.client === identity.client && profile.machine_label === identity.machine_label;
 }
 
-// src/infrastructure/continuity-lock.ts
-import { createHash as createHash6, randomUUID } from "node:crypto";
-import { mkdir as mkdir3, open as open2, readFile as readFile11, stat as stat3, unlink as unlink2 } from "node:fs/promises";
-import { tmpdir as tmpdir3 } from "node:os";
-import path13 from "node:path";
-import { setTimeout as delay } from "node:timers/promises";
-var LOCK_WAIT_MS = 3e4;
-var STALE_LOCK_MS = 5 * 6e4;
-var ContinuityLockError = class extends Error {
-  constructor(message) {
-    super(message);
-    this.name = "ContinuityLockError";
-  }
-};
-function lockDigest(root) {
-  const resolved = path13.resolve(root);
-  const portableRoot = process.platform === "win32" ? resolved.toLowerCase() : resolved;
-  return createHash6("sha256").update(portableRoot).digest("hex");
-}
-async function removeStaleLock(lockPath) {
-  try {
-    const metadata = await stat3(lockPath);
-    if (Date.now() - metadata.mtimeMs <= STALE_LOCK_MS) return false;
-    const contents = await readFile11(lockPath, "utf8");
-    let ownerPid;
-    try {
-      const value = JSON.parse(contents);
-      if (typeof value === "object" && value !== null && !Array.isArray(value)) {
-        const pid = value.pid;
-        if (typeof pid === "number" && Number.isSafeInteger(pid) && pid > 0) ownerPid = pid;
-      }
-    } catch {
-    }
-    if (ownerPid !== void 0) {
-      try {
-        process.kill(ownerPid, 0);
-        return false;
-      } catch (error2) {
-        if (error2.code !== "ESRCH") return false;
-      }
-    }
-    await unlink2(lockPath);
-    return true;
-  } catch (error2) {
-    if (error2.code === "ENOENT") return true;
-    throw error2;
-  }
-}
-async function withContinuityLock(projectRoot, operation) {
-  const lockRoot = path13.join(tmpdir3(), "pcp-continuity-locks");
-  await mkdir3(lockRoot, { recursive: true });
-  const lockPath = path13.join(lockRoot, `${lockDigest(projectRoot)}.lock`);
-  const token = randomUUID();
-  const lockContents = `${JSON.stringify({ token, pid: process.pid, created_at: (/* @__PURE__ */ new Date()).toISOString() })}
-`;
-  const deadline = Date.now() + LOCK_WAIT_MS;
-  let handle;
-  while (handle === void 0) {
-    try {
-      handle = await open2(lockPath, "wx");
-    } catch (error2) {
-      if (error2.code !== "EEXIST") throw error2;
-      if (await removeStaleLock(lockPath)) continue;
-      if (Date.now() >= deadline) {
-        throw new ContinuityLockError("Another continuity operation is still running.");
-      }
-      await delay(20);
-    }
-  }
-  try {
-    await handle.writeFile(lockContents);
-    await handle.sync();
-    return await operation();
-  } finally {
-    await handle.close();
-    const current = await readFile11(lockPath, "utf8").catch((error2) => {
-      if (error2.code === "ENOENT") return void 0;
-      throw error2;
-    });
-    if (current === lockContents) {
-      await unlink2(lockPath).catch((error2) => {
-        if (error2.code !== "ENOENT") throw error2;
-      });
-    }
-  }
-}
-
 // src/application/register-actor.ts
-var ACTOR_DIRECTORY = ".pcp/continuity/actors";
+var ACTOR_DIRECTORY2 = ".pcp/continuity/actors";
 var CACHE_DIRECTORY = ".pcp/runtime/actors";
 function portablePath(value) {
-  return value.split(path14.sep).join("/");
+  return value.split(path15.sep).join("/");
 }
 function profileRelativePath(actorId) {
-  return `${ACTOR_DIRECTORY}/${actorId}.yaml`;
+  return `${ACTOR_DIRECTORY2}/${actorId}.yaml`;
 }
 function cacheRelativePath(identity) {
   return `${CACHE_DIRECTORY}/${identity.actor_type}-${identity.client}-${identity.machine_label}.json`;
 }
-function validationSummary(report) {
+function validationSummary2(report) {
   return report.diagnostics.slice(0, 3).map((diagnostic2) => `${diagnostic2.path}: ${diagnostic2.message}`).join("; ");
 }
 async function assertValidCanonicalLayer(projectRoot) {
   const report = await validateCanonicalLayer(projectRoot, { archive_content: "filenames-only" });
   if (report.valid) return;
-  const detail = validationSummary(report);
+  const detail = validationSummary2(report);
   throw new RegistrationError(
     "PCP_REGISTRATION_INVALID_LAYER",
     `Actor registration requires a valid installed PCP layer${detail.length === 0 ? "." : `: ${detail}`}`
@@ -24262,7 +24865,7 @@ async function assertValidCanonicalLayer(projectRoot) {
 }
 async function readOptionalText(file) {
   try {
-    return await readFile12(file, "utf8");
+    return await readFile13(file, "utf8");
   } catch (error2) {
     if (error2.code === "ENOENT") return void 0;
     throw error2;
@@ -24279,13 +24882,13 @@ function actorProfile(value, relativePath) {
   return value;
 }
 async function loadActorProfiles(projectRoot) {
-  const actorRoot = path14.join(projectRoot, ...ACTOR_DIRECTORY.split("/"));
-  const entries = await readdir4(actorRoot, { withFileTypes: true });
+  const actorRoot = path15.join(projectRoot, ...ACTOR_DIRECTORY2.split("/"));
+  const entries = await readdir5(actorRoot, { withFileTypes: true });
   const profiles = [];
   for (const entry of entries.sort((left, right) => left.name.localeCompare(right.name))) {
     if (!entry.isFile() || !entry.name.endsWith(".yaml")) continue;
-    const relativePath = `${ACTOR_DIRECTORY}/${entry.name}`;
-    const contents = await readFile12(path14.join(actorRoot, entry.name), "utf8");
+    const relativePath = `${ACTOR_DIRECTORY2}/${entry.name}`;
+    const contents = await readFile13(path15.join(actorRoot, entry.name), "utf8");
     let value;
     try {
       value = parse(contents);
@@ -24361,7 +24964,7 @@ function sameIdentity(left, right) {
   return left.actor_type === right.actor_type && left.client === right.client && left.machine_label === right.machine_label;
 }
 async function createExclusiveFile(file, contents, onCreate) {
-  const handle = await open3(file, "wx");
+  const handle = await open4(file, "wx");
   try {
     onCreate();
     await handle.writeFile(contents, "utf8");
@@ -24371,7 +24974,7 @@ async function createExclusiveFile(file, contents, onCreate) {
   }
 }
 async function rollbackUnlink(file, failures) {
-  await unlink3(file).catch((error2) => {
+  await unlink4(file).catch((error2) => {
     if (error2.code !== "ENOENT") failures.push(error2);
   });
 }
@@ -24384,7 +24987,7 @@ async function rollbackCreatedPaths(input) {
     await rollbackUnlink(input.profile_path, failures);
   }
   if (input.runtime_root !== void 0) {
-    await rm3(input.runtime_root, { recursive: true, force: true }).catch(
+    await rm4(input.runtime_root, { recursive: true, force: true }).catch(
       (error2) => failures.push(error2)
     );
   }
@@ -24413,7 +25016,7 @@ async function withActorRegistrationLock(root, operation) {
   }
 }
 async function registerActor(projectRoot, input) {
-  const root = path14.resolve(projectRoot);
+  const root = path15.resolve(projectRoot);
   const identity = normalizeActorIdentity(input);
   const executionId = createExecutionId();
   return withActorRegistrationLock(root, async () => {
@@ -24424,7 +25027,7 @@ async function registerActor(projectRoot, input) {
       await assertValidCanonicalLayer(root);
       const profiles = await loadActorProfiles(root);
       const profilesById = new Map(profiles.map((profile) => [profile.actor_id, profile]));
-      const cachePath = path14.join(root, ...cacheRelativePath(identity).split("/"));
+      const cachePath = path15.join(root, ...cacheRelativePath(identity).split("/"));
       const cachedContents = await readOptionalText(cachePath);
       let selected;
       if (cachedContents !== void 0) {
@@ -24490,7 +25093,7 @@ async function registerActor(projectRoot, input) {
             "The generated actor profile did not satisfy the release schema."
           );
         }
-        const newProfilePath = path14.join(
+        const newProfilePath = path15.join(
           root,
           ...profileRelativePath(selected.actor_id).split("/")
         );
@@ -24502,7 +25105,7 @@ async function registerActor(projectRoot, input) {
       }
       let cacheCreated = false;
       if (cachedContents === void 0) {
-        const cacheDirectory = path14.dirname(cachePath);
+        const cacheDirectory = path15.dirname(cachePath);
         createdRuntimeRoot = await mkdir4(cacheDirectory, { recursive: true });
         await createExclusiveFile(
           cachePath,
@@ -24556,9 +25159,9 @@ async function registerActor(projectRoot, input) {
 }
 
 // src/application/report-status.ts
-import { randomUUID as randomUUID2 } from "node:crypto";
-import { lstat as lstat6, mkdir as mkdir5, open as open4, readFile as readFile13, readdir as readdir5, rename as rename2, unlink as unlink4 } from "node:fs/promises";
-import path15 from "node:path";
+import { randomUUID as randomUUID3 } from "node:crypto";
+import { lstat as lstat7, mkdir as mkdir5, open as open5, readFile as readFile14, readdir as readdir6, rename as rename3, unlink as unlink5 } from "node:fs/promises";
+import path16 from "node:path";
 
 // src/domain/reconciliation.ts
 var ReconciliationError = class extends Error {
@@ -24749,9 +25352,9 @@ function reconciliationDigest(value) {
 }
 
 // src/application/report-status.ts
-var ACTOR_DIRECTORY2 = "continuity/actors";
-var ACTIVE_EVENT_DIRECTORY = "continuity/events";
-var ARCHIVE_EVENT_DIRECTORY = "continuity/archive";
+var ACTOR_DIRECTORY3 = "continuity/actors";
+var ACTIVE_EVENT_DIRECTORY2 = "continuity/events";
+var ARCHIVE_EVENT_DIRECTORY2 = "continuity/archive";
 var CHECKPOINT_DIRECTORY = "continuity/checkpoints";
 var ULID_PATTERN = /^[0-7][0-9A-HJKMNP-TV-Z]{25}$/u;
 function statusError(code2, message) {
@@ -24763,10 +25366,10 @@ function layerPath(relativePath) {
 async function assertNoSymlinkFromLayer(layerRoot, target) {
   let current = target;
   while (true) {
-    const metadata = await lstat6(current);
+    const metadata = await lstat7(current);
     if (metadata.isSymbolicLink()) throw new Error("path has a symbolic-link boundary");
     if (current === layerRoot) return;
-    current = path15.dirname(current);
+    current = path16.dirname(current);
   }
 }
 function parseYaml(contents, relativePath) {
@@ -24787,15 +25390,15 @@ function parseYaml(contents, relativePath) {
   }
 }
 async function readSchemaFile(layerRoot, relativePath, schema4) {
-  const absolutePath = path15.join(layerRoot, ...relativePath.split("/"));
+  const absolutePath = path16.join(layerRoot, ...relativePath.split("/"));
   let contents;
   try {
     await assertNoSymlinkFromLayer(layerRoot, absolutePath);
-    const metadata = await lstat6(absolutePath);
+    const metadata = await lstat7(absolutePath);
     if (!metadata.isFile() || metadata.isSymbolicLink()) {
       throw new Error("path is not a regular file");
     }
-    contents = await readFile13(absolutePath, "utf8");
+    contents = await readFile14(absolutePath, "utf8");
   } catch (error2) {
     throw statusError(
       "PCP_STATUS_INVALID_LAYER",
@@ -24814,15 +25417,15 @@ async function readSchemaFile(layerRoot, relativePath, schema4) {
   return { path: relativePath, value, contents };
 }
 async function readSchemaDirectory(layerRoot, relativeDirectory, schema4) {
-  const absoluteDirectory = path15.join(layerRoot, ...relativeDirectory.split("/"));
+  const absoluteDirectory = path16.join(layerRoot, ...relativeDirectory.split("/"));
   let entries;
   try {
     await assertNoSymlinkFromLayer(layerRoot, absoluteDirectory);
-    const metadata = await lstat6(absoluteDirectory);
+    const metadata = await lstat7(absoluteDirectory);
     if (!metadata.isDirectory() || metadata.isSymbolicLink()) {
       throw new Error("path is not a regular directory");
     }
-    entries = await readdir5(absoluteDirectory, { withFileTypes: true });
+    entries = await readdir6(absoluteDirectory, { withFileTypes: true });
   } catch (error2) {
     throw statusError(
       "PCP_STATUS_INVALID_LAYER",
@@ -24850,19 +25453,19 @@ async function readSchemaDirectory(layerRoot, relativeDirectory, schema4) {
   return records;
 }
 async function listArchiveEventIds(layerRoot) {
-  const absoluteDirectory = path15.join(layerRoot, ...ARCHIVE_EVENT_DIRECTORY.split("/"));
+  const absoluteDirectory = path16.join(layerRoot, ...ARCHIVE_EVENT_DIRECTORY2.split("/"));
   let entries;
   try {
     await assertNoSymlinkFromLayer(layerRoot, absoluteDirectory);
-    const metadata = await lstat6(absoluteDirectory);
+    const metadata = await lstat7(absoluteDirectory);
     if (!metadata.isDirectory() || metadata.isSymbolicLink()) {
       throw new Error("path is not a regular directory");
     }
-    entries = await readdir5(absoluteDirectory, { withFileTypes: true });
+    entries = await readdir6(absoluteDirectory, { withFileTypes: true });
   } catch (error2) {
     throw statusError(
       "PCP_STATUS_INVALID_LAYER",
-      `Cannot inspect ${layerPath(ARCHIVE_EVENT_DIRECTORY)}: ${error2 instanceof Error ? error2.message : String(error2)}`
+      `Cannot inspect ${layerPath(ARCHIVE_EVENT_DIRECTORY2)}: ${error2 instanceof Error ? error2.message : String(error2)}`
     );
   }
   const ids = [];
@@ -24870,14 +25473,14 @@ async function listArchiveEventIds(layerRoot) {
     if (entry.isSymbolicLink()) {
       throw statusError(
         "PCP_STATUS_INVALID_LAYER",
-        `Symlinks are not allowed in ${layerPath(ARCHIVE_EVENT_DIRECTORY)}.`
+        `Symlinks are not allowed in ${layerPath(ARCHIVE_EVENT_DIRECTORY2)}.`
       );
     }
     if (!entry.isFile()) continue;
     if (entry.name.endsWith(".yml")) {
       throw statusError(
         "PCP_STATUS_INVALID_LAYER",
-        `${layerPath(`${ARCHIVE_EVENT_DIRECTORY}/${entry.name}`)} must use the canonical .yaml suffix.`
+        `${layerPath(`${ARCHIVE_EVENT_DIRECTORY2}/${entry.name}`)} must use the canonical .yaml suffix.`
       );
     }
     if (!entry.name.endsWith(".yaml")) continue;
@@ -24885,7 +25488,7 @@ async function listArchiveEventIds(layerRoot) {
     if (!ULID_PATTERN.test(eventId)) {
       throw statusError(
         "PCP_STATUS_INVALID_LAYER",
-        `Archived event filename must be a ULID: ${layerPath(`${ARCHIVE_EVENT_DIRECTORY}/${entry.name}`)}.`
+        `Archived event filename must be a ULID: ${layerPath(`${ARCHIVE_EVENT_DIRECTORY2}/${entry.name}`)}.`
       );
     }
     ids.push(eventId);
@@ -24905,7 +25508,7 @@ function semanticFailure(records) {
   throw statusError("PCP_STATUS_INVALID_LAYER", `PCP continuity state is inconsistent: ${detail}`);
 }
 async function loadOperationalContinuityState(root) {
-  const layerRoot = path15.join(root, ".pcp");
+  const layerRoot = path16.join(root, ".pcp");
   const [
     manifest,
     project,
@@ -24922,13 +25525,13 @@ async function loadOperationalContinuityState(root) {
     readSchemaFile(layerRoot, "state/projects.yaml", "project-registry"),
     readSchemaFile(layerRoot, "state/workstreams.yaml", "workstreams"),
     readSchemaFile(layerRoot, "state/vcs-policy.yaml", "vcs-policy"),
-    readSchemaDirectory(layerRoot, ACTOR_DIRECTORY2, "actor-profile"),
-    readSchemaDirectory(layerRoot, ACTIVE_EVENT_DIRECTORY, "event"),
+    readSchemaDirectory(layerRoot, ACTOR_DIRECTORY3, "actor-profile"),
+    readSchemaDirectory(layerRoot, ACTIVE_EVENT_DIRECTORY2, "event"),
     readSchemaDirectory(layerRoot, CHECKPOINT_DIRECTORY, "checkpoint"),
     listArchiveEventIds(layerRoot)
   ]);
   const archiveStubs = archiveEventIds.map((eventId) => ({
-    path: `${ARCHIVE_EVENT_DIRECTORY}/${eventId}.yaml`,
+    path: `${ARCHIVE_EVENT_DIRECTORY2}/${eventId}.yaml`,
     value: { event_id: eventId }
   }));
   semanticFailure({
@@ -25102,14 +25705,14 @@ function previewStatus(state, input) {
 }
 async function fileContentsOrUndefined(file) {
   try {
-    return await readFile13(file, "utf8");
+    return await readFile14(file, "utf8");
   } catch (error2) {
     if (error2.code === "ENOENT") return void 0;
     throw error2;
   }
 }
-async function writeDurableFile(file, contents) {
-  const handle = await open4(file, "wx");
+async function writeDurableFile2(file, contents) {
+  const handle = await open5(file, "wx");
   try {
     await handle.writeFile(contents, "utf8");
     await handle.sync();
@@ -25126,8 +25729,8 @@ async function writeCheckpoint(root, checkpoint, existing) {
     );
   }
   const relativePath = `${CHECKPOINT_DIRECTORY}/${checkpoint.checkpoint_id}.yaml`;
-  const directory = path15.join(root, ".pcp", ...CHECKPOINT_DIRECTORY.split("/"));
-  const target = path15.join(root, ".pcp", ...relativePath.split("/"));
+  const directory = path16.join(root, ".pcp", ...CHECKPOINT_DIRECTORY.split("/"));
+  const target = path16.join(root, ".pcp", ...relativePath.split("/"));
   await mkdir5(directory, { recursive: true });
   if (existing !== void 0) {
     const current = await fileContentsOrUndefined(target);
@@ -25144,39 +25747,39 @@ async function writeCheckpoint(root, checkpoint, existing) {
     );
   }
   const contents = stringify3(checkpoint);
-  const temporary = path15.join(directory, `.${checkpoint.checkpoint_id}.${randomUUID2()}.tmp`);
+  const temporary = path16.join(directory, `.${checkpoint.checkpoint_id}.${randomUUID3()}.tmp`);
   const previous = `${temporary}.previous`;
-  await writeDurableFile(temporary, contents);
+  await writeDurableFile2(temporary, contents);
   let previousHeld = false;
   let replacementInstalled = false;
   try {
     if (existing === void 0) {
-      await rename2(temporary, target);
+      await rename3(temporary, target);
       return layerPath(relativePath);
     }
     try {
-      await rename2(temporary, target);
+      await rename3(temporary, target);
       return layerPath(relativePath);
     } catch (error2) {
       const code2 = error2.code;
       if (code2 !== "EEXIST" && code2 !== "EPERM") throw error2;
     }
-    await rename2(target, previous);
+    await rename3(target, previous);
     previousHeld = true;
-    await rename2(temporary, target);
+    await rename3(temporary, target);
     replacementInstalled = true;
     if (previousHeld) {
-      await unlink4(previous);
+      await unlink5(previous);
       previousHeld = false;
     }
     return layerPath(relativePath);
   } catch (error2) {
     const rollbackFailures = [];
     if (replacementInstalled) {
-      await unlink4(target).catch((rollbackError) => rollbackFailures.push(rollbackError));
+      await unlink5(target).catch((rollbackError) => rollbackFailures.push(rollbackError));
     }
     if (previousHeld) {
-      await rename2(previous, target).catch(
+      await rename3(previous, target).catch(
         (rollbackError) => rollbackFailures.push(rollbackError)
       );
     }
@@ -25189,7 +25792,7 @@ async function writeCheckpoint(root, checkpoint, existing) {
     }
     throw error2;
   } finally {
-    await unlink4(temporary).catch((error2) => {
+    await unlink5(temporary).catch((error2) => {
       if (error2.code !== "ENOENT") throw error2;
     });
   }
@@ -25243,7 +25846,7 @@ async function reportStatusLocked(root, input) {
   };
 }
 async function reportStatus(projectRoot, input) {
-  const root = path15.resolve(projectRoot);
+  const root = path16.resolve(projectRoot);
   try {
     return await withContinuityLock(root, () => reportStatusLocked(root, input));
   } catch (error2) {
@@ -25261,7 +25864,7 @@ async function reportStatus(projectRoot, input) {
 // src/domain/release.ts
 var PCP_NAME = "Persistent Context Protocol";
 var PCP_VERSION = "0.1.0";
-var PCP_RELEASE_STAGE = "scoped-reconciliation";
+var PCP_RELEASE_STAGE = "event-recording";
 var PCP_COMMANDS = [
   "inspect",
   "adopt",
@@ -25334,10 +25937,10 @@ function formatAdoption(result) {
     }
     output += line("Operations:");
     for (const operation of result.plan.operations) {
-      const digest = operation.content_digest === void 0 ? "" : ` sha256:${operation.content_digest}`;
+      const digest2 = operation.content_digest === void 0 ? "" : ` sha256:${operation.content_digest}`;
       const source = operation.source_path === void 0 ? "" : ` from:${operation.source_path}`;
       output += line(
-        `- ${operation.operation_id} ${operation.action} ${operation.path}${source}${digest}`
+        `- ${operation.operation_id} ${operation.action} ${operation.path}${source}${digest2}`
       );
     }
     output += line(`Validations: ${result.plan.validations.join(", ")}`);
@@ -25414,6 +26017,18 @@ function formatInspection(result) {
   lines.push("Mutation: none");
   return `${lines.join("\n")}
 `;
+}
+
+// src/presentation/format-recording.ts
+function formatRecording(result) {
+  return [
+    `Recorded event ${result.event_id}.`,
+    `Summary: ${result.summary}`,
+    `Path: ${result.event_path}`,
+    `Active events: ${result.active_events}`,
+    `Archived in this operation: ${result.archived_events_moved}`,
+    ""
+  ].join("\n");
 }
 
 // src/presentation/format-registration.ts
@@ -25516,6 +26131,17 @@ function reportStatusError(error2) {
 `);
   process.exitCode = 2;
 }
+function reportRecordingError(error2) {
+  const code2 = error2 instanceof RecordingError ? error2.code : "PCP_RECORD_FAILED";
+  const message = error2 instanceof Error ? error2.message : String(error2);
+  const mutated = error2 instanceof RecordingError ? error2.mutated : false;
+  const recoveryRetained = error2 instanceof RecordingError ? error2.recovery_retained : false;
+  process.stderr.write(
+    `${JSON.stringify({ code: code2, message, mutated, recovery_retained: recoveryRetained })}
+`
+  );
+  process.exitCode = 2;
+}
 function addInspectCommand(program2) {
   return program2.command("inspect").description(commandDescriptions.inspect).argument("[directory]", "candidate project root").option("--candidate <directory>", "candidate project root").option("--json", "emit stable structured JSON").action(async (directory, options) => {
     try {
@@ -25582,6 +26208,19 @@ function addStatusCommand(program2) {
     }
   });
 }
+function addRecordCommand(program2) {
+  return program2.command("record").description(commandDescriptions.record).argument("[directory]", "managed project root").option("--candidate <directory>", "managed project root").requiredOption("--input <event.yaml>", "external continuity event input").option("--json", "emit stable structured JSON").action(async (directory, options) => {
+    try {
+      const result = await recordEvent(options.candidate ?? directory ?? ".", options.input);
+      process.stdout.write(
+        options.json === true ? `${JSON.stringify(result, null, 2)}
+` : formatRecording(result)
+      );
+    } catch (error2) {
+      reportRecordingError(error2);
+    }
+  });
+}
 function addValidateCommand(program2) {
   return program2.command("validate").description(commandDescriptions.validate).argument("[directory]", "managed project root", ".").option("--clean-genesis", "require zero actor profiles and zero active or archived events").option("--archive-index-only", "validate archive filenames without reading archived content").option("--json", "emit stable structured JSON").action(async (directory, options) => {
     try {
@@ -25625,9 +26264,6 @@ function reportOperationError(code2, error2, mutationPossible) {
 function addUnavailableCommand(program2, commandName) {
   const command = program2.command(commandName).description(commandDescriptions[commandName]);
   switch (commandName) {
-    case "record":
-      command.requiredOption("--input <event.yaml>", "event candidate to validate and record");
-      break;
     case "upgrade":
     case "repair":
       command.option("--apply <digest>", "apply only the matching preview digest");
@@ -25655,6 +26291,8 @@ function createProgram() {
       addRegisterCommand(program2);
     } else if (commandName === "status") {
       addStatusCommand(program2);
+    } else if (commandName === "record") {
+      addRecordCommand(program2);
     } else if (commandName === "validate") {
       addValidateCommand(program2);
     } else if (commandName === "render") {

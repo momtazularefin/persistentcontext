@@ -56,13 +56,38 @@
       "$ref": "urn:pcp:schema:v1:common#/$defs/slugArray"
     },
     "summary": {
-      "$ref": "urn:pcp:schema:v1:common#/$defs/nonEmptyString"
+      "$ref": "#/$defs/summary"
     },
     "rationale": {
-      "$ref": "urn:pcp:schema:v1:common#/$defs/nonEmptyString"
+      "$ref": "#/$defs/rationale"
     },
     "affected_paths": {
       "$ref": "urn:pcp:schema:v1:common#/$defs/pathArray"
+    }
+  },
+  "anyOf": [
+    {
+      "properties": { "scopes": { "type": "array", "minItems": 1 } }
+    },
+    {
+      "properties": { "workstreams": { "type": "array", "minItems": 1 } }
+    },
+    {
+      "properties": { "affected_paths": { "type": "array", "minItems": 1 } }
+    }
+  ],
+  "$defs": {
+    "summary": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 240,
+      "pattern": "\\S"
+    },
+    "rationale": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 1000,
+      "pattern": "\\S"
     }
   }
 }

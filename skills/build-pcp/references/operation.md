@@ -45,7 +45,27 @@ Acknowledgement recomputes under the shared continuity lock. A mismatch fails wi
 
 Record one minimal immutable event for a durable project change. Include the performing actor, recording actor, basis (`self`, `reported`, `observed`, or `system`), kind, affected scope, summary, and affected paths; add rationale only when it helps reconciliation. The first agent informed of an unrecorded human change records it. Accept a human's VCS report without claiming verification, and report and correct any later contradiction. Never edit an existing event.
 
-Keep at most 64 events in `continuity/events/`. Before adding event 65, move the oldest 32 immutable records to `continuity/archive/`. ULIDs remain unique across both locations. Archive history is explicit-audit material and is not part of normal agent reading.
+Prepare the transient input outside the managed project, then let the engine assign the event ULID. Omit `occurred_at` to use the recording time, or supply it when the action happened earlier:
+
+```yaml
+schema_version: 1
+actor: { type: agent, id: <performing-actor-id> }
+recorded_by: { type: agent, id: <recording-actor-id> }
+basis: self
+kind: code
+scopes: [implementation]
+workstreams: []
+summary: Implemented one coherent project change.
+affected_paths: [src/example.ts]
+```
+
+```text
+node <pcp-engine> record <project-root> --input <external-event.yaml> --json
+```
+
+Use `reported` when a human tells the recorder about an action and `observed` when the recorder notices it independently. Register the human first if no durable profile exists. Use `system` only with system as both actor and recorder. Keep summaries at or below 240 characters and rationale at or below 1,000. At least one scope, workstream, or affected path is required so reconciliation can locate the change.
+
+The command validates the installed layer and attribution before mutation, serializes concurrent writers, and validates the live result. Keep at most 64 events in `continuity/events/`. Before adding event 65, the same transaction moves the oldest 32 immutable records to `continuity/archive/`; a caught failure restores exact active contents and archive identities. ULIDs remain unique and ordered across both locations. Archive history is explicit-audit material and is not part of normal agent reading.
 
 ## Rendering
 

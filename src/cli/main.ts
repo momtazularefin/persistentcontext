@@ -5,6 +5,7 @@ import { Command } from 'commander';
 
 import { adoptProject } from '../application/adopt-project.js';
 import { inspectRepository } from '../application/inspect-repository.js';
+import { recordEvent } from '../application/record-event.js';
 import { registerActor } from '../application/register-actor.js';
 import { reportStatus } from '../application/report-status.js';
 import { renderCanonicalViews } from '../application/render-canonical-views.js';
@@ -18,6 +19,7 @@ import {
 } from '../domain/release.js';
 import { AdoptionError } from '../domain/adoption.js';
 import { InspectionError } from '../domain/inspection.js';
+import { RecordingError } from '../domain/recording.js';
 import { normalizeMachineLabel, RegistrationError } from '../domain/registration.js';
 import { ReconciliationError } from '../domain/reconciliation.js';
 import { formatAdoption } from '../presentation/format-adoption.js';
@@ -26,6 +28,7 @@ import {
   formatCanonicalValidation,
 } from '../presentation/format-canonical.js';
 import { formatInspection } from '../presentation/format-inspection.js';
+import { formatRecording } from '../presentation/format-recording.js';
 import { formatRegistration } from '../presentation/format-registration.js';
 import { formatStatus } from '../presentation/format-status.js';
 
@@ -86,6 +89,12 @@ interface StatusOptions {
   json?: boolean;
 }
 
+interface RecordOptions {
+  candidate?: string;
+  input: string;
+  json?: boolean;
+}
+
 interface ValidateOptions {
   cleanGenesis?: boolean;
   archiveIndexOnly?: boolean;
@@ -128,6 +137,17 @@ function reportStatusError(error: unknown): void {
   const message = error instanceof Error ? error.message : String(error);
   const mutated = error instanceof ReconciliationError ? error.mutated : false;
   process.stderr.write(`${JSON.stringify({ code, message, mutated })}\n`);
+  process.exitCode = 2;
+}
+
+function reportRecordingError(error: unknown): void {
+  const code = error instanceof RecordingError ? error.code : 'PCP_RECORD_FAILED';
+  const message = error instanceof Error ? error.message : String(error);
+  const mutated = error instanceof RecordingError ? error.mutated : false;
+  const recoveryRetained = error instanceof RecordingError ? error.recovery_retained : false;
+  process.stderr.write(
+    `${JSON.stringify({ code, message, mutated, recovery_retained: recoveryRetained })}\n`,
+  );
   process.exitCode = 2;
 }
 
@@ -234,6 +254,26 @@ function addStatusCommand(program: Command): Command {
     });
 }
 
+function addRecordCommand(program: Command): Command {
+  return program
+    .command('record')
+    .description(commandDescriptions.record)
+    .argument('[directory]', 'managed project root')
+    .option('--candidate <directory>', 'managed project root')
+    .requiredOption('--input <event.yaml>', 'external continuity event input')
+    .option('--json', 'emit stable structured JSON')
+    .action(async (directory: string | undefined, options: RecordOptions) => {
+      try {
+        const result = await recordEvent(options.candidate ?? directory ?? '.', options.input);
+        process.stdout.write(
+          options.json === true ? `${JSON.stringify(result, null, 2)}\n` : formatRecording(result),
+        );
+      } catch (error) {
+        reportRecordingError(error);
+      }
+    });
+}
+
 function addValidateCommand(program: Command): Command {
   return program
     .command('validate')
@@ -295,9 +335,6 @@ function addUnavailableCommand(program: Command, commandName: PcpCommandName): C
   const command = program.command(commandName).description(commandDescriptions[commandName]);
 
   switch (commandName) {
-    case 'record':
-      command.requiredOption('--input <event.yaml>', 'event candidate to validate and record');
-      break;
     case 'upgrade':
     case 'repair':
       command.option('--apply <digest>', 'apply only the matching preview digest');
@@ -333,6 +370,8 @@ export function createProgram(): Command {
       addRegisterCommand(program);
     } else if (commandName === 'status') {
       addStatusCommand(program);
+    } else if (commandName === 'record') {
+      addRecordCommand(program);
     } else if (commandName === 'validate') {
       addValidateCommand(program);
     } else if (commandName === 'render') {

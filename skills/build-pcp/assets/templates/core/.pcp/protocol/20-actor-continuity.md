@@ -2,8 +2,8 @@
 doc: protocol/20-actor-continuity.md
 type: protocol
 status: static
-version: 1.2.0
-last_updated: 2026-07-15T08:53:00Z
+version: 1.3.0
+last_updated: 2026-07-15T15:40:00+06:00
 ownership: protocol
 ---
 
@@ -39,6 +39,8 @@ ownership: protocol
 
 - Record one minimal event for a meaningful durable change after canonical state is valid.
 - Record who performed the action, who recorded it, and whether it was self-recorded, reported, observed, or system-generated.
+- Describe the event in a schema-valid transient file outside the managed project, then run `pcp record --input <external-event.yaml>`; the engine assigns the globally ordered event ULID under the continuity lock.
+- Include at least one semantic scope, workstream, or affected project path. Keep the summary at or below 240 characters and optional rationale at or below 1,000 characters.
 - When a human reports a change or VCS operation, record the report without claiming independent verification. If later evidence disagrees, notify the human and record the correction.
 - The first agent that notices an unrecorded durable human change records it; do not duplicate an existing event.
 - Do not record routine inspection, registration, synchronization, no-op rendering, or adoption.
@@ -48,6 +50,7 @@ ownership: protocol
 
 - Keep at most 64 events in `continuity/events/`.
 - When an addition would exceed 64, move the oldest 32 immutable events to `continuity/archive/` in one maintenance operation.
+- Recording and archive rotation form one validated transaction; a caught failure restores exact active contents and archive identities.
 - Event ULIDs remain globally unique and monotonic across active and archived history. No shared sequential counter is used.
 - Agents do not read archived events during normal work. Archive content access requires an explicit audit, recovery, or historical request; operational validation uses archive-index-only mode.
 

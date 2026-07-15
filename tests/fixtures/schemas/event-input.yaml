@@ -1,0 +1,45 @@
+schema: event-input
+valid:
+  schema_version: 1
+  occurred_at: 2026-07-15T09:30:00Z
+  actor:
+    type: human
+    id: human-laptop-01ARZ3NDEK
+  recorded_by:
+    type: agent
+    id: codex-laptop-01ARZ3NDEK
+  basis: reported
+  kind: vcs
+  scopes: [version-control]
+  workstreams: []
+  summary: Human signed the scoped-status commit.
+  affected_paths: [.git]
+invalid:
+  - name: unsupported recording basis
+    operation: set
+    path: basis
+    value: assumed
+  - name: whitespace-only summary
+    operation: set
+    path: summary
+    value: '   '
+  - name: event has no reconciliation locator
+    operation: set
+    path: scopes
+    value: []
+    profile: no-locators
+profiles:
+  no-locators:
+    schema_version: 1
+    actor:
+      type: agent
+      id: codex-laptop-01ARZ3NDEK
+    recorded_by:
+      type: agent
+      id: codex-laptop-01ARZ3NDEK
+    basis: self
+    kind: code
+    scopes: []
+    workstreams: []
+    summary: Changed code.
+    affected_paths: []

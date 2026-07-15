@@ -67,7 +67,7 @@ async function loadFixture(name: SchemaName): Promise<SchemaFixture> {
 describe('canonical schema catalogue', () => {
   it('compiles every release schema in strict draft 2020-12 mode', () => {
     expect(() => new SchemaRegistry()).not.toThrow();
-    expect(SCHEMA_NAMES).toHaveLength(13);
+    expect(SCHEMA_NAMES).toHaveLength(14);
   });
 
   it.each(SCHEMA_NAMES)('accepts the valid %s fixture', async (name) => {

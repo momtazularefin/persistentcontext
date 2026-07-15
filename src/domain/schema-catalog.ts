@@ -5,6 +5,7 @@ import checkpointSchema from '../../schemas/v1/checkpoint.schema.json' with { ty
 import commonSchema from '../../schemas/v1/common.schema.json' with { type: 'json' };
 import coverageSchema from '../../schemas/v1/coverage.schema.json' with { type: 'json' };
 import eventSchema from '../../schemas/v1/event.schema.json' with { type: 'json' };
+import eventInputSchema from '../../schemas/v1/event-input.schema.json' with { type: 'json' };
 import frontmatterSchema from '../../schemas/v1/frontmatter.schema.json' with { type: 'json' };
 import mutationPlanSchema from '../../schemas/v1/mutation-plan.schema.json' with { type: 'json' };
 import pcpManifestSchema from '../../schemas/v1/pcp-manifest.schema.json' with { type: 'json' };
@@ -20,6 +21,7 @@ export const SCHEMA_CATALOG = {
   checkpoint: checkpointSchema,
   coverage: coverageSchema,
   event: eventSchema,
+  'event-input': eventInputSchema,
   frontmatter: frontmatterSchema,
   'mutation-plan': mutationPlanSchema,
   'pcp-manifest': pcpManifestSchema,

@@ -254,6 +254,26 @@ describe('installed canonical layer validation', () => {
     expect(codes).toContain('event.self-recorder-mismatch');
   });
 
+  it('reserves system identities for system-generated events', async () => {
+    const root = await createProject();
+    await writeEvent(root, {
+      actor: { type: 'system', id: 'pcp' },
+      recordedBy: { type: 'system', id: 'pcp' },
+      basis: 'self',
+    });
+
+    expect(diagnosticCodes(await validateCanonicalLayer(root))).toContain(
+      'event.system-reference-basis',
+    );
+
+    await writeEvent(root, {
+      actor: { type: 'system', id: 'pcp' },
+      recordedBy: { type: 'system', id: 'pcp' },
+      basis: 'system',
+    });
+    expect((await validateCanonicalLayer(root)).valid).toBe(true);
+  });
+
   it('preserves human performers and agent recorders for reported and observed changes', async () => {
     const root = await createProject();
     await writeActor(root);
@@ -474,5 +494,20 @@ source_digest: aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
       );
     }
     expect((await validateCanonicalLayer(root)).valid).toBe(true);
+  });
+
+  it('rejects archived history that is newer than the active-event floor', async () => {
+    const root = await createProject();
+    await writeActor(root);
+    await writeEvent(root, { id: '01ARZ3NDEKTSV4RRFFQ69G5FAV' });
+    await writeEvent(root, {
+      id: '01ARZ3NDEKTSV4RRFFQ69G5FAW',
+      directory: 'archive',
+    });
+
+    expect(diagnosticCodes(await validateCanonicalLayer(root))).toContain('event.archive-order');
+    expect(
+      diagnosticCodes(await validateCanonicalLayer(root, { archive_content: 'filenames-only' })),
+    ).toContain('event.archive-order');
   });
 });

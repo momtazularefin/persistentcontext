@@ -229,6 +229,52 @@ try {
     throw new Error('Bundled pcp registration created a continuity event.');
   }
 
+  const eventInput = join(adoptionRoot, 'event.json');
+  await writeFile(
+    eventInput,
+    `${JSON.stringify(
+      {
+        schema_version: 1,
+        actor: { type: 'agent', id: firstRegistrationResult.actor_id },
+        recorded_by: { type: 'agent', id: firstRegistrationResult.actor_id },
+        basis: 'self',
+        kind: 'code',
+        scopes: ['distribution'],
+        workstreams: [],
+        summary: 'Verified immutable event recording in the packaged engine.',
+        affected_paths: ['README.md'],
+      },
+      null,
+      2,
+    )}\n`,
+    'utf8',
+  );
+  const recording = spawnSync(
+    process.execPath,
+    [fileURLToPath(skillBundle), 'record', adoptionCandidate, '--input', eventInput, '--json'],
+    { encoding: 'utf8', windowsHide: true },
+  );
+  if (recording.status !== 0) {
+    throw new Error(`Bundled pcp recording failed: ${recording.stderr || recording.stdout}`);
+  }
+  const recordingResult = JSON.parse(recording.stdout);
+  if (
+    recordingResult.status !== 'recorded' ||
+    recordingResult.event_created !== true ||
+    recordingResult.mutated !== true ||
+    recordingResult.active_events !== 1 ||
+    recordingResult.archived_events_moved !== 0 ||
+    !/^[0-7][0-9A-HJKMNP-TV-Z]{25}$/.test(recordingResult.event_id ?? '')
+  ) {
+    throw new Error('Bundled pcp record returned an unexpected result.');
+  }
+  const recordedEvents = (
+    await readdir(join(adoptionCandidate, '.pcp', 'continuity', 'events'))
+  ).filter((entry) => entry.endsWith('.yaml'));
+  if (recordedEvents.length !== 1) {
+    throw new Error('Bundled pcp record did not create exactly one continuity event.');
+  }
+
   const statusArguments = [
     fileURLToPath(skillBundle),
     'status',
@@ -302,7 +348,7 @@ try {
   const statusEvents = (
     await readdir(join(adoptionCandidate, '.pcp', 'continuity', 'events'))
   ).filter((entry) => entry.endsWith('.yaml'));
-  if (statusCheckpoints.length !== 1 || statusEvents.length !== 0) {
+  if (statusCheckpoints.length !== 1 || statusEvents.length !== 1) {
     throw new Error('Bundled pcp status did not preserve checkpoint-only acknowledgement.');
   }
 

@@ -27,3 +27,8 @@ invalid:
   - name: missing recording actor
     operation: delete
     path: recorded_by
+  - name: summary exceeds the concise event limit
+    operation: set
+    path: summary
+    value: >-
+      This deliberately oversized summary repeats enough words to exceed the concise event envelope and prove that durable continuity records remain short, concrete, and cheap for agents to scan instead of becoming another prose knowledge store with hidden decisions and large narrative explanations that belong in canonical project documents rather than active reconciliation history.
