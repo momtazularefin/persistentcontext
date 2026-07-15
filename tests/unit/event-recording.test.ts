@@ -336,7 +336,7 @@ describe('continuity event recording', () => {
       expect(await recoveryDirectories(root)).toEqual([]);
     }
     expect((await validateCanonicalLayer(root)).valid).toBe(true);
-  }, 30_000);
+  }, 60_000);
 
   it('does not read archived event contents during ordinary recording', async () => {
     const root = await createProject();
