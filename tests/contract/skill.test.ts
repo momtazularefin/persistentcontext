@@ -39,4 +39,16 @@ describe('build-pcp skill contract', () => {
       await expect(access(new URL(asset, skillRoot))).resolves.toBeUndefined();
     }
   });
+
+  it('documents executable actor registration without inventing an event', async () => {
+    const skill = await readFile(new URL('SKILL.md', skillRoot), 'utf8');
+    const operation = await readFile(new URL('references/operation.md', skillRoot), 'utf8');
+
+    expect(skill).toContain('`register`');
+    expect(operation).toContain(
+      'register <project-root> --client <client> --machine-label <machine-slug> --json',
+    );
+    expect(operation).toContain('returned `execution_id`');
+    expect(operation).toContain('Registration, status checks, and unchanged rendering');
+  });
 });

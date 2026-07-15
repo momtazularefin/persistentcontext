@@ -6,6 +6,7 @@ import { parse } from 'yaml';
 import { describe, expect, it } from 'vitest';
 
 import { SCHEMA_NAMES, type SchemaName } from '../../src/domain/schema-catalog.js';
+import { ACTOR_CLIENTS } from '../../src/domain/registration.js';
 import { SchemaRegistry } from '../../src/infrastructure/schema-validator.js';
 
 interface InvalidFixture {
@@ -90,6 +91,23 @@ describe('canonical schema catalogue', () => {
     const registry = new SchemaRegistry();
     for (const [profile, value] of Object.entries(fixture.profiles ?? {})) {
       expect(registry.validate('vcs-policy', value), profile).toEqual({
+        valid: true,
+        diagnostics: [],
+      });
+    }
+  });
+
+  it('accepts every declared actor client', async () => {
+    const fixture = await loadFixture('actor-profile');
+    const registry = new SchemaRegistry();
+
+    for (const client of ACTOR_CLIENTS) {
+      const profile = structuredClone(fixture.valid) as Record<string, unknown>;
+      profile.actor_id = `${client}-laptop-01ARZ3NDEK`;
+      profile.actor_type = client === 'human' ? 'human' : 'agent';
+      profile.client = client;
+      if (client === 'human') profile.checkpoint_paths = [];
+      expect(registry.validate('actor-profile', profile), client).toEqual({
         valid: true,
         diagnostics: [],
       });

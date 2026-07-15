@@ -1,5 +1,9 @@
-import { describe, expect, it, vi } from 'vitest';
+import { cp, mkdtemp, rm } from 'node:fs/promises';
+import { tmpdir } from 'node:os';
+import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+
+import { describe, expect, it, vi } from 'vitest';
 
 import { createProgram, runCli } from '../../src/cli/main.js';
 import { PCP_COMMANDS } from '../../src/domain/release.js';
@@ -25,13 +29,13 @@ describe('pcp command surface', () => {
     }
   });
 
-  it('fails closed for an unimplemented lifecycle operation', async () => {
+  it('fails closed for a lifecycle operation that remains unavailable', async () => {
     const errorOutput = vi.spyOn(process.stderr, 'write').mockImplementation(() => true);
     const previousExitCode = process.exitCode;
     process.exitCode = undefined;
 
     try {
-      await createProgram().parseAsync(['node', 'pcp', 'register']);
+      await createProgram().parseAsync(['node', 'pcp', 'status']);
       expect(process.exitCode).toBe(2);
       expect(errorOutput).toHaveBeenCalledWith(
         expect.stringContaining('"code":"PCP_OPERATION_UNAVAILABLE"'),
@@ -40,6 +44,43 @@ describe('pcp command surface', () => {
     } finally {
       process.exitCode = previousExitCode;
       errorOutput.mockRestore();
+    }
+  });
+
+  it('registers an actor with structured JSON output', async () => {
+    const output = vi.spyOn(process.stdout, 'write').mockImplementation(() => true);
+    const previousExitCode = process.exitCode;
+    process.exitCode = undefined;
+    const root = await mkdtemp(path.join(tmpdir(), 'pcp-program-registration-'));
+    const template = fileURLToPath(new URL('../../templates/core/.pcp/', import.meta.url));
+    await cp(template, path.join(root, '.pcp'), { recursive: true });
+
+    try {
+      await createProgram().parseAsync([
+        'node',
+        'pcp',
+        'register',
+        root,
+        '--client',
+        'codex',
+        '--machine-label',
+        'cli-machine',
+        '--json',
+      ]);
+      const serialized = String(output.mock.calls.at(-1)?.[0]);
+      expect(JSON.parse(serialized)).toMatchObject({
+        command: 'register',
+        status: 'created',
+        client: 'codex',
+        machine_label: 'cli-machine',
+        event_created: false,
+        mutated: true,
+      });
+      expect(process.exitCode).toBeUndefined();
+    } finally {
+      process.exitCode = previousExitCode;
+      output.mockRestore();
+      await rm(root, { recursive: true, force: true });
     }
   });
 

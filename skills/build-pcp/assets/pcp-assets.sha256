@@ -1,4 +1,4 @@
-7d08dbe68aa48b6bd456d197ea33bccdd17c1337f609a5c445ecc281fe8498eb  schemas/v1/actor-profile.schema.json
+0513cb36153b9a4d301a50a7286518279fce1f6bf0a61efeeb42100cdb9af044  schemas/v1/actor-profile.schema.json
 caa83ef5b0b966450d7b9f4313a3bef83ccc99b8137acfadc9d4a1b472330749  schemas/v1/adapter.schema.json
 ef59efd5f387325c493a03fdb8f0ef2910a8334a8e495d0830be8ddc4444b96c  schemas/v1/adoption-input.schema.json
 1fd554be63ea05e513e66508958d625cde5818426c8f56b493e74fbeb13e295e  schemas/v1/checkpoint.schema.json
@@ -45,7 +45,7 @@ eae0427e7bf75c63898b9a7d7c5c8bf49fe759ffcc23094bd16f9f1321bf5040  templates/core
 2f8c13741ed1e0e481a1de6e7536b947c553b419a8ec33dd47e3b0f5c2c8102d  templates/core/.pcp/projects/00-index.md
 5d5abb1db0f041dda23afe5f132a7f421dc94ead42a840d530aaa0320bbd5d2a  templates/core/.pcp/protocol/00-index.md
 06c643233e85dbd18be3e4df0c049760585dfd549481edfb4c78338af3973d36  templates/core/.pcp/protocol/10-context-contract.md
-0097e7d32781bc2af2fd1fe751d02d52f56c4b19d0b8a7ef18cfa24acb44ce9a  templates/core/.pcp/protocol/20-actor-continuity.md
+02e0bf9d66543ba3b42b0e92b9c6a956dc210f93dc6ae8d23e439d6bade790c1  templates/core/.pcp/protocol/20-actor-continuity.md
 9f5fa9cf552101ef46870f7bf0a54cb2c1025564bdb1dadea879e5790ac8a91f  templates/core/.pcp/protocol/30-exploration.md
 643b2ce47ef752c6bf44ca77037c3dcc05d7402a6217a41e99f66adcf6fcecb3  templates/core/.pcp/protocol/40-documentation.md
 7329741ddcff076bd5e144d17a8a9b394da219ece9ce3071fbe4e8e9c14a6e4c  templates/core/.pcp/protocol/50-portability-and-safety.md

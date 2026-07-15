@@ -170,6 +170,23 @@ function validateActors(records: CanonicalSemanticRecords): CanonicalDiagnostic[
         ),
       );
     }
+    const actorType = stringValue(profile?.actor_type);
+    const client = stringValue(profile?.client);
+    const machineLabel = stringValue(profile?.machine_label);
+    const actorLabel = actorType === 'human' ? 'human' : client;
+    if (
+      actorLabel !== undefined &&
+      machineLabel !== undefined &&
+      !id.startsWith(`${actorLabel}-${machineLabel}-`)
+    ) {
+      diagnostics.push(
+        error(
+          'identity.actor-id-components',
+          record.path,
+          `Actor ID must start with ${actorLabel}-${machineLabel}-.`,
+        ),
+      );
+    }
     const previous = seen.get(id);
     if (previous !== undefined) {
       diagnostics.push(

@@ -218,6 +218,15 @@ describe('installed canonical layer validation', () => {
     expect(codes).toContain('identity.actor-filename-mismatch');
   });
 
+  it('rejects an actor ID that contradicts its client or machine', async () => {
+    const root = await createProject();
+    await writeActor(root, 'cursor-other-machine-0123456789');
+
+    expect(diagnosticCodes(await validateCanonicalLayer(root))).toContain(
+      'identity.actor-id-components',
+    );
+  });
+
   it('rejects invalid event ULIDs before semantic processing', async () => {
     const root = await createProject();
     await writeEvent(root, { id: 'not-a-ulid' });

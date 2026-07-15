@@ -20,3 +20,7 @@ invalid:
     operation: set
     path: actor_type
     value: human
+  - name: unknown agent client
+    operation: set
+    path: client
+    value: mystery-client

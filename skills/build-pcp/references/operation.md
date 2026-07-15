@@ -13,6 +13,20 @@
 
 Registration, status checks, and unchanged rendering are operational actions, not continuity events.
 
+Register an agent once per execution with its supported client label and a stable machine slug:
+
+```text
+node <pcp-engine> register <project-root> --client <client> --machine-label <machine-slug> --json
+```
+
+Supported client labels are `codex`, `antigravity`, `claude-code-desktop`, `github-copilot-vscode`, `cursor`, and `other`. Register a human when durable attribution is first needed:
+
+```text
+node <pcp-engine> register <project-root> --actor-type human --machine-label <machine-slug> --json
+```
+
+Use the returned `actor_id` for durable attribution and the returned `execution_id` only for the current execution. A repeat call must return the same actor and a new execution ID. When a local cache is missing, the engine recovers one matching profile. If more than one profile matches, inspect the profiles and pass the intended one with `--actor-id`; never guess. A stale or contradictory cache requires explicit repair and must not be bypassed by deleting the profile or inventing a new identity.
+
 ## Meaningful changes
 
 Record one minimal immutable event for a durable project change. Include the performing actor, recording actor, basis (`self`, `reported`, `observed`, or `system`), kind, affected scope, summary, and affected paths; add rationale only when it helps reconciliation. The first agent informed of an unrecorded human change records it. Accept a human's VCS report without claiming verification, and report and correct any later contradiction. Never edit an existing event.

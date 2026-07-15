@@ -1,9 +1,11 @@
 import { pathToFileURL } from 'node:url';
+import { hostname } from 'node:os';
 
 import { Command } from 'commander';
 
 import { adoptProject } from '../application/adopt-project.js';
 import { inspectRepository } from '../application/inspect-repository.js';
+import { registerActor } from '../application/register-actor.js';
 import { renderCanonicalViews } from '../application/render-canonical-views.js';
 import { validateCanonicalLayer } from '../application/validate-canonical-layer.js';
 import {
@@ -15,12 +17,14 @@ import {
 } from '../domain/release.js';
 import { AdoptionError } from '../domain/adoption.js';
 import { InspectionError } from '../domain/inspection.js';
+import { normalizeMachineLabel, RegistrationError } from '../domain/registration.js';
 import { formatAdoption } from '../presentation/format-adoption.js';
 import {
   formatCanonicalRender,
   formatCanonicalValidation,
 } from '../presentation/format-canonical.js';
 import { formatInspection } from '../presentation/format-inspection.js';
+import { formatRegistration } from '../presentation/format-registration.js';
 
 const commandDescriptions: Record<PcpCommandName, string> = {
   inspect: 'Inspect and classify a candidate project without mutation',
@@ -60,6 +64,15 @@ interface AdoptOptions {
   json?: boolean;
 }
 
+interface RegisterOptions {
+  candidate?: string;
+  actorType?: string;
+  client?: string;
+  machineLabel?: string;
+  actorId?: string;
+  json?: boolean;
+}
+
 interface ValidateOptions {
   cleanGenesis?: boolean;
   json?: boolean;
@@ -85,6 +98,14 @@ function reportAdoptionError(error: unknown): void {
   process.stderr.write(
     `${JSON.stringify({ code, message, mutated, recovery_retained: recoveryRetained })}\n`,
   );
+  process.exitCode = 2;
+}
+
+function reportRegistrationError(error: unknown): void {
+  const code = error instanceof RegistrationError ? error.code : 'PCP_REGISTRATION_FAILED';
+  const message = error instanceof Error ? error.message : String(error);
+  const mutated = error instanceof RegistrationError ? error.mutated : false;
+  process.stderr.write(`${JSON.stringify({ code, message, mutated })}\n`);
   process.exitCode = 2;
 }
 
@@ -127,6 +148,36 @@ function addAdoptCommand(program: Command): Command {
         );
       } catch (error) {
         reportAdoptionError(error);
+      }
+    });
+}
+
+function addRegisterCommand(program: Command): Command {
+  return program
+    .command('register')
+    .description(commandDescriptions.register)
+    .argument('[directory]', 'managed project root')
+    .option('--candidate <directory>', 'managed project root')
+    .option('--actor-type <agent|human>', 'durable actor type', 'agent')
+    .option('--client <client>', 'agent client; omit only for a human')
+    .option('--machine-label <slug>', 'stable lowercase machine label')
+    .option('--actor-id <id>', 'recover one known profile when matches are ambiguous')
+    .option('--json', 'emit stable structured JSON')
+    .action(async (directory: string | undefined, options: RegisterOptions) => {
+      try {
+        const result = await registerActor(options.candidate ?? directory ?? '.', {
+          machine_label: options.machineLabel ?? normalizeMachineLabel(hostname()),
+          ...(options.actorType === undefined ? {} : { actor_type: options.actorType }),
+          ...(options.client === undefined ? {} : { client: options.client }),
+          ...(options.actorId === undefined ? {} : { actor_id: options.actorId }),
+        });
+        process.stdout.write(
+          options.json === true
+            ? `${JSON.stringify(result, null, 2)}\n`
+            : formatRegistration(result),
+        );
+      } catch (error) {
+        reportRegistrationError(error);
       }
     });
 }
@@ -224,6 +275,8 @@ export function createProgram(): Command {
       addInspectCommand(program);
     } else if (commandName === 'adopt') {
       addAdoptCommand(program);
+    } else if (commandName === 'register') {
+      addRegisterCommand(program);
     } else if (commandName === 'validate') {
       addValidateCommand(program);
     } else if (commandName === 'render') {

@@ -2,8 +2,8 @@
 doc: protocol/20-actor-continuity.md
 type: protocol
 status: static
-version: 1.0.0
-last_updated: 2026-07-14T07:20:00Z
+version: 1.1.0
+last_updated: 2026-07-15T01:15:00Z
 ownership: protocol
 ---
 
@@ -12,11 +12,13 @@ ownership: protocol
 ## Stable identity
 
 - Create an ID once as `<actor-label>-<machine-label>-<10-character-Crockford-suffix>`, all kebab-case before the uppercase suffix. Use the agent client as its actor label or `human` for a human; generate the suffix once rather than deriving a shared counter.
-- Cache that readable, collision-resistant actor ID for the life of this project.
+- Cache that readable, collision-resistant actor ID under ignored `.pcp/runtime/actors/` for the life of this project.
 - Agents reuse or recover their ID on later tasks; they do not derive a new ID on every run.
 - A missing matching profile means first registration. An existing matching profile means the actor is returning.
+- When the local cache is missing, recover one matching durable profile. Require an explicit actor ID when multiple profiles match, and fail closed when a cache is stale or contradictory.
 - Humans use the same ID pattern as agents. The first informed agent may register a human when recording a reported or observed human action.
-- Keep durable actor IDs separate from per-execution and per-event ULIDs.
+- Invoke registration once per execution. Keep the returned execution ULID and later event ULIDs separate from the durable actor ID.
+- Registration is an operational action and never creates a continuity event.
 
 ## Scoped reconciliation
 

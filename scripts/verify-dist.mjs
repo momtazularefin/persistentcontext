@@ -171,6 +171,64 @@ try {
     throw new Error('Bundled pcp adoption apply returned an unexpected result.');
   }
 
+  const registrationArguments = [
+    fileURLToPath(skillBundle),
+    'register',
+    adoptionCandidate,
+    '--client',
+    'codex',
+    '--machine-label',
+    'distribution-machine',
+    '--json',
+  ];
+  const firstRegistration = spawnSync(process.execPath, registrationArguments, {
+    encoding: 'utf8',
+    windowsHide: true,
+  });
+  if (firstRegistration.status !== 0) {
+    throw new Error(
+      `Bundled pcp registration failed: ${firstRegistration.stderr || firstRegistration.stdout}`,
+    );
+  }
+  const firstRegistrationResult = JSON.parse(firstRegistration.stdout);
+  if (
+    firstRegistrationResult.status !== 'created' ||
+    firstRegistrationResult.profile_created !== true ||
+    firstRegistrationResult.cache_created !== true ||
+    firstRegistrationResult.event_created !== false ||
+    firstRegistrationResult.mutated !== true
+  ) {
+    throw new Error('Bundled pcp first registration returned an unexpected result.');
+  }
+
+  const secondRegistration = spawnSync(process.execPath, registrationArguments, {
+    encoding: 'utf8',
+    windowsHide: true,
+  });
+  if (secondRegistration.status !== 0) {
+    throw new Error(
+      `Bundled pcp repeat registration failed: ${secondRegistration.stderr || secondRegistration.stdout}`,
+    );
+  }
+  const secondRegistrationResult = JSON.parse(secondRegistration.stdout);
+  if (
+    secondRegistrationResult.status !== 'recovered' ||
+    secondRegistrationResult.actor_id !== firstRegistrationResult.actor_id ||
+    secondRegistrationResult.execution_id === firstRegistrationResult.execution_id ||
+    secondRegistrationResult.profile_created !== false ||
+    secondRegistrationResult.cache_created !== false ||
+    secondRegistrationResult.event_created !== false ||
+    secondRegistrationResult.mutated !== false
+  ) {
+    throw new Error('Bundled pcp repeat registration returned an unexpected result.');
+  }
+  const registrationEvents = (
+    await readdir(join(adoptionCandidate, '.pcp', 'continuity', 'events'))
+  ).filter((entry) => entry.endsWith('.yaml'));
+  if (registrationEvents.length !== 0) {
+    throw new Error('Bundled pcp registration created a continuity event.');
+  }
+
   const managedInspection = spawnSync(
     process.execPath,
     [fileURLToPath(skillBundle), 'inspect', adoptionCandidate, '--json'],

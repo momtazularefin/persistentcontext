@@ -327,7 +327,7 @@ var require_ignore = __commonJS({
       //   path matching.
       // - check `string` either `MODE_IGNORE` or `MODE_CHECK_IGNORE`
       // @returns {TestResult} true if a file is ignored
-      test(path13, checkUnignored, mode) {
+      test(path15, checkUnignored, mode) {
         let ignored = false;
         let unignored = false;
         let matchedRule;
@@ -336,7 +336,7 @@ var require_ignore = __commonJS({
           if (unignored === negative && ignored !== unignored || negative && !ignored && !unignored && !checkUnignored) {
             return;
           }
-          const matched = rule[mode].test(path13);
+          const matched = rule[mode].test(path15);
           if (!matched) {
             return;
           }
@@ -357,17 +357,17 @@ var require_ignore = __commonJS({
     var throwError = (message, Ctor) => {
       throw new Ctor(message);
     };
-    var checkPath = (path13, originalPath, doThrow) => {
-      if (!isString(path13)) {
+    var checkPath = (path15, originalPath, doThrow) => {
+      if (!isString(path15)) {
         return doThrow(
           `path must be a string, but got \`${originalPath}\``,
           TypeError
         );
       }
-      if (!path13) {
+      if (!path15) {
         return doThrow(`path must not be empty`, TypeError);
       }
-      if (checkPath.isNotRelative(path13)) {
+      if (checkPath.isNotRelative(path15)) {
         const r = "`path.relative()`d";
         return doThrow(
           `path should be a ${r} string, but got "${originalPath}"`,
@@ -376,7 +376,7 @@ var require_ignore = __commonJS({
       }
       return true;
     };
-    var isNotRelative = (path13) => REGEX_TEST_INVALID_PATH.test(path13);
+    var isNotRelative = (path15) => REGEX_TEST_INVALID_PATH.test(path15);
     checkPath.isNotRelative = isNotRelative;
     checkPath.convert = (p) => p;
     var Ignore = class {
@@ -406,19 +406,19 @@ var require_ignore = __commonJS({
       }
       // @returns {TestResult}
       _test(originalPath, cache, checkUnignored, slices) {
-        const path13 = originalPath && checkPath.convert(originalPath);
+        const path15 = originalPath && checkPath.convert(originalPath);
         checkPath(
-          path13,
+          path15,
           originalPath,
           this._strictPathCheck ? throwError : RETURN_FALSE
         );
-        return this._t(path13, cache, checkUnignored, slices);
+        return this._t(path15, cache, checkUnignored, slices);
       }
-      checkIgnore(path13) {
-        if (!REGEX_TEST_TRAILING_SLASH.test(path13)) {
-          return this.test(path13);
+      checkIgnore(path15) {
+        if (!REGEX_TEST_TRAILING_SLASH.test(path15)) {
+          return this.test(path15);
         }
-        const slices = path13.split(SLASH).filter(Boolean);
+        const slices = path15.split(SLASH).filter(Boolean);
         slices.pop();
         if (slices.length) {
           const parent = this._t(
@@ -431,18 +431,18 @@ var require_ignore = __commonJS({
             return parent;
           }
         }
-        return this._rules.test(path13, false, MODE_CHECK_IGNORE);
+        return this._rules.test(path15, false, MODE_CHECK_IGNORE);
       }
-      _t(path13, cache, checkUnignored, slices) {
-        if (path13 in cache) {
-          return cache[path13];
+      _t(path15, cache, checkUnignored, slices) {
+        if (path15 in cache) {
+          return cache[path15];
         }
         if (!slices) {
-          slices = path13.split(SLASH).filter(Boolean);
+          slices = path15.split(SLASH).filter(Boolean);
         }
         slices.pop();
         if (!slices.length) {
-          return cache[path13] = this._rules.test(path13, checkUnignored, MODE_IGNORE);
+          return cache[path15] = this._rules.test(path15, checkUnignored, MODE_IGNORE);
         }
         const parent = this._t(
           slices.join(SLASH) + SLASH,
@@ -450,29 +450,29 @@ var require_ignore = __commonJS({
           checkUnignored,
           slices
         );
-        return cache[path13] = parent.ignored ? parent : this._rules.test(path13, checkUnignored, MODE_IGNORE);
+        return cache[path15] = parent.ignored ? parent : this._rules.test(path15, checkUnignored, MODE_IGNORE);
       }
-      ignores(path13) {
-        return this._test(path13, this._ignoreCache, false).ignored;
+      ignores(path15) {
+        return this._test(path15, this._ignoreCache, false).ignored;
       }
       createFilter() {
-        return (path13) => !this.ignores(path13);
+        return (path15) => !this.ignores(path15);
       }
       filter(paths) {
         return makeArray(paths).filter(this.createFilter());
       }
       // @returns {TestResult}
-      test(path13) {
-        return this._test(path13, this._testCache, true);
+      test(path15) {
+        return this._test(path15, this._testCache, true);
       }
     };
     var factory = (options) => new Ignore(options);
-    var isPathValid = (path13) => checkPath(path13 && checkPath.convert(path13), path13, RETURN_FALSE);
+    var isPathValid = (path15) => checkPath(path15 && checkPath.convert(path15), path15, RETURN_FALSE);
     var setupWindows = () => {
       const makePosix = (str) => /^\\\\\?\\/.test(str) || /["<>|\u0000-\u001F]+/u.test(str) ? str : str.replace(/\\/g, "/");
       checkPath.convert = makePosix;
       const REGEX_TEST_WINDOWS_PATH_ABSOLUTE = /^[a-z]:\//i;
-      checkPath.isNotRelative = (path13) => REGEX_TEST_WINDOWS_PATH_ABSOLUTE.test(path13) || isNotRelative(path13);
+      checkPath.isNotRelative = (path15) => REGEX_TEST_WINDOWS_PATH_ABSOLUTE.test(path15) || isNotRelative(path15);
     };
     if (
       // Detect `process` so that it can run in browsers.
@@ -3683,8 +3683,8 @@ var require_utils = __commonJS({
       }
       return ind;
     }
-    function removeDotSegments(path13) {
-      let input = path13;
+    function removeDotSegments(path15) {
+      let input = path15;
       const output = [];
       let nextSlash = -1;
       let len = 0;
@@ -3936,8 +3936,8 @@ var require_schemes = __commonJS({
         wsComponent.secure = void 0;
       }
       if (wsComponent.resourceName) {
-        const [path13, query] = wsComponent.resourceName.split("?");
-        wsComponent.path = path13 && path13 !== "/" ? path13 : void 0;
+        const [path15, query] = wsComponent.resourceName.split("?");
+        wsComponent.path = path15 && path15 !== "/" ? path15 : void 0;
         wsComponent.query = query;
         wsComponent.resourceName = void 0;
       }
@@ -4804,7 +4804,7 @@ var require_core = __commonJS({
           }
         }
       }
-      _addSchema(schema4, meta, baseId, validateSchema = this.opts.validateSchema, addSchema = this.opts.addUsedSchema) {
+      _addSchema(schema4, meta, baseId, validateSchema2 = this.opts.validateSchema, addSchema = this.opts.addUsedSchema) {
         let id;
         const { schemaId: schemaId2 } = this.opts;
         if (typeof schema4 == "object") {
@@ -4827,7 +4827,7 @@ var require_core = __commonJS({
             this._checkUnique(baseId);
           this.refs[baseId] = sch;
         }
-        if (validateSchema)
+        if (validateSchema2)
           this.validateSchema(schema4, true);
         return sch;
       }
@@ -8169,6 +8169,7 @@ var require_dist = __commonJS({
 
 // src/cli/main.ts
 import { pathToFileURL } from "node:url";
+import { hostname } from "node:os";
 
 // node_modules/commander/lib/error.js
 var CommanderError = class extends Error {
@@ -11281,9 +11282,9 @@ Expecting one of '${allowedValues.join("', '")}'`);
    * @param {string} [path]
    * @return {(string|null|Command)}
    */
-  executableDir(path13) {
-    if (path13 === void 0) return this._executableDir;
-    this._executableDir = path13;
+  executableDir(path15) {
+    if (path15 === void 0) return this._executableDir;
+    this._executableDir = path15;
     return this;
   }
   /**
@@ -11575,6 +11576,32 @@ function randomChar(prng) {
   const randomPosition = Math.floor(prng() * ENCODING_LEN) % ENCODING_LEN;
   return ENCODING.charAt(randomPosition);
 }
+function replaceCharAt(str, index, char) {
+  if (index > str.length - 1) {
+    return str;
+  }
+  return str.substr(0, index) + char + str.substr(index + 1);
+}
+function incrementBase32(str) {
+  let done = void 0, index = str.length, char, charIndex, output = str;
+  const maxCharIndex = ENCODING_LEN - 1;
+  while (!done && index-- >= 0) {
+    char = output[index];
+    charIndex = ENCODING.indexOf(char);
+    if (charIndex === -1) {
+      throw new ULIDError(ULIDErrorCode.Base32IncorrectEncoding, "Incorrectly encoded string");
+    }
+    if (charIndex === maxCharIndex) {
+      output = replaceCharAt(output, index, ENCODING[0]);
+      continue;
+    }
+    done = replaceCharAt(output, index, ENCODING[charIndex + 1]);
+  }
+  if (typeof done === "string") {
+    return done;
+  }
+  throw new ULIDError(ULIDErrorCode.Base32IncorrectEncoding, "Failed incrementing string");
+}
 function detectPRNG(root) {
   const rootLookup = detectRoot();
   const globalCrypto = rootLookup && (rootLookup.crypto || rootLookup.msCrypto) || (typeof crypto !== "undefined" ? crypto : null);
@@ -11632,6 +11659,20 @@ function encodeTime(now, len = TIME_LEN) {
 }
 function inWebWorker() {
   return typeof WorkerGlobalScope !== "undefined" && self instanceof WorkerGlobalScope;
+}
+function monotonicFactory(prng) {
+  const currentPRNG = prng || detectPRNG();
+  let lastTime = 0, lastRandom;
+  return function _ulid(seedTime) {
+    const seed = !seedTime || isNaN(seedTime) ? Date.now() : seedTime;
+    if (seed <= lastTime) {
+      const incrementedRandom = lastRandom = incrementBase32(lastRandom);
+      return encodeTime(lastTime, TIME_LEN) + incrementedRandom;
+    }
+    lastTime = seed;
+    const newRandom = lastRandom = encodeRandom(RANDOM_LEN, currentPRNG);
+    return encodeTime(seed, TIME_LEN) + newRandom;
+  };
 }
 function ulid(seedTime, prng) {
   const currentPRNG = prng || detectPRNG();
@@ -12064,16 +12105,16 @@ function isInside(root, candidate) {
   const relative = path3.relative(root, candidate);
   return relative === "" || !relative.startsWith(`..${path3.sep}`) && relative !== ".." && !path3.isAbsolute(relative);
 }
-function resolveApprovedPath(root, portablePath) {
-  const normalized = path3.posix.normalize(portablePath);
-  if (portablePath === "." || normalized !== portablePath || portablePath.startsWith("/") || portablePath.includes("\\")) {
-    throw new AdoptionError("PCP_ADOPTION_PATH_UNSAFE", `Unsafe transaction path: ${portablePath}`);
+function resolveApprovedPath(root, portablePath2) {
+  const normalized = path3.posix.normalize(portablePath2);
+  if (portablePath2 === "." || normalized !== portablePath2 || portablePath2.startsWith("/") || portablePath2.includes("\\")) {
+    throw new AdoptionError("PCP_ADOPTION_PATH_UNSAFE", `Unsafe transaction path: ${portablePath2}`);
   }
-  const resolved = path3.resolve(root, ...portablePath.split("/"));
+  const resolved = path3.resolve(root, ...portablePath2.split("/"));
   if (!isInside(root, resolved) || resolved === path3.resolve(root)) {
     throw new AdoptionError(
       "PCP_ADOPTION_PATH_UNSAFE",
-      `Path escapes the candidate: ${portablePath}`
+      `Path escapes the candidate: ${portablePath2}`
     );
   }
   return resolved;
@@ -12580,17 +12621,17 @@ function visit(node, visitor) {
 visit.BREAK = BREAK;
 visit.SKIP = SKIP;
 visit.REMOVE = REMOVE;
-function visit_(key, node, visitor, path13) {
-  const ctrl = callVisitor(key, node, visitor, path13);
+function visit_(key, node, visitor, path15) {
+  const ctrl = callVisitor(key, node, visitor, path15);
   if (isNode(ctrl) || isPair(ctrl)) {
-    replaceNode(key, path13, ctrl);
-    return visit_(key, ctrl, visitor, path13);
+    replaceNode(key, path15, ctrl);
+    return visit_(key, ctrl, visitor, path15);
   }
   if (typeof ctrl !== "symbol") {
     if (isCollection(node)) {
-      path13 = Object.freeze(path13.concat(node));
+      path15 = Object.freeze(path15.concat(node));
       for (let i = 0; i < node.items.length; ++i) {
-        const ci = visit_(i, node.items[i], visitor, path13);
+        const ci = visit_(i, node.items[i], visitor, path15);
         if (typeof ci === "number")
           i = ci - 1;
         else if (ci === BREAK)
@@ -12601,13 +12642,13 @@ function visit_(key, node, visitor, path13) {
         }
       }
     } else if (isPair(node)) {
-      path13 = Object.freeze(path13.concat(node));
-      const ck = visit_("key", node.key, visitor, path13);
+      path15 = Object.freeze(path15.concat(node));
+      const ck = visit_("key", node.key, visitor, path15);
       if (ck === BREAK)
         return BREAK;
       else if (ck === REMOVE)
         node.key = null;
-      const cv = visit_("value", node.value, visitor, path13);
+      const cv = visit_("value", node.value, visitor, path15);
       if (cv === BREAK)
         return BREAK;
       else if (cv === REMOVE)
@@ -12628,17 +12669,17 @@ async function visitAsync(node, visitor) {
 visitAsync.BREAK = BREAK;
 visitAsync.SKIP = SKIP;
 visitAsync.REMOVE = REMOVE;
-async function visitAsync_(key, node, visitor, path13) {
-  const ctrl = await callVisitor(key, node, visitor, path13);
+async function visitAsync_(key, node, visitor, path15) {
+  const ctrl = await callVisitor(key, node, visitor, path15);
   if (isNode(ctrl) || isPair(ctrl)) {
-    replaceNode(key, path13, ctrl);
-    return visitAsync_(key, ctrl, visitor, path13);
+    replaceNode(key, path15, ctrl);
+    return visitAsync_(key, ctrl, visitor, path15);
   }
   if (typeof ctrl !== "symbol") {
     if (isCollection(node)) {
-      path13 = Object.freeze(path13.concat(node));
+      path15 = Object.freeze(path15.concat(node));
       for (let i = 0; i < node.items.length; ++i) {
-        const ci = await visitAsync_(i, node.items[i], visitor, path13);
+        const ci = await visitAsync_(i, node.items[i], visitor, path15);
         if (typeof ci === "number")
           i = ci - 1;
         else if (ci === BREAK)
@@ -12649,13 +12690,13 @@ async function visitAsync_(key, node, visitor, path13) {
         }
       }
     } else if (isPair(node)) {
-      path13 = Object.freeze(path13.concat(node));
-      const ck = await visitAsync_("key", node.key, visitor, path13);
+      path15 = Object.freeze(path15.concat(node));
+      const ck = await visitAsync_("key", node.key, visitor, path15);
       if (ck === BREAK)
         return BREAK;
       else if (ck === REMOVE)
         node.key = null;
-      const cv = await visitAsync_("value", node.value, visitor, path13);
+      const cv = await visitAsync_("value", node.value, visitor, path15);
       if (cv === BREAK)
         return BREAK;
       else if (cv === REMOVE)
@@ -12682,23 +12723,23 @@ function initVisitor(visitor) {
   }
   return visitor;
 }
-function callVisitor(key, node, visitor, path13) {
+function callVisitor(key, node, visitor, path15) {
   if (typeof visitor === "function")
-    return visitor(key, node, path13);
+    return visitor(key, node, path15);
   if (isMap(node))
-    return visitor.Map?.(key, node, path13);
+    return visitor.Map?.(key, node, path15);
   if (isSeq(node))
-    return visitor.Seq?.(key, node, path13);
+    return visitor.Seq?.(key, node, path15);
   if (isPair(node))
-    return visitor.Pair?.(key, node, path13);
+    return visitor.Pair?.(key, node, path15);
   if (isScalar(node))
-    return visitor.Scalar?.(key, node, path13);
+    return visitor.Scalar?.(key, node, path15);
   if (isAlias(node))
-    return visitor.Alias?.(key, node, path13);
+    return visitor.Alias?.(key, node, path15);
   return void 0;
 }
-function replaceNode(key, path13, node) {
-  const parent = path13[path13.length - 1];
+function replaceNode(key, path15, node) {
+  const parent = path15[path15.length - 1];
   if (isCollection(parent)) {
     parent.items[key] = node;
   } else if (isPair(parent)) {
@@ -13227,10 +13268,10 @@ function createNode(value, tagName, ctx) {
 }
 
 // node_modules/yaml/browser/dist/nodes/Collection.js
-function collectionFromPath(schema4, path13, value) {
+function collectionFromPath(schema4, path15, value) {
   let v = value;
-  for (let i = path13.length - 1; i >= 0; --i) {
-    const k = path13[i];
+  for (let i = path15.length - 1; i >= 0; --i) {
+    const k = path15[i];
     if (typeof k === "number" && Number.isInteger(k) && k >= 0) {
       const a = [];
       a[k] = v;
@@ -13249,7 +13290,7 @@ function collectionFromPath(schema4, path13, value) {
     sourceObjects: /* @__PURE__ */ new Map()
   });
 }
-var isEmptyPath = (path13) => path13 == null || typeof path13 === "object" && !!path13[Symbol.iterator]().next().done;
+var isEmptyPath = (path15) => path15 == null || typeof path15 === "object" && !!path15[Symbol.iterator]().next().done;
 var Collection = class extends NodeBase {
   constructor(type, schema4) {
     super(type);
@@ -13279,11 +13320,11 @@ var Collection = class extends NodeBase {
    * be a Pair instance or a `{ key, value }` object, which may not have a key
    * that already exists in the map.
    */
-  addIn(path13, value) {
-    if (isEmptyPath(path13))
+  addIn(path15, value) {
+    if (isEmptyPath(path15))
       this.add(value);
     else {
-      const [key, ...rest] = path13;
+      const [key, ...rest] = path15;
       const node = this.get(key, true);
       if (isCollection(node))
         node.addIn(rest, value);
@@ -13297,8 +13338,8 @@ var Collection = class extends NodeBase {
    * Removes a value from the collection.
    * @returns `true` if the item was found and removed.
    */
-  deleteIn(path13) {
-    const [key, ...rest] = path13;
+  deleteIn(path15) {
+    const [key, ...rest] = path15;
     if (rest.length === 0)
       return this.delete(key);
     const node = this.get(key, true);
@@ -13312,8 +13353,8 @@ var Collection = class extends NodeBase {
    * scalar values from their surrounding node; to disable set `keepScalar` to
    * `true` (collections are always returned intact).
    */
-  getIn(path13, keepScalar) {
-    const [key, ...rest] = path13;
+  getIn(path15, keepScalar) {
+    const [key, ...rest] = path15;
     const node = this.get(key, true);
     if (rest.length === 0)
       return !keepScalar && isScalar(node) ? node.value : node;
@@ -13331,8 +13372,8 @@ var Collection = class extends NodeBase {
   /**
    * Checks if the collection includes a value with the key `key`.
    */
-  hasIn(path13) {
-    const [key, ...rest] = path13;
+  hasIn(path15) {
+    const [key, ...rest] = path15;
     if (rest.length === 0)
       return this.has(key);
     const node = this.get(key, true);
@@ -13342,8 +13383,8 @@ var Collection = class extends NodeBase {
    * Sets a value in this collection. For `!!set`, `value` needs to be a
    * boolean to add/remove the item from the set.
    */
-  setIn(path13, value) {
-    const [key, ...rest] = path13;
+  setIn(path15, value) {
+    const [key, ...rest] = path15;
     if (rest.length === 0) {
       this.set(key, value);
     } else {
@@ -15482,9 +15523,9 @@ var Document = class _Document {
       this.contents.add(value);
   }
   /** Adds a value to the document. */
-  addIn(path13, value) {
+  addIn(path15, value) {
     if (assertCollection(this.contents))
-      this.contents.addIn(path13, value);
+      this.contents.addIn(path15, value);
   }
   /**
    * Create a new `Alias` node, ensuring that the target `node` has the required anchor.
@@ -15559,14 +15600,14 @@ var Document = class _Document {
    * Removes a value from the document.
    * @returns `true` if the item was found and removed.
    */
-  deleteIn(path13) {
-    if (isEmptyPath(path13)) {
+  deleteIn(path15) {
+    if (isEmptyPath(path15)) {
       if (this.contents == null)
         return false;
       this.contents = null;
       return true;
     }
-    return assertCollection(this.contents) ? this.contents.deleteIn(path13) : false;
+    return assertCollection(this.contents) ? this.contents.deleteIn(path15) : false;
   }
   /**
    * Returns item at `key`, or `undefined` if not found. By default unwraps
@@ -15581,10 +15622,10 @@ var Document = class _Document {
    * scalar values from their surrounding node; to disable set `keepScalar` to
    * `true` (collections are always returned intact).
    */
-  getIn(path13, keepScalar) {
-    if (isEmptyPath(path13))
+  getIn(path15, keepScalar) {
+    if (isEmptyPath(path15))
       return !keepScalar && isScalar(this.contents) ? this.contents.value : this.contents;
-    return isCollection(this.contents) ? this.contents.getIn(path13, keepScalar) : void 0;
+    return isCollection(this.contents) ? this.contents.getIn(path15, keepScalar) : void 0;
   }
   /**
    * Checks if the document includes a value with the key `key`.
@@ -15595,10 +15636,10 @@ var Document = class _Document {
   /**
    * Checks if the document includes a value at `path`.
    */
-  hasIn(path13) {
-    if (isEmptyPath(path13))
+  hasIn(path15) {
+    if (isEmptyPath(path15))
       return this.contents !== void 0;
-    return isCollection(this.contents) ? this.contents.hasIn(path13) : false;
+    return isCollection(this.contents) ? this.contents.hasIn(path15) : false;
   }
   /**
    * Sets a value in this document. For `!!set`, `value` needs to be a
@@ -15615,13 +15656,13 @@ var Document = class _Document {
    * Sets a value in this document. For `!!set`, `value` needs to be a
    * boolean to add/remove the item from the set.
    */
-  setIn(path13, value) {
-    if (isEmptyPath(path13)) {
+  setIn(path15, value) {
+    if (isEmptyPath(path15)) {
       this.contents = value;
     } else if (this.contents == null) {
-      this.contents = collectionFromPath(this.schema, Array.from(path13), value);
+      this.contents = collectionFromPath(this.schema, Array.from(path15), value);
     } else if (assertCollection(this.contents)) {
-      this.contents.setIn(path13, value);
+      this.contents.setIn(path15, value);
     }
   }
   /**
@@ -17171,9 +17212,9 @@ function visit2(cst, visitor) {
 visit2.BREAK = BREAK2;
 visit2.SKIP = SKIP2;
 visit2.REMOVE = REMOVE2;
-visit2.itemAtPath = (cst, path13) => {
+visit2.itemAtPath = (cst, path15) => {
   let item = cst;
-  for (const [field, index] of path13) {
+  for (const [field, index] of path15) {
     const tok = item?.[field];
     if (tok && "items" in tok) {
       item = tok.items[index];
@@ -17182,23 +17223,23 @@ visit2.itemAtPath = (cst, path13) => {
   }
   return item;
 };
-visit2.parentCollection = (cst, path13) => {
-  const parent = visit2.itemAtPath(cst, path13.slice(0, -1));
-  const field = path13[path13.length - 1][0];
+visit2.parentCollection = (cst, path15) => {
+  const parent = visit2.itemAtPath(cst, path15.slice(0, -1));
+  const field = path15[path15.length - 1][0];
   const coll = parent?.[field];
   if (coll && "items" in coll)
     return coll;
   throw new Error("Parent collection not found");
 };
-function _visit(path13, item, visitor) {
-  let ctrl = visitor(item, path13);
+function _visit(path15, item, visitor) {
+  let ctrl = visitor(item, path15);
   if (typeof ctrl === "symbol")
     return ctrl;
   for (const field of ["key", "value"]) {
     const token = item[field];
     if (token && "items" in token) {
       for (let i = 0; i < token.items.length; ++i) {
-        const ci = _visit(Object.freeze(path13.concat([[field, i]])), token.items[i], visitor);
+        const ci = _visit(Object.freeze(path15.concat([[field, i]])), token.items[i], visitor);
         if (typeof ci === "number")
           i = ci - 1;
         else if (ci === BREAK2)
@@ -17209,10 +17250,10 @@ function _visit(path13, item, visitor) {
         }
       }
       if (typeof ctrl === "function" && field === "key")
-        ctrl = ctrl(item, path13);
+        ctrl = ctrl(item, path15);
     }
   }
-  return typeof ctrl === "function" ? ctrl(item, path13) : ctrl;
+  return typeof ctrl === "function" ? ctrl(item, path15) : ctrl;
 }
 
 // node_modules/yaml/browser/dist/parse/cst.js
@@ -19770,13 +19811,21 @@ var actor_profile_schema_default = {
     actor_id: {
       type: "string",
       pattern: "^[a-z0-9]+(?:-[a-z0-9]+)*-[0-9A-HJKMNP-TV-Z]{10}$",
-      maxLength: 160
+      maxLength: 192
     },
     actor_type: {
       enum: ["human", "agent"]
     },
     client: {
-      enum: ["codex", "antigravity", "claude-code-desktop", "human", "other"]
+      enum: [
+        "codex",
+        "antigravity",
+        "claude-code-desktop",
+        "github-copilot-vscode",
+        "cursor",
+        "human",
+        "other"
+      ]
     },
     machine_label: {
       $ref: "urn:pcp:schema:v1:common#/$defs/slug"
@@ -21013,6 +21062,11 @@ var SchemaRegistry = class {
     return { valid, diagnostics };
   }
 };
+var defaultRegistry;
+function validateSchema(name, value) {
+  defaultRegistry ??= new SchemaRegistry();
+  return defaultRegistry.validate(name, value);
+}
 
 // src/application/foreign-coverage.ts
 import { readFile as readFile5 } from "node:fs/promises";
@@ -21819,8 +21873,8 @@ function objectArray2(value) {
 function stringArray2(value) {
   return Array.isArray(value) ? value.filter((item) => typeof item === "string") : [];
 }
-function error(code2, path13, message) {
-  return { severity: "error", code: code2, path: path13, message };
+function error(code2, path15, message) {
+  return { severity: "error", code: code2, path: path15, message };
 }
 function validateProjectIdentity(records) {
   const diagnostics = [];
@@ -21943,6 +21997,19 @@ function validateActors(records) {
         )
       );
     }
+    const actorType = stringValue(profile?.actor_type);
+    const client = stringValue(profile?.client);
+    const machineLabel = stringValue(profile?.machine_label);
+    const actorLabel = actorType === "human" ? "human" : client;
+    if (actorLabel !== void 0 && machineLabel !== void 0 && !id.startsWith(`${actorLabel}-${machineLabel}-`)) {
+      diagnostics.push(
+        error(
+          "identity.actor-id-components",
+          record.path,
+          `Actor ID must start with ${actorLabel}-${machineLabel}-.`
+        )
+      );
+    }
     const previous = seen.get(id);
     if (previous !== void 0) {
       diagnostics.push(
@@ -22019,8 +22086,8 @@ function validateEvents(records) {
         }
       }
     }
-    const sameIdentity = actorType === recorderType && actorId === recorderId;
-    if (basis === "self" && !sameIdentity) {
+    const sameIdentity2 = actorType === recorderType && actorId === recorderId;
+    if (basis === "self" && !sameIdentity2) {
       diagnostics.push(
         error(
           "event.self-recorder-mismatch",
@@ -22029,7 +22096,7 @@ function validateEvents(records) {
         )
       );
     }
-    if ((basis === "reported" || basis === "observed") && sameIdentity) {
+    if ((basis === "reported" || basis === "observed") && sameIdentity2) {
       diagnostics.push(
         error(
           "event.external-basis-self-recorded",
@@ -23609,21 +23676,21 @@ function isInside4(root, candidate) {
   const relative = path12.relative(root, candidate);
   return relative === "" || !relative.startsWith(`..${path12.sep}`) && relative !== ".." && !path12.isAbsolute(relative);
 }
-function absoluteTarget(root, portablePath) {
-  const normalized = path12.posix.normalize(portablePath);
-  if (portablePath === "." || normalized !== portablePath || portablePath.startsWith("/") || portablePath.includes("\\")) {
+function absoluteTarget(root, portablePath2) {
+  const normalized = path12.posix.normalize(portablePath2);
+  if (portablePath2 === "." || normalized !== portablePath2 || portablePath2.startsWith("/") || portablePath2.includes("\\")) {
     return void 0;
   }
-  const target = path12.resolve(root, ...portablePath.split("/"));
+  const target = path12.resolve(root, ...portablePath2.split("/"));
   return isInside4(root, target) && target !== path12.resolve(root) ? target : void 0;
 }
 function compareDiagnostics2(left, right) {
   return comparePortablePaths(left.path, right.path) || comparePortablePaths(left.code, right.code);
 }
-async function validateRegularFile(root, portablePath, code2, diagnostics) {
-  const target = absoluteTarget(root, portablePath);
+async function validateRegularFile(root, portablePath2, code2, diagnostics) {
+  const target = absoluteTarget(root, portablePath2);
   if (target === void 0) {
-    diagnostics.push({ code: `${code2}.path`, path: portablePath, message: "Path escapes root." });
+    diagnostics.push({ code: `${code2}.path`, path: portablePath2, message: "Path escapes root." });
     return void 0;
   }
   try {
@@ -23631,7 +23698,7 @@ async function validateRegularFile(root, portablePath, code2, diagnostics) {
     if (!metadata.isFile() || metadata.isSymbolicLink()) {
       diagnostics.push({
         code: `${code2}.type`,
-        path: portablePath,
+        path: portablePath2,
         message: "Expected a regular file with no symbolic-link boundary."
       });
       return void 0;
@@ -23640,7 +23707,7 @@ async function validateRegularFile(root, portablePath, code2, diagnostics) {
   } catch (error2) {
     diagnostics.push({
       code: `${code2}.read`,
-      path: portablePath,
+      path: portablePath2,
       message: error2 instanceof Error ? error2.message : String(error2)
     });
     return void 0;
@@ -23922,10 +23989,508 @@ async function adoptProject(candidate = ".", options = {}) {
   };
 }
 
+// src/application/register-actor.ts
+import { mkdir as mkdir4, open as open3, readFile as readFile12, readdir as readdir4, rm as rm3, unlink as unlink3 } from "node:fs/promises";
+import path14 from "node:path";
+
+// src/domain/registration.ts
+var ACTOR_TYPES = ["agent", "human"];
+var ACTOR_CLIENTS = [
+  "codex",
+  "antigravity",
+  "claude-code-desktop",
+  "github-copilot-vscode",
+  "cursor",
+  "human",
+  "other"
+];
+var RegistrationError = class extends Error {
+  constructor(code2, message, mutated = false) {
+    super(message);
+    this.code = code2;
+    this.mutated = mutated;
+    this.name = "RegistrationError";
+  }
+  code;
+  mutated;
+};
+var SLUG_PATTERN = /^[a-z0-9]+(?:-[a-z0-9]+)*$/u;
+var ACTOR_ID_PATTERN = /^[a-z0-9]+(?:-[a-z0-9]+)*-[0-9A-HJKMNP-TV-Z]{10}$/u;
+var nextExecutionId = monotonicFactory();
+function isActorType(value) {
+  return ACTOR_TYPES.some((candidate) => candidate === value);
+}
+function isActorClient(value) {
+  return ACTOR_CLIENTS.some((candidate) => candidate === value);
+}
+function normalizeMachineLabel(hostname2) {
+  const label = hostname2.normalize("NFKD").toLowerCase().replaceAll(/[^a-z0-9]+/gu, "-").replaceAll(/^-+|-+$/gu, "").slice(0, 128).replaceAll(/-+$/gu, "");
+  if (label.length === 0) {
+    throw new RegistrationError(
+      "PCP_REGISTRATION_MACHINE_LABEL_INVALID",
+      "The machine name cannot be converted to a PCP machine label; pass --machine-label."
+    );
+  }
+  return label;
+}
+function normalizeActorIdentity(input) {
+  const actorType = input.actor_type ?? "agent";
+  if (!isActorType(actorType)) {
+    throw new RegistrationError(
+      "PCP_REGISTRATION_ACTOR_TYPE_INVALID",
+      `Actor type must be one of: ${ACTOR_TYPES.join(", ")}.`
+    );
+  }
+  const client = input.client ?? (actorType === "human" ? "human" : void 0);
+  if (client === void 0) {
+    throw new RegistrationError(
+      "PCP_REGISTRATION_CLIENT_REQUIRED",
+      `Agent registration requires --client (${ACTOR_CLIENTS.filter((item) => item !== "human").join(", ")}).`
+    );
+  }
+  if (!isActorClient(client)) {
+    throw new RegistrationError(
+      "PCP_REGISTRATION_CLIENT_INVALID",
+      `Client must be one of: ${ACTOR_CLIENTS.join(", ")}.`
+    );
+  }
+  if (actorType === "human" && client !== "human") {
+    throw new RegistrationError(
+      "PCP_REGISTRATION_CLIENT_MISMATCH",
+      "Human registration must use the human client."
+    );
+  }
+  if (actorType === "agent" && client === "human") {
+    throw new RegistrationError(
+      "PCP_REGISTRATION_CLIENT_MISMATCH",
+      "Agent registration cannot use the human client."
+    );
+  }
+  if (!SLUG_PATTERN.test(input.machine_label) || input.machine_label.length > 128) {
+    throw new RegistrationError(
+      "PCP_REGISTRATION_MACHINE_LABEL_INVALID",
+      "Machine label must be a lowercase kebab-case slug with at most 128 characters."
+    );
+  }
+  if (input.actor_id !== void 0 && !ACTOR_ID_PATTERN.test(input.actor_id)) {
+    throw new RegistrationError(
+      "PCP_REGISTRATION_ACTOR_ID_INVALID",
+      "Actor ID must end in a 10-character uppercase Crockford suffix."
+    );
+  }
+  return {
+    actor_type: actorType,
+    client,
+    machine_label: input.machine_label,
+    ...input.actor_id === void 0 ? {} : { actor_id: input.actor_id }
+  };
+}
+function createActorId(identity) {
+  const actorLabel = identity.actor_type === "human" ? "human" : identity.client;
+  return `${actorLabel}-${identity.machine_label}-${ulid().slice(-10)}`;
+}
+function createExecutionId() {
+  return nextExecutionId();
+}
+function actorIdentityMatches(profile, identity) {
+  return profile.actor_type === identity.actor_type && profile.client === identity.client && profile.machine_label === identity.machine_label;
+}
+
+// src/infrastructure/registration-lock.ts
+import { createHash as createHash6, randomUUID } from "node:crypto";
+import { mkdir as mkdir3, open as open2, readFile as readFile11, stat as stat3, unlink as unlink2 } from "node:fs/promises";
+import { tmpdir as tmpdir3 } from "node:os";
+import path13 from "node:path";
+import { setTimeout as delay } from "node:timers/promises";
+var LOCK_WAIT_MS = 3e4;
+var STALE_LOCK_MS = 5 * 6e4;
+function lockDigest(root) {
+  const resolved = path13.resolve(root);
+  const portableRoot = process.platform === "win32" ? resolved.toLowerCase() : resolved;
+  return createHash6("sha256").update(portableRoot).digest("hex");
+}
+async function removeStaleLock(lockPath) {
+  try {
+    const metadata = await stat3(lockPath);
+    if (Date.now() - metadata.mtimeMs <= STALE_LOCK_MS) return false;
+    const contents = await readFile11(lockPath, "utf8");
+    let ownerPid;
+    try {
+      const value = JSON.parse(contents);
+      if (typeof value === "object" && value !== null && !Array.isArray(value)) {
+        const pid = value.pid;
+        if (typeof pid === "number" && Number.isSafeInteger(pid) && pid > 0) ownerPid = pid;
+      }
+    } catch {
+    }
+    if (ownerPid !== void 0) {
+      try {
+        process.kill(ownerPid, 0);
+        return false;
+      } catch (error2) {
+        const code2 = error2.code;
+        if (code2 !== "ESRCH") return false;
+      }
+    }
+    await unlink2(lockPath);
+    return true;
+  } catch (error2) {
+    if (error2.code === "ENOENT") return true;
+    throw error2;
+  }
+}
+async function withRegistrationLock(projectRoot, operation) {
+  const lockRoot = path13.join(tmpdir3(), "pcp-registration-locks");
+  await mkdir3(lockRoot, { recursive: true });
+  const lockPath = path13.join(lockRoot, `${lockDigest(projectRoot)}.lock`);
+  const token = randomUUID();
+  const lockContents = `${JSON.stringify({ token, pid: process.pid, created_at: (/* @__PURE__ */ new Date()).toISOString() })}
+`;
+  const deadline = Date.now() + LOCK_WAIT_MS;
+  let handle;
+  while (handle === void 0) {
+    try {
+      handle = await open2(lockPath, "wx");
+    } catch (error2) {
+      if (error2.code !== "EEXIST") throw error2;
+      if (await removeStaleLock(lockPath)) continue;
+      if (Date.now() >= deadline) {
+        throw new RegistrationError(
+          "PCP_REGISTRATION_LOCKED",
+          "Another actor registration is still running for this project."
+        );
+      }
+      await delay(20);
+    }
+  }
+  try {
+    await handle.writeFile(lockContents);
+    await handle.sync();
+    return await operation();
+  } finally {
+    await handle.close();
+    const current = await readFile11(lockPath, "utf8").catch((error2) => {
+      if (error2.code === "ENOENT") return void 0;
+      throw error2;
+    });
+    if (current === lockContents) {
+      await unlink2(lockPath).catch((error2) => {
+        if (error2.code !== "ENOENT") throw error2;
+      });
+    }
+  }
+}
+
+// src/application/register-actor.ts
+var ACTOR_DIRECTORY = ".pcp/continuity/actors";
+var CACHE_DIRECTORY = ".pcp/runtime/actors";
+function portablePath(value) {
+  return value.split(path14.sep).join("/");
+}
+function profileRelativePath(actorId) {
+  return `${ACTOR_DIRECTORY}/${actorId}.yaml`;
+}
+function cacheRelativePath(identity) {
+  return `${CACHE_DIRECTORY}/${identity.actor_type}-${identity.client}-${identity.machine_label}.json`;
+}
+function validationSummary(report) {
+  return report.diagnostics.slice(0, 3).map((diagnostic2) => `${diagnostic2.path}: ${diagnostic2.message}`).join("; ");
+}
+async function assertValidCanonicalLayer(projectRoot) {
+  const report = await validateCanonicalLayer(projectRoot);
+  if (report.valid) return;
+  const detail = validationSummary(report);
+  throw new RegistrationError(
+    "PCP_REGISTRATION_INVALID_LAYER",
+    `Actor registration requires a valid installed PCP layer${detail.length === 0 ? "." : `: ${detail}`}`
+  );
+}
+async function readOptionalText(file) {
+  try {
+    return await readFile12(file, "utf8");
+  } catch (error2) {
+    if (error2.code === "ENOENT") return void 0;
+    throw error2;
+  }
+}
+function actorProfile(value, relativePath) {
+  const result = validateSchema("actor-profile", value);
+  if (!result.valid) {
+    throw new RegistrationError(
+      "PCP_REGISTRATION_INVALID_LAYER",
+      `Actor profile failed its release schema: ${relativePath}.`
+    );
+  }
+  return value;
+}
+async function loadActorProfiles(projectRoot) {
+  const actorRoot = path14.join(projectRoot, ...ACTOR_DIRECTORY.split("/"));
+  const entries = await readdir4(actorRoot, { withFileTypes: true });
+  const profiles = [];
+  for (const entry of entries.sort((left, right) => left.name.localeCompare(right.name))) {
+    if (!entry.isFile() || !entry.name.endsWith(".yaml")) continue;
+    const relativePath = `${ACTOR_DIRECTORY}/${entry.name}`;
+    const contents = await readFile12(path14.join(actorRoot, entry.name), "utf8");
+    let value;
+    try {
+      value = parse(contents);
+    } catch {
+      throw new RegistrationError(
+        "PCP_REGISTRATION_INVALID_LAYER",
+        `Actor profile is not valid YAML: ${relativePath}.`
+      );
+    }
+    profiles.push(actorProfile(value, relativePath));
+  }
+  return profiles;
+}
+function parseIdentityCache(contents, identity) {
+  let value;
+  try {
+    value = JSON.parse(contents);
+  } catch {
+    throw new RegistrationError(
+      "PCP_REGISTRATION_CACHE_INVALID",
+      "The local actor identity cache is not valid JSON."
+    );
+  }
+  if (typeof value !== "object" || value === null || Array.isArray(value)) {
+    throw new RegistrationError(
+      "PCP_REGISTRATION_CACHE_INVALID",
+      "The local actor identity cache must be an object."
+    );
+  }
+  const record = value;
+  const expectedKeys = ["actor_id", "actor_type", "client", "machine_label", "schema_version"];
+  if (JSON.stringify(Object.keys(record).sort()) !== JSON.stringify(expectedKeys)) {
+    throw new RegistrationError(
+      "PCP_REGISTRATION_CACHE_INVALID",
+      "The local actor identity cache has an unexpected shape."
+    );
+  }
+  let normalized;
+  try {
+    normalized = normalizeActorIdentity({
+      actor_type: typeof record.actor_type === "string" ? record.actor_type : "",
+      client: typeof record.client === "string" ? record.client : "",
+      machine_label: typeof record.machine_label === "string" ? record.machine_label : "",
+      actor_id: typeof record.actor_id === "string" ? record.actor_id : ""
+    });
+  } catch {
+    throw new RegistrationError(
+      "PCP_REGISTRATION_CACHE_INVALID",
+      "The local actor identity cache contains invalid identity fields."
+    );
+  }
+  if (record.schema_version !== 1 || !sameIdentity(normalized, identity)) {
+    throw new RegistrationError(
+      "PCP_REGISTRATION_CACHE_MISMATCH",
+      "The local actor identity cache does not match the requested client and machine."
+    );
+  }
+  if (normalized.actor_id === void 0) {
+    throw new RegistrationError(
+      "PCP_REGISTRATION_CACHE_INVALID",
+      "The local actor identity cache has no actor ID."
+    );
+  }
+  return {
+    schema_version: 1,
+    actor_id: normalized.actor_id,
+    actor_type: normalized.actor_type,
+    client: normalized.client,
+    machine_label: normalized.machine_label
+  };
+}
+function sameIdentity(left, right) {
+  return left.actor_type === right.actor_type && left.client === right.client && left.machine_label === right.machine_label;
+}
+async function createExclusiveFile(file, contents, onCreate) {
+  const handle = await open3(file, "wx");
+  try {
+    onCreate();
+    await handle.writeFile(contents, "utf8");
+    await handle.sync();
+  } finally {
+    await handle.close();
+  }
+}
+async function rollbackUnlink(file, failures) {
+  await unlink3(file).catch((error2) => {
+    if (error2.code !== "ENOENT") failures.push(error2);
+  });
+}
+async function rollbackCreatedPaths(input) {
+  const failures = [];
+  if (input.cache_path !== void 0) {
+    await rollbackUnlink(input.cache_path, failures);
+  }
+  if (input.profile_path !== void 0) {
+    await rollbackUnlink(input.profile_path, failures);
+  }
+  if (input.runtime_root !== void 0) {
+    await rm3(input.runtime_root, { recursive: true, force: true }).catch(
+      (error2) => failures.push(error2)
+    );
+  }
+  return failures.length === 0;
+}
+function cacheValue(profile) {
+  return {
+    schema_version: 1,
+    actor_id: profile.actor_id,
+    actor_type: profile.actor_type,
+    client: profile.client,
+    machine_label: profile.machine_label
+  };
+}
+async function registerActor(projectRoot, input) {
+  const root = path14.resolve(projectRoot);
+  const identity = normalizeActorIdentity(input);
+  const executionId = createExecutionId();
+  return withRegistrationLock(root, async () => {
+    let createdProfilePath;
+    let createdCachePath;
+    let createdRuntimeRoot;
+    try {
+      await assertValidCanonicalLayer(root);
+      const profiles = await loadActorProfiles(root);
+      const profilesById = new Map(profiles.map((profile) => [profile.actor_id, profile]));
+      const cachePath = path14.join(root, ...cacheRelativePath(identity).split("/"));
+      const cachedContents = await readOptionalText(cachePath);
+      let selected;
+      if (cachedContents !== void 0) {
+        const cached = parseIdentityCache(cachedContents, identity);
+        if (identity.actor_id !== void 0 && identity.actor_id !== cached.actor_id) {
+          throw new RegistrationError(
+            "PCP_REGISTRATION_CACHE_MISMATCH",
+            "The requested actor ID disagrees with the cached project identity."
+          );
+        }
+        selected = profilesById.get(cached.actor_id);
+        if (selected === void 0) {
+          throw new RegistrationError(
+            "PCP_REGISTRATION_STALE_CACHE",
+            "The cached actor profile is missing; restore or explicitly repair identity state."
+          );
+        }
+        if (!actorIdentityMatches(selected, identity)) {
+          throw new RegistrationError(
+            "PCP_REGISTRATION_CACHE_MISMATCH",
+            "The cached actor profile no longer matches its client and machine identity."
+          );
+        }
+      } else if (identity.actor_id !== void 0) {
+        selected = profilesById.get(identity.actor_id);
+        if (selected === void 0) {
+          throw new RegistrationError(
+            "PCP_REGISTRATION_ACTOR_NOT_FOUND",
+            "The requested actor profile does not exist in this project."
+          );
+        }
+        if (!actorIdentityMatches(selected, identity)) {
+          throw new RegistrationError(
+            "PCP_REGISTRATION_ACTOR_MISMATCH",
+            "The requested actor profile belongs to a different client or machine."
+          );
+        }
+      } else {
+        const matches = profiles.filter((profile) => actorIdentityMatches(profile, identity));
+        if (matches.length > 1) {
+          throw new RegistrationError(
+            "PCP_REGISTRATION_AMBIGUOUS",
+            "Multiple actor profiles match this client and machine; rerun with --actor-id."
+          );
+        }
+        selected = matches[0];
+      }
+      let profileCreated = false;
+      if (selected === void 0) {
+        selected = {
+          schema_version: 1,
+          actor_id: createActorId(identity),
+          actor_type: identity.actor_type,
+          client: identity.client,
+          machine_label: identity.machine_label,
+          first_seen: (/* @__PURE__ */ new Date()).toISOString(),
+          checkpoint_paths: []
+        };
+        const schemaResult = validateSchema("actor-profile", selected);
+        if (!schemaResult.valid) {
+          throw new RegistrationError(
+            "PCP_REGISTRATION_PROFILE_INVALID",
+            "The generated actor profile did not satisfy the release schema."
+          );
+        }
+        const newProfilePath = path14.join(
+          root,
+          ...profileRelativePath(selected.actor_id).split("/")
+        );
+        await createExclusiveFile(newProfilePath, stringify3(selected), () => {
+          createdProfilePath = newProfilePath;
+        });
+        profileCreated = true;
+        await assertValidCanonicalLayer(root);
+      }
+      let cacheCreated = false;
+      if (cachedContents === void 0) {
+        const cacheDirectory = path14.dirname(cachePath);
+        createdRuntimeRoot = await mkdir4(cacheDirectory, { recursive: true });
+        await createExclusiveFile(
+          cachePath,
+          `${JSON.stringify(cacheValue(selected), null, 2)}
+`,
+          () => {
+            createdCachePath = cachePath;
+          }
+        );
+        cacheCreated = true;
+      }
+      await assertValidCanonicalLayer(root);
+      return {
+        schema_version: 1,
+        command: "register",
+        status: profileCreated ? "created" : "recovered",
+        actor_id: selected.actor_id,
+        actor_type: selected.actor_type,
+        client: selected.client,
+        machine_label: selected.machine_label,
+        profile_path: portablePath(profileRelativePath(selected.actor_id)),
+        execution_id: executionId,
+        profile_created: profileCreated,
+        cache_created: cacheCreated,
+        event_created: false,
+        mutated: profileCreated || cacheCreated
+      };
+    } catch (error2) {
+      const rolledBack = await rollbackCreatedPaths({
+        ...createdCachePath === void 0 ? {} : { cache_path: createdCachePath },
+        ...createdProfilePath === void 0 ? {} : { profile_path: createdProfilePath },
+        ...createdRuntimeRoot === void 0 ? {} : { runtime_root: createdRuntimeRoot }
+      });
+      if (!rolledBack) {
+        throw new RegistrationError(
+          "PCP_REGISTRATION_ROLLBACK_FAILED",
+          "Actor registration failed and its new files could not be fully removed.",
+          true
+        );
+      }
+      if (error2 instanceof RegistrationError) {
+        throw new RegistrationError(error2.code, error2.message, false);
+      }
+      throw new RegistrationError(
+        "PCP_REGISTRATION_FAILED",
+        error2 instanceof Error ? error2.message : String(error2),
+        false
+      );
+    }
+  });
+}
+
 // src/domain/release.ts
 var PCP_NAME = "Persistent Context Protocol";
 var PCP_VERSION = "0.1.0";
-var PCP_RELEASE_STAGE = "state-c-translation-preview";
+var PCP_RELEASE_STAGE = "actor-registration";
 var PCP_COMMANDS = [
   "inspect",
   "adopt",
@@ -24080,6 +24645,18 @@ function formatInspection(result) {
 `;
 }
 
+// src/presentation/format-registration.ts
+function formatRegistration(result) {
+  const verb = result.status === "created" ? "Created" : "Recovered";
+  return [
+    `${verb} actor ${result.actor_id}.`,
+    `Execution: ${result.execution_id}`,
+    `Profile: ${result.profile_path}`,
+    "Continuity event: none",
+    ""
+  ].join("\n");
+}
+
 // src/cli/main.ts
 var commandDescriptions = {
   inspect: "Inspect and classify a candidate project without mutation",
@@ -24123,6 +24700,14 @@ function reportAdoptionError(error2) {
   );
   process.exitCode = 2;
 }
+function reportRegistrationError(error2) {
+  const code2 = error2 instanceof RegistrationError ? error2.code : "PCP_REGISTRATION_FAILED";
+  const message = error2 instanceof Error ? error2.message : String(error2);
+  const mutated = error2 instanceof RegistrationError ? error2.mutated : false;
+  process.stderr.write(`${JSON.stringify({ code: code2, message, mutated })}
+`);
+  process.exitCode = 2;
+}
 function addInspectCommand(program2) {
   return program2.command("inspect").description(commandDescriptions.inspect).argument("[directory]", "candidate project root").option("--candidate <directory>", "candidate project root").option("--json", "emit stable structured JSON").action(async (directory, options) => {
     try {
@@ -24149,6 +24734,24 @@ function addAdoptCommand(program2) {
       );
     } catch (error2) {
       reportAdoptionError(error2);
+    }
+  });
+}
+function addRegisterCommand(program2) {
+  return program2.command("register").description(commandDescriptions.register).argument("[directory]", "managed project root").option("--candidate <directory>", "managed project root").option("--actor-type <agent|human>", "durable actor type", "agent").option("--client <client>", "agent client; omit only for a human").option("--machine-label <slug>", "stable lowercase machine label").option("--actor-id <id>", "recover one known profile when matches are ambiguous").option("--json", "emit stable structured JSON").action(async (directory, options) => {
+    try {
+      const result = await registerActor(options.candidate ?? directory ?? ".", {
+        machine_label: options.machineLabel ?? normalizeMachineLabel(hostname()),
+        ...options.actorType === void 0 ? {} : { actor_type: options.actorType },
+        ...options.client === void 0 ? {} : { client: options.client },
+        ...options.actorId === void 0 ? {} : { actor_id: options.actorId }
+      });
+      process.stdout.write(
+        options.json === true ? `${JSON.stringify(result, null, 2)}
+` : formatRegistration(result)
+      );
+    } catch (error2) {
+      reportRegistrationError(error2);
     }
   });
 }
@@ -24220,6 +24823,8 @@ function createProgram() {
       addInspectCommand(program2);
     } else if (commandName === "adopt") {
       addAdoptCommand(program2);
+    } else if (commandName === "register") {
+      addRegisterCommand(program2);
     } else if (commandName === "validate") {
       addValidateCommand(program2);
     } else if (commandName === "render") {
