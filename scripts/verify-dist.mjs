@@ -134,6 +134,7 @@ try {
     previewResult.classification !== 'A' ||
     previewResult.applicable !== true ||
     previewResult.mutated !== false ||
+    previewResult.adapters?.length !== 5 ||
     !/^[a-f0-9]{64}$/.test(previewResult.plan?.plan_digest ?? '')
   ) {
     throw new Error('Bundled pcp adoption preview returned an unexpected result.');
@@ -170,6 +171,28 @@ try {
   ) {
     throw new Error('Bundled pcp adoption apply returned an unexpected result.');
   }
+
+  const expectedAdapterPaths = [
+    'AGENTS.md',
+    '.agents/rules/pcp.md',
+    'CLAUDE.md',
+    '.github/copilot-instructions.md',
+    '.cursor/rules/pcp.mdc',
+  ];
+  if (
+    JSON.stringify(previewResult.adapters.map((adapter) => adapter.target_path)) !==
+    JSON.stringify(expectedAdapterPaths)
+  ) {
+    throw new Error('Bundled pcp adoption preview returned an unexpected adapter contract.');
+  }
+  await Promise.all(
+    expectedAdapterPaths.map(async (adapterPath) => {
+      const content = await readFile(join(adoptionCandidate, adapterPath), 'utf8');
+      if (!content.includes('.pcp/')) {
+        throw new Error(`Bundled pcp adoption wrote an invalid adapter: ${adapterPath}`);
+      }
+    }),
+  );
 
   const registrationArguments = [
     fileURLToPath(skillBundle),

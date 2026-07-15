@@ -25,6 +25,8 @@ import {
 } from '../infrastructure/canonical-ownership.js';
 import { canonicalSourceDigest } from '../infrastructure/canonical-source-digest.js';
 import { SchemaRegistry } from '../infrastructure/schema-validator.js';
+import { renderPlatformAdapters } from './render-platform-adapters.js';
+import { validatePlatformAdapters } from './validate-platform-adapters.js';
 
 interface CanonicalFile {
   absolute_path: string;
@@ -691,6 +693,16 @@ export async function validateCanonicalLayer(
   validateMarkdownStructure(layerRoot, markdownRecords, graph, diagnostics);
 
   const manifest = loadedYaml.get('pcp.yaml')?.value;
+  const adapterIds = stringArray(objectValue(manifest)?.adapter_ids);
+  if (adapterIds !== undefined && adapterIds.length > 0) {
+    const expectedAdapters = renderPlatformAdapters().map((adapter) => adapter.manifest);
+    const adapterValidation = await validatePlatformAdapters(resolvedProjectRoot, expectedAdapters);
+    diagnostics.push(
+      ...adapterValidation.diagnostics.map((diagnostic) =>
+        issue(diagnostic.code, diagnostic.path, diagnostic.message),
+      ),
+    );
+  }
   const patterns = ownershipPatterns(manifest);
   if (patterns !== undefined) {
     await validateOwnership(

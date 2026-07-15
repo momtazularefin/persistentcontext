@@ -480,6 +480,15 @@ async function stageCanonicalLayer(
     for (const document of input.documents) {
       template.set(`.pcp/${document.path}`, renderDocument(document, input.baseline_at));
     }
+    for (const adapter of adapters) {
+      if (template.has(adapter.manifest.target_path)) {
+        throw new AdoptionError(
+          'PCP_ADAPTER_RENDER_INVALID',
+          `Generated adapter target collides with canonical staged content: ${adapter.manifest.target_path}`,
+        );
+      }
+      template.set(adapter.manifest.target_path, adapter.content);
+    }
 
     await writeStageFiles(stageRoot, template);
     const rendering = await renderCanonicalViews(stageRoot);
@@ -501,16 +510,7 @@ async function stageCanonicalLayer(
     }
 
     const result = new Map<string, Buffer>();
-    await collectStageFiles(path.join(stageRoot, '.pcp'), stageRoot, result);
-    for (const adapter of adapters) {
-      if (result.has(adapter.manifest.target_path)) {
-        throw new AdoptionError(
-          'PCP_ADAPTER_RENDER_INVALID',
-          `Generated adapter target collides with canonical staged content: ${adapter.manifest.target_path}`,
-        );
-      }
-      result.set(adapter.manifest.target_path, adapter.content);
-    }
+    await collectStageFiles(stageRoot, stageRoot, result);
     return result;
   } finally {
     await rm(stageRoot, { recursive: true, force: true });
@@ -920,8 +920,16 @@ async function buildPlanMaterial(
     );
   }
 
-  const content = new Map(await stageCanonicalLayer(input));
+  const adapters = renderPlatformAdapters();
+  assertGeneratedPlatformAdapters(adapters);
+  const content = new Map(await stageCanonicalLayer(input, adapters));
   for (const scaffold of input.scaffold_files) {
+    if (content.has(scaffold.path)) {
+      throw new AdoptionError(
+        'PCP_ADOPTION_PATH_BOUNDARY',
+        `State A scaffold path is reserved by the canonical PCP installation: ${scaffold.path}`,
+      );
+    }
     content.set(scaffold.path, Buffer.from(normalizeText(scaffold.content), 'utf8'));
   }
   await assertContentTargetsSafe(root, content, inspection, input.persistence);
@@ -954,6 +962,7 @@ async function buildPlanMaterial(
       'clean-genesis',
       'desired-hashes',
       'path-boundaries',
+      'platform-adapters',
       'rollback',
       'semantic-input',
     ],
@@ -970,6 +979,7 @@ async function buildPlanMaterial(
     applicable: true,
     questions: [],
     baseline: baselineFor(root, inspection),
+    adapters: adapters.map((adapter) => adapter.manifest),
     plan,
     mutated: false,
   };

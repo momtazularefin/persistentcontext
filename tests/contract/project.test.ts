@@ -26,12 +26,14 @@ describe('public project contract', () => {
     expect(readme).toContain('node dist/pcp.mjs workstream validate path/to/managed-project');
     expect(readme).toContain('node dist/pcp.mjs workstream complete path/to/managed-project');
     expect(readme).toContain('All adoption is preview-first');
-    expect(readme).toContain('State C intake discovers complete foreign directories');
+    expect(readme).toContain('Every applicable State A, B, or C plan installs the same five');
+    expect(readme).toContain('State C intake additionally discovers complete foreign directories');
     expect(readme).toContain('can be marked `project-owned` and preserved unchanged');
     expect(readme).toContain('five generated platform delegations');
     expect(readme).toContain('outside the five-product contract fails closed');
     expect(readme).toContain('that digest also binds the reviewed coverage');
-    expect(readme).toContain('Apply revalidates the live canonical layer and platform adapters');
+    expect(readme).toContain('Apply revalidates the live canonical layer and complete adapter set');
+    expect(readme).toContain('generated views and adapters');
     expect(readme).toContain('Every successful invocation returns a fresh execution ULID');
     expect(readme).toContain('one proof per criterion');
     expect(readme).toContain('stable caller-supplied `change_key`');

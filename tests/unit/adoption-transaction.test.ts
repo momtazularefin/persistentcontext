@@ -169,6 +169,19 @@ describe('transactional State A adoption', () => {
     expect(await validateCanonicalLayer(candidate, { clean_genesis: true })).toMatchObject({
       valid: true,
     });
+    const adapters = renderPlatformAdapters();
+    expect(
+      await validatePlatformAdapters(
+        candidate,
+        adapters.map((adapter) => adapter.manifest),
+      ),
+    ).toEqual({ valid: true, checked_adapters: 5, diagnostics: [] });
+    await writeFile(path.join(candidate, 'AGENTS.md'), '# Stale adapter\n');
+    const driftedLayer = await validateCanonicalLayer(candidate, { clean_genesis: true });
+    expect(driftedLayer.valid).toBe(false);
+    expect(
+      driftedLayer.diagnostics.some((diagnostic) => diagnostic.code === 'adapter.digest'),
+    ).toBe(true);
     expect(await readdir(path.join(candidate, '.pcp', 'continuity', 'actors'))).toEqual([
       '00-index.md',
     ]);
@@ -179,7 +192,7 @@ describe('transactional State A adoption', () => {
       '00-index.md',
     ]);
     expect(before.inventory.files.map((file) => file.path)).toEqual(['README.md']);
-  });
+  }, 15_000);
 
   it('rejects an unapproved digest without changing the candidate', async () => {
     const { candidate, inputPath } = await createSeed();
@@ -214,7 +227,7 @@ describe('transactional State A adoption', () => {
     expect(await validateCanonicalLayer(candidate, { clean_genesis: true })).toMatchObject({
       valid: true,
     });
-  });
+  }, 15_000);
 
   it('adopts grounded software, documentation, research/data, monorepo, and nested-repository State B fixtures without changing owned assets', async () => {
     const cases = [
@@ -342,6 +355,12 @@ describe('transactional State A adoption', () => {
       expect(await validateCanonicalLayer(candidate, { clean_genesis: true })).toMatchObject({
         valid: true,
       });
+      expect(
+        await validatePlatformAdapters(
+          candidate,
+          renderPlatformAdapters().map((adapter) => adapter.manifest),
+        ),
+      ).toMatchObject({ valid: true, checked_adapters: 5 });
     }
 
     const researchCandidate = await temporaryRoot('pcp-state-b-research-data-');

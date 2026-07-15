@@ -19511,9 +19511,9 @@ async function inspectRepository(candidate = ".") {
 }
 
 // src/application/plan-adoption.ts
-import { lstat as lstat4, mkdir as mkdir2, mkdtemp as mkdtemp2, readFile as readFile9, readdir as readdir3, rm as rm2, writeFile as writeFile3 } from "node:fs/promises";
+import { lstat as lstat5, mkdir as mkdir2, mkdtemp as mkdtemp2, readFile as readFile10, readdir as readdir3, rm as rm2, writeFile as writeFile3 } from "node:fs/promises";
 import { tmpdir as tmpdir2 } from "node:os";
-import path11 from "node:path";
+import path12 from "node:path";
 
 // src/domain/adapters.ts
 var SUPPORTED_ADAPTER_IDS = [
@@ -22162,8 +22162,8 @@ async function renderCanonicalViews(projectRoot, options = {}) {
 }
 
 // src/application/validate-canonical-layer.ts
-import { readdir as readdir2, readFile as readFile8, stat as stat2 } from "node:fs/promises";
-import path10 from "node:path";
+import { readdir as readdir2, readFile as readFile9, stat as stat2 } from "node:fs/promises";
+import path11 from "node:path";
 
 // src/domain/recording.ts
 import { createHash as createHash6 } from "node:crypto";
@@ -22769,6 +22769,154 @@ function matchingOwnershipClasses(relativePath, patterns) {
   );
 }
 
+// src/application/validate-platform-adapters.ts
+import { lstat as lstat4, readFile as readFile8 } from "node:fs/promises";
+import path10 from "node:path";
+function isInside2(root, candidate) {
+  const relative = path10.relative(root, candidate);
+  return relative === "" || !relative.startsWith(`..${path10.sep}`) && relative !== ".." && !path10.isAbsolute(relative);
+}
+function absoluteTarget(root, portablePath2) {
+  const normalized = path10.posix.normalize(portablePath2);
+  if (portablePath2 === "." || normalized !== portablePath2 || portablePath2.startsWith("/") || portablePath2.includes("\\")) {
+    return void 0;
+  }
+  const target = path10.resolve(root, ...portablePath2.split("/"));
+  return isInside2(root, target) && target !== path10.resolve(root) ? target : void 0;
+}
+function compareDiagnostics2(left, right) {
+  return comparePortablePaths(left.path, right.path) || comparePortablePaths(left.code, right.code);
+}
+async function validateRegularFile(root, portablePath2, code2, diagnostics) {
+  const target = absoluteTarget(root, portablePath2);
+  if (target === void 0) {
+    diagnostics.push({ code: `${code2}.path`, path: portablePath2, message: "Path escapes root." });
+    return void 0;
+  }
+  try {
+    const metadata = await lstat4(target);
+    if (!metadata.isFile() || metadata.isSymbolicLink()) {
+      diagnostics.push({
+        code: `${code2}.type`,
+        path: portablePath2,
+        message: "Expected a regular file with no symbolic-link boundary."
+      });
+      return void 0;
+    }
+    return await readFile8(target);
+  } catch (error2) {
+    diagnostics.push({
+      code: `${code2}.read`,
+      path: portablePath2,
+      message: error2 instanceof Error ? error2.message : String(error2)
+    });
+    return void 0;
+  }
+}
+async function validatePlatformAdapters(root, adapters) {
+  const diagnostics = [];
+  const registry = new SchemaRegistry();
+  const ids = /* @__PURE__ */ new Set();
+  const targets = /* @__PURE__ */ new Set();
+  if (canonicalJson(adapters.map((adapter) => adapter.adapter_id)) !== canonicalJson(SUPPORTED_ADAPTER_IDS)) {
+    diagnostics.push({
+      code: "adapter.set",
+      path: ".pcp/pcp.yaml",
+      message: "Adapter manifests do not match the complete ordered platform contract."
+    });
+  }
+  for (const adapter of adapters) {
+    const schema4 = registry.validate("adapter", adapter);
+    diagnostics.push(
+      ...schema4.diagnostics.map((item) => ({
+        code: `adapter.schema.${item.keyword}`,
+        path: `${adapter.adapter_id}${item.path}`,
+        message: item.message
+      }))
+    );
+    if (ids.has(adapter.adapter_id)) {
+      diagnostics.push({
+        code: "adapter.id-duplicate",
+        path: adapter.adapter_id,
+        message: "Adapter ID appears more than once."
+      });
+    }
+    if (targets.has(adapter.target_path)) {
+      diagnostics.push({
+        code: "adapter.target-duplicate",
+        path: adapter.target_path,
+        message: "Adapter target appears more than once."
+      });
+    }
+    ids.add(adapter.adapter_id);
+    targets.add(adapter.target_path);
+    const bytes = await validateRegularFile(
+      root,
+      adapter.target_path,
+      "adapter.target",
+      diagnostics
+    );
+    if (bytes !== void 0 && sha256(bytes) !== adapter.content_digest) {
+      diagnostics.push({
+        code: "adapter.digest",
+        path: adapter.target_path,
+        message: "Adapter content does not match its generated digest."
+      });
+    }
+    for (const source of adapter.source_paths) {
+      await validateRegularFile(root, source, "adapter.source", diagnostics);
+    }
+  }
+  const manifestBytes = await validateRegularFile(
+    root,
+    ".pcp/pcp.yaml",
+    "adapter.manifest",
+    diagnostics
+  );
+  if (manifestBytes !== void 0) {
+    const document = parseDocument(manifestBytes.toString("utf8"), {
+      prettyErrors: false,
+      strict: true,
+      uniqueKeys: true
+    });
+    if (document.errors.length > 0) {
+      diagnostics.push({
+        code: "adapter.manifest.parse",
+        path: ".pcp/pcp.yaml",
+        message: document.errors.map((error2) => error2.message).join("; ")
+      });
+    } else {
+      let value;
+      try {
+        value = document.toJS({ mapAsMap: false, maxAliasCount: 50 });
+      } catch (error2) {
+        diagnostics.push({
+          code: "adapter.manifest.decode",
+          path: ".pcp/pcp.yaml",
+          message: error2 instanceof Error ? error2.message : String(error2)
+        });
+      }
+      if (value !== void 0) {
+        const adapterIds = typeof value === "object" && value !== null && !Array.isArray(value) ? value.adapter_ids : void 0;
+        const expected = adapters.map((adapter) => adapter.adapter_id);
+        if (canonicalJson(adapterIds) !== canonicalJson(expected)) {
+          diagnostics.push({
+            code: "adapter.manifest.ids",
+            path: ".pcp/pcp.yaml",
+            message: "Manifest adapter_ids do not match the generated adapter set."
+          });
+        }
+      }
+    }
+  }
+  diagnostics.sort(compareDiagnostics2);
+  return {
+    valid: diagnostics.length === 0,
+    checked_adapters: adapters.length,
+    diagnostics
+  };
+}
+
 // src/application/validate-canonical-layer.ts
 var GENERATED_MARKER3 = "<!-- PCP: GENERATED; DO NOT EDIT -->";
 var REQUIRED_CANONICAL_PATHS = [
@@ -22815,12 +22963,12 @@ function stringArray3(value) {
   return Array.isArray(value) && value.every((item) => typeof item === "string") ? value : void 0;
 }
 function relativeFrom(root, target) {
-  return path10.relative(root, target).split(path10.sep).join("/");
+  return path11.relative(root, target).split(path11.sep).join("/");
 }
-function isInside2(root, target) {
-  const resolvedRoot = path10.resolve(root);
-  const resolvedTarget = path10.resolve(target);
-  return resolvedTarget === resolvedRoot || resolvedTarget.startsWith(`${resolvedRoot}${path10.sep}`);
+function isInside3(root, target) {
+  const resolvedRoot = path11.resolve(root);
+  const resolvedTarget = path11.resolve(target);
+  return resolvedTarget === resolvedRoot || resolvedTarget.startsWith(`${resolvedRoot}${path11.sep}`);
 }
 function issue2(code2, relativePath, message) {
   return { severity: "error", code: code2, path: relativePath, message };
@@ -22841,7 +22989,7 @@ async function collectFiles2(directory, layerRoot, diagnostics) {
     return files;
   }
   for (const entry of entries.sort((left, right) => left.name.localeCompare(right.name))) {
-    const absolutePath = path10.join(directory, entry.name);
+    const absolutePath = path11.join(directory, entry.name);
     const relativePath = relativeFrom(layerRoot, absolutePath);
     if (entry.isSymbolicLink()) {
       diagnostics.push(
@@ -22896,10 +23044,10 @@ function normalizedLinkTarget(target) {
 }
 async function validateMarkdownLinks(projectRoot, layerRoot, records, diagnostics) {
   const graph = /* @__PURE__ */ new Map();
-  const canonicalMarkdown = new Set(records.map((record) => path10.resolve(record.absolute_path)));
+  const canonicalMarkdown = new Set(records.map((record) => path11.resolve(record.absolute_path)));
   for (const record of records) {
     const edges = /* @__PURE__ */ new Set();
-    graph.set(path10.resolve(record.absolute_path), edges);
+    graph.set(path11.resolve(record.absolute_path), edges);
     for (const link of record.parsed.links) {
       const diagnosticPath = `${record.relative_path}:${link.line}`;
       const rawTarget = link.target;
@@ -22942,8 +23090,8 @@ async function validateMarkdownLinks(projectRoot, layerRoot, records, diagnostic
         continue;
       }
       if (relativeTarget.length === 0) continue;
-      const target = path10.resolve(path10.dirname(record.absolute_path), relativeTarget);
-      if (!isInside2(projectRoot, target)) {
+      const target = path11.resolve(path11.dirname(record.absolute_path), relativeTarget);
+      if (!isInside3(projectRoot, target)) {
         diagnostics.push(
           issue2(
             "link.outside-project",
@@ -22961,7 +23109,7 @@ async function validateMarkdownLinks(projectRoot, layerRoot, records, diagnostic
         );
         continue;
       }
-      if (isInside2(layerRoot, target) && canonicalMarkdown.has(target)) edges.add(target);
+      if (isInside3(layerRoot, target) && canonicalMarkdown.has(target)) edges.add(target);
     }
   }
   return graph;
@@ -22969,11 +23117,11 @@ async function validateMarkdownLinks(projectRoot, layerRoot, records, diagnostic
 function validateMarkdownStructure(layerRoot, records, graph, diagnostics) {
   const byDirectory = /* @__PURE__ */ new Map();
   for (const record of records) {
-    const directory = path10.dirname(record.absolute_path);
+    const directory = path11.dirname(record.absolute_path);
     const siblings = byDirectory.get(directory) ?? [];
     siblings.push(record);
     byDirectory.set(directory, siblings);
-    const number = pathNumber(path10.basename(record.absolute_path));
+    const number = pathNumber(path11.basename(record.absolute_path));
     if (number === void 0) {
       diagnostics.push(
         issue2(
@@ -22993,7 +23141,7 @@ function validateMarkdownStructure(layerRoot, records, graph, diagnostics) {
     }
   }
   for (const [directory, siblings] of byDirectory) {
-    const index = siblings.find((record) => path10.basename(record.absolute_path) === "00-index.md");
+    const index = siblings.find((record) => path11.basename(record.absolute_path) === "00-index.md");
     if (index === void 0) {
       diagnostics.push(
         issue2(
@@ -23006,7 +23154,7 @@ function validateMarkdownStructure(layerRoot, records, graph, diagnostics) {
     }
     const seenNumbers = /* @__PURE__ */ new Map();
     for (const sibling of siblings) {
-      const number = pathNumber(path10.basename(sibling.absolute_path));
+      const number = pathNumber(path11.basename(sibling.absolute_path));
       if (number === void 0) continue;
       const previous = seenNumbers.get(number);
       if (previous !== void 0) {
@@ -23021,21 +23169,21 @@ function validateMarkdownStructure(layerRoot, records, graph, diagnostics) {
         seenNumbers.set(number, sibling.relative_path);
       }
     }
-    const indexTargets = graph.get(path10.resolve(index.absolute_path)) ?? /* @__PURE__ */ new Set();
+    const indexTargets = graph.get(path11.resolve(index.absolute_path)) ?? /* @__PURE__ */ new Set();
     for (const sibling of siblings) {
       if (sibling === index) continue;
-      if (!indexTargets.has(path10.resolve(sibling.absolute_path))) {
+      if (!indexTargets.has(path11.resolve(sibling.absolute_path))) {
         diagnostics.push(
           issue2(
             "index.unlisted-document",
             index.relative_path,
-            `Folder index does not link ${path10.basename(sibling.absolute_path)}.`
+            `Folder index does not link ${path11.basename(sibling.absolute_path)}.`
           )
         );
       }
     }
   }
-  const rootIndex = path10.resolve(layerRoot, "00-index.md");
+  const rootIndex = path11.resolve(layerRoot, "00-index.md");
   const reached = /* @__PURE__ */ new Set();
   const queue = [rootIndex];
   while (queue.length > 0) {
@@ -23045,7 +23193,7 @@ function validateMarkdownStructure(layerRoot, records, graph, diagnostics) {
     queue.push(...graph.get(current) ?? []);
   }
   for (const record of records) {
-    if (!reached.has(path10.resolve(record.absolute_path))) {
+    if (!reached.has(path11.resolve(record.absolute_path))) {
       diagnostics.push(
         issue2(
           "markdown.orphan",
@@ -23193,8 +23341,8 @@ function assignLoadedYaml(loaded, relativePath, schema4, value) {
   loaded.set(relativePath, { path: relativePath, schema: schema4, value });
 }
 async function validateCanonicalLayer(projectRoot, options = {}) {
-  const resolvedProjectRoot = path10.resolve(projectRoot);
-  const layerRoot = path10.join(resolvedProjectRoot, ".pcp");
+  const resolvedProjectRoot = path11.resolve(projectRoot);
+  const layerRoot = path11.join(resolvedProjectRoot, ".pcp");
   const diagnostics = [];
   try {
     if (!(await stat2(layerRoot)).isDirectory()) {
@@ -23233,7 +23381,7 @@ async function validateCanonicalLayer(projectRoot, options = {}) {
       continue;
     }
     if (options.archive_content === "filenames-only" && /^continuity\/archive\/[^/]+\.yaml$/.test(file.relative_path)) {
-      const eventId = path10.basename(file.relative_path, ".yaml");
+      const eventId = path11.basename(file.relative_path, ".yaml");
       if (!/^[0-7][0-9A-HJKMNP-TV-Z]{25}$/u.test(eventId)) {
         diagnostics.push(
           issue2(
@@ -23248,7 +23396,7 @@ async function validateCanonicalLayer(projectRoot, options = {}) {
       }
       continue;
     }
-    const contents = await readFile8(file.absolute_path, "utf8");
+    const contents = await readFile9(file.absolute_path, "utf8");
     const document = parseDocument(contents, { prettyErrors: false, uniqueKeys: true });
     if (document.errors.length > 0) {
       for (const error2 of document.errors) {
@@ -23290,7 +23438,7 @@ async function validateCanonicalLayer(projectRoot, options = {}) {
   for (const file of files.filter(
     (item) => item.relative_path.endsWith(".md") && !item.relative_path.startsWith("runtime/")
   )) {
-    const contents = await readFile8(file.absolute_path, "utf8");
+    const contents = await readFile9(file.absolute_path, "utf8");
     try {
       const parsed = parseCanonicalMarkdown(contents);
       const result = schemaRegistry.validate("frontmatter", parsed.frontmatter);
@@ -23333,6 +23481,16 @@ async function validateCanonicalLayer(projectRoot, options = {}) {
   );
   validateMarkdownStructure(layerRoot, markdownRecords, graph, diagnostics);
   const manifest = loadedYaml.get("pcp.yaml")?.value;
+  const adapterIds = stringArray3(objectValue3(manifest)?.adapter_ids);
+  if (adapterIds !== void 0 && adapterIds.length > 0) {
+    const expectedAdapters = renderPlatformAdapters().map((adapter) => adapter.manifest);
+    const adapterValidation = await validatePlatformAdapters(resolvedProjectRoot, expectedAdapters);
+    diagnostics.push(
+      ...adapterValidation.diagnostics.map(
+        (diagnostic2) => issue2(diagnostic2.code, diagnostic2.path, diagnostic2.message)
+      )
+    );
+  }
   const patterns = ownershipPatterns(manifest);
   if (patterns !== void 0) {
     await validateOwnership(
@@ -23346,7 +23504,7 @@ async function validateCanonicalLayer(projectRoot, options = {}) {
   for (const file of files.filter(
     (item) => TEXT_FILE_PATTERN.test(item.relative_path) && !item.relative_path.startsWith("runtime/") && !(options.archive_content === "filenames-only" && item.relative_path.startsWith("continuity/archive/"))
   )) {
-    validateTextSafety(file.relative_path, await readFile8(file.absolute_path, "utf8"), diagnostics);
+    validateTextSafety(file.relative_path, await readFile9(file.absolute_path, "utf8"), diagnostics);
   }
   diagnostics.push(...validateCanonicalSemantics(semanticRecords));
   const continuity = objectValue3(objectValue3(manifest)?.continuity);
@@ -23415,12 +23573,12 @@ var expectedDocuments = /* @__PURE__ */ new Map([
   ["operations/20-plan.md", { type: "plan", status: "living" }],
   ["operations/30-decisions.md", { type: "policy", status: "living" }]
 ]);
-function isInside3(root, candidate) {
-  const relative = path11.relative(root, candidate);
-  return relative === "" || !relative.startsWith(`..${path11.sep}`) && relative !== ".." && !path11.isAbsolute(relative);
+function isInside4(root, candidate) {
+  const relative = path12.relative(root, candidate);
+  return relative === "" || !relative.startsWith(`..${path12.sep}`) && relative !== ".." && !path12.isAbsolute(relative);
 }
 function portableBasename(root) {
-  const normalized = path11.basename(root).normalize("NFKD").toLowerCase();
+  const normalized = path12.basename(root).normalize("NFKD").toLowerCase();
   const slug = normalized.replace(/[^a-z0-9]+/gu, "-").replace(/^-+|-+$/gu, "").slice(0, 63);
   return slug || "project";
 }
@@ -23534,14 +23692,14 @@ function schemaFailure(diagnostics) {
   return new AdoptionError("PCP_ADOPTION_INPUT_INVALID", `Invalid adoption input: ${details}`);
 }
 async function loadAdoptionInput(inputPath, candidateRoot2) {
-  const resolvedInput = path11.resolve(inputPath);
-  if (isInside3(candidateRoot2, resolvedInput)) {
+  const resolvedInput = path12.resolve(inputPath);
+  if (isInside4(candidateRoot2, resolvedInput)) {
     throw new AdoptionError(
       "PCP_ADOPTION_INPUT_INSIDE_CANDIDATE",
       "Store the transient adoption input outside the candidate project so it cannot become project state."
     );
   }
-  const metadata = await lstat4(resolvedInput).catch((error2) => {
+  const metadata = await lstat5(resolvedInput).catch((error2) => {
     const detail = error2 instanceof Error ? error2.message : String(error2);
     throw new AdoptionError(
       "PCP_ADOPTION_INPUT_UNREADABLE",
@@ -23554,7 +23712,7 @@ async function loadAdoptionInput(inputPath, candidateRoot2) {
       "The adoption input must be a regular non-symlink file no larger than 4 MiB."
     );
   }
-  const document = parseDocument(await readFile9(resolvedInput, "utf8"), {
+  const document = parseDocument(await readFile10(resolvedInput, "utf8"), {
     prettyErrors: false,
     strict: true,
     uniqueKeys: true
@@ -23671,7 +23829,7 @@ function validateProjectInput(input, inspection) {
     throw new AdoptionError("PCP_ADOPTION_INPUT_INVALID", "Scaffold paths must be unique.");
   }
   for (const scaffold of input.scaffold_files) {
-    const normalized = path11.posix.normalize(scaffold.path);
+    const normalized = path12.posix.normalize(scaffold.path);
     if (scaffold.path === "." || normalized !== scaffold.path || scaffold.path.endsWith("/") || scaffold.path.startsWith(".pcp/")) {
       throw new AdoptionError("PCP_ADOPTION_PATH_UNSAFE", `Unsafe scaffold path: ${scaffold.path}`);
     }
@@ -23706,8 +23864,8 @@ ${body}
 }
 async function writeStageFiles(root, files) {
   for (const [relativePath, content] of files) {
-    const target = path11.join(root, ...relativePath.split("/"));
-    await mkdir2(path11.dirname(target), { recursive: true });
+    const target = path12.join(root, ...relativePath.split("/"));
+    await mkdir2(path12.dirname(target), { recursive: true });
     await writeFile3(target, content, { flag: "wx" });
   }
 }
@@ -23715,9 +23873,9 @@ async function collectStageFiles(directory, stageRoot, result) {
   const entries = await readdir3(directory, { withFileTypes: true });
   entries.sort((left, right) => comparePortablePaths(left.name, right.name));
   for (const entry of entries) {
-    const target = path11.join(directory, entry.name);
-    const metadata = await lstat4(target);
-    const relativePath = toPortablePath(path11.relative(stageRoot, target));
+    const target = path12.join(directory, entry.name);
+    const metadata = await lstat5(target);
+    const relativePath = toPortablePath(path12.relative(stageRoot, target));
     if (metadata.isSymbolicLink()) {
       throw new AdoptionError(
         "PCP_ADOPTION_STAGE_INVALID",
@@ -23727,7 +23885,7 @@ async function collectStageFiles(directory, stageRoot, result) {
     if (metadata.isDirectory()) {
       await collectStageFiles(target, stageRoot, result);
     } else if (metadata.isFile()) {
-      result.set(relativePath, await readFile9(target));
+      result.set(relativePath, await readFile10(target));
     }
   }
 }
@@ -23735,7 +23893,7 @@ function yamlBuffer(value) {
   return Buffer.from(stringify3(value, { lineWidth: 0, sortMapEntries: true }), "utf8");
 }
 async function stageCanonicalLayer(input, adapters = []) {
-  const stageRoot = await mkdtemp2(path11.join(tmpdir2(), "pcp-adoption-preview-"));
+  const stageRoot = await mkdtemp2(path12.join(tmpdir2(), "pcp-adoption-preview-"));
   try {
     const template = new Map(await loadCoreTemplateFiles());
     const manifestPath = ".pcp/pcp.yaml";
@@ -23754,6 +23912,15 @@ async function stageCanonicalLayer(input, adapters = []) {
     for (const document of input.documents) {
       template.set(`.pcp/${document.path}`, renderDocument(document, input.baseline_at));
     }
+    for (const adapter of adapters) {
+      if (template.has(adapter.manifest.target_path)) {
+        throw new AdoptionError(
+          "PCP_ADAPTER_RENDER_INVALID",
+          `Generated adapter target collides with canonical staged content: ${adapter.manifest.target_path}`
+        );
+      }
+      template.set(adapter.manifest.target_path, adapter.content);
+    }
     await writeStageFiles(stageRoot, template);
     const rendering = await renderCanonicalViews(stageRoot);
     if (!rendering.valid) {
@@ -23770,16 +23937,7 @@ async function stageCanonicalLayer(input, adapters = []) {
       );
     }
     const result = /* @__PURE__ */ new Map();
-    await collectStageFiles(path11.join(stageRoot, ".pcp"), stageRoot, result);
-    for (const adapter of adapters) {
-      if (result.has(adapter.manifest.target_path)) {
-        throw new AdoptionError(
-          "PCP_ADAPTER_RENDER_INVALID",
-          `Generated adapter target collides with canonical staged content: ${adapter.manifest.target_path}`
-        );
-      }
-      result.set(adapter.manifest.target_path, adapter.content);
-    }
+    await collectStageFiles(stageRoot, stageRoot, result);
     return result;
   } finally {
     await rm2(stageRoot, { recursive: true, force: true });
@@ -23787,10 +23945,10 @@ async function stageCanonicalLayer(input, adapters = []) {
 }
 function parentDirectories(relativePath) {
   const result = [];
-  let parent = path11.posix.dirname(relativePath);
+  let parent = path12.posix.dirname(relativePath);
   while (parent !== ".") {
     result.push(parent);
-    parent = path11.posix.dirname(parent);
+    parent = path12.posix.dirname(parent);
   }
   return result;
 }
@@ -24110,8 +24268,16 @@ async function buildPlanMaterial(root, inspection, input) {
       "Local persistence requires candidate ignore policy to cover the complete .pcp/ layer before adoption."
     );
   }
-  const content = new Map(await stageCanonicalLayer(input));
+  const adapters = renderPlatformAdapters();
+  assertGeneratedPlatformAdapters(adapters);
+  const content = new Map(await stageCanonicalLayer(input, adapters));
   for (const scaffold of input.scaffold_files) {
+    if (content.has(scaffold.path)) {
+      throw new AdoptionError(
+        "PCP_ADOPTION_PATH_BOUNDARY",
+        `State A scaffold path is reserved by the canonical PCP installation: ${scaffold.path}`
+      );
+    }
     content.set(scaffold.path, Buffer.from(normalizeText(scaffold.content), "utf8"));
   }
   await assertContentTargetsSafe(root, content, inspection, input.persistence);
@@ -24139,6 +24305,7 @@ async function buildPlanMaterial(root, inspection, input) {
       "clean-genesis",
       "desired-hashes",
       "path-boundaries",
+      "platform-adapters",
       "rollback",
       "semantic-input"
     ]
@@ -24154,6 +24321,7 @@ async function buildPlanMaterial(root, inspection, input) {
     applicable: true,
     questions: [],
     baseline: baselineFor(root, inspection),
+    adapters: adapters.map((adapter) => adapter.manifest),
     plan,
     mutated: false
   };
@@ -24171,154 +24339,6 @@ async function planAdoption(candidate = ".", inputPath) {
 }
 function isPlanMaterial(value) {
   return "content_by_path" in value;
-}
-
-// src/application/validate-platform-adapters.ts
-import { lstat as lstat5, readFile as readFile10 } from "node:fs/promises";
-import path12 from "node:path";
-function isInside4(root, candidate) {
-  const relative = path12.relative(root, candidate);
-  return relative === "" || !relative.startsWith(`..${path12.sep}`) && relative !== ".." && !path12.isAbsolute(relative);
-}
-function absoluteTarget(root, portablePath2) {
-  const normalized = path12.posix.normalize(portablePath2);
-  if (portablePath2 === "." || normalized !== portablePath2 || portablePath2.startsWith("/") || portablePath2.includes("\\")) {
-    return void 0;
-  }
-  const target = path12.resolve(root, ...portablePath2.split("/"));
-  return isInside4(root, target) && target !== path12.resolve(root) ? target : void 0;
-}
-function compareDiagnostics2(left, right) {
-  return comparePortablePaths(left.path, right.path) || comparePortablePaths(left.code, right.code);
-}
-async function validateRegularFile(root, portablePath2, code2, diagnostics) {
-  const target = absoluteTarget(root, portablePath2);
-  if (target === void 0) {
-    diagnostics.push({ code: `${code2}.path`, path: portablePath2, message: "Path escapes root." });
-    return void 0;
-  }
-  try {
-    const metadata = await lstat5(target);
-    if (!metadata.isFile() || metadata.isSymbolicLink()) {
-      diagnostics.push({
-        code: `${code2}.type`,
-        path: portablePath2,
-        message: "Expected a regular file with no symbolic-link boundary."
-      });
-      return void 0;
-    }
-    return await readFile10(target);
-  } catch (error2) {
-    diagnostics.push({
-      code: `${code2}.read`,
-      path: portablePath2,
-      message: error2 instanceof Error ? error2.message : String(error2)
-    });
-    return void 0;
-  }
-}
-async function validatePlatformAdapters(root, adapters) {
-  const diagnostics = [];
-  const registry = new SchemaRegistry();
-  const ids = /* @__PURE__ */ new Set();
-  const targets = /* @__PURE__ */ new Set();
-  if (canonicalJson(adapters.map((adapter) => adapter.adapter_id)) !== canonicalJson(SUPPORTED_ADAPTER_IDS)) {
-    diagnostics.push({
-      code: "adapter.set",
-      path: ".pcp/pcp.yaml",
-      message: "Adapter manifests do not match the complete ordered platform contract."
-    });
-  }
-  for (const adapter of adapters) {
-    const schema4 = registry.validate("adapter", adapter);
-    diagnostics.push(
-      ...schema4.diagnostics.map((item) => ({
-        code: `adapter.schema.${item.keyword}`,
-        path: `${adapter.adapter_id}${item.path}`,
-        message: item.message
-      }))
-    );
-    if (ids.has(adapter.adapter_id)) {
-      diagnostics.push({
-        code: "adapter.id-duplicate",
-        path: adapter.adapter_id,
-        message: "Adapter ID appears more than once."
-      });
-    }
-    if (targets.has(adapter.target_path)) {
-      diagnostics.push({
-        code: "adapter.target-duplicate",
-        path: adapter.target_path,
-        message: "Adapter target appears more than once."
-      });
-    }
-    ids.add(adapter.adapter_id);
-    targets.add(adapter.target_path);
-    const bytes = await validateRegularFile(
-      root,
-      adapter.target_path,
-      "adapter.target",
-      diagnostics
-    );
-    if (bytes !== void 0 && sha256(bytes) !== adapter.content_digest) {
-      diagnostics.push({
-        code: "adapter.digest",
-        path: adapter.target_path,
-        message: "Adapter content does not match its generated digest."
-      });
-    }
-    for (const source of adapter.source_paths) {
-      await validateRegularFile(root, source, "adapter.source", diagnostics);
-    }
-  }
-  const manifestBytes = await validateRegularFile(
-    root,
-    ".pcp/pcp.yaml",
-    "adapter.manifest",
-    diagnostics
-  );
-  if (manifestBytes !== void 0) {
-    const document = parseDocument(manifestBytes.toString("utf8"), {
-      prettyErrors: false,
-      strict: true,
-      uniqueKeys: true
-    });
-    if (document.errors.length > 0) {
-      diagnostics.push({
-        code: "adapter.manifest.parse",
-        path: ".pcp/pcp.yaml",
-        message: document.errors.map((error2) => error2.message).join("; ")
-      });
-    } else {
-      let value;
-      try {
-        value = document.toJS({ mapAsMap: false, maxAliasCount: 50 });
-      } catch (error2) {
-        diagnostics.push({
-          code: "adapter.manifest.decode",
-          path: ".pcp/pcp.yaml",
-          message: error2 instanceof Error ? error2.message : String(error2)
-        });
-      }
-      if (value !== void 0) {
-        const adapterIds = typeof value === "object" && value !== null && !Array.isArray(value) ? value.adapter_ids : void 0;
-        const expected = adapters.map((adapter) => adapter.adapter_id);
-        if (canonicalJson(adapterIds) !== canonicalJson(expected)) {
-          diagnostics.push({
-            code: "adapter.manifest.ids",
-            path: ".pcp/pcp.yaml",
-            message: "Manifest adapter_ids do not match the generated adapter set."
-          });
-        }
-      }
-    }
-  }
-  diagnostics.sort(compareDiagnostics2);
-  return {
-    valid: diagnostics.length === 0,
-    checked_adapters: adapters.length,
-    diagnostics
-  };
 }
 
 // src/application/adopt-project.ts
@@ -24448,32 +24468,30 @@ async function adoptProject(candidate = ".", options = {}) {
           );
         }
         checkedFiles = validation.checked_files;
-        if (planned.preview.classification === "C") {
-          const adapters = planned.preview.adapters ?? [];
-          if (adapters.length === 0) {
+        const adapters = planned.preview.adapters ?? [];
+        if (adapters.length === 0) {
+          throw new AdoptionError(
+            "PCP_ADOPTION_LIVE_INVALID",
+            `State ${planned.preview.classification} apply did not retain its generated platform-adapter contract.`,
+            true
+          );
+        }
+        const adapterValidation = await validatePlatformAdapters(root, adapters);
+        if (!adapterValidation.valid) {
+          throw new AdoptionError(
+            "PCP_ADOPTION_LIVE_INVALID",
+            `Applied platform adapters failed validation: ${adapterValidation.diagnostics.slice(0, 8).map((item) => `${item.path}: ${item.message}`).join("; ")}`,
+            true
+          );
+        }
+        if (planned.input.persistence === "tracked") {
+          const finalInspection = await inspectRepository(root);
+          if (finalInspection.state !== "managed") {
             throw new AdoptionError(
               "PCP_ADOPTION_LIVE_INVALID",
-              "State C apply did not retain its generated platform-adapter contract.",
+              `Applied tracked project classified as ${finalInspection.state}, not managed.`,
               true
             );
-          }
-          const adapterValidation = await validatePlatformAdapters(root, adapters);
-          if (!adapterValidation.valid) {
-            throw new AdoptionError(
-              "PCP_ADOPTION_LIVE_INVALID",
-              `Applied platform adapters failed validation: ${adapterValidation.diagnostics.slice(0, 8).map((item) => `${item.path}: ${item.message}`).join("; ")}`,
-              true
-            );
-          }
-          if (planned.input.persistence === "tracked") {
-            const finalInspection = await inspectRepository(root);
-            if (finalInspection.state !== "managed") {
-              throw new AdoptionError(
-                "PCP_ADOPTION_LIVE_INVALID",
-                `Applied tracked project classified as ${finalInspection.state}, not managed.`,
-                true
-              );
-            }
           }
         }
       }

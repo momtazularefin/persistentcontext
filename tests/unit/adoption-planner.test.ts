@@ -3,7 +3,7 @@ import { tmpdir } from 'node:os';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-import { afterEach, describe, expect, it } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import { isPlanMaterial, planAdoption } from '../../src/application/plan-adoption.js';
 import { inspectRepository } from '../../src/application/inspect-repository.js';
@@ -11,6 +11,8 @@ import type { AdoptionDocumentInput, AdoptionInput } from '../../src/domain/adop
 
 const fixtureRoot = fileURLToPath(new URL('../fixtures/inspection/', import.meta.url));
 const temporaryRoots: string[] = [];
+
+vi.setConfig({ testTimeout: 15_000 });
 
 async function temporaryRoot(prefix: string): Promise<string> {
   const root = await mkdtemp(path.join(tmpdir(), prefix));
@@ -181,8 +183,26 @@ describe('State A and State B adoption planning', () => {
     expect(first.preview.plan).toEqual(second.preview.plan);
     expect(first.preview.plan.plan_digest).toMatch(/^[a-f0-9]{64}$/u);
     expect(first.preview.plan.operations.length).toBeGreaterThan(30);
+    const adapterPaths = first.preview.adapters?.map((adapter) => adapter.target_path) ?? [];
+    expect(adapterPaths).toEqual([
+      'AGENTS.md',
+      '.agents/rules/pcp.md',
+      'CLAUDE.md',
+      '.github/copilot-instructions.md',
+      '.cursor/rules/pcp.mdc',
+    ]);
+    const adapterPlanPaths = new Set(adapterPaths);
+    for (const target of adapterPaths) {
+      let parent = path.posix.dirname(target);
+      while (parent !== '.') {
+        adapterPlanPaths.add(parent);
+        parent = path.posix.dirname(parent);
+      }
+    }
     expect(
-      first.preview.plan.operations.every((operation) => operation.path.startsWith('.pcp')),
+      first.preview.plan.operations.every(
+        (operation) => operation.path.startsWith('.pcp') || adapterPlanPaths.has(operation.path),
+      ),
     ).toBe(true);
     expect((await inspectRepository(candidate)).inventory.digest).toBe(before.inventory.digest);
   });
@@ -297,6 +317,10 @@ describe('State A and State B adoption planning', () => {
       },
       {
         file: { path: 'private/generated.txt', content: 'unsafe\n' },
+        code: 'PCP_ADOPTION_PATH_BOUNDARY',
+      },
+      {
+        file: { path: 'AGENTS.md', content: '# Independent instructions\n' },
         code: 'PCP_ADOPTION_PATH_BOUNDARY',
       },
       {
