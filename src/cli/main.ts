@@ -25,9 +25,9 @@ import { formatInspection } from '../presentation/format-inspection.js';
 const commandDescriptions: Record<PcpCommandName, string> = {
   inspect: 'Inspect and classify a candidate project without mutation',
   adopt: 'Preview or apply adoption into the canonical .pcp layer',
-  register: 'Create or recover a stable project agent identity',
+  register: 'Create or recover a stable project actor identity',
   status: 'Report project state and scoped reconciliation changes',
-  record: 'Append one meaningful immutable journal event',
+  record: 'Append one meaningful immutable continuity event',
   validate: 'Validate an installed PCP layer and its projections',
   render: 'Render generated canonical views',
   workstream: 'Create, update, validate, or complete a workstream',
@@ -136,7 +136,7 @@ function addValidateCommand(program: Command): Command {
     .command('validate')
     .description(commandDescriptions.validate)
     .argument('[directory]', 'managed project root', '.')
-    .option('--clean-genesis', 'require zero agent profiles and zero journal events')
+    .option('--clean-genesis', 'require zero actor profiles and zero active or archived events')
     .option('--json', 'emit stable structured JSON')
     .action(async (directory: string, options: ValidateOptions) => {
       try {

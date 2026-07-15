@@ -1,0 +1,68 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:pcp:schema:v1:event",
+  "title": "PCP immutable continuity event",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "event_id",
+    "occurred_at",
+    "actor",
+    "recorded_by",
+    "basis",
+    "kind",
+    "scopes",
+    "workstreams",
+    "summary",
+    "affected_paths"
+  ],
+  "properties": {
+    "schema_version": {
+      "$ref": "urn:pcp:schema:v1:common#/$defs/schemaVersion"
+    },
+    "event_id": {
+      "$ref": "urn:pcp:schema:v1:common#/$defs/ulid"
+    },
+    "occurred_at": {
+      "$ref": "urn:pcp:schema:v1:common#/$defs/dateTime"
+    },
+    "actor": {
+      "$ref": "urn:pcp:schema:v1:common#/$defs/actorReference"
+    },
+    "recorded_by": {
+      "$ref": "urn:pcp:schema:v1:common#/$defs/actorReference"
+    },
+    "basis": {
+      "enum": ["self", "reported", "observed", "system"]
+    },
+    "kind": {
+      "enum": [
+        "code",
+        "documentation",
+        "configuration",
+        "decision",
+        "research",
+        "operations",
+        "release",
+        "vcs",
+        "workstream"
+      ]
+    },
+    "scopes": {
+      "$ref": "urn:pcp:schema:v1:common#/$defs/slugArray"
+    },
+    "workstreams": {
+      "$ref": "urn:pcp:schema:v1:common#/$defs/slugArray"
+    },
+    "summary": {
+      "$ref": "urn:pcp:schema:v1:common#/$defs/nonEmptyString"
+    },
+    "rationale": {
+      "$ref": "urn:pcp:schema:v1:common#/$defs/nonEmptyString"
+    },
+    "affected_paths": {
+      "$ref": "urn:pcp:schema:v1:common#/$defs/pathArray"
+    }
+  }
+}

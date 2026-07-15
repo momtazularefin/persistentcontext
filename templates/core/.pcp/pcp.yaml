@@ -4,15 +4,21 @@ protocol:
   version: 0.1.0
 persistence: tracked
 capabilities: []
+continuity:
+  active_event_limit: 64
+  archive_batch_size: 32
+  archive_read_policy: explicit-only
 ownership:
   protocol:
     - .gitignore
     - 00-index.md
     - pcp.yaml
     - protocol/**
-    - agents/00-index.md
-    - journal/00-index.md
-    - journal/events/00-index.md
+    - continuity/00-index.md
+    - continuity/actors/00-index.md
+    - continuity/archive/00-index.md
+    - continuity/checkpoints/00-index.md
+    - continuity/events/00-index.md
     - state/00-index.md
     - views/00-index.md
     - schemas/**
@@ -21,14 +27,16 @@ ownership:
     - knowledge/**
     - operations/**
     - projects/**
-    - agents/*.yaml
-    - journal/events/*.yaml
+    - continuity/actors/*.yaml
+    - continuity/archive/*.yaml
+    - continuity/events/*.yaml
     - state/*.yaml
     - references/**
     - templates/**
   generated:
     - views/*.generated.md
   runtime:
+    - continuity/checkpoints/*.yaml
     - runtime/**
 adapter_ids: []
 validation:

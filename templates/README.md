@@ -1,6 +1,6 @@
 # PCP template sources
 
-`core/.pcp/` is the canonical installed-layer baseline. It contains no agent profiles and no journal events.
+`core/.pcp/` is the canonical installed-layer baseline. It contains no actor profiles and no active or archived events.
 
 `capabilities/` contains opt-in overlays. Each capability declares its manifest value, dependencies, root paths, and index entries in `capability.yaml`; applying an overlay must also update the affected `00-index.md` files.
 

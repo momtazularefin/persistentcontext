@@ -45,9 +45,11 @@ const GENERATED_MARKER = '<!-- PCP: GENERATED; DO NOT EDIT -->';
 const REQUIRED_CANONICAL_PATHS = [
   '.gitignore',
   '00-index.md',
-  'agents/00-index.md',
-  'journal/00-index.md',
-  'journal/events/00-index.md',
+  'continuity/00-index.md',
+  'continuity/actors/00-index.md',
+  'continuity/archive/00-index.md',
+  'continuity/checkpoints/00-index.md',
+  'continuity/events/00-index.md',
   'knowledge/00-index.md',
   'operations/00-index.md',
   'pcp.yaml',
@@ -146,9 +148,11 @@ function schemaForPath(relativePath: string): SchemaName | undefined {
   if (relativePath === 'state/projects.yaml') return 'project-registry';
   if (relativePath === 'state/workstreams.yaml') return 'workstreams';
   if (relativePath === 'state/vcs-policy.yaml') return 'vcs-policy';
-  if (/^agents\/[^/]+\.yaml$/.test(relativePath)) return 'agent-profile';
-  if (/^journal\/events\/[^/]+\.yaml$/.test(relativePath)) return 'journal-event';
-  if (/^runtime\/checkpoints\/[^/]+\.yaml$/.test(relativePath)) return 'checkpoint';
+  if (/^continuity\/actors\/[^/]+\.yaml$/.test(relativePath)) return 'actor-profile';
+  if (/^continuity\/(?:events|archive)\/[^/]+\.yaml$/.test(relativePath)) {
+    return 'event';
+  }
+  if (/^continuity\/checkpoints\/[^/]+\.yaml$/.test(relativePath)) return 'checkpoint';
   return undefined;
 }
 
@@ -157,8 +161,8 @@ function addSemanticRecord(records: CanonicalSemanticRecords, record: LoadedYaml
   if (record.path === 'state/projects.yaml') records.project_registry = record;
   if (record.path === 'state/workstreams.yaml') records.workstreams = record;
   if (record.path === 'state/vcs-policy.yaml') records.vcs_policy = record;
-  if (record.schema === 'agent-profile') records.agents.push(record);
-  if (record.schema === 'journal-event') records.events.push(record);
+  if (record.schema === 'actor-profile') records.actors.push(record);
+  if (record.schema === 'event') records.events.push(record);
   if (record.schema === 'checkpoint') records.checkpoints.push(record);
 }
 
@@ -562,7 +566,7 @@ export async function validateCanonicalLayer(
   const schemaRegistry = new SchemaRegistry();
   const loadedYaml = new Map<string, LoadedYaml>();
   const semanticRecords: CanonicalSemanticRecords = {
-    agents: [],
+    actors: [],
     events: [],
     checkpoints: [],
   };
@@ -688,15 +692,42 @@ export async function validateCanonicalLayer(
 
   diagnostics.push(...validateCanonicalSemantics(semanticRecords));
 
-  if (options.clean_genesis === true) {
-    if (files.some((file) => /^agents\/[^/]+\.yaml$/.test(file.relative_path))) {
+  const continuity = objectValue(objectValue(manifest)?.continuity);
+  const activeEventLimit = continuity?.active_event_limit;
+  if (typeof activeEventLimit === 'number') {
+    const activeEventCount = files.filter((file) =>
+      /^continuity\/events\/[^/]+\.yaml$/.test(file.relative_path),
+    ).length;
+    if (activeEventCount > activeEventLimit) {
       diagnostics.push(
-        issue('genesis.agent-profile', 'agents', 'Clean genesis must contain zero agent profiles.'),
+        issue(
+          'continuity.active-event-limit',
+          'continuity/events',
+          `Active events ${activeEventCount} exceed the configured limit ${activeEventLimit}; archive the oldest batch.`,
+        ),
       );
     }
-    if (files.some((file) => /^journal\/events\/[^/]+\.yaml$/.test(file.relative_path))) {
+  }
+
+  if (options.clean_genesis === true) {
+    if (files.some((file) => /^continuity\/actors\/[^/]+\.yaml$/.test(file.relative_path))) {
       diagnostics.push(
-        issue('genesis.journal-event', 'journal/events', 'Clean genesis must contain zero events.'),
+        issue(
+          'genesis.actor-profile',
+          'continuity/actors',
+          'Clean genesis must contain zero actor profiles.',
+        ),
+      );
+    }
+    if (
+      files.some((file) => /^continuity\/(?:events|archive)\/[^/]+\.yaml$/.test(file.relative_path))
+    ) {
+      diagnostics.push(
+        issue(
+          'genesis.event',
+          'continuity',
+          'Clean genesis must contain zero active or archived events.',
+        ),
       );
     }
   }

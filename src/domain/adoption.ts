@@ -2,6 +2,8 @@ import { createHash } from 'node:crypto';
 
 import { ulid } from 'ulid';
 
+import type { CoverageMatrix, ForeignCoverageIssue } from './coverage.js';
+import type { AdapterManifest } from './adapters.js';
 import type {
   InspectionConfidence,
   InspectionResult,
@@ -79,6 +81,7 @@ export interface AdoptionInput {
   };
   vcs_policy: Record<string, unknown>;
   documents: AdoptionDocumentInput[];
+  coverage?: CoverageMatrix;
   scaffold_files: AdoptionScaffoldFile[];
 }
 
@@ -99,6 +102,7 @@ export interface MutationPlan {
   generated_at: string;
   classification: IntakeState;
   candidate_inventory_digest: string;
+  coverage_digest?: string;
   operations: MutationOperation[];
   validations: string[];
   plan_digest: string;
@@ -139,6 +143,10 @@ export interface AdoptionPreview {
   applicable: boolean;
   questions: AdoptionQuestion[];
   baseline: AdoptionBaseline;
+  coverage?: CoverageMatrix;
+  coverage_issues?: ForeignCoverageIssue[];
+  coverage_status?: 'requires-disposition' | 'blocked' | 'complete';
+  adapters?: AdapterManifest[];
   plan?: MutationPlan;
   mutated: false;
 }
@@ -147,7 +155,7 @@ export interface AdoptionApplyResult {
   schema_version: 1;
   command: 'adopt';
   candidate: '.';
-  classification: 'A' | 'B';
+  classification: 'A' | 'B' | 'C';
   plan_digest: string;
   applied_operations: number;
   validation: {
@@ -155,8 +163,9 @@ export interface AdoptionApplyResult {
     checked_files: number;
   };
   clean_genesis: {
-    agent_profiles: 0;
-    journal_events: 0;
+    actor_profiles: 0;
+    active_events: 0;
+    archived_events: 0;
   };
   recovery_cleaned: true;
   mutated: true;
@@ -166,7 +175,7 @@ export interface AdoptionPlanMaterial {
   inspection: InspectionResult;
   input: AdoptionInput;
   preview: AdoptionPreview & {
-    classification: 'A' | 'B';
+    classification: 'A' | 'B' | 'C';
     applicable: true;
     plan: MutationPlan;
   };
@@ -228,14 +237,19 @@ interface PlanOperationInput {
   preimage_digest?: string;
 }
 
-export function createMutationPlan(input: {
-  classification: 'A' | 'B';
+type MutationPlanInput = {
   inventory: RepositoryInventory;
   generatedAt: string;
   operations: PlanOperationInput[];
   validations: string[];
-}): MutationPlan {
+} & (
+  | { classification: 'A' | 'B'; coverageDigest?: never }
+  | { classification: 'C'; coverageDigest: string }
+);
+
+export function createMutationPlan(input: MutationPlanInput): MutationPlan {
   const operationSeed = canonicalJson(input.operations);
+  const coverageDigest = input.classification === 'C' ? input.coverageDigest : undefined;
   const operations = input.operations.map((operation) => ({
     operation_id: deterministicUlid(
       canonicalJson([
@@ -251,10 +265,13 @@ export function createMutationPlan(input: {
   }));
   const planWithoutDigest = {
     schema_version: ADOPTION_SCHEMA_VERSION,
-    plan_id: deterministicUlid(`${input.inventory.digest}:${operationSeed}`),
+    plan_id: deterministicUlid(
+      canonicalJson([input.inventory.digest, operationSeed, coverageDigest]),
+    ),
     generated_at: input.generatedAt,
     classification: input.classification,
     candidate_inventory_digest: input.inventory.digest,
+    ...(coverageDigest === undefined ? {} : { coverage_digest: coverageDigest }),
     operations,
     validations: [...input.validations].sort(),
   } satisfies Omit<MutationPlan, 'plan_digest'>;

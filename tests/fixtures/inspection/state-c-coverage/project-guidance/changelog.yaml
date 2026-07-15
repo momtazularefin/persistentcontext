@@ -1,0 +1,8 @@
+schema_version: 1
+description: Append-only agent change log for project handoffs.
+entries:
+  - timestamp: 2026-01-02T03:04:00Z
+    summary: Established the current build boundary.
+  - timestamp: 2026-01-02T03:04:00Z
+    summary: Recorded a distinct decision at the same minute.
+  - malformed-but-still-covered

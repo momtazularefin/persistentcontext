@@ -6,9 +6,9 @@ Most coding agents can complete a task. The harder problem is helping the next a
 
 ## Development status
 
-PCP is under active `0.1.0` development. The engine performs read-only repository inventory and explainable intake classification, safely adopts State A and State B projects, validates the canonical `.pcp/` contract, and deterministically checks or renders the generated project-status view. It fingerprints files with SHA-256, honors ignore and nested-repository boundaries, records symlinks without following them, and distinguishes a managed PCP project from State A, B, or C.
+PCP is under active `0.1.0` development. The engine performs read-only repository inventory and explainable intake classification, safely adopts State A and State B projects, and translates reviewed State C foreign context into canonical PCP state. It validates the canonical `.pcp/` contract and deterministically checks or renders the generated project-status view. It fingerprints files with SHA-256, honors ignore and nested-repository boundaries, records symlinks without following them, and distinguishes a managed PCP project from State A, B, or C.
 
-State A/B adoption is preview-first and requires an external, schema-valid semantic baseline plus the exact recomputed plan digest. State C foreign-layer translation, registration, journaling, workstream mutation, repair, and upgrade remain fail-closed until their safety milestones are verified. `pcp render` may replace only its declared generated status view.
+All adoption is preview-first and requires an external, schema-valid semantic baseline plus the exact recomputed plan digest. State C intake discovers complete foreign directories from semantic anchors, emits fingerprinted file/adapter/history/registry records, and validates a completed matrix against the current repository and staged canonical files. Ordinary project files caught by cautious directory expansion can be marked `project-owned` and preserved unchanged. Completed coverage produces deterministic canonical writes, five generated platform delegations, reviewed replacements, and fingerprinted foreign-file removals bound to a normalized coverage digest. Existing adapter targets become explicit preimage-backed replacements, and legacy scoped rules are removed only after their canonical PCP delegation is ready. The approved plan applies through the same lock, staging, live-validation, and exact-rollback transaction used by other adoption states. An adapter surface outside the five-product contract fails closed rather than being deleted. Registration, event recording, workstream mutation, repair, and upgrade remain unavailable. `pcp render` may replace only its declared generated status view.
 
 ## Intended model
 
@@ -25,9 +25,9 @@ One adoption workflow classifies:
 
 1. State A: a seed or greenfield project described by a title, prompt, README, or plain language. Preview and transactional adoption are implemented.
 2. State B: an established project with substantive assets but no persistent agent layer. Grounded preview and transactional adoption are implemented without reorganizing project-owned assets.
-3. State C: a project with an existing non-PCP instruction, knowledge, memory, planning, or orchestration layer. Classification is implemented; translation and removal remain unavailable until the coverage milestone.
+3. State C: a project with an existing non-PCP instruction, knowledge, memory, planning, or orchestration layer. Classification, transient source/entry coverage, canonical adapter replacement planning, preview, transactional apply, live validation, and exact rollback are implemented.
 
-Every successful adoption converges on a clean genesis: grounded current context, no imported agent profiles, and no imported or synthetic journal events.
+Every successful adoption converges on a clean genesis: grounded current context, no actor profiles, and no imported, active, archived, or synthetic events.
 
 ## Product surfaces
 
@@ -36,7 +36,7 @@ Every successful adoption converges on a clean genesis: grounded current context
 - Installed layer: `.pcp/`.
 - Open skill: `build-pcp`.
 - Bundled executable: `pcp`.
-- Initial supported products: Codex, Antigravity, and Claude Code Desktop.
+- `0.1.0` adapter targets: Codex, Antigravity, Claude Code Desktop, GitHub Copilot in Visual Studio Code, and Cursor IDE. Each remains a target rather than a support claim until its generation, collision, and reconstruction gates pass.
 
 The executable is project-local in `0.1.0`; this repository does not publish a global npm CLI.
 
@@ -68,17 +68,17 @@ node dist/pcp.mjs render path/to/managed-project --check --json
 node dist/pcp.mjs render path/to/managed-project --json
 ```
 
-`inspect` reports classification evidence and always reports `mutated: false`. `adopt` first returns structured questions and evidence; with an external semantic input it returns an exact non-mutating plan, and only `--apply <plan-digest>` authorizes the fully recomputed plan. `validate` checks schemas, core structure, numbered and indexed Markdown, links, portability, secrets, ownership, generated digests, identities, events, checkpoints, workstream dependencies, VCS authority, and optional clean genesis. `render --check` is non-mutating; write mode replaces only `.pcp/views/10-status.generated.md` from four schema-valid YAML sources. Other lifecycle commands explain that their implementation is unavailable and exit without mutation.
+`inspect` reports classification evidence and always reports `mutated: false`. `adopt` first returns structured questions and evidence. Completed semantic input produces an exact non-mutating plan, and only `--apply <plan-digest>` authorizes its fully recomputed form. For State C, that digest also binds the reviewed coverage, canonical content, five generated adapter paths and content digests, preimages, and removal paths. Apply revalidates the live canonical layer and platform adapters before accepting the conversion. `validate` checks schemas, core structure, numbered and indexed Markdown, links, portability, secrets, ownership, generated digests, identities, events, checkpoints, workstream dependencies, VCS authority, and optional clean genesis. `render --check` is non-mutating; write mode replaces only `.pcp/views/10-status.generated.md` from four schema-valid YAML sources. Other lifecycle commands explain that their implementation is unavailable and exit without mutation.
 
 ## Canonical layer
 
-The source baseline lives under [`templates/core/.pcp/`](templates/core/.pcp/). It starts with zero agent profiles and zero journal events, keeps machine authority in versioned YAML, uses numbered Markdown with a `00-index.md` per folder, and separates protocol, project, generated, and runtime ownership. Optional overlays add spec-driven projects, Concurrent Execution Blocks, scratch space, and incremental walkthroughs.
+The source baseline lives under [`templates/core/.pcp/`](templates/core/.pcp/). It starts with zero actor profiles and zero active or archived events, keeps machine authority in versioned YAML, uses numbered Markdown with a `00-index.md` per folder, and separates protocol, project, generated, and runtime ownership. Ongoing installations keep identity, active events, archive, and scoped checkpoints together under `.pcp/continuity/`; the active window is capped at 64 records and rotates its oldest 32 records to explicit-only archive history. Optional overlays add spec-driven projects, Concurrent Execution Blocks, scratch space, and incremental walkthroughs.
 
 The open skill ships byte-identical copies of the release schemas and templates plus a checksum manifest. The build verifies source/asset parity and executes bundled `inspect`, transactional State A adoption, `validate`, and `render --check` on every platform gate.
 
 ## Version-control policy
 
-PCP requires an explicit `none`, `human-owned`, recommended `agent-managed`, or complete `custom` profile. Until selection it performs no Git writes. The recommended flow gives agents routine branch, verified local unit commit, milestone push/PR, CI follow-up, and post-merge continuation responsibilities while the human reviews and merges. See the [bare-minimum Git and GitHub reference](templates/core/.pcp/references/10-git-github-bare-minimum.md).
+PCP requires an explicit `none`, `human-owned`, recommended `human-commit`, `agent-managed`, or complete `custom` profile. Until selection it performs no VCS writes. In the recommended profile, agents prepare and verify coherent units, then hand the human exact signed-commit commands and wait for confirmation. Milestone PRs are recommended rather than enforced; projects may change the responsibility map, decline PRs, or use a non-Git system through a custom policy. See the [bare-minimum Git and GitHub reference](templates/core/.pcp/references/10-git-github-bare-minimum.md).
 
 ## Develop
 
@@ -97,9 +97,9 @@ node dist/pcp.mjs --help
 
 ## Adoption safety
 
-State A/B structural operations are preview-first. The engine normalizes and hashes the complete plan, requires the approved digest, recomputes it from the same external semantic input, and rejects source drift before acquiring mutation authority. Apply uses a project-scoped lock, external staging and preimages, a write-ahead operation log, atomic file replacement, reverse rollback with exact inventory verification, live canonical validation, and recovery cleanup after success.
+All structural adoption operations are preview-first. The engine normalizes and hashes the complete plan, requires the approved digest, recomputes it from the same external semantic input, and rejects source drift before acquiring mutation authority. Apply uses a project-scoped lock, external staging and preimages, a write-ahead operation log, atomic file replacement, reverse rollback with exact inventory verification, live canonical validation, and recovery cleanup after success.
 
-State C conversion will additionally require complete source and history coverage, zero unresolved dispositions, and verified rollback before any foreign live layer is removed.
+State C additionally requires complete source and history coverage, zero unresolved dispositions, real staged canonical targets, explicit preimage hashes, a verified replacement for every adapter surface, and preservation of every `project-owned` file. Live acceptance validates the clean canonical genesis, all five adapter manifests and content digests, the final managed classification for tracked installs, desired hashes and removals, and candidate-owned source stability. Any failure restores the exact pre-translation inventory and retains recovery evidence for inspection.
 
 PCP never infers Git authority from a repository or installed tooling. The canonical VCS policy must assign each action explicitly.
 

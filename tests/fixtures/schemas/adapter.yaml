@@ -17,3 +17,7 @@ invalid:
     operation: set
     path: ownership
     value: project
+  - name: unknown platform
+    operation: set
+    path: platform
+    value: imagined-agent

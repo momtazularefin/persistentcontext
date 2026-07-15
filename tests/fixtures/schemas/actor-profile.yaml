@@ -1,0 +1,22 @@
+schema: actor-profile
+valid:
+  schema_version: 1
+  actor_id: codex-laptop-01ARZ3NDEK
+  actor_type: agent
+  client: codex
+  machine_label: laptop
+  first_seen: 2026-07-12T00:00:00Z
+  checkpoint_paths: [.pcp/continuity/checkpoints/01ARZ3NDEKTSV4RRFFQ69G5FAV.yaml]
+invalid:
+  - name: collision-prone actor id
+    operation: set
+    path: actor_id
+    value: codex-laptop
+  - name: absolute checkpoint path
+    operation: set
+    path: checkpoint_paths.0
+    value: /tmp/checkpoint.yaml
+  - name: human profile using an agent client
+    operation: set
+    path: actor_type
+    value: human

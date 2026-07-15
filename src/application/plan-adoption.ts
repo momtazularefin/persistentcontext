@@ -8,6 +8,7 @@ import {
   ADOPTION_SCHEMA_VERSION,
   AdoptionError,
   REQUIRED_ADOPTION_DOCUMENTS,
+  canonicalJson,
   createMutationPlan,
   normalizeText,
   sha256,
@@ -17,7 +18,9 @@ import {
   type AdoptionPlanMaterial,
   type AdoptionPreview,
   type AdoptionQuestion,
+  type MutationOperation,
 } from '../domain/adoption.js';
+import { supportedAdapterForSourcePath } from '../domain/adapters.js';
 import { comparePortablePaths, type InspectionResult } from '../domain/inspection.js';
 import { loadCoreTemplateFiles } from '../infrastructure/adoption-assets.js';
 import {
@@ -28,6 +31,11 @@ import {
   toPortablePath,
 } from '../infrastructure/filesystem-inventory.js';
 import { SchemaRegistry } from '../infrastructure/schema-validator.js';
+import { discoverForeignCoverage, validateForeignCoverage } from './foreign-coverage.js';
+import {
+  renderPlatformAdapters,
+  type GeneratedPlatformAdapter,
+} from './render-platform-adapters.js';
 import { renderCanonicalViews } from './render-canonical-views.js';
 import { inspectRepository } from './inspect-repository.js';
 import { validateCanonicalLayer } from './validate-canonical-layer.js';
@@ -100,10 +108,10 @@ function questionsFor(inspection: InspectionResult): AdoptionQuestion[] {
     return [
       {
         id: 'state-c-coverage',
-        prompt: 'Provide complete foreign-context file and history coverage before adoption.',
+        prompt: 'Complete every disposition in the emitted foreign-source coverage matrix.',
         reason: 'State C translation and destructive removal require semantic dispositions.',
         required: true,
-        response_shape: 'file-set',
+        response_shape: 'object',
       },
     ];
   }
@@ -119,11 +127,13 @@ function questionsFor(inspection: InspectionResult): AdoptionQuestion[] {
       },
       {
         id: 'vcs-profile',
-        prompt: 'Select none, human-owned, agent-managed, or a complete custom VCS policy.',
-        reason: 'PCP cannot infer version-control authority from repository presence.',
+        prompt:
+          'Select recommended human-commit, none, human-owned, agent-managed, or a complete custom VCS policy.',
+        reason:
+          'PCP recommends transparent human commits but cannot infer or enforce version-control authority.',
         required: true,
         response_shape: 'enum',
-        options: ['none', 'human-owned', 'agent-managed', 'custom'],
+        options: ['human-commit', 'none', 'human-owned', 'agent-managed', 'custom'],
       },
     ];
   }
@@ -147,11 +157,13 @@ function questionsFor(inspection: InspectionResult): AdoptionQuestion[] {
     },
     {
       id: 'vcs-profile',
-      prompt: 'Select none, human-owned, agent-managed, or a complete custom VCS policy.',
-      reason: 'PCP cannot infer version-control authority.',
+      prompt:
+        'Select recommended human-commit, none, human-owned, agent-managed, or a complete custom VCS policy.',
+      reason:
+        'PCP recommends transparent human commits but cannot infer or enforce version-control authority.',
       required: true,
       response_shape: 'enum',
-      options: ['none', 'human-owned', 'agent-managed', 'custom'],
+      options: ['human-commit', 'none', 'human-owned', 'agent-managed', 'custom'],
     },
   ];
   if (inspection.inventory.files.length === 0) {
@@ -167,8 +179,11 @@ function questionsFor(inspection: InspectionResult): AdoptionQuestion[] {
   return questions;
 }
 
-function previewWithoutPlan(root: string, inspection: InspectionResult): AdoptionPreview {
-  return {
+async function previewWithoutPlan(
+  root: string,
+  inspection: InspectionResult,
+): Promise<AdoptionPreview> {
+  const preview: AdoptionPreview = {
     schema_version: ADOPTION_SCHEMA_VERSION,
     command: 'adopt',
     candidate: '.',
@@ -179,6 +194,13 @@ function previewWithoutPlan(root: string, inspection: InspectionResult): Adoptio
     baseline: baselineFor(root, inspection),
     mutated: false,
   };
+  if (inspection.state === 'C') {
+    const catalog = await discoverForeignCoverage(root, inspection);
+    preview.coverage = catalog.template;
+    preview.coverage_issues = catalog.issues;
+    preview.coverage_status = catalog.issues.length === 0 ? 'requires-disposition' : 'blocked';
+  }
+  return preview;
 }
 
 function schemaFailure(diagnostics: Array<{ path: string; message: string }>): AdoptionError {
@@ -284,14 +306,14 @@ function validateDocumentSet(input: AdoptionInput, inspection: InspectionResult)
       );
     }
     if (
-      inspection.state === 'B' &&
+      (inspection.state === 'B' || inspection.state === 'C') &&
       document.type === 'knowledge' &&
       document.basis !== 'repository' &&
       document.basis !== 'repository-and-user'
     ) {
       throw new AdoptionError(
         'PCP_ADOPTION_INPUT_INVALID',
-        `State B knowledge must cite current repository evidence: ${document.path}`,
+        `Established-project knowledge must cite current repository evidence: ${document.path}`,
       );
     }
     for (const evidencePath of document.evidence_paths) {
@@ -334,10 +356,18 @@ function validateProjectInput(input: AdoptionInput, inspection: InspectionResult
       'Project context_roots must include .pcp.',
     );
   }
-  if (inspection.state === 'B' && input.scaffold_files.length > 0) {
+  if (inspection.state !== 'C' && input.coverage !== undefined) {
     throw new AdoptionError(
-      'PCP_STATE_B_SCAFFOLD_FORBIDDEN',
-      'State B adoption preserves ordinary project topology and cannot add scaffold files.',
+      'PCP_STATE_C_COVERAGE_FORBIDDEN',
+      'Foreign-context coverage belongs only to State C adoption input.',
+    );
+  }
+  if ((inspection.state === 'B' || inspection.state === 'C') && input.scaffold_files.length > 0) {
+    throw new AdoptionError(
+      inspection.state === 'B'
+        ? 'PCP_STATE_B_SCAFFOLD_FORBIDDEN'
+        : 'PCP_STATE_C_SCAFFOLD_FORBIDDEN',
+      `${inspection.state === 'B' ? 'State B adoption' : 'State C translation'} preserves ordinary project topology and cannot add scaffold files.`,
     );
   }
   if (
@@ -427,7 +457,10 @@ function yamlBuffer(value: unknown): Buffer {
   return Buffer.from(stringify(value, { lineWidth: 0, sortMapEntries: true }), 'utf8');
 }
 
-async function stageCanonicalLayer(input: AdoptionInput): Promise<ReadonlyMap<string, Buffer>> {
+async function stageCanonicalLayer(
+  input: AdoptionInput,
+  adapters: readonly GeneratedPlatformAdapter[] = [],
+): Promise<ReadonlyMap<string, Buffer>> {
   const stageRoot = await mkdtemp(path.join(tmpdir(), 'pcp-adoption-preview-'));
   try {
     const template = new Map(await loadCoreTemplateFiles());
@@ -438,6 +471,7 @@ async function stageCanonicalLayer(input: AdoptionInput): Promise<ReadonlyMap<st
     }
     const manifest = parse(manifestBytes.toString('utf8')) as Record<string, unknown>;
     manifest.persistence = input.persistence;
+    manifest.adapter_ids = adapters.map((adapter) => adapter.manifest.adapter_id);
     template.set(manifestPath, yamlBuffer(manifest));
     template.set('.pcp/state/project.yaml', yamlBuffer(input.project));
     template.set('.pcp/state/projects.yaml', yamlBuffer(input.projects));
@@ -468,6 +502,15 @@ async function stageCanonicalLayer(input: AdoptionInput): Promise<ReadonlyMap<st
 
     const result = new Map<string, Buffer>();
     await collectStageFiles(path.join(stageRoot, '.pcp'), stageRoot, result);
+    for (const adapter of adapters) {
+      if (result.has(adapter.manifest.target_path)) {
+        throw new AdoptionError(
+          'PCP_ADAPTER_RENDER_INVALID',
+          `Generated adapter target collides with canonical staged content: ${adapter.manifest.target_path}`,
+        );
+      }
+      result.set(adapter.manifest.target_path, adapter.content);
+    }
     return result;
   } finally {
     await rm(stageRoot, { recursive: true, force: true });
@@ -488,18 +531,22 @@ function pathDepth(value: string): number {
   return value.split('/').length;
 }
 
-async function assertNoTargetCollisions(
+async function assertContentTargetsSafe(
   root: string,
   content: ReadonlyMap<string, Buffer>,
   inspection: InspectionResult,
   persistence: AdoptionInput['persistence'],
+  replaceablePaths: ReadonlySet<string> = new Set<string>(),
 ): Promise<void> {
   const files = new Set(inspection.inventory.files.map((file) => file.path));
   const directories = new Set(inspection.inventory.directories);
   const symlinks = inspection.inventory.symlinks.map((link) => link.path);
-  const existingPathKeys = new Map<string, string>();
+  const existingPathKeys = new Map<string, string[]>();
   for (const existing of [...files, ...directories, ...symlinks]) {
-    existingPathKeys.set(portableCollisionKey(existing), existing);
+    const key = portableCollisionKey(existing);
+    const equivalents = existingPathKeys.get(key) ?? [];
+    equivalents.push(existing);
+    existingPathKeys.set(key, equivalents);
   }
   const desiredPaths = new Set<string>();
   for (const target of content.keys()) {
@@ -518,20 +565,25 @@ async function assertNoTargetCollisions(
       );
     }
     desiredPathKeys.set(desiredKey, desired);
-    const existingEquivalent = existingPathKeys.get(desiredKey);
-    if (existingEquivalent !== undefined && existingEquivalent !== desired) {
+    const existingEquivalents = existingPathKeys.get(desiredKey) ?? [];
+    const conflictingExisting = existingEquivalents.find((existing) => existing !== desired);
+    if (conflictingExisting !== undefined) {
       throw new AdoptionError(
         'PCP_ADOPTION_PATH_COLLISION',
-        `Planned path collides with existing path ${existingEquivalent}: ${desired}`,
+        `Planned path collides with existing path ${conflictingExisting}: ${desired}`,
       );
     }
   }
 
   for (const target of content.keys()) {
-    if (files.has(target) || directories.has(target) || symlinks.includes(target)) {
+    if (
+      (files.has(target) && !replaceablePaths.has(target)) ||
+      directories.has(target) ||
+      symlinks.includes(target)
+    ) {
       throw new AdoptionError(
         'PCP_ADOPTION_PATH_COLLISION',
-        `Planned target already exists: ${target}`,
+        `Planned target already exists and is not an approved file replacement: ${target}`,
       );
     }
     const staticExclusion = mutationPathExclusion(target);
@@ -575,7 +627,7 @@ async function assertNoTargetCollisions(
       }
     }
     for (const parent of parentDirectories(target)) {
-      if (files.has(parent) || symlinks.includes(parent)) {
+      if ((files.has(parent) && !replaceablePaths.has(parent)) || symlinks.includes(parent)) {
         throw new AdoptionError(
           'PCP_ADOPTION_PATH_COLLISION',
           `Planned target has a non-directory ancestor: ${target}`,
@@ -583,6 +635,269 @@ async function assertNoTargetCollisions(
       }
     }
   }
+}
+
+function normalizedCoverageDigest(coverage: NonNullable<AdoptionInput['coverage']>): string {
+  const normalized = {
+    ...coverage,
+    records: coverage.records
+      .map((record) => ({
+        ...record,
+        targets: [...record.targets].sort(comparePortablePaths),
+        evidence: [...record.evidence].sort(comparePortablePaths),
+      }))
+      .sort((left, right) => comparePortablePaths(left.source_id, right.source_id)),
+  };
+  return sha256(canonicalJson(normalized));
+}
+
+function stateCRemovalPaths(input: AdoptionInput): Set<string> {
+  if (input.coverage === undefined) return new Set<string>();
+  return new Set(
+    input.coverage.records
+      .filter(
+        (record) =>
+          (record.source_kind === 'file' || record.source_kind === 'adapter') &&
+          record.disposition !== 'project-owned',
+      )
+      .map((record) => record.source_path),
+  );
+}
+
+function buildStateCOperations(
+  content: ReadonlyMap<string, Buffer>,
+  inspection: InspectionResult,
+  removalPaths: ReadonlySet<string>,
+): Array<Omit<MutationOperation, 'operation_id'>> {
+  const filesByPath = new Map(inspection.inventory.files.map((file) => [file.path, file]));
+  const existingDirectories = new Set(inspection.inventory.directories);
+  const contentPaths = [...content.keys()];
+  const preWriteRemovalPaths = [...removalPaths]
+    .filter(
+      (removalPath) =>
+        !content.has(removalPath) &&
+        contentPaths.some((target) => target.startsWith(`${removalPath}/`)),
+    )
+    .sort(comparePortablePaths);
+  const preWriteRemovals = preWriteRemovalPaths.map((removalPath) => {
+    const source = filesByPath.get(removalPath);
+    if (source === undefined) {
+      throw new AdoptionError(
+        'PCP_STATE_C_COVERAGE_INVALID',
+        `Reviewed foreign file is missing from the current inventory: ${removalPath}`,
+      );
+    }
+    return {
+      action: 'remove' as const,
+      path: removalPath,
+      preimage_digest: source.sha256,
+    };
+  });
+
+  const requiredDirectories = new Set<string>();
+  for (const target of contentPaths) {
+    for (const directory of parentDirectories(target)) {
+      if (!existingDirectories.has(directory)) requiredDirectories.add(directory);
+    }
+  }
+  const directoryOperations = [...requiredDirectories]
+    .sort((left, right) => pathDepth(left) - pathDepth(right) || comparePortablePaths(left, right))
+    .map((directory) => ({ action: 'mkdir' as const, path: directory }));
+  const contentOperations = [...content.entries()]
+    .sort(([left], [right]) => comparePortablePaths(left, right))
+    .map(([target, bytes]) => {
+      const existing = filesByPath.get(target);
+      return existing === undefined
+        ? { action: 'write' as const, path: target, content_digest: sha256(bytes) }
+        : {
+            action: 'replace' as const,
+            path: target,
+            content_digest: sha256(bytes),
+            preimage_digest: existing.sha256,
+          };
+    });
+  const earlyRemovalSet = new Set(preWriteRemovalPaths);
+  const postWriteRemovals = [...removalPaths]
+    .filter((removalPath) => !content.has(removalPath) && !earlyRemovalSet.has(removalPath))
+    .sort(comparePortablePaths)
+    .map((removalPath) => {
+      const source = filesByPath.get(removalPath);
+      if (source === undefined) {
+        throw new AdoptionError(
+          'PCP_STATE_C_COVERAGE_INVALID',
+          `Reviewed foreign file is missing from the current inventory: ${removalPath}`,
+        );
+      }
+      return {
+        action: 'remove' as const,
+        path: removalPath,
+        preimage_digest: source.sha256,
+      };
+    });
+  return [...preWriteRemovals, ...directoryOperations, ...contentOperations, ...postWriteRemovals];
+}
+
+function stateCCoverageFailure(
+  diagnostics: Array<{ code: string; path: string; message: string }>,
+): AdoptionError {
+  const details = diagnostics
+    .slice(0, 8)
+    .map((diagnostic) => `${diagnostic.code} ${diagnostic.path}: ${diagnostic.message}`)
+    .join('; ');
+  return new AdoptionError(
+    'PCP_STATE_C_COVERAGE_INVALID',
+    `State C coverage is not ready: ${details}`,
+  );
+}
+
+function assertSupportedStateCAdapters(input: AdoptionInput): void {
+  if (input.coverage === undefined) return;
+  const unsupported = input.coverage.records
+    .filter(
+      (record) =>
+        record.source_kind === 'adapter' &&
+        supportedAdapterForSourcePath(record.source_path) === undefined,
+    )
+    .map((record) => record.source_path)
+    .sort(comparePortablePaths);
+  if (unsupported.length === 0) return;
+  const examples = unsupported.slice(0, 8).join(', ');
+  throw new AdoptionError(
+    'PCP_STATE_C_ADAPTER_UNSUPPORTED',
+    `State C contains adapter surfaces without a verified PCP replacement: ${examples}. Preserve the candidate and add an explicit adapter implementation before translation.`,
+  );
+}
+
+function assertGeneratedPlatformAdapters(adapters: readonly GeneratedPlatformAdapter[]): void {
+  const registry = new SchemaRegistry();
+  const ids = new Set<string>();
+  const targets = new Set<string>();
+  for (const adapter of adapters) {
+    const validation = registry.validate('adapter', adapter.manifest);
+    if (!validation.valid) {
+      throw new AdoptionError(
+        'PCP_ADAPTER_RENDER_INVALID',
+        `Generated adapter ${adapter.manifest.adapter_id} is invalid: ${validation.diagnostics
+          .slice(0, 8)
+          .map((diagnostic) => `${diagnostic.path}: ${diagnostic.message}`)
+          .join('; ')}`,
+      );
+    }
+    if (adapter.manifest.content_digest !== sha256(adapter.content)) {
+      throw new AdoptionError(
+        'PCP_ADAPTER_RENDER_INVALID',
+        `Generated adapter digest is stale: ${adapter.manifest.adapter_id}`,
+      );
+    }
+    if (ids.has(adapter.manifest.adapter_id) || targets.has(adapter.manifest.target_path)) {
+      throw new AdoptionError(
+        'PCP_ADAPTER_RENDER_INVALID',
+        `Generated adapter ID or target appears more than once: ${adapter.manifest.adapter_id}`,
+      );
+    }
+    ids.add(adapter.manifest.adapter_id);
+    targets.add(adapter.manifest.target_path);
+  }
+}
+
+function validateStateCCoverageTargets(
+  input: AdoptionInput,
+  content: ReadonlyMap<string, Buffer>,
+): void {
+  if (input.coverage === undefined) return;
+  const diagnostics: Array<{ code: string; path: string; message: string }> = [];
+  for (const [recordIndex, record] of input.coverage.records.entries()) {
+    for (const [targetIndex, target] of record.targets.entries()) {
+      if (!target.startsWith('.pcp/') || !content.has(target)) {
+        diagnostics.push({
+          code: 'coverage-target-missing',
+          path: `/coverage/records/${recordIndex}/targets/${targetIndex}`,
+          message: `Coverage target is not a staged canonical file: ${target}`,
+        });
+      }
+    }
+  }
+  if (diagnostics.length > 0) throw stateCCoverageFailure(diagnostics);
+}
+
+async function buildStateCTranslationPlan(
+  root: string,
+  inspection: InspectionResult,
+  input: AdoptionInput,
+): Promise<AdoptionPlanMaterial> {
+  if (inspection.state !== 'C') {
+    throw new AdoptionError(
+      'PCP_ADOPTION_STATE_UNSUPPORTED',
+      `State C coverage review requires a State C candidate, not ${inspection.state}.`,
+    );
+  }
+  if (input.coverage === undefined) {
+    throw new AdoptionError(
+      'PCP_STATE_C_COVERAGE_REQUIRED',
+      'State C adoption input must include the completed coverage matrix emitted for this candidate.',
+    );
+  }
+
+  validateDocumentSet(input, inspection);
+  validateProjectInput(input, inspection);
+  if (input.persistence === 'local' && !(await isMutationDirectoryIgnored(root, '.pcp'))) {
+    throw new AdoptionError(
+      'PCP_LOCAL_PERSISTENCE_NOT_IGNORED',
+      'Local persistence requires candidate ignore policy to cover the complete .pcp/ layer before adoption.',
+    );
+  }
+
+  const catalog = await discoverForeignCoverage(root, inspection);
+  const validation = validateForeignCoverage(catalog, input.coverage);
+  if (!validation.valid) throw stateCCoverageFailure(validation.diagnostics);
+  assertSupportedStateCAdapters(input);
+
+  const adapters = renderPlatformAdapters();
+  assertGeneratedPlatformAdapters(adapters);
+  const content = await stageCanonicalLayer(input, adapters);
+  validateStateCCoverageTargets(input, content);
+  const removalPaths = stateCRemovalPaths(input);
+  await assertContentTargetsSafe(root, content, inspection, input.persistence, removalPaths);
+  const plan = createMutationPlan({
+    classification: 'C',
+    coverageDigest: normalizedCoverageDigest(input.coverage),
+    inventory: inspection.inventory,
+    generatedAt: input.baseline_at,
+    operations: buildStateCOperations(content, inspection, removalPaths),
+    validations: [
+      'candidate-inventory',
+      'canonical-layer',
+      'clean-genesis',
+      'coverage',
+      'desired-hashes',
+      'foreign-removals',
+      'path-boundaries',
+      'platform-adapters',
+      'preimages',
+      'rollback',
+      'semantic-input',
+    ],
+  });
+  const planValidation = new SchemaRegistry().validate('mutation-plan', plan);
+  if (!planValidation.valid) throw schemaFailure(planValidation.diagnostics);
+
+  const preview: AdoptionPlanMaterial['preview'] = {
+    schema_version: ADOPTION_SCHEMA_VERSION,
+    command: 'adopt',
+    candidate: '.',
+    classification: 'C',
+    confidence: inspection.confidence,
+    applicable: true,
+    questions: [],
+    baseline: baselineFor(root, inspection),
+    coverage: input.coverage,
+    coverage_issues: [],
+    coverage_status: 'complete',
+    adapters: adapters.map((adapter) => adapter.manifest),
+    plan,
+    mutated: false,
+  };
+  return { inspection, input, preview, content_by_path: content };
 }
 
 async function buildPlanMaterial(
@@ -609,7 +924,7 @@ async function buildPlanMaterial(
   for (const scaffold of input.scaffold_files) {
     content.set(scaffold.path, Buffer.from(normalizeText(scaffold.content), 'utf8'));
   }
-  await assertNoTargetCollisions(root, content, inspection, input.persistence);
+  await assertContentTargetsSafe(root, content, inspection, input.persistence);
 
   const existingDirectories = new Set(inspection.inventory.directories);
   const requiredDirectories = new Set<string>();
@@ -667,10 +982,11 @@ export async function planAdoption(
 ): Promise<AdoptionPreview | AdoptionPlanMaterial> {
   const root = await resolveCandidateRoot(candidate);
   const inspection = await inspectRepository(root);
-  if (inputPath === undefined || inspection.state === 'managed' || inspection.state === 'C') {
+  if (inputPath === undefined || inspection.state === 'managed') {
     return previewWithoutPlan(root, inspection);
   }
   const input = await loadAdoptionInput(inputPath, root);
+  if (inspection.state === 'C') return buildStateCTranslationPlan(root, inspection, input);
   return buildPlanMaterial(root, inspection, input);
 }
 

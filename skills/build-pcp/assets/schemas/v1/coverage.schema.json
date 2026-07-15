@@ -54,7 +54,7 @@
           "$ref": "urn:pcp:schema:v1:common#/$defs/relativePath"
         },
         "source_kind": {
-          "enum": ["file", "history-entry", "fact", "adapter"]
+          "enum": ["file", "history-entry", "registry-entry", "fact", "adapter"]
         },
         "fingerprint": {
           "$ref": "urn:pcp:schema:v1:common#/$defs/sha256"
@@ -67,6 +67,7 @@
             "operational-noise",
             "historical-only",
             "sensitive-local",
+            "project-owned",
             "unresolved"
           ]
         },
@@ -95,6 +96,22 @@
           "then": {
             "properties": {
               "targets": { "type": "array", "minItems": 1 }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "disposition": {
+                "const": "project-owned"
+              }
+            },
+            "required": ["disposition"]
+          },
+          "then": {
+            "properties": {
+              "source_kind": { "const": "file" },
+              "targets": { "type": "array", "maxItems": 0 }
             }
           }
         }

@@ -163,8 +163,9 @@ try {
   if (
     applyResult.classification !== 'A' ||
     applyResult.mutated !== true ||
-    applyResult.clean_genesis?.agent_profiles !== 0 ||
-    applyResult.clean_genesis?.journal_events !== 0 ||
+    applyResult.clean_genesis?.actor_profiles !== 0 ||
+    applyResult.clean_genesis?.active_events !== 0 ||
+    applyResult.clean_genesis?.archived_events !== 0 ||
     applyResult.recovery_cleaned !== true
   ) {
     throw new Error('Bundled pcp adoption apply returned an unexpected result.');

@@ -22,8 +22,13 @@ describe('public project contract', () => {
     expect(readme).toContain('node dist/pcp.mjs adopt --candidate path/to/project --input');
     expect(readme).toContain('node dist/pcp.mjs validate path/to/managed-project');
     expect(readme).toContain('node dist/pcp.mjs render path/to/managed-project --check');
-    expect(readme).toContain('State A/B adoption is preview-first');
-    expect(readme).toContain('State C foreign-layer translation, registration, journaling');
+    expect(readme).toContain('All adoption is preview-first');
+    expect(readme).toContain('State C intake discovers complete foreign directories');
+    expect(readme).toContain('can be marked `project-owned` and preserved unchanged');
+    expect(readme).toContain('five generated platform delegations');
+    expect(readme).toContain('outside the five-product contract fails closed');
+    expect(readme).toContain('that digest also binds the reviewed coverage');
+    expect(readme).toContain('Apply revalidates the live canonical layer and platform adapters');
   });
 
   it('normalizes text for deterministic cross-platform checks', async () => {

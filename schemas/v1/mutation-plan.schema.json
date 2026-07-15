@@ -30,6 +30,9 @@
     "candidate_inventory_digest": {
       "$ref": "urn:pcp:schema:v1:common#/$defs/sha256"
     },
+    "coverage_digest": {
+      "$ref": "urn:pcp:schema:v1:common#/$defs/sha256"
+    },
     "operations": {
       "type": "array",
       "items": {
@@ -49,6 +52,29 @@
       "$ref": "urn:pcp:schema:v1:common#/$defs/sha256"
     }
   },
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "classification": { "const": "C" }
+        },
+        "required": ["classification"]
+      },
+      "then": {
+        "properties": {
+          "coverage_digest": {
+            "$ref": "urn:pcp:schema:v1:common#/$defs/sha256"
+          }
+        },
+        "required": ["coverage_digest"]
+      },
+      "else": {
+        "properties": {
+          "coverage_digest": false
+        }
+      }
+    }
+  ],
   "$defs": {
     "operation": {
       "type": "object",

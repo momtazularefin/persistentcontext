@@ -1,11 +1,11 @@
 import adapterSchema from '../../schemas/v1/adapter.schema.json' with { type: 'json' };
 import adoptionInputSchema from '../../schemas/v1/adoption-input.schema.json' with { type: 'json' };
-import agentProfileSchema from '../../schemas/v1/agent-profile.schema.json' with { type: 'json' };
+import actorProfileSchema from '../../schemas/v1/actor-profile.schema.json' with { type: 'json' };
 import checkpointSchema from '../../schemas/v1/checkpoint.schema.json' with { type: 'json' };
 import commonSchema from '../../schemas/v1/common.schema.json' with { type: 'json' };
 import coverageSchema from '../../schemas/v1/coverage.schema.json' with { type: 'json' };
+import eventSchema from '../../schemas/v1/event.schema.json' with { type: 'json' };
 import frontmatterSchema from '../../schemas/v1/frontmatter.schema.json' with { type: 'json' };
-import journalEventSchema from '../../schemas/v1/journal-event.schema.json' with { type: 'json' };
 import mutationPlanSchema from '../../schemas/v1/mutation-plan.schema.json' with { type: 'json' };
 import pcpManifestSchema from '../../schemas/v1/pcp-manifest.schema.json' with { type: 'json' };
 import projectRegistrySchema from '../../schemas/v1/project-registry.schema.json' with { type: 'json' };
@@ -16,11 +16,11 @@ import workstreamsSchema from '../../schemas/v1/workstreams.schema.json' with { 
 export const SCHEMA_CATALOG = {
   adapter: adapterSchema,
   'adoption-input': adoptionInputSchema,
-  'agent-profile': agentProfileSchema,
+  'actor-profile': actorProfileSchema,
   checkpoint: checkpointSchema,
   coverage: coverageSchema,
+  event: eventSchema,
   frontmatter: frontmatterSchema,
-  'journal-event': journalEventSchema,
   'mutation-plan': mutationPlanSchema,
   'pcp-manifest': pcpManifestSchema,
   'project-registry': projectRegistrySchema,

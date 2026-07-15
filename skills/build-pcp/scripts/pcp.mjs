@@ -327,7 +327,7 @@ var require_ignore = __commonJS({
       //   path matching.
       // - check `string` either `MODE_IGNORE` or `MODE_CHECK_IGNORE`
       // @returns {TestResult} true if a file is ignored
-      test(path11, checkUnignored, mode) {
+      test(path13, checkUnignored, mode) {
         let ignored = false;
         let unignored = false;
         let matchedRule;
@@ -336,7 +336,7 @@ var require_ignore = __commonJS({
           if (unignored === negative && ignored !== unignored || negative && !ignored && !unignored && !checkUnignored) {
             return;
           }
-          const matched = rule[mode].test(path11);
+          const matched = rule[mode].test(path13);
           if (!matched) {
             return;
           }
@@ -357,17 +357,17 @@ var require_ignore = __commonJS({
     var throwError = (message, Ctor) => {
       throw new Ctor(message);
     };
-    var checkPath = (path11, originalPath, doThrow) => {
-      if (!isString(path11)) {
+    var checkPath = (path13, originalPath, doThrow) => {
+      if (!isString(path13)) {
         return doThrow(
           `path must be a string, but got \`${originalPath}\``,
           TypeError
         );
       }
-      if (!path11) {
+      if (!path13) {
         return doThrow(`path must not be empty`, TypeError);
       }
-      if (checkPath.isNotRelative(path11)) {
+      if (checkPath.isNotRelative(path13)) {
         const r = "`path.relative()`d";
         return doThrow(
           `path should be a ${r} string, but got "${originalPath}"`,
@@ -376,7 +376,7 @@ var require_ignore = __commonJS({
       }
       return true;
     };
-    var isNotRelative = (path11) => REGEX_TEST_INVALID_PATH.test(path11);
+    var isNotRelative = (path13) => REGEX_TEST_INVALID_PATH.test(path13);
     checkPath.isNotRelative = isNotRelative;
     checkPath.convert = (p) => p;
     var Ignore = class {
@@ -406,19 +406,19 @@ var require_ignore = __commonJS({
       }
       // @returns {TestResult}
       _test(originalPath, cache, checkUnignored, slices) {
-        const path11 = originalPath && checkPath.convert(originalPath);
+        const path13 = originalPath && checkPath.convert(originalPath);
         checkPath(
-          path11,
+          path13,
           originalPath,
           this._strictPathCheck ? throwError : RETURN_FALSE
         );
-        return this._t(path11, cache, checkUnignored, slices);
+        return this._t(path13, cache, checkUnignored, slices);
       }
-      checkIgnore(path11) {
-        if (!REGEX_TEST_TRAILING_SLASH.test(path11)) {
-          return this.test(path11);
+      checkIgnore(path13) {
+        if (!REGEX_TEST_TRAILING_SLASH.test(path13)) {
+          return this.test(path13);
         }
-        const slices = path11.split(SLASH).filter(Boolean);
+        const slices = path13.split(SLASH).filter(Boolean);
         slices.pop();
         if (slices.length) {
           const parent = this._t(
@@ -431,18 +431,18 @@ var require_ignore = __commonJS({
             return parent;
           }
         }
-        return this._rules.test(path11, false, MODE_CHECK_IGNORE);
+        return this._rules.test(path13, false, MODE_CHECK_IGNORE);
       }
-      _t(path11, cache, checkUnignored, slices) {
-        if (path11 in cache) {
-          return cache[path11];
+      _t(path13, cache, checkUnignored, slices) {
+        if (path13 in cache) {
+          return cache[path13];
         }
         if (!slices) {
-          slices = path11.split(SLASH).filter(Boolean);
+          slices = path13.split(SLASH).filter(Boolean);
         }
         slices.pop();
         if (!slices.length) {
-          return cache[path11] = this._rules.test(path11, checkUnignored, MODE_IGNORE);
+          return cache[path13] = this._rules.test(path13, checkUnignored, MODE_IGNORE);
         }
         const parent = this._t(
           slices.join(SLASH) + SLASH,
@@ -450,29 +450,29 @@ var require_ignore = __commonJS({
           checkUnignored,
           slices
         );
-        return cache[path11] = parent.ignored ? parent : this._rules.test(path11, checkUnignored, MODE_IGNORE);
+        return cache[path13] = parent.ignored ? parent : this._rules.test(path13, checkUnignored, MODE_IGNORE);
       }
-      ignores(path11) {
-        return this._test(path11, this._ignoreCache, false).ignored;
+      ignores(path13) {
+        return this._test(path13, this._ignoreCache, false).ignored;
       }
       createFilter() {
-        return (path11) => !this.ignores(path11);
+        return (path13) => !this.ignores(path13);
       }
       filter(paths) {
         return makeArray(paths).filter(this.createFilter());
       }
       // @returns {TestResult}
-      test(path11) {
-        return this._test(path11, this._testCache, true);
+      test(path13) {
+        return this._test(path13, this._testCache, true);
       }
     };
     var factory = (options) => new Ignore(options);
-    var isPathValid = (path11) => checkPath(path11 && checkPath.convert(path11), path11, RETURN_FALSE);
+    var isPathValid = (path13) => checkPath(path13 && checkPath.convert(path13), path13, RETURN_FALSE);
     var setupWindows = () => {
       const makePosix = (str) => /^\\\\\?\\/.test(str) || /["<>|\u0000-\u001F]+/u.test(str) ? str : str.replace(/\\/g, "/");
       checkPath.convert = makePosix;
       const REGEX_TEST_WINDOWS_PATH_ABSOLUTE = /^[a-z]:\//i;
-      checkPath.isNotRelative = (path11) => REGEX_TEST_WINDOWS_PATH_ABSOLUTE.test(path11) || isNotRelative(path11);
+      checkPath.isNotRelative = (path13) => REGEX_TEST_WINDOWS_PATH_ABSOLUTE.test(path13) || isNotRelative(path13);
     };
     if (
       // Detect `process` so that it can run in browsers.
@@ -3683,8 +3683,8 @@ var require_utils = __commonJS({
       }
       return ind;
     }
-    function removeDotSegments(path11) {
-      let input = path11;
+    function removeDotSegments(path13) {
+      let input = path13;
       const output = [];
       let nextSlash = -1;
       let len = 0;
@@ -3936,8 +3936,8 @@ var require_schemes = __commonJS({
         wsComponent.secure = void 0;
       }
       if (wsComponent.resourceName) {
-        const [path11, query] = wsComponent.resourceName.split("?");
-        wsComponent.path = path11 && path11 !== "/" ? path11 : void 0;
+        const [path13, query] = wsComponent.resourceName.split("?");
+        wsComponent.path = path13 && path13 !== "/" ? path13 : void 0;
         wsComponent.query = query;
         wsComponent.resourceName = void 0;
       }
@@ -11281,9 +11281,9 @@ Expecting one of '${allowedValues.join("', '")}'`);
    * @param {string} [path]
    * @return {(string|null|Command)}
    */
-  executableDir(path11) {
-    if (path11 === void 0) return this._executableDir;
-    this._executableDir = path11;
+  executableDir(path13) {
+    if (path13 === void 0) return this._executableDir;
+    this._executableDir = path13;
     return this;
   }
   /**
@@ -11692,6 +11692,7 @@ function deterministicUlid(seed) {
 }
 function createMutationPlan(input) {
   const operationSeed = canonicalJson(input.operations);
+  const coverageDigest = input.classification === "C" ? input.coverageDigest : void 0;
   const operations = input.operations.map((operation) => ({
     operation_id: deterministicUlid(
       canonicalJson([
@@ -11707,10 +11708,13 @@ function createMutationPlan(input) {
   }));
   const planWithoutDigest = {
     schema_version: ADOPTION_SCHEMA_VERSION,
-    plan_id: deterministicUlid(`${input.inventory.digest}:${operationSeed}`),
+    plan_id: deterministicUlid(
+      canonicalJson([input.inventory.digest, operationSeed, coverageDigest])
+    ),
     generated_at: input.generatedAt,
     classification: input.classification,
     candidate_inventory_digest: input.inventory.digest,
+    ...coverageDigest === void 0 ? {} : { coverage_digest: coverageDigest },
     operations,
     validations: [...input.validations].sort()
   };
@@ -11719,13 +11723,6 @@ function createMutationPlan(input) {
     plan_digest: sha256(canonicalJson(planWithoutDigest))
   };
 }
-
-// src/infrastructure/filesystem-inventory.ts
-var import_ignore = __toESM(require_ignore(), 1);
-import { createHash as createHash2 } from "node:crypto";
-import { createReadStream } from "node:fs";
-import { lstat, opendir, readFile, readlink, realpath, stat } from "node:fs/promises";
-import path2 from "node:path";
 
 // src/domain/inspection.ts
 var INSPECTION_SCHEMA_VERSION = 1;
@@ -11744,6 +11741,11 @@ var InspectionError = class extends Error {
 };
 
 // src/infrastructure/filesystem-inventory.ts
+var import_ignore = __toESM(require_ignore(), 1);
+import { createHash as createHash2 } from "node:crypto";
+import { createReadStream } from "node:fs";
+import { lstat, opendir, readFile, readlink, realpath, stat } from "node:fs/promises";
+import path2 from "node:path";
 var generatedDirectoryNames = /* @__PURE__ */ new Set([
   ".cache",
   ".gradle",
@@ -12343,7 +12345,16 @@ async function rollbackOperation(root, applied) {
 async function verifyDesiredContent(root, plan) {
   for (const operation of plan.operations) {
     const target = resolveApprovedPath(root, operation.path);
-    if (operation.action === "write" || operation.action === "replace") {
+    if (operation.action === "mkdir") {
+      const metadata = await metadataOrUndefined(target);
+      if (metadata === void 0 || !metadata.isDirectory() || metadata.isSymbolicLink()) {
+        throw new AdoptionError(
+          "PCP_ADOPTION_LIVE_MISMATCH",
+          `An applied directory does not match the approved plan: ${operation.path}`,
+          true
+        );
+      }
+    } else if (operation.action === "write" || operation.action === "replace") {
       const bytes = await readFile2(target);
       if (operation.content_digest !== sha256(bytes)) {
         throw new AdoptionError(
@@ -12452,6 +12463,7 @@ async function executeFilesystemTransaction(root, plan, contentByPath, options) 
     await options.verify_source_stability?.();
     await options.validate_live();
     await options.verify_source_stability?.();
+    await verifyDesiredContent(resolvedRoot, plan);
     await rm(recoveryRoot, { recursive: true, force: false });
     recoveryRoot = void 0;
     return { applied_operations: applied.length, recovery_cleaned: true };
@@ -12511,10 +12523,10 @@ async function executeFilesystemTransaction(root, plan, contentByPath, options) 
   }
 }
 
-// src/application/plan-adoption.ts
-import { lstat as lstat4, mkdir as mkdir2, mkdtemp as mkdtemp2, readFile as readFile8, readdir as readdir3, rm as rm2, writeFile as writeFile3 } from "node:fs/promises";
-import { tmpdir as tmpdir2 } from "node:os";
-import path10 from "node:path";
+// src/application/inspect-repository.ts
+import { createHash as createHash4 } from "node:crypto";
+import { readFile as readFile3 } from "node:fs/promises";
+import path5 from "node:path";
 
 // node_modules/yaml/browser/dist/nodes/identity.js
 var ALIAS = /* @__PURE__ */ Symbol.for("yaml.alias");
@@ -12568,17 +12580,17 @@ function visit(node, visitor) {
 visit.BREAK = BREAK;
 visit.SKIP = SKIP;
 visit.REMOVE = REMOVE;
-function visit_(key, node, visitor, path11) {
-  const ctrl = callVisitor(key, node, visitor, path11);
+function visit_(key, node, visitor, path13) {
+  const ctrl = callVisitor(key, node, visitor, path13);
   if (isNode(ctrl) || isPair(ctrl)) {
-    replaceNode(key, path11, ctrl);
-    return visit_(key, ctrl, visitor, path11);
+    replaceNode(key, path13, ctrl);
+    return visit_(key, ctrl, visitor, path13);
   }
   if (typeof ctrl !== "symbol") {
     if (isCollection(node)) {
-      path11 = Object.freeze(path11.concat(node));
+      path13 = Object.freeze(path13.concat(node));
       for (let i = 0; i < node.items.length; ++i) {
-        const ci = visit_(i, node.items[i], visitor, path11);
+        const ci = visit_(i, node.items[i], visitor, path13);
         if (typeof ci === "number")
           i = ci - 1;
         else if (ci === BREAK)
@@ -12589,13 +12601,13 @@ function visit_(key, node, visitor, path11) {
         }
       }
     } else if (isPair(node)) {
-      path11 = Object.freeze(path11.concat(node));
-      const ck = visit_("key", node.key, visitor, path11);
+      path13 = Object.freeze(path13.concat(node));
+      const ck = visit_("key", node.key, visitor, path13);
       if (ck === BREAK)
         return BREAK;
       else if (ck === REMOVE)
         node.key = null;
-      const cv = visit_("value", node.value, visitor, path11);
+      const cv = visit_("value", node.value, visitor, path13);
       if (cv === BREAK)
         return BREAK;
       else if (cv === REMOVE)
@@ -12616,17 +12628,17 @@ async function visitAsync(node, visitor) {
 visitAsync.BREAK = BREAK;
 visitAsync.SKIP = SKIP;
 visitAsync.REMOVE = REMOVE;
-async function visitAsync_(key, node, visitor, path11) {
-  const ctrl = await callVisitor(key, node, visitor, path11);
+async function visitAsync_(key, node, visitor, path13) {
+  const ctrl = await callVisitor(key, node, visitor, path13);
   if (isNode(ctrl) || isPair(ctrl)) {
-    replaceNode(key, path11, ctrl);
-    return visitAsync_(key, ctrl, visitor, path11);
+    replaceNode(key, path13, ctrl);
+    return visitAsync_(key, ctrl, visitor, path13);
   }
   if (typeof ctrl !== "symbol") {
     if (isCollection(node)) {
-      path11 = Object.freeze(path11.concat(node));
+      path13 = Object.freeze(path13.concat(node));
       for (let i = 0; i < node.items.length; ++i) {
-        const ci = await visitAsync_(i, node.items[i], visitor, path11);
+        const ci = await visitAsync_(i, node.items[i], visitor, path13);
         if (typeof ci === "number")
           i = ci - 1;
         else if (ci === BREAK)
@@ -12637,13 +12649,13 @@ async function visitAsync_(key, node, visitor, path11) {
         }
       }
     } else if (isPair(node)) {
-      path11 = Object.freeze(path11.concat(node));
-      const ck = await visitAsync_("key", node.key, visitor, path11);
+      path13 = Object.freeze(path13.concat(node));
+      const ck = await visitAsync_("key", node.key, visitor, path13);
       if (ck === BREAK)
         return BREAK;
       else if (ck === REMOVE)
         node.key = null;
-      const cv = await visitAsync_("value", node.value, visitor, path11);
+      const cv = await visitAsync_("value", node.value, visitor, path13);
       if (cv === BREAK)
         return BREAK;
       else if (cv === REMOVE)
@@ -12670,23 +12682,23 @@ function initVisitor(visitor) {
   }
   return visitor;
 }
-function callVisitor(key, node, visitor, path11) {
+function callVisitor(key, node, visitor, path13) {
   if (typeof visitor === "function")
-    return visitor(key, node, path11);
+    return visitor(key, node, path13);
   if (isMap(node))
-    return visitor.Map?.(key, node, path11);
+    return visitor.Map?.(key, node, path13);
   if (isSeq(node))
-    return visitor.Seq?.(key, node, path11);
+    return visitor.Seq?.(key, node, path13);
   if (isPair(node))
-    return visitor.Pair?.(key, node, path11);
+    return visitor.Pair?.(key, node, path13);
   if (isScalar(node))
-    return visitor.Scalar?.(key, node, path11);
+    return visitor.Scalar?.(key, node, path13);
   if (isAlias(node))
-    return visitor.Alias?.(key, node, path11);
+    return visitor.Alias?.(key, node, path13);
   return void 0;
 }
-function replaceNode(key, path11, node) {
-  const parent = path11[path11.length - 1];
+function replaceNode(key, path13, node) {
+  const parent = path13[path13.length - 1];
   if (isCollection(parent)) {
     parent.items[key] = node;
   } else if (isPair(parent)) {
@@ -13215,10 +13227,10 @@ function createNode(value, tagName, ctx) {
 }
 
 // node_modules/yaml/browser/dist/nodes/Collection.js
-function collectionFromPath(schema4, path11, value) {
+function collectionFromPath(schema4, path13, value) {
   let v = value;
-  for (let i = path11.length - 1; i >= 0; --i) {
-    const k = path11[i];
+  for (let i = path13.length - 1; i >= 0; --i) {
+    const k = path13[i];
     if (typeof k === "number" && Number.isInteger(k) && k >= 0) {
       const a = [];
       a[k] = v;
@@ -13237,7 +13249,7 @@ function collectionFromPath(schema4, path11, value) {
     sourceObjects: /* @__PURE__ */ new Map()
   });
 }
-var isEmptyPath = (path11) => path11 == null || typeof path11 === "object" && !!path11[Symbol.iterator]().next().done;
+var isEmptyPath = (path13) => path13 == null || typeof path13 === "object" && !!path13[Symbol.iterator]().next().done;
 var Collection = class extends NodeBase {
   constructor(type, schema4) {
     super(type);
@@ -13267,11 +13279,11 @@ var Collection = class extends NodeBase {
    * be a Pair instance or a `{ key, value }` object, which may not have a key
    * that already exists in the map.
    */
-  addIn(path11, value) {
-    if (isEmptyPath(path11))
+  addIn(path13, value) {
+    if (isEmptyPath(path13))
       this.add(value);
     else {
-      const [key, ...rest] = path11;
+      const [key, ...rest] = path13;
       const node = this.get(key, true);
       if (isCollection(node))
         node.addIn(rest, value);
@@ -13285,8 +13297,8 @@ var Collection = class extends NodeBase {
    * Removes a value from the collection.
    * @returns `true` if the item was found and removed.
    */
-  deleteIn(path11) {
-    const [key, ...rest] = path11;
+  deleteIn(path13) {
+    const [key, ...rest] = path13;
     if (rest.length === 0)
       return this.delete(key);
     const node = this.get(key, true);
@@ -13300,8 +13312,8 @@ var Collection = class extends NodeBase {
    * scalar values from their surrounding node; to disable set `keepScalar` to
    * `true` (collections are always returned intact).
    */
-  getIn(path11, keepScalar) {
-    const [key, ...rest] = path11;
+  getIn(path13, keepScalar) {
+    const [key, ...rest] = path13;
     const node = this.get(key, true);
     if (rest.length === 0)
       return !keepScalar && isScalar(node) ? node.value : node;
@@ -13319,8 +13331,8 @@ var Collection = class extends NodeBase {
   /**
    * Checks if the collection includes a value with the key `key`.
    */
-  hasIn(path11) {
-    const [key, ...rest] = path11;
+  hasIn(path13) {
+    const [key, ...rest] = path13;
     if (rest.length === 0)
       return this.has(key);
     const node = this.get(key, true);
@@ -13330,8 +13342,8 @@ var Collection = class extends NodeBase {
    * Sets a value in this collection. For `!!set`, `value` needs to be a
    * boolean to add/remove the item from the set.
    */
-  setIn(path11, value) {
-    const [key, ...rest] = path11;
+  setIn(path13, value) {
+    const [key, ...rest] = path13;
     if (rest.length === 0) {
       this.set(key, value);
     } else {
@@ -15470,9 +15482,9 @@ var Document = class _Document {
       this.contents.add(value);
   }
   /** Adds a value to the document. */
-  addIn(path11, value) {
+  addIn(path13, value) {
     if (assertCollection(this.contents))
-      this.contents.addIn(path11, value);
+      this.contents.addIn(path13, value);
   }
   /**
    * Create a new `Alias` node, ensuring that the target `node` has the required anchor.
@@ -15547,14 +15559,14 @@ var Document = class _Document {
    * Removes a value from the document.
    * @returns `true` if the item was found and removed.
    */
-  deleteIn(path11) {
-    if (isEmptyPath(path11)) {
+  deleteIn(path13) {
+    if (isEmptyPath(path13)) {
       if (this.contents == null)
         return false;
       this.contents = null;
       return true;
     }
-    return assertCollection(this.contents) ? this.contents.deleteIn(path11) : false;
+    return assertCollection(this.contents) ? this.contents.deleteIn(path13) : false;
   }
   /**
    * Returns item at `key`, or `undefined` if not found. By default unwraps
@@ -15569,10 +15581,10 @@ var Document = class _Document {
    * scalar values from their surrounding node; to disable set `keepScalar` to
    * `true` (collections are always returned intact).
    */
-  getIn(path11, keepScalar) {
-    if (isEmptyPath(path11))
+  getIn(path13, keepScalar) {
+    if (isEmptyPath(path13))
       return !keepScalar && isScalar(this.contents) ? this.contents.value : this.contents;
-    return isCollection(this.contents) ? this.contents.getIn(path11, keepScalar) : void 0;
+    return isCollection(this.contents) ? this.contents.getIn(path13, keepScalar) : void 0;
   }
   /**
    * Checks if the document includes a value with the key `key`.
@@ -15583,10 +15595,10 @@ var Document = class _Document {
   /**
    * Checks if the document includes a value at `path`.
    */
-  hasIn(path11) {
-    if (isEmptyPath(path11))
+  hasIn(path13) {
+    if (isEmptyPath(path13))
       return this.contents !== void 0;
-    return isCollection(this.contents) ? this.contents.hasIn(path11) : false;
+    return isCollection(this.contents) ? this.contents.hasIn(path13) : false;
   }
   /**
    * Sets a value in this document. For `!!set`, `value` needs to be a
@@ -15603,13 +15615,13 @@ var Document = class _Document {
    * Sets a value in this document. For `!!set`, `value` needs to be a
    * boolean to add/remove the item from the set.
    */
-  setIn(path11, value) {
-    if (isEmptyPath(path11)) {
+  setIn(path13, value) {
+    if (isEmptyPath(path13)) {
       this.contents = value;
     } else if (this.contents == null) {
-      this.contents = collectionFromPath(this.schema, Array.from(path11), value);
+      this.contents = collectionFromPath(this.schema, Array.from(path13), value);
     } else if (assertCollection(this.contents)) {
-      this.contents.setIn(path11, value);
+      this.contents.setIn(path13, value);
     }
   }
   /**
@@ -17159,9 +17171,9 @@ function visit2(cst, visitor) {
 visit2.BREAK = BREAK2;
 visit2.SKIP = SKIP2;
 visit2.REMOVE = REMOVE2;
-visit2.itemAtPath = (cst, path11) => {
+visit2.itemAtPath = (cst, path13) => {
   let item = cst;
-  for (const [field, index] of path11) {
+  for (const [field, index] of path13) {
     const tok = item?.[field];
     if (tok && "items" in tok) {
       item = tok.items[index];
@@ -17170,23 +17182,23 @@ visit2.itemAtPath = (cst, path11) => {
   }
   return item;
 };
-visit2.parentCollection = (cst, path11) => {
-  const parent = visit2.itemAtPath(cst, path11.slice(0, -1));
-  const field = path11[path11.length - 1][0];
+visit2.parentCollection = (cst, path13) => {
+  const parent = visit2.itemAtPath(cst, path13.slice(0, -1));
+  const field = path13[path13.length - 1][0];
   const coll = parent?.[field];
   if (coll && "items" in coll)
     return coll;
   throw new Error("Parent collection not found");
 };
-function _visit(path11, item, visitor) {
-  let ctrl = visitor(item, path11);
+function _visit(path13, item, visitor) {
+  let ctrl = visitor(item, path13);
   if (typeof ctrl === "symbol")
     return ctrl;
   for (const field of ["key", "value"]) {
     const token = item[field];
     if (token && "items" in token) {
       for (let i = 0; i < token.items.length; ++i) {
-        const ci = _visit(Object.freeze(path11.concat([[field, i]])), token.items[i], visitor);
+        const ci = _visit(Object.freeze(path13.concat([[field, i]])), token.items[i], visitor);
         if (typeof ci === "number")
           i = ci - 1;
         else if (ci === BREAK2)
@@ -17197,10 +17209,10 @@ function _visit(path11, item, visitor) {
         }
       }
       if (typeof ctrl === "function" && field === "key")
-        ctrl = ctrl(item, path11);
+        ctrl = ctrl(item, path13);
     }
   }
-  return typeof ctrl === "function" ? ctrl(item, path11) : ctrl;
+  return typeof ctrl === "function" ? ctrl(item, path13) : ctrl;
 }
 
 // node_modules/yaml/browser/dist/parse/cst.js
@@ -18805,1693 +18817,8 @@ function stringify3(value, replacer, options) {
   return new Document(value, _replacer, options).toString(options);
 }
 
-// src/infrastructure/adoption-assets.ts
-import { lstat as lstat3, readdir, readFile as readFile3 } from "node:fs/promises";
-import path4 from "node:path";
-import { fileURLToPath } from "node:url";
-var moduleDirectory = path4.dirname(fileURLToPath(import.meta.url));
-function candidateTemplateRoots() {
-  return [
-    path4.resolve(moduleDirectory, "../../templates/core"),
-    path4.resolve(moduleDirectory, "../templates/core"),
-    path4.resolve(moduleDirectory, "../assets/templates/core")
-  ];
-}
-async function isCoreTemplateRoot(candidate) {
-  try {
-    const marker = await lstat3(path4.join(candidate, ".pcp", "pcp.yaml"));
-    return marker.isFile() && !marker.isSymbolicLink();
-  } catch (error2) {
-    if (error2.code === "ENOENT") return false;
-    throw error2;
-  }
-}
-async function resolveCoreTemplateRoot() {
-  for (const candidate of candidateTemplateRoots()) {
-    if (await isCoreTemplateRoot(candidate)) return candidate;
-  }
-  throw new AdoptionError(
-    "PCP_ADOPTION_ASSETS_MISSING",
-    "The verified core PCP template assets could not be located beside the engine."
-  );
-}
-async function collectFiles(directory, root, result) {
-  const entries = await readdir(directory, { withFileTypes: true });
-  entries.sort((left, right) => comparePortablePaths(left.name, right.name));
-  for (const entry of entries) {
-    const absolutePath = path4.join(directory, entry.name);
-    const metadata = await lstat3(absolutePath);
-    const relativePath = path4.relative(root, absolutePath).split(path4.sep).join("/");
-    if (metadata.isSymbolicLink()) {
-      throw new AdoptionError(
-        "PCP_ADOPTION_ASSET_SYMLINK",
-        `The core template contains an unsupported symbolic link: ${relativePath}`
-      );
-    }
-    if (metadata.isDirectory()) {
-      await collectFiles(absolutePath, root, result);
-    } else if (metadata.isFile()) {
-      result.push({ path: relativePath, content: await readFile3(absolutePath) });
-    }
-  }
-}
-async function loadCoreTemplateFiles() {
-  const root = await resolveCoreTemplateRoot();
-  const files = [];
-  await collectFiles(root, root, files);
-  files.sort((left, right) => comparePortablePaths(left.path, right.path));
-  return new Map(files.map((file) => [file.path, file.content]));
-}
-
-// src/infrastructure/schema-validator.ts
-var import__ = __toESM(require__(), 1);
-var import_ajv_formats = __toESM(require_dist(), 1);
-
-// schemas/v1/adapter.schema.json
-var adapter_schema_default = {
-  $schema: "https://json-schema.org/draft/2020-12/schema",
-  $id: "urn:pcp:schema:v1:adapter",
-  title: "PCP generated platform adapter",
-  type: "object",
-  additionalProperties: false,
-  required: [
-    "schema_version",
-    "adapter_id",
-    "platform",
-    "target_path",
-    "source_paths",
-    "ownership",
-    "collision_policy",
-    "content_digest"
-  ],
-  properties: {
-    schema_version: {
-      $ref: "urn:pcp:schema:v1:common#/$defs/schemaVersion"
-    },
-    adapter_id: {
-      $ref: "urn:pcp:schema:v1:common#/$defs/slug"
-    },
-    platform: {
-      enum: ["codex", "antigravity", "claude-code-desktop", "custom"]
-    },
-    target_path: {
-      $ref: "urn:pcp:schema:v1:common#/$defs/relativePath"
-    },
-    source_paths: {
-      $ref: "urn:pcp:schema:v1:common#/$defs/pathArray"
-    },
-    ownership: {
-      const: "generated"
-    },
-    collision_policy: {
-      enum: ["preview-required", "preserve", "replace-generated"]
-    },
-    content_digest: {
-      $ref: "urn:pcp:schema:v1:common#/$defs/sha256"
-    }
-  }
-};
-
-// schemas/v1/adoption-input.schema.json
-var adoption_input_schema_default = {
-  $schema: "https://json-schema.org/draft/2020-12/schema",
-  $id: "urn:pcp:schema:v1:adoption-input",
-  title: "PCP State A or State B semantic adoption input",
-  type: "object",
-  additionalProperties: false,
-  required: [
-    "schema_version",
-    "baseline_at",
-    "persistence",
-    "project",
-    "projects",
-    "workstreams",
-    "vcs_policy",
-    "documents",
-    "scaffold_files"
-  ],
-  properties: {
-    schema_version: {
-      $ref: "urn:pcp:schema:v1:common#/$defs/schemaVersion"
-    },
-    baseline_at: {
-      $ref: "urn:pcp:schema:v1:common#/$defs/dateTime"
-    },
-    persistence: {
-      enum: ["tracked", "local"]
-    },
-    project: {
-      $ref: "urn:pcp:schema:v1:project"
-    },
-    projects: {
-      $ref: "urn:pcp:schema:v1:project-registry"
-    },
-    workstreams: {
-      $ref: "urn:pcp:schema:v1:workstreams"
-    },
-    vcs_policy: {
-      $ref: "urn:pcp:schema:v1:vcs-policy"
-    },
-    documents: {
-      type: "array",
-      items: {
-        $ref: "#/$defs/document"
-      },
-      minItems: 8,
-      maxItems: 8
-    },
-    scaffold_files: {
-      type: "array",
-      items: {
-        $ref: "#/$defs/scaffoldFile"
-      },
-      uniqueItems: true
-    }
-  },
-  $defs: {
-    document: {
-      type: "object",
-      additionalProperties: false,
-      required: ["path", "type", "status", "basis", "evidence_paths", "body"],
-      properties: {
-        path: {
-          enum: [
-            "knowledge/10-overview.md",
-            "knowledge/20-architecture.md",
-            "knowledge/30-source-map.md",
-            "knowledge/40-build-and-tooling.md",
-            "knowledge/50-domain-and-invariants.md",
-            "operations/10-working-agreement.md",
-            "operations/20-plan.md",
-            "operations/30-decisions.md"
-          ]
-        },
-        type: {
-          enum: ["knowledge", "policy", "plan"]
-        },
-        status: {
-          enum: ["static", "living"]
-        },
-        basis: {
-          enum: ["repository", "user", "repository-and-user", "not-applicable"]
-        },
-        evidence_paths: {
-          $ref: "urn:pcp:schema:v1:common#/$defs/pathArray"
-        },
-        body: {
-          type: "string",
-          minLength: 3
-        }
-      }
-    },
-    scaffoldFile: {
-      type: "object",
-      additionalProperties: false,
-      required: ["path", "content"],
-      properties: {
-        path: {
-          allOf: [
-            {
-              $ref: "urn:pcp:schema:v1:common#/$defs/relativePath"
-            },
-            {
-              not: {
-                type: "string",
-                pattern: "^\\.pcp(?:/|$)"
-              }
-            }
-          ]
-        },
-        content: {
-          type: "string"
-        }
-      }
-    }
-  }
-};
-
-// schemas/v1/agent-profile.schema.json
-var agent_profile_schema_default = {
-  $schema: "https://json-schema.org/draft/2020-12/schema",
-  $id: "urn:pcp:schema:v1:agent-profile",
-  title: "PCP durable agent profile",
-  type: "object",
-  additionalProperties: false,
-  required: [
-    "schema_version",
-    "agent_id",
-    "platform",
-    "machine_label",
-    "first_seen",
-    "checkpoint_paths"
-  ],
-  properties: {
-    schema_version: {
-      $ref: "urn:pcp:schema:v1:common#/$defs/schemaVersion"
-    },
-    agent_id: {
-      type: "string",
-      pattern: "^[a-z0-9]+(?:-[a-z0-9]+)*-[0-9A-HJKMNP-TV-Z]{10}$",
-      maxLength: 160
-    },
-    platform: {
-      enum: ["codex", "antigravity", "claude-code-desktop", "other"]
-    },
-    machine_label: {
-      $ref: "urn:pcp:schema:v1:common#/$defs/slug"
-    },
-    first_seen: {
-      $ref: "urn:pcp:schema:v1:common#/$defs/dateTime"
-    },
-    checkpoint_paths: {
-      $ref: "urn:pcp:schema:v1:common#/$defs/pathArray"
-    }
-  }
-};
-
-// schemas/v1/checkpoint.schema.json
-var checkpoint_schema_default = {
-  $schema: "https://json-schema.org/draft/2020-12/schema",
-  $id: "urn:pcp:schema:v1:checkpoint",
-  title: "PCP scoped reconciliation checkpoint",
-  type: "object",
-  additionalProperties: false,
-  required: [
-    "schema_version",
-    "checkpoint_id",
-    "agent_id",
-    "workstream_id",
-    "last_event_id",
-    "reconciled_at",
-    "scopes",
-    "dependencies"
-  ],
-  properties: {
-    schema_version: {
-      $ref: "urn:pcp:schema:v1:common#/$defs/schemaVersion"
-    },
-    checkpoint_id: {
-      $ref: "urn:pcp:schema:v1:common#/$defs/ulid"
-    },
-    agent_id: {
-      type: "string",
-      minLength: 1,
-      maxLength: 160
-    },
-    workstream_id: {
-      anyOf: [{ $ref: "urn:pcp:schema:v1:common#/$defs/slug" }, { type: "null" }]
-    },
-    last_event_id: {
-      anyOf: [{ $ref: "urn:pcp:schema:v1:common#/$defs/ulid" }, { type: "null" }]
-    },
-    reconciled_at: {
-      $ref: "urn:pcp:schema:v1:common#/$defs/dateTime"
-    },
-    scopes: {
-      $ref: "urn:pcp:schema:v1:common#/$defs/slugArray"
-    },
-    dependencies: {
-      $ref: "urn:pcp:schema:v1:common#/$defs/slugArray"
-    }
-  }
-};
-
-// schemas/v1/common.schema.json
-var common_schema_default = {
-  $schema: "https://json-schema.org/draft/2020-12/schema",
-  $id: "urn:pcp:schema:v1:common",
-  title: "PCP common definitions",
-  $defs: {
-    schemaVersion: {
-      type: "integer",
-      const: 1
-    },
-    semver: {
-      type: "string",
-      pattern: "^(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)(?:-[0-9A-Za-z.-]+)?(?:\\+[0-9A-Za-z.-]+)?$"
-    },
-    sha256: {
-      type: "string",
-      pattern: "^[a-f0-9]{64}$"
-    },
-    ulid: {
-      type: "string",
-      pattern: "^[0-7][0-9A-HJKMNP-TV-Z]{25}$"
-    },
-    slug: {
-      type: "string",
-      pattern: "^[a-z0-9]+(?:-[a-z0-9]+)*$",
-      maxLength: 128
-    },
-    nonEmptyString: {
-      type: "string",
-      minLength: 1,
-      maxLength: 4096
-    },
-    relativePath: {
-      type: "string",
-      minLength: 1,
-      maxLength: 1024,
-      pattern: "^(?![A-Za-z]:)(?!/)(?!.*\\\\)(?!.*(?:^|/)\\.\\.(?:/|$))(?!.*//).+$"
-    },
-    relativeGlob: {
-      type: "string",
-      minLength: 1,
-      maxLength: 1024,
-      pattern: "^(?![A-Za-z]:)(?!/)(?!.*\\\\)(?!.*(?:^|/)\\.\\.(?:/|$))(?!.*//).+$"
-    },
-    pathArray: {
-      type: "array",
-      items: {
-        $ref: "urn:pcp:schema:v1:common#/$defs/relativePath"
-      },
-      uniqueItems: true
-    },
-    slugArray: {
-      type: "array",
-      items: {
-        $ref: "urn:pcp:schema:v1:common#/$defs/slug"
-      },
-      uniqueItems: true
-    },
-    dateTime: {
-      type: "string",
-      format: "date-time"
-    },
-    actorReference: {
-      type: "object",
-      additionalProperties: false,
-      required: ["type", "id"],
-      properties: {
-        type: {
-          enum: ["human", "agent", "system"]
-        },
-        id: {
-          $ref: "urn:pcp:schema:v1:common#/$defs/nonEmptyString"
-        }
-      }
-    }
-  }
-};
-
-// schemas/v1/coverage.schema.json
-var coverage_schema_default = {
-  $schema: "https://json-schema.org/draft/2020-12/schema",
-  $id: "urn:pcp:schema:v1:coverage",
-  title: "PCP transient State C coverage matrix",
-  type: "object",
-  additionalProperties: false,
-  required: [
-    "schema_version",
-    "coverage_id",
-    "source_inventory_digest",
-    "records",
-    "unresolved_count"
-  ],
-  properties: {
-    schema_version: {
-      $ref: "urn:pcp:schema:v1:common#/$defs/schemaVersion"
-    },
-    coverage_id: {
-      $ref: "urn:pcp:schema:v1:common#/$defs/ulid"
-    },
-    source_inventory_digest: {
-      $ref: "urn:pcp:schema:v1:common#/$defs/sha256"
-    },
-    records: {
-      type: "array",
-      items: {
-        $ref: "#/$defs/record"
-      },
-      uniqueItems: true
-    },
-    unresolved_count: {
-      type: "integer",
-      minimum: 0
-    }
-  },
-  $defs: {
-    record: {
-      type: "object",
-      additionalProperties: false,
-      required: [
-        "source_id",
-        "source_path",
-        "source_kind",
-        "fingerprint",
-        "disposition",
-        "targets",
-        "evidence"
-      ],
-      properties: {
-        source_id: {
-          $ref: "urn:pcp:schema:v1:common#/$defs/nonEmptyString"
-        },
-        source_path: {
-          $ref: "urn:pcp:schema:v1:common#/$defs/relativePath"
-        },
-        source_kind: {
-          enum: ["file", "history-entry", "fact", "adapter"]
-        },
-        fingerprint: {
-          $ref: "urn:pcp:schema:v1:common#/$defs/sha256"
-        },
-        disposition: {
-          enum: [
-            "represented",
-            "promoted",
-            "superseded",
-            "operational-noise",
-            "historical-only",
-            "sensitive-local",
-            "unresolved"
-          ]
-        },
-        targets: {
-          $ref: "urn:pcp:schema:v1:common#/$defs/pathArray"
-        },
-        evidence: {
-          type: "array",
-          items: {
-            $ref: "urn:pcp:schema:v1:common#/$defs/nonEmptyString"
-          },
-          minItems: 1,
-          uniqueItems: true
-        }
-      },
-      allOf: [
-        {
-          if: {
-            properties: {
-              disposition: {
-                enum: ["represented", "promoted", "superseded"]
-              }
-            },
-            required: ["disposition"]
-          },
-          then: {
-            properties: {
-              targets: { type: "array", minItems: 1 }
-            }
-          }
-        }
-      ]
-    }
-  }
-};
-
-// schemas/v1/frontmatter.schema.json
-var frontmatter_schema_default = {
-  $schema: "https://json-schema.org/draft/2020-12/schema",
-  $id: "urn:pcp:schema:v1:frontmatter",
-  title: "PCP Markdown frontmatter",
-  type: "object",
-  additionalProperties: false,
-  required: ["doc", "type", "status", "version", "last_updated", "ownership"],
-  properties: {
-    doc: {
-      $ref: "urn:pcp:schema:v1:common#/$defs/relativePath"
-    },
-    type: {
-      enum: [
-        "index",
-        "protocol",
-        "knowledge",
-        "policy",
-        "plan",
-        "project",
-        "reference",
-        "generated"
-      ]
-    },
-    status: {
-      enum: ["living", "static", "generated"]
-    },
-    version: {
-      $ref: "urn:pcp:schema:v1:common#/$defs/semver"
-    },
-    last_updated: {
-      $ref: "urn:pcp:schema:v1:common#/$defs/dateTime"
-    },
-    ownership: {
-      enum: ["protocol", "project", "generated"]
-    },
-    sources: {
-      $ref: "urn:pcp:schema:v1:common#/$defs/pathArray"
-    },
-    source_digest: {
-      $ref: "urn:pcp:schema:v1:common#/$defs/sha256"
-    }
-  },
-  allOf: [
-    {
-      if: {
-        properties: { ownership: { const: "generated" } },
-        required: ["ownership"]
-      },
-      then: {
-        required: ["sources", "source_digest"],
-        properties: {
-          status: { const: "generated" },
-          sources: {
-            $ref: "urn:pcp:schema:v1:common#/$defs/pathArray"
-          },
-          source_digest: {
-            $ref: "urn:pcp:schema:v1:common#/$defs/sha256"
-          }
-        }
-      }
-    }
-  ]
-};
-
-// schemas/v1/journal-event.schema.json
-var journal_event_schema_default = {
-  $schema: "https://json-schema.org/draft/2020-12/schema",
-  $id: "urn:pcp:schema:v1:journal-event",
-  title: "PCP immutable journal event",
-  type: "object",
-  additionalProperties: false,
-  required: [
-    "schema_version",
-    "event_id",
-    "occurred_at",
-    "actor",
-    "origin",
-    "kind",
-    "scopes",
-    "workstreams",
-    "summary",
-    "rationale",
-    "affected_paths"
-  ],
-  properties: {
-    schema_version: {
-      $ref: "urn:pcp:schema:v1:common#/$defs/schemaVersion"
-    },
-    event_id: {
-      $ref: "urn:pcp:schema:v1:common#/$defs/ulid"
-    },
-    occurred_at: {
-      $ref: "urn:pcp:schema:v1:common#/$defs/dateTime"
-    },
-    actor: {
-      $ref: "urn:pcp:schema:v1:common#/$defs/actorReference"
-    },
-    origin: {
-      enum: ["human", "agent", "system"]
-    },
-    kind: {
-      enum: [
-        "code",
-        "documentation",
-        "configuration",
-        "decision",
-        "research",
-        "operations",
-        "release",
-        "workstream"
-      ]
-    },
-    scopes: {
-      $ref: "urn:pcp:schema:v1:common#/$defs/slugArray"
-    },
-    workstreams: {
-      $ref: "urn:pcp:schema:v1:common#/$defs/slugArray"
-    },
-    summary: {
-      $ref: "urn:pcp:schema:v1:common#/$defs/nonEmptyString"
-    },
-    rationale: {
-      $ref: "urn:pcp:schema:v1:common#/$defs/nonEmptyString"
-    },
-    affected_paths: {
-      $ref: "urn:pcp:schema:v1:common#/$defs/pathArray"
-    }
-  }
-};
-
-// schemas/v1/mutation-plan.schema.json
-var mutation_plan_schema_default = {
-  $schema: "https://json-schema.org/draft/2020-12/schema",
-  $id: "urn:pcp:schema:v1:mutation-plan",
-  title: "PCP normalized mutation plan",
-  type: "object",
-  additionalProperties: false,
-  required: [
-    "schema_version",
-    "plan_id",
-    "generated_at",
-    "classification",
-    "candidate_inventory_digest",
-    "operations",
-    "validations",
-    "plan_digest"
-  ],
-  properties: {
-    schema_version: {
-      $ref: "urn:pcp:schema:v1:common#/$defs/schemaVersion"
-    },
-    plan_id: {
-      $ref: "urn:pcp:schema:v1:common#/$defs/ulid"
-    },
-    generated_at: {
-      $ref: "urn:pcp:schema:v1:common#/$defs/dateTime"
-    },
-    classification: {
-      enum: ["A", "B", "C", "managed"]
-    },
-    candidate_inventory_digest: {
-      $ref: "urn:pcp:schema:v1:common#/$defs/sha256"
-    },
-    operations: {
-      type: "array",
-      items: {
-        $ref: "#/$defs/operation"
-      },
-      uniqueItems: true
-    },
-    validations: {
-      type: "array",
-      items: {
-        $ref: "urn:pcp:schema:v1:common#/$defs/slug"
-      },
-      minItems: 1,
-      uniqueItems: true
-    },
-    plan_digest: {
-      $ref: "urn:pcp:schema:v1:common#/$defs/sha256"
-    }
-  },
-  $defs: {
-    operation: {
-      type: "object",
-      additionalProperties: false,
-      required: ["operation_id", "action", "path"],
-      properties: {
-        operation_id: {
-          $ref: "urn:pcp:schema:v1:common#/$defs/ulid"
-        },
-        action: {
-          enum: ["mkdir", "write", "replace", "remove", "move"]
-        },
-        path: {
-          $ref: "urn:pcp:schema:v1:common#/$defs/relativePath"
-        },
-        source_path: {
-          $ref: "urn:pcp:schema:v1:common#/$defs/relativePath"
-        },
-        content_digest: {
-          $ref: "urn:pcp:schema:v1:common#/$defs/sha256"
-        },
-        preimage_digest: {
-          $ref: "urn:pcp:schema:v1:common#/$defs/sha256"
-        }
-      },
-      allOf: [
-        {
-          if: {
-            properties: { action: { enum: ["write", "replace"] } },
-            required: ["action"]
-          },
-          then: {
-            required: ["content_digest"],
-            properties: {
-              content_digest: {
-                $ref: "urn:pcp:schema:v1:common#/$defs/sha256"
-              }
-            }
-          }
-        },
-        {
-          if: {
-            properties: { action: { const: "move" } },
-            required: ["action"]
-          },
-          then: {
-            required: ["source_path"],
-            properties: {
-              source_path: {
-                $ref: "urn:pcp:schema:v1:common#/$defs/relativePath"
-              }
-            }
-          }
-        },
-        {
-          if: {
-            properties: { action: { enum: ["replace", "remove", "move"] } },
-            required: ["action"]
-          },
-          then: {
-            required: ["preimage_digest"],
-            properties: {
-              preimage_digest: {
-                $ref: "urn:pcp:schema:v1:common#/$defs/sha256"
-              }
-            }
-          }
-        }
-      ]
-    }
-  }
-};
-
-// schemas/v1/pcp-manifest.schema.json
-var pcp_manifest_schema_default = {
-  $schema: "https://json-schema.org/draft/2020-12/schema",
-  $id: "urn:pcp:schema:v1:pcp-manifest",
-  title: "Persistent Context Protocol manifest",
-  type: "object",
-  additionalProperties: false,
-  required: [
-    "schema_version",
-    "protocol",
-    "persistence",
-    "capabilities",
-    "ownership",
-    "adapter_ids",
-    "validation",
-    "vcs_policy_path"
-  ],
-  properties: {
-    schema_version: {
-      $ref: "urn:pcp:schema:v1:common#/$defs/schemaVersion"
-    },
-    protocol: {
-      type: "object",
-      additionalProperties: false,
-      required: ["name", "version"],
-      properties: {
-        name: {
-          const: "persistent-context-protocol"
-        },
-        version: {
-          $ref: "urn:pcp:schema:v1:common#/$defs/semver"
-        }
-      }
-    },
-    persistence: {
-      enum: ["tracked", "local"]
-    },
-    capabilities: {
-      $ref: "urn:pcp:schema:v1:common#/$defs/slugArray"
-    },
-    ownership: {
-      type: "object",
-      additionalProperties: false,
-      required: ["protocol", "project", "generated", "runtime"],
-      properties: {
-        protocol: { $ref: "#/$defs/globArray" },
-        project: { $ref: "#/$defs/globArray" },
-        generated: { $ref: "#/$defs/globArray" },
-        runtime: { $ref: "#/$defs/globArray" }
-      }
-    },
-    adapter_ids: {
-      $ref: "urn:pcp:schema:v1:common#/$defs/slugArray"
-    },
-    validation: {
-      type: "object",
-      additionalProperties: false,
-      required: ["strict", "schema_root", "generated_views_read_only"],
-      properties: {
-        strict: { type: "boolean" },
-        schema_root: {
-          $ref: "urn:pcp:schema:v1:common#/$defs/relativePath"
-        },
-        generated_views_read_only: { const: true }
-      }
-    },
-    vcs_policy_path: {
-      $ref: "urn:pcp:schema:v1:common#/$defs/relativePath"
-    }
-  },
-  $defs: {
-    globArray: {
-      type: "array",
-      items: {
-        $ref: "urn:pcp:schema:v1:common#/$defs/relativeGlob"
-      },
-      minItems: 1,
-      uniqueItems: true
-    }
-  }
-};
-
-// schemas/v1/project-registry.schema.json
-var project_registry_schema_default = {
-  $schema: "https://json-schema.org/draft/2020-12/schema",
-  $id: "urn:pcp:schema:v1:project-registry",
-  title: "PCP project registry",
-  type: "object",
-  additionalProperties: false,
-  required: ["schema_version", "projects"],
-  properties: {
-    schema_version: {
-      $ref: "urn:pcp:schema:v1:common#/$defs/schemaVersion"
-    },
-    projects: {
-      type: "array",
-      items: {
-        $ref: "urn:pcp:schema:v1:project"
-      },
-      uniqueItems: true
-    }
-  }
-};
-
-// schemas/v1/project.schema.json
-var project_schema_default = {
-  $schema: "https://json-schema.org/draft/2020-12/schema",
-  $id: "urn:pcp:schema:v1:project",
-  title: "PCP project state",
-  type: "object",
-  additionalProperties: false,
-  required: [
-    "schema_version",
-    "project_id",
-    "name",
-    "purpose",
-    "project_type",
-    "lifecycle",
-    "artifact_roots",
-    "context_roots",
-    "repositories",
-    "tags"
-  ],
-  properties: {
-    schema_version: {
-      $ref: "urn:pcp:schema:v1:common#/$defs/schemaVersion"
-    },
-    project_id: {
-      $ref: "urn:pcp:schema:v1:common#/$defs/slug"
-    },
-    name: {
-      $ref: "urn:pcp:schema:v1:common#/$defs/nonEmptyString"
-    },
-    purpose: {
-      $ref: "urn:pcp:schema:v1:common#/$defs/nonEmptyString"
-    },
-    project_type: {
-      enum: [
-        "software",
-        "research",
-        "data",
-        "writing",
-        "career",
-        "creative",
-        "operations",
-        "mixed",
-        "other"
-      ]
-    },
-    lifecycle: {
-      enum: ["seed", "active", "maintenance", "paused", "complete", "archived"]
-    },
-    artifact_roots: {
-      $ref: "urn:pcp:schema:v1:common#/$defs/pathArray"
-    },
-    context_roots: {
-      $ref: "urn:pcp:schema:v1:common#/$defs/pathArray"
-    },
-    repositories: {
-      type: "array",
-      items: {
-        type: "object",
-        additionalProperties: false,
-        required: ["provider", "url", "default_branch", "visibility"],
-        properties: {
-          provider: {
-            enum: ["github", "gitlab", "bitbucket", "other"]
-          },
-          url: {
-            type: "string",
-            format: "uri",
-            pattern: "^https://"
-          },
-          default_branch: {
-            $ref: "urn:pcp:schema:v1:common#/$defs/slug"
-          },
-          visibility: {
-            enum: ["public", "private", "internal", "unknown"]
-          }
-        }
-      },
-      uniqueItems: true
-    },
-    tags: {
-      $ref: "urn:pcp:schema:v1:common#/$defs/slugArray"
-    }
-  }
-};
-
-// schemas/v1/vcs-policy.schema.json
-var vcs_policy_schema_default = {
-  $schema: "https://json-schema.org/draft/2020-12/schema",
-  $id: "urn:pcp:schema:v1:vcs-policy",
-  title: "PCP version-control authority policy",
-  type: "object",
-  additionalProperties: false,
-  required: ["schema_version", "mode", "provider", "repository", "responsibilities", "workflow"],
-  properties: {
-    schema_version: {
-      $ref: "urn:pcp:schema:v1:common#/$defs/schemaVersion"
-    },
-    mode: {
-      enum: ["none", "human-owned", "agent-managed", "custom"]
-    },
-    provider: {
-      enum: ["none", "github", "gitlab", "bitbucket", "other"]
-    },
-    repository: {
-      type: "object",
-      additionalProperties: false,
-      required: ["remote_name", "default_branch"],
-      properties: {
-        remote_name: {
-          $ref: "urn:pcp:schema:v1:common#/$defs/slug"
-        },
-        default_branch: {
-          $ref: "urn:pcp:schema:v1:common#/$defs/slug"
-        }
-      }
-    },
-    responsibilities: {
-      $ref: "#/$defs/responsibilities"
-    },
-    workflow: {
-      type: "object",
-      additionalProperties: false,
-      required: [
-        "branch_pattern",
-        "commit_convention",
-        "push_cadence",
-        "pull_request_required",
-        "human_merge_required",
-        "post_merge"
-      ],
-      properties: {
-        branch_pattern: {
-          $ref: "urn:pcp:schema:v1:common#/$defs/nonEmptyString"
-        },
-        commit_convention: {
-          enum: ["conventional", "custom", "none"]
-        },
-        push_cadence: {
-          enum: ["milestone", "unit", "manual", "never"]
-        },
-        pull_request_required: {
-          type: "boolean"
-        },
-        human_merge_required: {
-          type: "boolean"
-        },
-        post_merge: {
-          type: "array",
-          items: {
-            enum: [
-              "verify-pr",
-              "verify-checks",
-              "fetch-prune",
-              "switch-default",
-              "pull-ff-only",
-              "verify-clean",
-              "delete-local-branch",
-              "verify-merged-tree",
-              "create-next-branch"
-            ]
-          },
-          uniqueItems: true
-        }
-      }
-    }
-  },
-  $defs: {
-    actor: {
-      enum: ["agent", "human", "external", "prohibited"]
-    },
-    responsibilities: {
-      type: "object",
-      additionalProperties: false,
-      required: [
-        "initialize",
-        "create_repository",
-        "configure_remote",
-        "configure_protection",
-        "sync_default",
-        "create_branch",
-        "stage",
-        "commit",
-        "push",
-        "open_pull_request",
-        "repair_ci",
-        "review_pull_request",
-        "merge_pull_request",
-        "cleanup_branch",
-        "tag",
-        "release",
-        "force_push",
-        "rewrite_history",
-        "destructive_recovery",
-        "manage_credentials"
-      ],
-      properties: {
-        initialize: { $ref: "#/$defs/actor" },
-        create_repository: { $ref: "#/$defs/actor" },
-        configure_remote: { $ref: "#/$defs/actor" },
-        configure_protection: { $ref: "#/$defs/actor" },
-        sync_default: { $ref: "#/$defs/actor" },
-        create_branch: { $ref: "#/$defs/actor" },
-        stage: { $ref: "#/$defs/actor" },
-        commit: { $ref: "#/$defs/actor" },
-        push: { $ref: "#/$defs/actor" },
-        open_pull_request: { $ref: "#/$defs/actor" },
-        repair_ci: { $ref: "#/$defs/actor" },
-        review_pull_request: { $ref: "#/$defs/actor" },
-        merge_pull_request: { $ref: "#/$defs/actor" },
-        cleanup_branch: { $ref: "#/$defs/actor" },
-        tag: { $ref: "#/$defs/actor" },
-        release: { $ref: "#/$defs/actor" },
-        force_push: { $ref: "#/$defs/actor" },
-        rewrite_history: { $ref: "#/$defs/actor" },
-        destructive_recovery: { $ref: "#/$defs/actor" },
-        manage_credentials: { $ref: "#/$defs/actor" }
-      }
-    }
-  },
-  allOf: [
-    {
-      if: {
-        properties: { mode: { const: "none" } },
-        required: ["mode"]
-      },
-      then: {
-        properties: {
-          provider: { const: "none" },
-          responsibilities: {
-            type: "object",
-            additionalProperties: { const: "prohibited" }
-          },
-          workflow: {
-            type: "object",
-            properties: {
-              commit_convention: { const: "none" },
-              push_cadence: { const: "never" },
-              pull_request_required: { const: false },
-              human_merge_required: { const: false },
-              post_merge: { type: "array", maxItems: 0 }
-            }
-          }
-        }
-      }
-    },
-    {
-      if: {
-        properties: { mode: { const: "agent-managed" } },
-        required: ["mode"]
-      },
-      then: {
-        properties: {
-          provider: { not: { const: "none" } },
-          responsibilities: {
-            type: "object",
-            properties: {
-              sync_default: { const: "agent" },
-              create_branch: { const: "agent" },
-              stage: { const: "agent" },
-              commit: { const: "agent" },
-              push: { const: "agent" },
-              open_pull_request: { const: "agent" },
-              repair_ci: { const: "agent" },
-              review_pull_request: { const: "human" },
-              merge_pull_request: { const: "human" },
-              cleanup_branch: { const: "agent" },
-              force_push: { const: "prohibited" },
-              rewrite_history: { const: "prohibited" }
-            }
-          },
-          workflow: {
-            type: "object",
-            properties: {
-              commit_convention: { const: "conventional" },
-              push_cadence: { const: "milestone" },
-              pull_request_required: { const: true },
-              human_merge_required: { const: true },
-              post_merge: {
-                type: "array",
-                prefixItems: [
-                  { const: "verify-pr" },
-                  { const: "verify-checks" },
-                  { const: "fetch-prune" },
-                  { const: "switch-default" },
-                  { const: "pull-ff-only" },
-                  { const: "verify-clean" },
-                  { const: "delete-local-branch" },
-                  { const: "verify-merged-tree" },
-                  { const: "create-next-branch" }
-                ],
-                minItems: 9,
-                maxItems: 9
-              }
-            }
-          }
-        }
-      }
-    },
-    {
-      if: {
-        properties: { mode: { const: "human-owned" } },
-        required: ["mode"]
-      },
-      then: {
-        properties: {
-          responsibilities: {
-            type: "object",
-            additionalProperties: { enum: ["human", "prohibited"] }
-          }
-        }
-      }
-    }
-  ]
-};
-
-// schemas/v1/workstreams.schema.json
-var workstreams_schema_default = {
-  $schema: "https://json-schema.org/draft/2020-12/schema",
-  $id: "urn:pcp:schema:v1:workstreams",
-  title: "PCP workstream registry",
-  type: "object",
-  additionalProperties: false,
-  required: ["schema_version", "workstreams"],
-  properties: {
-    schema_version: {
-      $ref: "urn:pcp:schema:v1:common#/$defs/schemaVersion"
-    },
-    workstreams: {
-      type: "array",
-      items: {
-        $ref: "#/$defs/workstream"
-      },
-      uniqueItems: true
-    }
-  },
-  $defs: {
-    workstream: {
-      type: "object",
-      additionalProperties: false,
-      required: [
-        "workstream_id",
-        "name",
-        "kind",
-        "status",
-        "paths",
-        "areas",
-        "dependencies",
-        "completion"
-      ],
-      properties: {
-        workstream_id: {
-          $ref: "urn:pcp:schema:v1:common#/$defs/slug"
-        },
-        name: {
-          $ref: "urn:pcp:schema:v1:common#/$defs/nonEmptyString"
-        },
-        kind: {
-          enum: ["sequential", "concurrent", "ceb"]
-        },
-        status: {
-          enum: ["planned", "active", "blocked", "complete", "cancelled"]
-        },
-        paths: {
-          $ref: "urn:pcp:schema:v1:common#/$defs/pathArray"
-        },
-        areas: {
-          $ref: "urn:pcp:schema:v1:common#/$defs/slugArray"
-        },
-        dependencies: {
-          $ref: "urn:pcp:schema:v1:common#/$defs/slugArray"
-        },
-        completion: {
-          type: "object",
-          additionalProperties: false,
-          required: ["criteria", "evidence"],
-          properties: {
-            criteria: {
-              type: "array",
-              items: {
-                $ref: "urn:pcp:schema:v1:common#/$defs/nonEmptyString"
-              },
-              minItems: 1,
-              uniqueItems: true
-            },
-            evidence: {
-              type: "array",
-              items: {
-                $ref: "urn:pcp:schema:v1:common#/$defs/nonEmptyString"
-              },
-              uniqueItems: true
-            }
-          }
-        }
-      }
-    }
-  }
-};
-
-// src/domain/schema-catalog.ts
-var SCHEMA_CATALOG = {
-  adapter: adapter_schema_default,
-  "adoption-input": adoption_input_schema_default,
-  "agent-profile": agent_profile_schema_default,
-  checkpoint: checkpoint_schema_default,
-  coverage: coverage_schema_default,
-  frontmatter: frontmatter_schema_default,
-  "journal-event": journal_event_schema_default,
-  "mutation-plan": mutation_plan_schema_default,
-  "pcp-manifest": pcp_manifest_schema_default,
-  "project-registry": project_registry_schema_default,
-  project: project_schema_default,
-  "vcs-policy": vcs_policy_schema_default,
-  workstreams: workstreams_schema_default
-};
-var SUPPORTING_SCHEMAS = [common_schema_default];
-var SCHEMA_NAMES = Object.keys(SCHEMA_CATALOG).sort();
-
-// src/infrastructure/schema-validator.ts
-function schemaId(schema4) {
-  const id = schema4.$id;
-  if (typeof id !== "string" || id.length === 0) {
-    throw new Error("Every PCP schema must define a non-empty $id.");
-  }
-  return id;
-}
-function compareDiagnostics(left, right) {
-  const leftKey = `${left.path}\0${left.keyword}\0${left.message}`;
-  const rightKey = `${right.path}\0${right.keyword}\0${right.message}`;
-  return leftKey < rightKey ? -1 : leftKey > rightKey ? 1 : 0;
-}
-function diagnostic(error2) {
-  return {
-    path: error2.instancePath === "" ? "/" : error2.instancePath,
-    keyword: error2.keyword,
-    message: error2.message ?? "Schema validation failed.",
-    params: error2.params
-  };
-}
-var SchemaRegistry = class {
-  #validators = /* @__PURE__ */ new Map();
-  constructor() {
-    const ajv = new import__.Ajv2020({
-      allErrors: true,
-      strict: true,
-      validateFormats: true,
-      coerceTypes: false,
-      removeAdditional: false,
-      useDefaults: false
-    });
-    const addFormats = import_ajv_formats.default;
-    addFormats(ajv);
-    for (const schema4 of SUPPORTING_SCHEMAS) {
-      ajv.addSchema(schema4, schemaId(schema4));
-    }
-    for (const name of SCHEMA_NAMES) {
-      const schema4 = SCHEMA_CATALOG[name];
-      ajv.addSchema(schema4, schemaId(schema4));
-    }
-    for (const name of SCHEMA_NAMES) {
-      const validator = ajv.getSchema(schemaId(SCHEMA_CATALOG[name]));
-      if (validator === void 0) {
-        throw new Error(`PCP schema did not compile: ${name}`);
-      }
-      this.#validators.set(name, validator);
-    }
-  }
-  validate(name, value) {
-    const validator = this.#validators.get(name);
-    if (validator === void 0) {
-      throw new Error(`Unknown PCP schema: ${name}`);
-    }
-    const valid = validator(value);
-    const diagnostics = (validator.errors ?? []).map(diagnostic).sort(compareDiagnostics);
-    return { valid, diagnostics };
-  }
-};
-
-// src/application/render-canonical-views.ts
-import { readFile as readFile5, writeFile as writeFile2 } from "node:fs/promises";
-import path6 from "node:path";
-
-// src/domain/canonical-validation.ts
-function compareCanonicalDiagnostics(left, right) {
-  const leftKey = `${left.path}\0${left.severity}\0${left.code}\0${left.message}`;
-  const rightKey = `${right.path}\0${right.severity}\0${right.code}\0${right.message}`;
-  return leftKey < rightKey ? -1 : leftKey > rightKey ? 1 : 0;
-}
-
-// src/infrastructure/canonical-source-digest.ts
-import { createHash as createHash4 } from "node:crypto";
-import { readFile as readFile4 } from "node:fs/promises";
-import path5 from "node:path";
-function normalizeSource(contents) {
-  return contents.replace(/\r\n?/g, "\n");
-}
-function resolveContained(root, relativePath) {
-  const resolvedRoot = path5.resolve(root);
-  const resolved = path5.resolve(resolvedRoot, relativePath);
-  if (resolved !== resolvedRoot && !resolved.startsWith(`${resolvedRoot}${path5.sep}`)) {
-    throw new Error(`Canonical source escapes the .pcp root: ${relativePath}`);
-  }
-  return resolved;
-}
-function canonicalSourceDigestFromContents(sources) {
-  const hash = createHash4("sha256");
-  for (const source of [...sources].sort((left, right) => left.path.localeCompare(right.path))) {
-    const contents = normalizeSource(source.contents);
-    hash.update(source.path);
-    hash.update("\0");
-    hash.update(String(Buffer.byteLength(contents)));
-    hash.update("\0");
-    hash.update(contents);
-    hash.update("\0");
-  }
-  return hash.digest("hex");
-}
-async function canonicalSourceDigest(root, sources) {
-  const contents = await Promise.all(
-    sources.map(async (source) => ({
-      path: source,
-      contents: await readFile4(resolveContained(root, source), "utf8")
-    }))
-  );
-  return canonicalSourceDigestFromContents(contents);
-}
-
-// src/application/render-canonical-views.ts
-var VIEW_PATH = "views/10-status.generated.md";
-var PROJECT_VIEW_PATH = `.pcp/${VIEW_PATH}`;
-var GENERATED_MARKER = "<!-- PCP: GENERATED; DO NOT EDIT -->";
-var RENDERER_TEMPLATE_UPDATED_AT = "2026-07-12T13:10:00Z";
-var SOURCES = [
-  ["state/project.yaml", "project"],
-  ["state/projects.yaml", "project-registry"],
-  ["state/workstreams.yaml", "workstreams"],
-  ["state/vcs-policy.yaml", "vcs-policy"]
-];
-function objectValue(value) {
-  if (typeof value !== "object" || value === null || Array.isArray(value)) {
-    throw new Error("Schema-valid canonical source must be an object.");
-  }
-  return value;
-}
-function objectArray(value) {
-  if (!Array.isArray(value)) return [];
-  return value.map(objectValue);
-}
-function stringArray(value) {
-  return Array.isArray(value) ? value.filter((item) => typeof item === "string") : [];
-}
-function scalar(value) {
-  return typeof value === "string" || typeof value === "number" || typeof value === "boolean" ? String(value) : "";
-}
-function prose(value) {
-  return scalar(value).replace(/\s+/g, " ").trim().replace(/\\/g, "\\\\");
-}
-function tableCell(value) {
-  const result = prose(value).replace(/\|/g, "\\|");
-  return result.length === 0 ? "\u2014" : result;
-}
-function code(value) {
-  return `\`${scalar(value).replace(/`/g, "\\`")}\``;
-}
-function codeList(value) {
-  const values = stringArray(value);
-  return values.length === 0 ? "None." : values.map(code).join(", ");
-}
-function issue(codeValue, pathValue, message) {
-  return { severity: "error", code: codeValue, path: pathValue, message };
-}
-async function loadSource(layerRoot, relativePath, schema4, registry, diagnostics) {
-  let contents;
-  try {
-    contents = await readFile5(path6.join(layerRoot, relativePath), "utf8");
-  } catch (error2) {
-    diagnostics.push(
-      issue(
-        "render.source-read",
-        `.pcp/${relativePath}`,
-        error2 instanceof Error ? error2.message : "Unable to read canonical render source."
-      )
-    );
-    return void 0;
-  }
-  const document = parseDocument(contents, { prettyErrors: false, uniqueKeys: true });
-  if (document.errors.length > 0) {
-    for (const error2 of document.errors) {
-      diagnostics.push(issue("render.source-yaml", `.pcp/${relativePath}`, error2.message));
-    }
-    return void 0;
-  }
-  let value;
-  try {
-    value = document.toJS({ maxAliasCount: 50 });
-  } catch (error2) {
-    diagnostics.push(
-      issue(
-        "render.source-yaml",
-        `.pcp/${relativePath}`,
-        error2 instanceof Error ? error2.message : "Unable to safely decode render source."
-      )
-    );
-    return void 0;
-  }
-  const result = registry.validate(schema4, value);
-  if (!result.valid) {
-    for (const diagnostic2 of result.diagnostics) {
-      diagnostics.push(
-        issue(
-          `render.source-${diagnostic2.keyword}`,
-          `.pcp/${relativePath}#${diagnostic2.path === "/" ? "" : diagnostic2.path}`,
-          diagnostic2.message
-        )
-      );
-    }
-    return void 0;
-  }
-  return { contents, value: objectValue(value) };
-}
-function renderProjects(projects) {
-  if (projects.length === 0) return ["No managed subprojects are registered."];
-  return [
-    "| ID | Name | Type | Lifecycle | Artifact roots |",
-    "| --- | --- | --- | --- | --- |",
-    ...projects.map(
-      (project) => `| ${code(project.project_id)} | ${tableCell(project.name)} | ${code(project.project_type)} | ${code(project.lifecycle)} | ${codeList(project.artifact_roots)} |`
-    )
-  ];
-}
-function renderWorkstreams(workstreams) {
-  if (workstreams.length === 0) return ["No workstreams are registered."];
-  return [
-    "| ID | Name | Kind | Status | Dependencies | Evidence |",
-    "| --- | --- | --- | --- | --- | --- |",
-    ...workstreams.map((workstream) => {
-      const completion = objectValue(workstream.completion);
-      return `| ${code(workstream.workstream_id)} | ${tableCell(workstream.name)} | ${code(workstream.kind)} | ${code(workstream.status)} | ${codeList(workstream.dependencies)} | ${stringArray(completion.evidence).length} item(s) |`;
-    })
-  ];
-}
-function renderCanonicalStatusView(sources, sourceDigest) {
-  const project = objectValue(sources.get("state/project.yaml"));
-  const projectRegistry = objectValue(sources.get("state/projects.yaml"));
-  const workstreamRegistry = objectValue(sources.get("state/workstreams.yaml"));
-  const vcsPolicy = objectValue(sources.get("state/vcs-policy.yaml"));
-  const repository = objectValue(vcsPolicy.repository);
-  const workflow = objectValue(vcsPolicy.workflow);
-  const lines = [
-    "---",
-    `doc: ${VIEW_PATH}`,
-    "type: generated",
-    "status: generated",
-    "version: 1.0.0",
-    `last_updated: ${RENDERER_TEMPLATE_UPDATED_AT}`,
-    "ownership: generated",
-    "sources:",
-    ...SOURCES.map(([source]) => `  - ${source}`),
-    `source_digest: ${sourceDigest}`,
-    "---",
-    "",
-    GENERATED_MARKER,
-    "",
-    "# Project status",
-    "",
-    "Generated from canonical YAML. Edit the source records, then render again.",
-    "",
-    "## Project",
-    "",
-    `- ID: ${code(project.project_id)}`,
-    `- Name: ${prose(project.name)}`,
-    `- Purpose: ${prose(project.purpose)}`,
-    `- Type: ${code(project.project_type)}`,
-    `- Lifecycle: ${code(project.lifecycle)}`,
-    `- Artifact roots: ${codeList(project.artifact_roots)}`,
-    `- Context roots: ${codeList(project.context_roots)}`,
-    "",
-    "## Managed projects",
-    "",
-    ...renderProjects(objectArray(projectRegistry.projects)),
-    "",
-    "## Workstreams",
-    "",
-    ...renderWorkstreams(objectArray(workstreamRegistry.workstreams)),
-    "",
-    "## Version control",
-    "",
-    `- Mode: ${code(vcsPolicy.mode)}`,
-    `- Provider: ${code(vcsPolicy.provider)}`,
-    `- Default branch: ${code(repository.default_branch)}`,
-    `- Push cadence: ${code(workflow.push_cadence)}`,
-    `- Pull request required: ${code(workflow.pull_request_required)}`,
-    `- Human merge required: ${code(workflow.human_merge_required)}`,
-    ""
-  ];
-  return lines.join("\n");
-}
-async function renderCanonicalViews(projectRoot, options = {}) {
-  const layerRoot = path6.join(path6.resolve(projectRoot), ".pcp");
-  const diagnostics = [];
-  const registry = new SchemaRegistry();
-  const loadedSources = /* @__PURE__ */ new Map();
-  for (const [relativePath, schema4] of SOURCES) {
-    const source = await loadSource(layerRoot, relativePath, schema4, registry, diagnostics);
-    if (source !== void 0) loadedSources.set(relativePath, source);
-  }
-  if (diagnostics.length > 0) {
-    diagnostics.sort(compareCanonicalDiagnostics);
-    return {
-      valid: false,
-      mode: options.check === true ? "check" : "write",
-      changed_paths: [],
-      diagnostics
-    };
-  }
-  const digest = canonicalSourceDigestFromContents(
-    [...loadedSources].map(([sourcePath, source]) => ({
-      path: sourcePath,
-      contents: source.contents
-    }))
-  );
-  let currentSourceDigest;
-  try {
-    currentSourceDigest = await canonicalSourceDigest(
-      layerRoot,
-      SOURCES.map(([source]) => source)
-    );
-  } catch (error2) {
-    diagnostics.push(
-      issue(
-        "render.source-digest",
-        ".pcp/state",
-        error2 instanceof Error ? error2.message : "Unable to fingerprint render sources."
-      )
-    );
-    return {
-      valid: false,
-      mode: options.check === true ? "check" : "write",
-      changed_paths: [],
-      diagnostics
-    };
-  }
-  if (currentSourceDigest !== digest) {
-    return {
-      valid: false,
-      mode: options.check === true ? "check" : "write",
-      changed_paths: [],
-      diagnostics: [
-        issue(
-          "render.source-drift",
-          ".pcp/state",
-          "Canonical render sources changed while the render snapshot was being built."
-        )
-      ]
-    };
-  }
-  const sources = new Map(
-    [...loadedSources].map(([sourcePath, source]) => [sourcePath, source.value])
-  );
-  const desired = renderCanonicalStatusView(sources, digest);
-  const absoluteViewPath = path6.join(layerRoot, VIEW_PATH);
-  let current;
-  try {
-    current = await readFile5(absoluteViewPath, "utf8");
-  } catch (error2) {
-    if (error2.code !== "ENOENT") {
-      diagnostics.push(
-        issue(
-          "render.view-read",
-          PROJECT_VIEW_PATH,
-          error2 instanceof Error ? error2.message : "Unable to read generated view."
-        )
-      );
-    }
-  }
-  if (diagnostics.length > 0) {
-    diagnostics.sort(compareCanonicalDiagnostics);
-    return {
-      valid: false,
-      mode: options.check === true ? "check" : "write",
-      changed_paths: [],
-      diagnostics
-    };
-  }
-  if (current === desired) {
-    return {
-      valid: true,
-      mode: options.check === true ? "check" : "write",
-      changed_paths: [],
-      diagnostics: []
-    };
-  }
-  if (options.check === true) {
-    return {
-      valid: false,
-      mode: "check",
-      changed_paths: [PROJECT_VIEW_PATH],
-      diagnostics: [
-        issue("render.stale", PROJECT_VIEW_PATH, "Generated status view is missing or stale.")
-      ]
-    };
-  }
-  try {
-    await writeFile2(absoluteViewPath, desired, "utf8");
-  } catch (error2) {
-    return {
-      valid: false,
-      mode: "write",
-      changed_paths: [],
-      diagnostics: [
-        issue(
-          "render.view-write",
-          PROJECT_VIEW_PATH,
-          error2 instanceof Error ? error2.message : "Unable to write generated view."
-        )
-      ]
-    };
-  }
-  return {
-    valid: true,
-    mode: "write",
-    changed_paths: [PROJECT_VIEW_PATH],
-    diagnostics: []
-  };
-}
-
-// src/application/inspect-repository.ts
-import { createHash as createHash5 } from "node:crypto";
-import { readFile as readFile6 } from "node:fs/promises";
-import path8 from "node:path";
-
 // src/domain/classification.ts
-import path7 from "node:path";
+import path4 from "node:path";
 var foreignCategories = /* @__PURE__ */ new Set([
   "agent-instructions",
   "persistent-memory",
@@ -20605,6 +18932,7 @@ var knownInstructionBasenames = /* @__PURE__ */ new Set([
   "skill.md"
 ]);
 var knownInstructionPrefixes = [
+  ".agents/rules/",
   ".claude/",
   ".cursor/rules/",
   ".github/agents/",
@@ -20649,7 +18977,7 @@ function basename(value) {
   return (pieces.at(-1) ?? value).toLowerCase();
 }
 function extension(value) {
-  return path7.posix.extname(value).toLowerCase();
+  return path4.posix.extname(value).toLowerCase();
 }
 function addSignal(signals, code2, category, candidatePath, reason, strength) {
   if (signals.some((signal) => signal.code === code2 && signal.path === candidatePath)) return;
@@ -20658,9 +18986,9 @@ function addSignal(signals, code2, category, candidatePath, reason, strength) {
 function knownForeignPathSignals(input) {
   const signals = [];
   for (const file of input.inventory.files) {
-    const normalizedPath = file.path.toLowerCase();
+    const normalizedPath2 = file.path.toLowerCase();
     const fileName = basename(file.path);
-    if (knownInstructionBasenames.has(fileName) || knownInstructionPrefixes.some((prefix) => normalizedPath.startsWith(prefix))) {
+    if (knownInstructionBasenames.has(fileName) || knownInstructionPrefixes.some((prefix) => normalizedPath2.startsWith(prefix))) {
       addSignal(
         signals,
         "foreign.agent-instructions.known-entry",
@@ -20670,7 +18998,7 @@ function knownForeignPathSignals(input) {
         "strong"
       );
     }
-    if (/^(?:.+\/)?agent-(?:repository|registry)\.md$/u.test(normalizedPath)) {
+    if (/^(?:.+\/)?agent-(?:repository|registry)\.md$/u.test(normalizedPath2)) {
       addSignal(
         signals,
         "foreign.agent-identity.registry",
@@ -20680,7 +19008,7 @@ function knownForeignPathSignals(input) {
         "strong"
       );
     }
-    if (/^(?:.+\/)?sync-protocol\.md$/u.test(normalizedPath)) {
+    if (/^(?:.+\/)?sync-protocol\.md$/u.test(normalizedPath2)) {
       addSignal(
         signals,
         "foreign.persistent-memory.sync-protocol",
@@ -20690,7 +19018,7 @@ function knownForeignPathSignals(input) {
         "strong"
       );
     }
-    if (/^(?:.+\/)?parallel-orchestration\.md$/u.test(normalizedPath)) {
+    if (/^(?:.+\/)?parallel-orchestration\.md$/u.test(normalizedPath2)) {
       addSignal(
         signals,
         "foreign.orchestration.parallel-plan",
@@ -20702,8 +19030,8 @@ function knownForeignPathSignals(input) {
     }
   }
   for (const document of input.documents) {
-    const normalizedPath = document.path.toLowerCase();
-    if (/(?:^|\/)(?:ai|agents?|context|memory)\/.*change ?log\.ya?ml$/u.test(normalizedPath) && /\bagent\s*:/iu.test(document.contents)) {
+    const normalizedPath2 = document.path.toLowerCase();
+    if (/(?:^|\/)(?:ai|agents?|context|memory)\/.*change ?log\.ya?ml$/u.test(normalizedPath2) && /\bagent\s*:/iu.test(document.contents)) {
       addSignal(
         signals,
         "foreign.change-journal.agent-log",
@@ -20721,8 +19049,8 @@ function semanticForeignSignals(documents) {
   const agentAnchor = /\b(ai agents?|coding agents?|assistant|agent[- ]id|multi[- ]agent|parallel agents?)\b/iu;
   const contextAnchor = /\b(before (?:any|each|every) task|source of truth|continuity|handoff|checkpoint|last[- ]synced|agent[- ]id|agent registry|journal event|change ?log|working agreement|workstream|must (?:read|follow|register|sync))\b/iu;
   for (const document of documents) {
-    const normalizedPath = document.path.toLowerCase();
-    const isRootReadme = normalizedPath === "readme.md";
+    const normalizedPath2 = document.path.toLowerCase();
+    const isRootReadme = normalizedPath2 === "readme.md";
     if (!agentAnchor.test(document.contents) || !contextAnchor.test(document.contents)) continue;
     const matches = semanticPatterns.filter(({ pattern }) => pattern.test(document.contents));
     if (isRootReadme && (matches.length < 2 || !matches.some((match) => match.category === "agent-instructions"))) {
@@ -20865,7 +19193,22 @@ function projectSignals(inventory) {
   }
   return signals;
 }
+var scopedForeignRoots = [
+  ".agents/rules",
+  ".claude",
+  ".cursor/rules",
+  ".github/agents",
+  ".github/instructions",
+  ".roo/rules",
+  ".windsurf/rules"
+];
 function candidateRoot(candidatePath) {
+  const normalized = candidatePath.toLowerCase();
+  if (normalized === ".github/copilot-instructions.md") return candidatePath;
+  for (const scopedRoot of scopedForeignRoots) {
+    if (normalized !== scopedRoot && !normalized.startsWith(`${scopedRoot}/`)) continue;
+    return candidatePath.split("/").slice(0, scopedRoot.split("/").length).join("/");
+  }
   const separator = candidatePath.indexOf("/");
   return separator === -1 ? "." : candidatePath.slice(0, separator);
 }
@@ -21035,8 +19378,8 @@ async function loadTextDocuments(root, inventory) {
   const documents = [];
   for (const file of inventory.files) {
     if (file.size > maximumSemanticFileBytes) continue;
-    const buffer = await readFile6(path8.join(root, ...file.path.split("/")));
-    const observedDigest = createHash5("sha256").update(buffer).digest("hex");
+    const buffer = await readFile3(path5.join(root, ...file.path.split("/")));
+    const observedDigest = createHash4("sha256").update(buffer).digest("hex");
     if (observedDigest !== file.sha256) {
       throw new InspectionError(
         "PCP_SOURCE_CHANGED",
@@ -21110,9 +19453,2358 @@ async function inspectRepository(candidate = ".") {
   };
 }
 
-// src/application/validate-canonical-layer.ts
-import { readdir as readdir2, readFile as readFile7, stat as stat2 } from "node:fs/promises";
+// src/application/plan-adoption.ts
+import { lstat as lstat4, mkdir as mkdir2, mkdtemp as mkdtemp2, readFile as readFile9, readdir as readdir3, rm as rm2, writeFile as writeFile3 } from "node:fs/promises";
+import { tmpdir as tmpdir2 } from "node:os";
+import path11 from "node:path";
+
+// src/domain/adapters.ts
+var SUPPORTED_ADAPTER_IDS = [
+  "codex",
+  "antigravity",
+  "claude-code-desktop",
+  "github-copilot-vscode",
+  "cursor"
+];
+var ADAPTER_BASENAMES = /* @__PURE__ */ new Set([
+  ".cursorrules",
+  "agents.md",
+  "claude.md",
+  "copilot-instructions.md",
+  "gemini.md",
+  "skill.md"
+]);
+var ADAPTER_NAMESPACES = [
+  ".agents/rules",
+  ".claude/agents",
+  ".claude/commands",
+  ".claude/rules",
+  ".claude/skills",
+  ".cursor/rules",
+  ".github/agents",
+  ".github/instructions",
+  ".roo/rules",
+  ".windsurf/rules"
+];
+function normalizedPath(candidatePath) {
+  return candidatePath.replaceAll("\\", "/").replace(/^\.\//u, "").toLowerCase();
+}
+function isInsideNamespace(candidatePath, namespace) {
+  return candidatePath === namespace || candidatePath.startsWith(`${namespace}/`) || candidatePath.includes(`/${namespace}/`);
+}
+function isForeignAdapterSourcePath(candidatePath) {
+  const normalized = normalizedPath(candidatePath);
+  const basename2 = normalized.split("/").at(-1) ?? normalized;
+  return ADAPTER_BASENAMES.has(basename2) || ADAPTER_NAMESPACES.some((namespace) => isInsideNamespace(normalized, namespace));
+}
+function supportedAdapterForSourcePath(candidatePath) {
+  const normalized = normalizedPath(candidatePath);
+  const basename2 = normalized.split("/").at(-1) ?? normalized;
+  if (basename2 === "agents.md") return "codex";
+  if (basename2 === "claude.md") return "claude-code-desktop";
+  if (basename2 === ".cursorrules" || isInsideNamespace(normalized, ".cursor/rules")) {
+    return "cursor";
+  }
+  if (isInsideNamespace(normalized, ".agents/rules")) return "antigravity";
+  if (basename2 === "copilot-instructions.md" || isInsideNamespace(normalized, ".github/agents") || isInsideNamespace(normalized, ".github/instructions")) {
+    return "github-copilot-vscode";
+  }
+  return void 0;
+}
+
+// src/infrastructure/adoption-assets.ts
+import { lstat as lstat3, readdir, readFile as readFile4 } from "node:fs/promises";
+import path6 from "node:path";
+import { fileURLToPath } from "node:url";
+var moduleDirectory = path6.dirname(fileURLToPath(import.meta.url));
+function candidateTemplateRoots() {
+  return [
+    path6.resolve(moduleDirectory, "../../templates/core"),
+    path6.resolve(moduleDirectory, "../templates/core"),
+    path6.resolve(moduleDirectory, "../assets/templates/core")
+  ];
+}
+async function isCoreTemplateRoot(candidate) {
+  try {
+    const marker = await lstat3(path6.join(candidate, ".pcp", "pcp.yaml"));
+    return marker.isFile() && !marker.isSymbolicLink();
+  } catch (error2) {
+    if (error2.code === "ENOENT") return false;
+    throw error2;
+  }
+}
+async function resolveCoreTemplateRoot() {
+  for (const candidate of candidateTemplateRoots()) {
+    if (await isCoreTemplateRoot(candidate)) return candidate;
+  }
+  throw new AdoptionError(
+    "PCP_ADOPTION_ASSETS_MISSING",
+    "The verified core PCP template assets could not be located beside the engine."
+  );
+}
+async function collectFiles(directory, root, result) {
+  const entries = await readdir(directory, { withFileTypes: true });
+  entries.sort((left, right) => comparePortablePaths(left.name, right.name));
+  for (const entry of entries) {
+    const absolutePath = path6.join(directory, entry.name);
+    const metadata = await lstat3(absolutePath);
+    const relativePath = path6.relative(root, absolutePath).split(path6.sep).join("/");
+    if (metadata.isSymbolicLink()) {
+      throw new AdoptionError(
+        "PCP_ADOPTION_ASSET_SYMLINK",
+        `The core template contains an unsupported symbolic link: ${relativePath}`
+      );
+    }
+    if (metadata.isDirectory()) {
+      await collectFiles(absolutePath, root, result);
+    } else if (metadata.isFile()) {
+      result.push({ path: relativePath, content: await readFile4(absolutePath) });
+    }
+  }
+}
+async function loadCoreTemplateFiles() {
+  const root = await resolveCoreTemplateRoot();
+  const files = [];
+  await collectFiles(root, root, files);
+  files.sort((left, right) => comparePortablePaths(left.path, right.path));
+  return new Map(files.map((file) => [file.path, file.content]));
+}
+
+// src/infrastructure/schema-validator.ts
+var import__ = __toESM(require__(), 1);
+var import_ajv_formats = __toESM(require_dist(), 1);
+
+// schemas/v1/adapter.schema.json
+var adapter_schema_default = {
+  $schema: "https://json-schema.org/draft/2020-12/schema",
+  $id: "urn:pcp:schema:v1:adapter",
+  title: "PCP generated platform adapter",
+  type: "object",
+  additionalProperties: false,
+  required: [
+    "schema_version",
+    "adapter_id",
+    "platform",
+    "target_path",
+    "source_paths",
+    "ownership",
+    "collision_policy",
+    "content_digest"
+  ],
+  properties: {
+    schema_version: {
+      $ref: "urn:pcp:schema:v1:common#/$defs/schemaVersion"
+    },
+    adapter_id: {
+      $ref: "urn:pcp:schema:v1:common#/$defs/slug"
+    },
+    platform: {
+      enum: [
+        "codex",
+        "antigravity",
+        "claude-code-desktop",
+        "github-copilot-vscode",
+        "cursor",
+        "custom"
+      ]
+    },
+    target_path: {
+      $ref: "urn:pcp:schema:v1:common#/$defs/relativePath"
+    },
+    source_paths: {
+      $ref: "urn:pcp:schema:v1:common#/$defs/pathArray"
+    },
+    ownership: {
+      const: "generated"
+    },
+    collision_policy: {
+      enum: ["preview-required", "preserve", "replace-generated"]
+    },
+    content_digest: {
+      $ref: "urn:pcp:schema:v1:common#/$defs/sha256"
+    }
+  }
+};
+
+// schemas/v1/adoption-input.schema.json
+var adoption_input_schema_default = {
+  $schema: "https://json-schema.org/draft/2020-12/schema",
+  $id: "urn:pcp:schema:v1:adoption-input",
+  title: "PCP semantic adoption input",
+  type: "object",
+  additionalProperties: false,
+  required: [
+    "schema_version",
+    "baseline_at",
+    "persistence",
+    "project",
+    "projects",
+    "workstreams",
+    "vcs_policy",
+    "documents",
+    "scaffold_files"
+  ],
+  properties: {
+    schema_version: {
+      $ref: "urn:pcp:schema:v1:common#/$defs/schemaVersion"
+    },
+    baseline_at: {
+      $ref: "urn:pcp:schema:v1:common#/$defs/dateTime"
+    },
+    persistence: {
+      enum: ["tracked", "local"]
+    },
+    project: {
+      $ref: "urn:pcp:schema:v1:project"
+    },
+    projects: {
+      $ref: "urn:pcp:schema:v1:project-registry"
+    },
+    workstreams: {
+      $ref: "urn:pcp:schema:v1:workstreams"
+    },
+    vcs_policy: {
+      $ref: "urn:pcp:schema:v1:vcs-policy"
+    },
+    documents: {
+      type: "array",
+      items: {
+        $ref: "#/$defs/document"
+      },
+      minItems: 8,
+      maxItems: 8
+    },
+    coverage: {
+      $ref: "urn:pcp:schema:v1:coverage"
+    },
+    scaffold_files: {
+      type: "array",
+      items: {
+        $ref: "#/$defs/scaffoldFile"
+      },
+      uniqueItems: true
+    }
+  },
+  $defs: {
+    document: {
+      type: "object",
+      additionalProperties: false,
+      required: ["path", "type", "status", "basis", "evidence_paths", "body"],
+      properties: {
+        path: {
+          enum: [
+            "knowledge/10-overview.md",
+            "knowledge/20-architecture.md",
+            "knowledge/30-source-map.md",
+            "knowledge/40-build-and-tooling.md",
+            "knowledge/50-domain-and-invariants.md",
+            "operations/10-working-agreement.md",
+            "operations/20-plan.md",
+            "operations/30-decisions.md"
+          ]
+        },
+        type: {
+          enum: ["knowledge", "policy", "plan"]
+        },
+        status: {
+          enum: ["static", "living"]
+        },
+        basis: {
+          enum: ["repository", "user", "repository-and-user", "not-applicable"]
+        },
+        evidence_paths: {
+          $ref: "urn:pcp:schema:v1:common#/$defs/pathArray"
+        },
+        body: {
+          type: "string",
+          minLength: 3
+        }
+      }
+    },
+    scaffoldFile: {
+      type: "object",
+      additionalProperties: false,
+      required: ["path", "content"],
+      properties: {
+        path: {
+          allOf: [
+            {
+              $ref: "urn:pcp:schema:v1:common#/$defs/relativePath"
+            },
+            {
+              not: {
+                type: "string",
+                pattern: "^\\.pcp(?:/|$)"
+              }
+            }
+          ]
+        },
+        content: {
+          type: "string"
+        }
+      }
+    }
+  }
+};
+
+// schemas/v1/actor-profile.schema.json
+var actor_profile_schema_default = {
+  $schema: "https://json-schema.org/draft/2020-12/schema",
+  $id: "urn:pcp:schema:v1:actor-profile",
+  title: "PCP durable human or agent profile",
+  type: "object",
+  additionalProperties: false,
+  required: [
+    "schema_version",
+    "actor_id",
+    "actor_type",
+    "client",
+    "machine_label",
+    "first_seen",
+    "checkpoint_paths"
+  ],
+  properties: {
+    schema_version: {
+      $ref: "urn:pcp:schema:v1:common#/$defs/schemaVersion"
+    },
+    actor_id: {
+      type: "string",
+      pattern: "^[a-z0-9]+(?:-[a-z0-9]+)*-[0-9A-HJKMNP-TV-Z]{10}$",
+      maxLength: 160
+    },
+    actor_type: {
+      enum: ["human", "agent"]
+    },
+    client: {
+      enum: ["codex", "antigravity", "claude-code-desktop", "human", "other"]
+    },
+    machine_label: {
+      $ref: "urn:pcp:schema:v1:common#/$defs/slug"
+    },
+    first_seen: {
+      $ref: "urn:pcp:schema:v1:common#/$defs/dateTime"
+    },
+    checkpoint_paths: {
+      $ref: "urn:pcp:schema:v1:common#/$defs/pathArray"
+    }
+  },
+  allOf: [
+    {
+      if: {
+        properties: { actor_type: { const: "human" } },
+        required: ["actor_type"]
+      },
+      then: {
+        properties: {
+          client: { const: "human" },
+          checkpoint_paths: { type: "array", maxItems: 0 }
+        }
+      }
+    },
+    {
+      if: {
+        properties: { actor_type: { const: "agent" } },
+        required: ["actor_type"]
+      },
+      then: {
+        properties: {
+          client: { not: { const: "human" } }
+        }
+      }
+    }
+  ]
+};
+
+// schemas/v1/checkpoint.schema.json
+var checkpoint_schema_default = {
+  $schema: "https://json-schema.org/draft/2020-12/schema",
+  $id: "urn:pcp:schema:v1:checkpoint",
+  title: "PCP scoped reconciliation checkpoint",
+  type: "object",
+  additionalProperties: false,
+  required: [
+    "schema_version",
+    "checkpoint_id",
+    "actor_id",
+    "workstream_id",
+    "last_event_id",
+    "reconciled_at",
+    "scopes",
+    "dependencies"
+  ],
+  properties: {
+    schema_version: {
+      $ref: "urn:pcp:schema:v1:common#/$defs/schemaVersion"
+    },
+    checkpoint_id: {
+      $ref: "urn:pcp:schema:v1:common#/$defs/ulid"
+    },
+    actor_id: {
+      type: "string",
+      minLength: 1,
+      maxLength: 160
+    },
+    workstream_id: {
+      anyOf: [{ $ref: "urn:pcp:schema:v1:common#/$defs/slug" }, { type: "null" }]
+    },
+    last_event_id: {
+      anyOf: [{ $ref: "urn:pcp:schema:v1:common#/$defs/ulid" }, { type: "null" }]
+    },
+    reconciled_at: {
+      $ref: "urn:pcp:schema:v1:common#/$defs/dateTime"
+    },
+    scopes: {
+      $ref: "urn:pcp:schema:v1:common#/$defs/slugArray"
+    },
+    dependencies: {
+      $ref: "urn:pcp:schema:v1:common#/$defs/slugArray"
+    }
+  }
+};
+
+// schemas/v1/common.schema.json
+var common_schema_default = {
+  $schema: "https://json-schema.org/draft/2020-12/schema",
+  $id: "urn:pcp:schema:v1:common",
+  title: "PCP common definitions",
+  $defs: {
+    schemaVersion: {
+      type: "integer",
+      const: 1
+    },
+    semver: {
+      type: "string",
+      pattern: "^(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)(?:-[0-9A-Za-z.-]+)?(?:\\+[0-9A-Za-z.-]+)?$"
+    },
+    sha256: {
+      type: "string",
+      pattern: "^[a-f0-9]{64}$"
+    },
+    ulid: {
+      type: "string",
+      pattern: "^[0-7][0-9A-HJKMNP-TV-Z]{25}$"
+    },
+    slug: {
+      type: "string",
+      pattern: "^[a-z0-9]+(?:-[a-z0-9]+)*$",
+      maxLength: 128
+    },
+    nonEmptyString: {
+      type: "string",
+      minLength: 1,
+      maxLength: 4096
+    },
+    relativePath: {
+      type: "string",
+      minLength: 1,
+      maxLength: 1024,
+      pattern: "^(?![A-Za-z]:)(?!/)(?!.*\\\\)(?!.*(?:^|/)\\.\\.(?:/|$))(?!.*//).+$"
+    },
+    relativeGlob: {
+      type: "string",
+      minLength: 1,
+      maxLength: 1024,
+      pattern: "^(?![A-Za-z]:)(?!/)(?!.*\\\\)(?!.*(?:^|/)\\.\\.(?:/|$))(?!.*//).+$"
+    },
+    pathArray: {
+      type: "array",
+      items: {
+        $ref: "urn:pcp:schema:v1:common#/$defs/relativePath"
+      },
+      uniqueItems: true
+    },
+    slugArray: {
+      type: "array",
+      items: {
+        $ref: "urn:pcp:schema:v1:common#/$defs/slug"
+      },
+      uniqueItems: true
+    },
+    dateTime: {
+      type: "string",
+      format: "date-time"
+    },
+    actorReference: {
+      type: "object",
+      additionalProperties: false,
+      required: ["type", "id"],
+      properties: {
+        type: {
+          enum: ["human", "agent", "system"]
+        },
+        id: {
+          $ref: "urn:pcp:schema:v1:common#/$defs/nonEmptyString"
+        }
+      }
+    }
+  }
+};
+
+// schemas/v1/coverage.schema.json
+var coverage_schema_default = {
+  $schema: "https://json-schema.org/draft/2020-12/schema",
+  $id: "urn:pcp:schema:v1:coverage",
+  title: "PCP transient State C coverage matrix",
+  type: "object",
+  additionalProperties: false,
+  required: [
+    "schema_version",
+    "coverage_id",
+    "source_inventory_digest",
+    "records",
+    "unresolved_count"
+  ],
+  properties: {
+    schema_version: {
+      $ref: "urn:pcp:schema:v1:common#/$defs/schemaVersion"
+    },
+    coverage_id: {
+      $ref: "urn:pcp:schema:v1:common#/$defs/ulid"
+    },
+    source_inventory_digest: {
+      $ref: "urn:pcp:schema:v1:common#/$defs/sha256"
+    },
+    records: {
+      type: "array",
+      items: {
+        $ref: "#/$defs/record"
+      },
+      uniqueItems: true
+    },
+    unresolved_count: {
+      type: "integer",
+      minimum: 0
+    }
+  },
+  $defs: {
+    record: {
+      type: "object",
+      additionalProperties: false,
+      required: [
+        "source_id",
+        "source_path",
+        "source_kind",
+        "fingerprint",
+        "disposition",
+        "targets",
+        "evidence"
+      ],
+      properties: {
+        source_id: {
+          $ref: "urn:pcp:schema:v1:common#/$defs/nonEmptyString"
+        },
+        source_path: {
+          $ref: "urn:pcp:schema:v1:common#/$defs/relativePath"
+        },
+        source_kind: {
+          enum: ["file", "history-entry", "registry-entry", "fact", "adapter"]
+        },
+        fingerprint: {
+          $ref: "urn:pcp:schema:v1:common#/$defs/sha256"
+        },
+        disposition: {
+          enum: [
+            "represented",
+            "promoted",
+            "superseded",
+            "operational-noise",
+            "historical-only",
+            "sensitive-local",
+            "project-owned",
+            "unresolved"
+          ]
+        },
+        targets: {
+          $ref: "urn:pcp:schema:v1:common#/$defs/pathArray"
+        },
+        evidence: {
+          type: "array",
+          items: {
+            $ref: "urn:pcp:schema:v1:common#/$defs/nonEmptyString"
+          },
+          minItems: 1,
+          uniqueItems: true
+        }
+      },
+      allOf: [
+        {
+          if: {
+            properties: {
+              disposition: {
+                enum: ["represented", "promoted", "superseded"]
+              }
+            },
+            required: ["disposition"]
+          },
+          then: {
+            properties: {
+              targets: { type: "array", minItems: 1 }
+            }
+          }
+        },
+        {
+          if: {
+            properties: {
+              disposition: {
+                const: "project-owned"
+              }
+            },
+            required: ["disposition"]
+          },
+          then: {
+            properties: {
+              source_kind: { const: "file" },
+              targets: { type: "array", maxItems: 0 }
+            }
+          }
+        }
+      ]
+    }
+  }
+};
+
+// schemas/v1/event.schema.json
+var event_schema_default = {
+  $schema: "https://json-schema.org/draft/2020-12/schema",
+  $id: "urn:pcp:schema:v1:event",
+  title: "PCP immutable continuity event",
+  type: "object",
+  additionalProperties: false,
+  required: [
+    "schema_version",
+    "event_id",
+    "occurred_at",
+    "actor",
+    "recorded_by",
+    "basis",
+    "kind",
+    "scopes",
+    "workstreams",
+    "summary",
+    "affected_paths"
+  ],
+  properties: {
+    schema_version: {
+      $ref: "urn:pcp:schema:v1:common#/$defs/schemaVersion"
+    },
+    event_id: {
+      $ref: "urn:pcp:schema:v1:common#/$defs/ulid"
+    },
+    occurred_at: {
+      $ref: "urn:pcp:schema:v1:common#/$defs/dateTime"
+    },
+    actor: {
+      $ref: "urn:pcp:schema:v1:common#/$defs/actorReference"
+    },
+    recorded_by: {
+      $ref: "urn:pcp:schema:v1:common#/$defs/actorReference"
+    },
+    basis: {
+      enum: ["self", "reported", "observed", "system"]
+    },
+    kind: {
+      enum: [
+        "code",
+        "documentation",
+        "configuration",
+        "decision",
+        "research",
+        "operations",
+        "release",
+        "vcs",
+        "workstream"
+      ]
+    },
+    scopes: {
+      $ref: "urn:pcp:schema:v1:common#/$defs/slugArray"
+    },
+    workstreams: {
+      $ref: "urn:pcp:schema:v1:common#/$defs/slugArray"
+    },
+    summary: {
+      $ref: "urn:pcp:schema:v1:common#/$defs/nonEmptyString"
+    },
+    rationale: {
+      $ref: "urn:pcp:schema:v1:common#/$defs/nonEmptyString"
+    },
+    affected_paths: {
+      $ref: "urn:pcp:schema:v1:common#/$defs/pathArray"
+    }
+  }
+};
+
+// schemas/v1/frontmatter.schema.json
+var frontmatter_schema_default = {
+  $schema: "https://json-schema.org/draft/2020-12/schema",
+  $id: "urn:pcp:schema:v1:frontmatter",
+  title: "PCP Markdown frontmatter",
+  type: "object",
+  additionalProperties: false,
+  required: ["doc", "type", "status", "version", "last_updated", "ownership"],
+  properties: {
+    doc: {
+      $ref: "urn:pcp:schema:v1:common#/$defs/relativePath"
+    },
+    type: {
+      enum: [
+        "index",
+        "protocol",
+        "knowledge",
+        "policy",
+        "plan",
+        "project",
+        "reference",
+        "generated"
+      ]
+    },
+    status: {
+      enum: ["living", "static", "generated"]
+    },
+    version: {
+      $ref: "urn:pcp:schema:v1:common#/$defs/semver"
+    },
+    last_updated: {
+      $ref: "urn:pcp:schema:v1:common#/$defs/dateTime"
+    },
+    ownership: {
+      enum: ["protocol", "project", "generated"]
+    },
+    sources: {
+      $ref: "urn:pcp:schema:v1:common#/$defs/pathArray"
+    },
+    source_digest: {
+      $ref: "urn:pcp:schema:v1:common#/$defs/sha256"
+    }
+  },
+  allOf: [
+    {
+      if: {
+        properties: { ownership: { const: "generated" } },
+        required: ["ownership"]
+      },
+      then: {
+        required: ["sources", "source_digest"],
+        properties: {
+          status: { const: "generated" },
+          sources: {
+            $ref: "urn:pcp:schema:v1:common#/$defs/pathArray"
+          },
+          source_digest: {
+            $ref: "urn:pcp:schema:v1:common#/$defs/sha256"
+          }
+        }
+      }
+    }
+  ]
+};
+
+// schemas/v1/mutation-plan.schema.json
+var mutation_plan_schema_default = {
+  $schema: "https://json-schema.org/draft/2020-12/schema",
+  $id: "urn:pcp:schema:v1:mutation-plan",
+  title: "PCP normalized mutation plan",
+  type: "object",
+  additionalProperties: false,
+  required: [
+    "schema_version",
+    "plan_id",
+    "generated_at",
+    "classification",
+    "candidate_inventory_digest",
+    "operations",
+    "validations",
+    "plan_digest"
+  ],
+  properties: {
+    schema_version: {
+      $ref: "urn:pcp:schema:v1:common#/$defs/schemaVersion"
+    },
+    plan_id: {
+      $ref: "urn:pcp:schema:v1:common#/$defs/ulid"
+    },
+    generated_at: {
+      $ref: "urn:pcp:schema:v1:common#/$defs/dateTime"
+    },
+    classification: {
+      enum: ["A", "B", "C", "managed"]
+    },
+    candidate_inventory_digest: {
+      $ref: "urn:pcp:schema:v1:common#/$defs/sha256"
+    },
+    coverage_digest: {
+      $ref: "urn:pcp:schema:v1:common#/$defs/sha256"
+    },
+    operations: {
+      type: "array",
+      items: {
+        $ref: "#/$defs/operation"
+      },
+      uniqueItems: true
+    },
+    validations: {
+      type: "array",
+      items: {
+        $ref: "urn:pcp:schema:v1:common#/$defs/slug"
+      },
+      minItems: 1,
+      uniqueItems: true
+    },
+    plan_digest: {
+      $ref: "urn:pcp:schema:v1:common#/$defs/sha256"
+    }
+  },
+  allOf: [
+    {
+      if: {
+        properties: {
+          classification: { const: "C" }
+        },
+        required: ["classification"]
+      },
+      then: {
+        properties: {
+          coverage_digest: {
+            $ref: "urn:pcp:schema:v1:common#/$defs/sha256"
+          }
+        },
+        required: ["coverage_digest"]
+      },
+      else: {
+        properties: {
+          coverage_digest: false
+        }
+      }
+    }
+  ],
+  $defs: {
+    operation: {
+      type: "object",
+      additionalProperties: false,
+      required: ["operation_id", "action", "path"],
+      properties: {
+        operation_id: {
+          $ref: "urn:pcp:schema:v1:common#/$defs/ulid"
+        },
+        action: {
+          enum: ["mkdir", "write", "replace", "remove", "move"]
+        },
+        path: {
+          $ref: "urn:pcp:schema:v1:common#/$defs/relativePath"
+        },
+        source_path: {
+          $ref: "urn:pcp:schema:v1:common#/$defs/relativePath"
+        },
+        content_digest: {
+          $ref: "urn:pcp:schema:v1:common#/$defs/sha256"
+        },
+        preimage_digest: {
+          $ref: "urn:pcp:schema:v1:common#/$defs/sha256"
+        }
+      },
+      allOf: [
+        {
+          if: {
+            properties: { action: { enum: ["write", "replace"] } },
+            required: ["action"]
+          },
+          then: {
+            required: ["content_digest"],
+            properties: {
+              content_digest: {
+                $ref: "urn:pcp:schema:v1:common#/$defs/sha256"
+              }
+            }
+          }
+        },
+        {
+          if: {
+            properties: { action: { const: "move" } },
+            required: ["action"]
+          },
+          then: {
+            required: ["source_path"],
+            properties: {
+              source_path: {
+                $ref: "urn:pcp:schema:v1:common#/$defs/relativePath"
+              }
+            }
+          }
+        },
+        {
+          if: {
+            properties: { action: { enum: ["replace", "remove", "move"] } },
+            required: ["action"]
+          },
+          then: {
+            required: ["preimage_digest"],
+            properties: {
+              preimage_digest: {
+                $ref: "urn:pcp:schema:v1:common#/$defs/sha256"
+              }
+            }
+          }
+        }
+      ]
+    }
+  }
+};
+
+// schemas/v1/pcp-manifest.schema.json
+var pcp_manifest_schema_default = {
+  $schema: "https://json-schema.org/draft/2020-12/schema",
+  $id: "urn:pcp:schema:v1:pcp-manifest",
+  title: "Persistent Context Protocol manifest",
+  type: "object",
+  additionalProperties: false,
+  required: [
+    "schema_version",
+    "protocol",
+    "persistence",
+    "capabilities",
+    "continuity",
+    "ownership",
+    "adapter_ids",
+    "validation",
+    "vcs_policy_path"
+  ],
+  properties: {
+    schema_version: {
+      $ref: "urn:pcp:schema:v1:common#/$defs/schemaVersion"
+    },
+    protocol: {
+      type: "object",
+      additionalProperties: false,
+      required: ["name", "version"],
+      properties: {
+        name: {
+          const: "persistent-context-protocol"
+        },
+        version: {
+          $ref: "urn:pcp:schema:v1:common#/$defs/semver"
+        }
+      }
+    },
+    persistence: {
+      enum: ["tracked", "local"]
+    },
+    capabilities: {
+      $ref: "urn:pcp:schema:v1:common#/$defs/slugArray"
+    },
+    continuity: {
+      type: "object",
+      additionalProperties: false,
+      required: ["active_event_limit", "archive_batch_size", "archive_read_policy"],
+      properties: {
+        active_event_limit: { const: 64 },
+        archive_batch_size: { const: 32 },
+        archive_read_policy: { const: "explicit-only" }
+      }
+    },
+    ownership: {
+      type: "object",
+      additionalProperties: false,
+      required: ["protocol", "project", "generated", "runtime"],
+      properties: {
+        protocol: { $ref: "#/$defs/globArray" },
+        project: { $ref: "#/$defs/globArray" },
+        generated: { $ref: "#/$defs/globArray" },
+        runtime: { $ref: "#/$defs/globArray" }
+      }
+    },
+    adapter_ids: {
+      $ref: "urn:pcp:schema:v1:common#/$defs/slugArray"
+    },
+    validation: {
+      type: "object",
+      additionalProperties: false,
+      required: ["strict", "schema_root", "generated_views_read_only"],
+      properties: {
+        strict: { type: "boolean" },
+        schema_root: {
+          $ref: "urn:pcp:schema:v1:common#/$defs/relativePath"
+        },
+        generated_views_read_only: { const: true }
+      }
+    },
+    vcs_policy_path: {
+      $ref: "urn:pcp:schema:v1:common#/$defs/relativePath"
+    }
+  },
+  $defs: {
+    globArray: {
+      type: "array",
+      items: {
+        $ref: "urn:pcp:schema:v1:common#/$defs/relativeGlob"
+      },
+      minItems: 1,
+      uniqueItems: true
+    }
+  }
+};
+
+// schemas/v1/project-registry.schema.json
+var project_registry_schema_default = {
+  $schema: "https://json-schema.org/draft/2020-12/schema",
+  $id: "urn:pcp:schema:v1:project-registry",
+  title: "PCP project registry",
+  type: "object",
+  additionalProperties: false,
+  required: ["schema_version", "projects"],
+  properties: {
+    schema_version: {
+      $ref: "urn:pcp:schema:v1:common#/$defs/schemaVersion"
+    },
+    projects: {
+      type: "array",
+      items: {
+        $ref: "urn:pcp:schema:v1:project"
+      },
+      uniqueItems: true
+    }
+  }
+};
+
+// schemas/v1/project.schema.json
+var project_schema_default = {
+  $schema: "https://json-schema.org/draft/2020-12/schema",
+  $id: "urn:pcp:schema:v1:project",
+  title: "PCP project state",
+  type: "object",
+  additionalProperties: false,
+  required: [
+    "schema_version",
+    "project_id",
+    "name",
+    "purpose",
+    "project_type",
+    "lifecycle",
+    "artifact_roots",
+    "context_roots",
+    "repositories",
+    "tags"
+  ],
+  properties: {
+    schema_version: {
+      $ref: "urn:pcp:schema:v1:common#/$defs/schemaVersion"
+    },
+    project_id: {
+      $ref: "urn:pcp:schema:v1:common#/$defs/slug"
+    },
+    name: {
+      $ref: "urn:pcp:schema:v1:common#/$defs/nonEmptyString"
+    },
+    purpose: {
+      $ref: "urn:pcp:schema:v1:common#/$defs/nonEmptyString"
+    },
+    project_type: {
+      enum: [
+        "software",
+        "research",
+        "data",
+        "writing",
+        "career",
+        "creative",
+        "operations",
+        "mixed",
+        "other"
+      ]
+    },
+    lifecycle: {
+      enum: ["seed", "active", "maintenance", "paused", "complete", "archived"]
+    },
+    artifact_roots: {
+      $ref: "urn:pcp:schema:v1:common#/$defs/pathArray"
+    },
+    context_roots: {
+      $ref: "urn:pcp:schema:v1:common#/$defs/pathArray"
+    },
+    repositories: {
+      type: "array",
+      items: {
+        type: "object",
+        additionalProperties: false,
+        required: ["provider", "url", "default_branch", "visibility"],
+        properties: {
+          provider: {
+            enum: ["github", "gitlab", "bitbucket", "other"]
+          },
+          url: {
+            type: "string",
+            format: "uri",
+            pattern: "^https://"
+          },
+          default_branch: {
+            $ref: "urn:pcp:schema:v1:common#/$defs/slug"
+          },
+          visibility: {
+            enum: ["public", "private", "internal", "unknown"]
+          }
+        }
+      },
+      uniqueItems: true
+    },
+    tags: {
+      $ref: "urn:pcp:schema:v1:common#/$defs/slugArray"
+    }
+  }
+};
+
+// schemas/v1/vcs-policy.schema.json
+var vcs_policy_schema_default = {
+  $schema: "https://json-schema.org/draft/2020-12/schema",
+  $id: "urn:pcp:schema:v1:vcs-policy",
+  title: "PCP version-control authority policy",
+  type: "object",
+  additionalProperties: false,
+  required: [
+    "schema_version",
+    "mode",
+    "system",
+    "provider",
+    "repository",
+    "responsibilities",
+    "workflow"
+  ],
+  properties: {
+    schema_version: {
+      $ref: "urn:pcp:schema:v1:common#/$defs/schemaVersion"
+    },
+    mode: {
+      enum: ["none", "human-owned", "human-commit", "agent-managed", "custom"]
+    },
+    system: {
+      enum: ["none", "git", "subversion", "other"]
+    },
+    provider: {
+      enum: ["none", "github", "gitlab", "bitbucket", "other"]
+    },
+    repository: {
+      type: "object",
+      additionalProperties: false,
+      required: ["remote_name", "default_branch"],
+      properties: {
+        remote_name: {
+          $ref: "urn:pcp:schema:v1:common#/$defs/slug"
+        },
+        default_branch: {
+          $ref: "urn:pcp:schema:v1:common#/$defs/slug"
+        }
+      }
+    },
+    responsibilities: {
+      $ref: "#/$defs/responsibilities"
+    },
+    workflow: {
+      type: "object",
+      additionalProperties: false,
+      required: [
+        "branch_pattern",
+        "commit_convention",
+        "commit_signing",
+        "push_cadence",
+        "pull_request_policy",
+        "human_merge_required",
+        "post_merge"
+      ],
+      properties: {
+        branch_pattern: {
+          $ref: "urn:pcp:schema:v1:common#/$defs/nonEmptyString"
+        },
+        commit_convention: {
+          enum: ["conventional", "custom", "none"]
+        },
+        commit_signing: {
+          enum: ["required", "recommended", "none"]
+        },
+        push_cadence: {
+          enum: ["milestone", "unit", "manual", "never"]
+        },
+        pull_request_policy: {
+          enum: ["none", "recommended", "required"]
+        },
+        human_merge_required: {
+          type: "boolean"
+        },
+        post_merge: {
+          type: "array",
+          items: {
+            enum: [
+              "verify-pr",
+              "verify-checks",
+              "accept-human-report",
+              "fetch-prune",
+              "switch-default",
+              "pull-ff-only",
+              "verify-clean",
+              "delete-local-branch",
+              "verify-merged-tree",
+              "create-next-branch"
+            ]
+          },
+          uniqueItems: true
+        }
+      }
+    }
+  },
+  $defs: {
+    actor: {
+      enum: ["agent", "human", "external", "prohibited"]
+    },
+    responsibilities: {
+      type: "object",
+      additionalProperties: false,
+      required: [
+        "initialize",
+        "create_repository",
+        "configure_remote",
+        "configure_protection",
+        "sync_default",
+        "create_branch",
+        "stage",
+        "commit",
+        "push",
+        "open_pull_request",
+        "repair_ci",
+        "review_pull_request",
+        "merge_pull_request",
+        "cleanup_branch",
+        "tag",
+        "release",
+        "force_push",
+        "rewrite_history",
+        "destructive_recovery",
+        "manage_credentials"
+      ],
+      properties: {
+        initialize: { $ref: "#/$defs/actor" },
+        create_repository: { $ref: "#/$defs/actor" },
+        configure_remote: { $ref: "#/$defs/actor" },
+        configure_protection: { $ref: "#/$defs/actor" },
+        sync_default: { $ref: "#/$defs/actor" },
+        create_branch: { $ref: "#/$defs/actor" },
+        stage: { $ref: "#/$defs/actor" },
+        commit: { $ref: "#/$defs/actor" },
+        push: { $ref: "#/$defs/actor" },
+        open_pull_request: { $ref: "#/$defs/actor" },
+        repair_ci: { $ref: "#/$defs/actor" },
+        review_pull_request: { $ref: "#/$defs/actor" },
+        merge_pull_request: { $ref: "#/$defs/actor" },
+        cleanup_branch: { $ref: "#/$defs/actor" },
+        tag: { $ref: "#/$defs/actor" },
+        release: { $ref: "#/$defs/actor" },
+        force_push: { $ref: "#/$defs/actor" },
+        rewrite_history: { $ref: "#/$defs/actor" },
+        destructive_recovery: { $ref: "#/$defs/actor" },
+        manage_credentials: { $ref: "#/$defs/actor" }
+      }
+    }
+  },
+  allOf: [
+    {
+      if: {
+        properties: { mode: { const: "none" } },
+        required: ["mode"]
+      },
+      then: {
+        properties: {
+          provider: { const: "none" },
+          system: { const: "none" },
+          responsibilities: {
+            type: "object",
+            additionalProperties: { const: "prohibited" }
+          },
+          workflow: {
+            type: "object",
+            properties: {
+              commit_convention: { const: "none" },
+              commit_signing: { const: "none" },
+              push_cadence: { const: "never" },
+              pull_request_policy: { const: "none" },
+              human_merge_required: { const: false },
+              post_merge: { type: "array", maxItems: 0 }
+            }
+          }
+        }
+      }
+    },
+    {
+      if: {
+        properties: { mode: { const: "agent-managed" } },
+        required: ["mode"]
+      },
+      then: {
+        properties: {
+          provider: { not: { const: "none" } },
+          system: { const: "git" },
+          responsibilities: {
+            type: "object",
+            properties: {
+              sync_default: { const: "agent" },
+              create_branch: { const: "agent" },
+              stage: { const: "agent" },
+              commit: { const: "agent" },
+              push: { const: "agent" },
+              open_pull_request: { const: "agent" },
+              repair_ci: { const: "agent" },
+              review_pull_request: { const: "human" },
+              merge_pull_request: { const: "human" },
+              cleanup_branch: { const: "agent" },
+              force_push: { const: "prohibited" },
+              rewrite_history: { const: "prohibited" }
+            }
+          },
+          workflow: {
+            type: "object",
+            properties: {
+              commit_convention: { const: "conventional" },
+              commit_signing: { enum: ["required", "recommended"] },
+              push_cadence: { const: "milestone" },
+              pull_request_policy: { const: "recommended" },
+              human_merge_required: { const: true },
+              post_merge: {
+                type: "array",
+                prefixItems: [
+                  { const: "verify-pr" },
+                  { const: "verify-checks" },
+                  { const: "fetch-prune" },
+                  { const: "switch-default" },
+                  { const: "pull-ff-only" },
+                  { const: "verify-clean" },
+                  { const: "delete-local-branch" },
+                  { const: "verify-merged-tree" },
+                  { const: "create-next-branch" }
+                ],
+                minItems: 9,
+                maxItems: 9
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      if: {
+        properties: { mode: { const: "human-commit" } },
+        required: ["mode"]
+      },
+      then: {
+        properties: {
+          provider: { not: { const: "none" } },
+          system: { const: "git" },
+          responsibilities: {
+            type: "object",
+            properties: {
+              sync_default: { const: "agent" },
+              create_branch: { const: "agent" },
+              stage: { const: "human" },
+              commit: { const: "human" },
+              push: { const: "agent" },
+              open_pull_request: { const: "agent" },
+              repair_ci: { const: "agent" },
+              review_pull_request: { const: "human" },
+              merge_pull_request: { const: "human" },
+              cleanup_branch: { const: "agent" },
+              force_push: { const: "prohibited" },
+              rewrite_history: { const: "prohibited" }
+            }
+          },
+          workflow: {
+            type: "object",
+            properties: {
+              commit_convention: { const: "conventional" },
+              commit_signing: { enum: ["required", "recommended"] },
+              push_cadence: { const: "milestone" },
+              pull_request_policy: { const: "recommended" },
+              human_merge_required: { const: true },
+              post_merge: {
+                type: "array",
+                prefixItems: [
+                  { const: "accept-human-report" },
+                  { const: "fetch-prune" },
+                  { const: "switch-default" },
+                  { const: "pull-ff-only" },
+                  { const: "verify-clean" },
+                  { const: "delete-local-branch" },
+                  { const: "create-next-branch" }
+                ],
+                minItems: 7,
+                maxItems: 7
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      if: {
+        properties: { mode: { const: "human-owned" } },
+        required: ["mode"]
+      },
+      then: {
+        properties: {
+          responsibilities: {
+            type: "object",
+            additionalProperties: { enum: ["human", "prohibited"] }
+          }
+        }
+      }
+    }
+  ]
+};
+
+// schemas/v1/workstreams.schema.json
+var workstreams_schema_default = {
+  $schema: "https://json-schema.org/draft/2020-12/schema",
+  $id: "urn:pcp:schema:v1:workstreams",
+  title: "PCP workstream registry",
+  type: "object",
+  additionalProperties: false,
+  required: ["schema_version", "workstreams"],
+  properties: {
+    schema_version: {
+      $ref: "urn:pcp:schema:v1:common#/$defs/schemaVersion"
+    },
+    workstreams: {
+      type: "array",
+      items: {
+        $ref: "#/$defs/workstream"
+      },
+      uniqueItems: true
+    }
+  },
+  $defs: {
+    workstream: {
+      type: "object",
+      additionalProperties: false,
+      required: [
+        "workstream_id",
+        "name",
+        "kind",
+        "status",
+        "paths",
+        "areas",
+        "dependencies",
+        "completion"
+      ],
+      properties: {
+        workstream_id: {
+          $ref: "urn:pcp:schema:v1:common#/$defs/slug"
+        },
+        name: {
+          $ref: "urn:pcp:schema:v1:common#/$defs/nonEmptyString"
+        },
+        kind: {
+          enum: ["sequential", "concurrent", "ceb"]
+        },
+        status: {
+          enum: ["planned", "active", "blocked", "complete", "cancelled"]
+        },
+        paths: {
+          $ref: "urn:pcp:schema:v1:common#/$defs/pathArray"
+        },
+        areas: {
+          $ref: "urn:pcp:schema:v1:common#/$defs/slugArray"
+        },
+        dependencies: {
+          $ref: "urn:pcp:schema:v1:common#/$defs/slugArray"
+        },
+        completion: {
+          type: "object",
+          additionalProperties: false,
+          required: ["criteria", "evidence"],
+          properties: {
+            criteria: {
+              type: "array",
+              items: {
+                $ref: "urn:pcp:schema:v1:common#/$defs/nonEmptyString"
+              },
+              minItems: 1,
+              uniqueItems: true
+            },
+            evidence: {
+              type: "array",
+              items: {
+                $ref: "urn:pcp:schema:v1:common#/$defs/nonEmptyString"
+              },
+              uniqueItems: true
+            }
+          }
+        }
+      }
+    }
+  }
+};
+
+// src/domain/schema-catalog.ts
+var SCHEMA_CATALOG = {
+  adapter: adapter_schema_default,
+  "adoption-input": adoption_input_schema_default,
+  "actor-profile": actor_profile_schema_default,
+  checkpoint: checkpoint_schema_default,
+  coverage: coverage_schema_default,
+  event: event_schema_default,
+  frontmatter: frontmatter_schema_default,
+  "mutation-plan": mutation_plan_schema_default,
+  "pcp-manifest": pcp_manifest_schema_default,
+  "project-registry": project_registry_schema_default,
+  project: project_schema_default,
+  "vcs-policy": vcs_policy_schema_default,
+  workstreams: workstreams_schema_default
+};
+var SUPPORTING_SCHEMAS = [common_schema_default];
+var SCHEMA_NAMES = Object.keys(SCHEMA_CATALOG).sort();
+
+// src/infrastructure/schema-validator.ts
+function schemaId(schema4) {
+  const id = schema4.$id;
+  if (typeof id !== "string" || id.length === 0) {
+    throw new Error("Every PCP schema must define a non-empty $id.");
+  }
+  return id;
+}
+function compareDiagnostics(left, right) {
+  const leftKey = `${left.path}\0${left.keyword}\0${left.message}`;
+  const rightKey = `${right.path}\0${right.keyword}\0${right.message}`;
+  return leftKey < rightKey ? -1 : leftKey > rightKey ? 1 : 0;
+}
+function diagnostic(error2) {
+  return {
+    path: error2.instancePath === "" ? "/" : error2.instancePath,
+    keyword: error2.keyword,
+    message: error2.message ?? "Schema validation failed.",
+    params: error2.params
+  };
+}
+var SchemaRegistry = class {
+  #validators = /* @__PURE__ */ new Map();
+  constructor() {
+    const ajv = new import__.Ajv2020({
+      allErrors: true,
+      strict: true,
+      validateFormats: true,
+      coerceTypes: false,
+      removeAdditional: false,
+      useDefaults: false
+    });
+    const addFormats = import_ajv_formats.default;
+    addFormats(ajv);
+    for (const schema4 of SUPPORTING_SCHEMAS) {
+      ajv.addSchema(schema4, schemaId(schema4));
+    }
+    for (const name of SCHEMA_NAMES) {
+      const schema4 = SCHEMA_CATALOG[name];
+      ajv.addSchema(schema4, schemaId(schema4));
+    }
+    for (const name of SCHEMA_NAMES) {
+      const validator = ajv.getSchema(schemaId(SCHEMA_CATALOG[name]));
+      if (validator === void 0) {
+        throw new Error(`PCP schema did not compile: ${name}`);
+      }
+      this.#validators.set(name, validator);
+    }
+  }
+  validate(name, value) {
+    const validator = this.#validators.get(name);
+    if (validator === void 0) {
+      throw new Error(`Unknown PCP schema: ${name}`);
+    }
+    const valid = validator(value);
+    const diagnostics = (validator.errors ?? []).map(diagnostic).sort(compareDiagnostics);
+    return { valid, diagnostics };
+  }
+};
+
+// src/application/foreign-coverage.ts
+import { readFile as readFile5 } from "node:fs/promises";
+import path7 from "node:path";
+
+// src/domain/coverage.ts
+var COVERAGE_SCHEMA_VERSION = 1;
+var PENDING_COVERAGE_EVIDENCE = "Pending semantic disposition.";
+
+// src/application/foreign-coverage.ts
+var MAXIMUM_STRUCTURED_SOURCE_BYTES = 4 * 1048576;
+var FOREIGN_CATEGORIES = /* @__PURE__ */ new Set([
+  "agent-instructions",
+  "persistent-memory",
+  "agent-identity",
+  "change-journal",
+  "workflow",
+  "orchestration"
+]);
+var ENCRYPTED_EXTENSION = /\.(?:age|asc|enc|gpg|p12|pfx|pgp)$/iu;
+var ENCRYPTED_CONTENT = /-----BEGIN (?:PGP MESSAGE|ENCRYPTED PRIVATE KEY)-----|age-encryption\.org\/v1/iu;
+var HISTORY_BASENAME = /^(?:change[-_ ]?log|events?|history|journal)(?:\.[a-z0-9_-]+)?\.(?:json|md|ya?ml)$/iu;
+var REGISTRY_BASENAME = /^(?:agent|actor)[-_ ]?(?:profiles?|registry|repository)\.(?:json|md|ya?ml)$/iu;
+function isInsideForeignRoot(candidatePath, root) {
+  return candidatePath === root || candidatePath.startsWith(`${root}/`);
+}
+function structuredSourceKind(candidatePath) {
+  const basename2 = candidatePath.split("/").at(-1) ?? candidatePath;
+  if (HISTORY_BASENAME.test(basename2)) return "history-entry";
+  if (REGISTRY_BASENAME.test(basename2)) return "registry-entry";
+  return void 0;
+}
+function collectionKeys(kind) {
+  return kind === "history-entry" ? ["entries", "changes", "events", "history", "journal"] : ["actors", "agents", "profiles", "registry", "entries"];
+}
+function structuredCollection(value, kind) {
+  if (Array.isArray(value)) return [...value];
+  if (typeof value !== "object" || value === null) return void 0;
+  const record = value;
+  for (const key of collectionKeys(kind)) {
+    const collection = record[key];
+    if (Array.isArray(collection)) return [...collection];
+  }
+  return void 0;
+}
+function markdownTableEntries(contents) {
+  const lines = normalizeText(contents).split("\n");
+  for (let index = 1; index < lines.length; index += 1) {
+    const header = lines[index - 1];
+    const separator = lines[index];
+    if (header === void 0 || separator === void 0 || !header.includes("|")) continue;
+    const separatorCells = separator.trim().replace(/^\||\|$/gu, "").split("|").map((cell) => cell.trim());
+    if (separatorCells.length === 0 || !separatorCells.every((cell) => /^:?-{3,}:?$/u.test(cell))) {
+      continue;
+    }
+    const entries = [];
+    for (let rowIndex = index + 1; rowIndex < lines.length; rowIndex += 1) {
+      const row = lines[rowIndex]?.trim();
+      if (row === void 0 || row === "" || !row.includes("|")) break;
+      entries.push(
+        row.replace(/^\||\|$/gu, "").split("|").map((cell) => cell.trim()).join(" | ")
+      );
+    }
+    return entries;
+  }
+  return [];
+}
+function markdownHeadingEntries(contents) {
+  const normalized = normalizeText(contents);
+  const headings = [...normalized.matchAll(/^##\s+.+$/gmu)];
+  return headings.map((heading, index) => {
+    const start = heading.index ?? 0;
+    const end = headings[index + 1]?.index ?? normalized.length;
+    return normalized.slice(start, end).trim();
+  });
+}
+function parseStructuredEntries(candidatePath, contents, kind) {
+  if (path7.posix.extname(candidatePath).toLowerCase() === ".md") {
+    const entries2 = kind === "registry-entry" ? markdownTableEntries(contents) : markdownHeadingEntries(contents);
+    if (entries2.length > 0) return { entries: entries2 };
+    return {
+      entries: [],
+      issue: {
+        code: "foreign-structured-source-unrecognized",
+        path: candidatePath,
+        message: "The structured foreign Markdown source has no recognized table or entry headings.",
+        blocking: true
+      }
+    };
+  }
+  const document = parseDocument(contents, {
+    prettyErrors: false,
+    strict: true,
+    uniqueKeys: true
+  });
+  if (document.errors.length > 0) {
+    return {
+      entries: [],
+      issue: {
+        code: "foreign-structured-source-malformed",
+        path: candidatePath,
+        message: `The structured foreign source cannot be parsed uniquely: ${document.errors.map((error2) => error2.message).join("; ")}`,
+        blocking: true
+      }
+    };
+  }
+  const entries = structuredCollection(document.toJS({ mapAsMap: false }), kind);
+  if (entries !== void 0) return { entries };
+  return {
+    entries: [],
+    issue: {
+      code: "foreign-structured-source-unrecognized",
+      path: candidatePath,
+      message: "The structured foreign source has no recognized entry collection.",
+      blocking: true
+    }
+  };
+}
+function entrySources(sourcePath, kind, entries) {
+  const occurrences = /* @__PURE__ */ new Map();
+  return entries.map((entry) => {
+    const fingerprint = sha256(canonicalJson(entry));
+    const occurrence = (occurrences.get(fingerprint) ?? 0) + 1;
+    occurrences.set(fingerprint, occurrence);
+    return {
+      source_id: `${kind}:${sourcePath}#${fingerprint.slice(0, 20)}:${occurrence}`,
+      source_path: sourcePath,
+      source_kind: kind,
+      fingerprint
+    };
+  });
+}
+function selectedForeignFiles(inspection) {
+  const directPaths = new Set(
+    inspection.signals.filter((signal) => FOREIGN_CATEGORIES.has(signal.category)).map((signal) => signal.path)
+  );
+  for (const candidate of inspection.foreignCandidates) {
+    for (const candidatePath of candidate.paths) directPaths.add(candidatePath);
+  }
+  const roots = inspection.foreignCandidates.map((candidate) => candidate.root).filter((root) => root !== ".");
+  return inspection.inventory.files.filter(
+    (file) => directPaths.has(file.path) || roots.some((root) => isInsideForeignRoot(file.path, root))
+  );
+}
+function boundaryIssues(inspection) {
+  const roots = inspection.foreignCandidates.map((candidate) => candidate.root).filter((root) => root !== ".");
+  const issues = [];
+  for (const link of inspection.inventory.symlinks) {
+    if (!roots.some((root) => isInsideForeignRoot(link.path, root))) continue;
+    issues.push({
+      code: "foreign-source-symlink",
+      path: link.path,
+      message: `Foreign context contains a ${link.boundary} symbolic-link boundary that was not followed.`,
+      blocking: true
+    });
+  }
+  for (const exclusion of inspection.inventory.exclusions) {
+    if (!roots.some((root) => isInsideForeignRoot(exclusion.path, root))) continue;
+    issues.push({
+      code: "foreign-source-excluded",
+      path: exclusion.path,
+      message: `Foreign context crosses an excluded ${exclusion.reason} boundary and cannot be proven complete.`,
+      blocking: true
+    });
+  }
+  return issues;
+}
+function issueKey(issue3) {
+  return `${issue3.code}\0${issue3.path}`;
+}
+function compareSources(left, right) {
+  return comparePortablePaths(left.source_path, right.source_path) || comparePortablePaths(left.source_kind, right.source_kind) || comparePortablePaths(left.source_id, right.source_id);
+}
+function createCoverageTemplate(inventoryDigest2, sources) {
+  const records = sources.map((source) => ({
+    ...source,
+    disposition: "unresolved",
+    targets: [],
+    evidence: [PENDING_COVERAGE_EVIDENCE]
+  }));
+  return {
+    schema_version: COVERAGE_SCHEMA_VERSION,
+    coverage_id: deterministicUlid(canonicalJson([inventoryDigest2, sources])),
+    source_inventory_digest: inventoryDigest2,
+    records,
+    unresolved_count: records.length
+  };
+}
+async function discoverForeignCoverage(root, inspection) {
+  if (inspection.state !== "C") {
+    throw new AdoptionError(
+      "PCP_STATE_C_REQUIRED",
+      `Foreign coverage discovery requires a State C candidate, not ${inspection.state}.`
+    );
+  }
+  const sources = [];
+  const issues = boundaryIssues(inspection);
+  for (const file of selectedForeignFiles(inspection)) {
+    sources.push({
+      source_id: `${isForeignAdapterSourcePath(file.path) ? "adapter" : "file"}:${file.path}`,
+      source_path: file.path,
+      source_kind: isForeignAdapterSourcePath(file.path) ? "adapter" : "file",
+      fingerprint: file.sha256
+    });
+    if (file.size > MAXIMUM_STRUCTURED_SOURCE_BYTES) {
+      issues.push({
+        code: "foreign-source-too-large",
+        path: file.path,
+        message: "Foreign context exceeds the 4 MiB semantic-review limit.",
+        blocking: true
+      });
+      continue;
+    }
+    let bytes;
+    try {
+      bytes = await readFile5(path7.join(root, ...file.path.split("/")));
+    } catch (error2) {
+      const detail = error2 instanceof Error ? error2.message : String(error2);
+      issues.push({
+        code: "foreign-source-unreadable",
+        path: file.path,
+        message: `Foreign context cannot be read: ${detail}`,
+        blocking: true
+      });
+      continue;
+    }
+    if (sha256(bytes) !== file.sha256) {
+      throw new AdoptionError(
+        "PCP_SOURCE_CHANGED",
+        `Foreign context changed after inventory: ${file.path}`
+      );
+    }
+    if (ENCRYPTED_EXTENSION.test(file.path) || ENCRYPTED_CONTENT.test(bytes.toString("utf8"))) {
+      issues.push({
+        code: "foreign-source-encrypted",
+        path: file.path,
+        message: "Encrypted foreign context cannot receive a semantic disposition automatically.",
+        blocking: true
+      });
+      continue;
+    }
+    if (bytes.subarray(0, Math.min(bytes.length, 8192)).includes(0)) {
+      issues.push({
+        code: "foreign-source-not-text",
+        path: file.path,
+        message: "Binary foreign context cannot receive a semantic disposition automatically.",
+        blocking: true
+      });
+      continue;
+    }
+    let contents;
+    try {
+      contents = new TextDecoder("utf-8", { fatal: true }).decode(bytes);
+    } catch {
+      issues.push({
+        code: "foreign-source-invalid-utf8",
+        path: file.path,
+        message: "Foreign context is not valid UTF-8 text.",
+        blocking: true
+      });
+      continue;
+    }
+    const entryKind = structuredSourceKind(file.path);
+    if (entryKind === void 0) continue;
+    const parsed = parseStructuredEntries(file.path, contents, entryKind);
+    if (parsed.issue !== void 0) issues.push(parsed.issue);
+    sources.push(...entrySources(file.path, entryKind, parsed.entries));
+  }
+  sources.sort(compareSources);
+  const uniqueIssues = [...new Map(issues.map((issue3) => [issueKey(issue3), issue3])).values()].sort(
+    (left, right) => comparePortablePaths(left.path, right.path) || comparePortablePaths(left.code, right.code)
+  );
+  return {
+    source_inventory_digest: inspection.inventory.digest,
+    sources,
+    issues: uniqueIssues,
+    template: createCoverageTemplate(inspection.inventory.digest, sources)
+  };
+}
+function validateForeignCoverage(catalog, value) {
+  const schema4 = new SchemaRegistry().validate("coverage", value);
+  if (!schema4.valid) {
+    return {
+      valid: false,
+      diagnostics: schema4.diagnostics.map((diagnostic2) => ({
+        code: "coverage-schema-invalid",
+        path: diagnostic2.path,
+        message: diagnostic2.message
+      }))
+    };
+  }
+  const coverage = value;
+  const diagnostics = catalog.issues.map((issue3) => ({
+    code: issue3.code,
+    path: issue3.path,
+    message: issue3.message
+  }));
+  if (coverage.coverage_id !== catalog.template.coverage_id) {
+    diagnostics.push({
+      code: "coverage-id-mismatch",
+      path: "/coverage_id",
+      message: "Coverage ID does not match the matrix emitted for this candidate."
+    });
+  }
+  if (coverage.source_inventory_digest !== catalog.source_inventory_digest) {
+    diagnostics.push({
+      code: "coverage-inventory-mismatch",
+      path: "/source_inventory_digest",
+      message: "Coverage was prepared against a different candidate inventory."
+    });
+  }
+  const recordsById = /* @__PURE__ */ new Map();
+  for (const [index, record] of coverage.records.entries()) {
+    if (recordsById.has(record.source_id)) {
+      diagnostics.push({
+        code: "coverage-source-id-duplicate",
+        path: `/records/${index}/source_id`,
+        message: `Coverage source ID appears more than once: ${record.source_id}`
+      });
+    } else {
+      recordsById.set(record.source_id, record);
+    }
+  }
+  const expectedById = new Map(catalog.sources.map((source) => [source.source_id, source]));
+  for (const source of catalog.sources) {
+    const record = recordsById.get(source.source_id);
+    if (record === void 0) {
+      diagnostics.push({
+        code: "coverage-source-missing",
+        path: "/records",
+        message: `Discovered foreign source has no coverage record: ${source.source_id}`
+      });
+      continue;
+    }
+    if (record.source_path !== source.source_path || record.source_kind !== source.source_kind || record.fingerprint !== source.fingerprint) {
+      diagnostics.push({
+        code: "coverage-source-mismatch",
+        path: `/records/${coverage.records.indexOf(record)}`,
+        message: `Coverage metadata does not match the discovered source: ${source.source_id}`
+      });
+    }
+  }
+  for (const [index, record] of coverage.records.entries()) {
+    if (!expectedById.has(record.source_id) && record.source_kind !== "fact") {
+      diagnostics.push({
+        code: "coverage-source-unexpected",
+        path: `/records/${index}`,
+        message: `Only explicit fileless facts may extend the discovered source set: ${record.source_id}`
+      });
+    }
+    if (record.disposition === "unresolved") {
+      diagnostics.push({
+        code: "coverage-source-unresolved",
+        path: `/records/${index}/disposition`,
+        message: `Foreign source remains unresolved: ${record.source_id}`
+      });
+    } else if (record.evidence.includes(PENDING_COVERAGE_EVIDENCE)) {
+      diagnostics.push({
+        code: "coverage-evidence-pending",
+        path: `/records/${index}/evidence`,
+        message: `Resolved coverage requires concrete evidence: ${record.source_id}`
+      });
+    }
+  }
+  const actualUnresolved = coverage.records.filter(
+    (record) => record.disposition === "unresolved"
+  ).length;
+  if (coverage.unresolved_count !== actualUnresolved) {
+    diagnostics.push({
+      code: "coverage-unresolved-count-mismatch",
+      path: "/unresolved_count",
+      message: `Declared unresolved_count ${coverage.unresolved_count} does not match ${actualUnresolved} unresolved records.`
+    });
+  }
+  return { valid: diagnostics.length === 0, diagnostics };
+}
+
+// src/application/render-platform-adapters.ts
+var GENERATED_MARKER = "<!-- PCP: GENERATED; DO NOT EDIT -->";
+var CANONICAL_ENTRY = ".pcp/00-index.md";
+var targetByAdapter = {
+  codex: "AGENTS.md",
+  antigravity: ".agents/rules/pcp.md",
+  "claude-code-desktop": "CLAUDE.md",
+  "github-copilot-vscode": ".github/copilot-instructions.md",
+  cursor: ".cursor/rules/pcp.mdc"
+};
+function sharedBody() {
+  return [
+    GENERATED_MARKER,
+    "",
+    "# Persistent Context Protocol",
+    "",
+    "Canonical project context lives in `.pcp/`; this file is only a platform adapter.",
+    "",
+    `1. Start at \`${CANONICAL_ENTRY}\`.`,
+    "2. Follow its first-task or returning-task path.",
+    "3. Read only the state, knowledge, operations, project, and continuity records relevant to the active scope.",
+    "4. Update canonical PCP sources when project context changes; do not create independent authority in this adapter.",
+    ""
+  ];
+}
+function adapterText(adapterId) {
+  const body = sharedBody();
+  if (adapterId === "claude-code-desktop") {
+    body.splice(6, 1, `1. Read @${CANONICAL_ENTRY} before work.`);
+  }
+  if (adapterId === "cursor") {
+    return [
+      "---",
+      "description: Route project work through the canonical PCP context",
+      "globs:",
+      "alwaysApply: true",
+      "---",
+      "",
+      ...body
+    ].join("\n");
+  }
+  return body.join("\n");
+}
+function renderPlatformAdapters() {
+  return SUPPORTED_ADAPTER_IDS.map((adapterId) => {
+    const content = Buffer.from(adapterText(adapterId), "utf8");
+    return {
+      manifest: {
+        schema_version: 1,
+        adapter_id: adapterId,
+        platform: adapterId,
+        target_path: targetByAdapter[adapterId],
+        source_paths: [CANONICAL_ENTRY],
+        ownership: "generated",
+        collision_policy: "preview-required",
+        content_digest: sha256(content)
+      },
+      content
+    };
+  });
+}
+
+// src/application/render-canonical-views.ts
+import { readFile as readFile7, writeFile as writeFile2 } from "node:fs/promises";
 import path9 from "node:path";
+
+// src/domain/canonical-validation.ts
+function compareCanonicalDiagnostics(left, right) {
+  const leftKey = `${left.path}\0${left.severity}\0${left.code}\0${left.message}`;
+  const rightKey = `${right.path}\0${right.severity}\0${right.code}\0${right.message}`;
+  return leftKey < rightKey ? -1 : leftKey > rightKey ? 1 : 0;
+}
+
+// src/infrastructure/canonical-source-digest.ts
+import { createHash as createHash5 } from "node:crypto";
+import { readFile as readFile6 } from "node:fs/promises";
+import path8 from "node:path";
+function normalizeSource(contents) {
+  return contents.replace(/\r\n?/g, "\n");
+}
+function resolveContained(root, relativePath) {
+  const resolvedRoot = path8.resolve(root);
+  const resolved = path8.resolve(resolvedRoot, relativePath);
+  if (resolved !== resolvedRoot && !resolved.startsWith(`${resolvedRoot}${path8.sep}`)) {
+    throw new Error(`Canonical source escapes the .pcp root: ${relativePath}`);
+  }
+  return resolved;
+}
+function canonicalSourceDigestFromContents(sources) {
+  const hash = createHash5("sha256");
+  for (const source of [...sources].sort((left, right) => left.path.localeCompare(right.path))) {
+    const contents = normalizeSource(source.contents);
+    hash.update(source.path);
+    hash.update("\0");
+    hash.update(String(Buffer.byteLength(contents)));
+    hash.update("\0");
+    hash.update(contents);
+    hash.update("\0");
+  }
+  return hash.digest("hex");
+}
+async function canonicalSourceDigest(root, sources) {
+  const contents = await Promise.all(
+    sources.map(async (source) => ({
+      path: source,
+      contents: await readFile6(resolveContained(root, source), "utf8")
+    }))
+  );
+  return canonicalSourceDigestFromContents(contents);
+}
+
+// src/application/render-canonical-views.ts
+var VIEW_PATH = "views/10-status.generated.md";
+var PROJECT_VIEW_PATH = `.pcp/${VIEW_PATH}`;
+var GENERATED_MARKER2 = "<!-- PCP: GENERATED; DO NOT EDIT -->";
+var RENDERER_TEMPLATE_UPDATED_AT = "2026-07-14T07:20:00Z";
+var SOURCES = [
+  ["state/project.yaml", "project"],
+  ["state/projects.yaml", "project-registry"],
+  ["state/workstreams.yaml", "workstreams"],
+  ["state/vcs-policy.yaml", "vcs-policy"]
+];
+function objectValue(value) {
+  if (typeof value !== "object" || value === null || Array.isArray(value)) {
+    throw new Error("Schema-valid canonical source must be an object.");
+  }
+  return value;
+}
+function objectArray(value) {
+  if (!Array.isArray(value)) return [];
+  return value.map(objectValue);
+}
+function stringArray(value) {
+  return Array.isArray(value) ? value.filter((item) => typeof item === "string") : [];
+}
+function scalar(value) {
+  return typeof value === "string" || typeof value === "number" || typeof value === "boolean" ? String(value) : "";
+}
+function prose(value) {
+  return scalar(value).replace(/\s+/g, " ").trim().replace(/\\/g, "\\\\");
+}
+function tableCell(value) {
+  const result = prose(value).replace(/\|/g, "\\|");
+  return result.length === 0 ? "\u2014" : result;
+}
+function code(value) {
+  return `\`${scalar(value).replace(/`/g, "\\`")}\``;
+}
+function codeList(value) {
+  const values = stringArray(value);
+  return values.length === 0 ? "None." : values.map(code).join(", ");
+}
+function issue(codeValue, pathValue, message) {
+  return { severity: "error", code: codeValue, path: pathValue, message };
+}
+async function loadSource(layerRoot, relativePath, schema4, registry, diagnostics) {
+  let contents;
+  try {
+    contents = await readFile7(path9.join(layerRoot, relativePath), "utf8");
+  } catch (error2) {
+    diagnostics.push(
+      issue(
+        "render.source-read",
+        `.pcp/${relativePath}`,
+        error2 instanceof Error ? error2.message : "Unable to read canonical render source."
+      )
+    );
+    return void 0;
+  }
+  const document = parseDocument(contents, { prettyErrors: false, uniqueKeys: true });
+  if (document.errors.length > 0) {
+    for (const error2 of document.errors) {
+      diagnostics.push(issue("render.source-yaml", `.pcp/${relativePath}`, error2.message));
+    }
+    return void 0;
+  }
+  let value;
+  try {
+    value = document.toJS({ maxAliasCount: 50 });
+  } catch (error2) {
+    diagnostics.push(
+      issue(
+        "render.source-yaml",
+        `.pcp/${relativePath}`,
+        error2 instanceof Error ? error2.message : "Unable to safely decode render source."
+      )
+    );
+    return void 0;
+  }
+  const result = registry.validate(schema4, value);
+  if (!result.valid) {
+    for (const diagnostic2 of result.diagnostics) {
+      diagnostics.push(
+        issue(
+          `render.source-${diagnostic2.keyword}`,
+          `.pcp/${relativePath}#${diagnostic2.path === "/" ? "" : diagnostic2.path}`,
+          diagnostic2.message
+        )
+      );
+    }
+    return void 0;
+  }
+  return { contents, value: objectValue(value) };
+}
+function renderProjects(projects) {
+  if (projects.length === 0) return ["No managed subprojects are registered."];
+  return [
+    "| ID | Name | Type | Lifecycle | Artifact roots |",
+    "| --- | --- | --- | --- | --- |",
+    ...projects.map(
+      (project) => `| ${code(project.project_id)} | ${tableCell(project.name)} | ${code(project.project_type)} | ${code(project.lifecycle)} | ${codeList(project.artifact_roots)} |`
+    )
+  ];
+}
+function renderWorkstreams(workstreams) {
+  if (workstreams.length === 0) return ["No workstreams are registered."];
+  return [
+    "| ID | Name | Kind | Status | Dependencies | Evidence |",
+    "| --- | --- | --- | --- | --- | --- |",
+    ...workstreams.map((workstream) => {
+      const completion = objectValue(workstream.completion);
+      return `| ${code(workstream.workstream_id)} | ${tableCell(workstream.name)} | ${code(workstream.kind)} | ${code(workstream.status)} | ${codeList(workstream.dependencies)} | ${stringArray(completion.evidence).length} item(s) |`;
+    })
+  ];
+}
+function renderCanonicalStatusView(sources, sourceDigest) {
+  const project = objectValue(sources.get("state/project.yaml"));
+  const projectRegistry = objectValue(sources.get("state/projects.yaml"));
+  const workstreamRegistry = objectValue(sources.get("state/workstreams.yaml"));
+  const vcsPolicy = objectValue(sources.get("state/vcs-policy.yaml"));
+  const repository = objectValue(vcsPolicy.repository);
+  const workflow = objectValue(vcsPolicy.workflow);
+  const lines = [
+    "---",
+    `doc: ${VIEW_PATH}`,
+    "type: generated",
+    "status: generated",
+    "version: 1.0.0",
+    `last_updated: ${RENDERER_TEMPLATE_UPDATED_AT}`,
+    "ownership: generated",
+    "sources:",
+    ...SOURCES.map(([source]) => `  - ${source}`),
+    `source_digest: ${sourceDigest}`,
+    "---",
+    "",
+    GENERATED_MARKER2,
+    "",
+    "# Project status",
+    "",
+    "Generated from canonical YAML. Edit the source records, then render again.",
+    "",
+    "## Project",
+    "",
+    `- ID: ${code(project.project_id)}`,
+    `- Name: ${prose(project.name)}`,
+    `- Purpose: ${prose(project.purpose)}`,
+    `- Type: ${code(project.project_type)}`,
+    `- Lifecycle: ${code(project.lifecycle)}`,
+    `- Artifact roots: ${codeList(project.artifact_roots)}`,
+    `- Context roots: ${codeList(project.context_roots)}`,
+    "",
+    "## Managed projects",
+    "",
+    ...renderProjects(objectArray(projectRegistry.projects)),
+    "",
+    "## Workstreams",
+    "",
+    ...renderWorkstreams(objectArray(workstreamRegistry.workstreams)),
+    "",
+    "## Version control",
+    "",
+    `- Mode: ${code(vcsPolicy.mode)}`,
+    `- System: ${code(vcsPolicy.system)}`,
+    `- Provider: ${code(vcsPolicy.provider)}`,
+    `- Default branch: ${code(repository.default_branch)}`,
+    `- Commit signing: ${code(workflow.commit_signing)}`,
+    `- Push cadence: ${code(workflow.push_cadence)}`,
+    `- Pull request policy: ${code(workflow.pull_request_policy)}`,
+    `- Human merge required: ${code(workflow.human_merge_required)}`,
+    ""
+  ];
+  return lines.join("\n");
+}
+async function renderCanonicalViews(projectRoot, options = {}) {
+  const layerRoot = path9.join(path9.resolve(projectRoot), ".pcp");
+  const diagnostics = [];
+  const registry = new SchemaRegistry();
+  const loadedSources = /* @__PURE__ */ new Map();
+  for (const [relativePath, schema4] of SOURCES) {
+    const source = await loadSource(layerRoot, relativePath, schema4, registry, diagnostics);
+    if (source !== void 0) loadedSources.set(relativePath, source);
+  }
+  if (diagnostics.length > 0) {
+    diagnostics.sort(compareCanonicalDiagnostics);
+    return {
+      valid: false,
+      mode: options.check === true ? "check" : "write",
+      changed_paths: [],
+      diagnostics
+    };
+  }
+  const digest = canonicalSourceDigestFromContents(
+    [...loadedSources].map(([sourcePath, source]) => ({
+      path: sourcePath,
+      contents: source.contents
+    }))
+  );
+  let currentSourceDigest;
+  try {
+    currentSourceDigest = await canonicalSourceDigest(
+      layerRoot,
+      SOURCES.map(([source]) => source)
+    );
+  } catch (error2) {
+    diagnostics.push(
+      issue(
+        "render.source-digest",
+        ".pcp/state",
+        error2 instanceof Error ? error2.message : "Unable to fingerprint render sources."
+      )
+    );
+    return {
+      valid: false,
+      mode: options.check === true ? "check" : "write",
+      changed_paths: [],
+      diagnostics
+    };
+  }
+  if (currentSourceDigest !== digest) {
+    return {
+      valid: false,
+      mode: options.check === true ? "check" : "write",
+      changed_paths: [],
+      diagnostics: [
+        issue(
+          "render.source-drift",
+          ".pcp/state",
+          "Canonical render sources changed while the render snapshot was being built."
+        )
+      ]
+    };
+  }
+  const sources = new Map(
+    [...loadedSources].map(([sourcePath, source]) => [sourcePath, source.value])
+  );
+  const desired = renderCanonicalStatusView(sources, digest);
+  const absoluteViewPath = path9.join(layerRoot, VIEW_PATH);
+  let current;
+  try {
+    current = await readFile7(absoluteViewPath, "utf8");
+  } catch (error2) {
+    if (error2.code !== "ENOENT") {
+      diagnostics.push(
+        issue(
+          "render.view-read",
+          PROJECT_VIEW_PATH,
+          error2 instanceof Error ? error2.message : "Unable to read generated view."
+        )
+      );
+    }
+  }
+  if (diagnostics.length > 0) {
+    diagnostics.sort(compareCanonicalDiagnostics);
+    return {
+      valid: false,
+      mode: options.check === true ? "check" : "write",
+      changed_paths: [],
+      diagnostics
+    };
+  }
+  if (current === desired) {
+    return {
+      valid: true,
+      mode: options.check === true ? "check" : "write",
+      changed_paths: [],
+      diagnostics: []
+    };
+  }
+  if (options.check === true) {
+    return {
+      valid: false,
+      mode: "check",
+      changed_paths: [PROJECT_VIEW_PATH],
+      diagnostics: [
+        issue("render.stale", PROJECT_VIEW_PATH, "Generated status view is missing or stale.")
+      ]
+    };
+  }
+  try {
+    await writeFile2(absoluteViewPath, desired, "utf8");
+  } catch (error2) {
+    return {
+      valid: false,
+      mode: "write",
+      changed_paths: [],
+      diagnostics: [
+        issue(
+          "render.view-write",
+          PROJECT_VIEW_PATH,
+          error2 instanceof Error ? error2.message : "Unable to write generated view."
+        )
+      ]
+    };
+  }
+  return {
+    valid: true,
+    mode: "write",
+    changed_paths: [PROJECT_VIEW_PATH],
+    diagnostics: []
+  };
+}
+
+// src/application/validate-canonical-layer.ts
+import { readdir as readdir2, readFile as readFile8, stat as stat2 } from "node:fs/promises";
+import path10 from "node:path";
 
 // src/domain/canonical-semantics.ts
 function objectValue2(value) {
@@ -21127,8 +21819,8 @@ function objectArray2(value) {
 function stringArray2(value) {
   return Array.isArray(value) ? value.filter((item) => typeof item === "string") : [];
 }
-function error(code2, path11, message) {
-  return { severity: "error", code: code2, path: path11, message };
+function error(code2, path13, message) {
+  return { severity: "error", code: code2, path: path13, message };
 }
 function validateProjectIdentity(records) {
   const diagnostics = [];
@@ -21234,27 +21926,27 @@ function validateWorkstreams(records) {
   for (const id of byId.keys()) visit3(id, []);
   return diagnostics;
 }
-function validateAgents(records) {
+function validateActors(records) {
   const diagnostics = [];
   const seen = /* @__PURE__ */ new Map();
-  for (const record of records.agents) {
+  for (const record of records.actors) {
     const profile = objectValue2(record.value);
-    const id = stringValue(profile?.agent_id);
+    const id = stringValue(profile?.actor_id);
     if (id === void 0) continue;
     const expectedName = `${id}.yaml`;
     if (!record.path.endsWith(`/${expectedName}`)) {
       diagnostics.push(
         error(
-          "identity.agent-filename-mismatch",
+          "identity.actor-filename-mismatch",
           record.path,
-          `Agent profile filename must be ${expectedName}.`
+          `Actor profile filename must be ${expectedName}.`
         )
       );
     }
     const previous = seen.get(id);
     if (previous !== void 0) {
       diagnostics.push(
-        error("identity.duplicate-agent", record.path, `Agent ID ${id} duplicates ${previous}.`)
+        error("identity.duplicate-actor", record.path, `Actor ID ${id} duplicates ${previous}.`)
       );
     } else {
       seen.set(id, record.path);
@@ -21265,8 +21957,13 @@ function validateAgents(records) {
 function validateEvents(records) {
   const diagnostics = [];
   const seen = /* @__PURE__ */ new Map();
-  const agentIds = new Set(
-    records.agents.map((record) => stringValue(objectValue2(record.value)?.agent_id)).filter((id) => id !== void 0)
+  const actorTypes = new Map(
+    records.actors.map((record) => {
+      const profile = objectValue2(record.value);
+      return [stringValue(profile?.actor_id), stringValue(profile?.actor_type)];
+    }).filter(
+      (entry) => entry[0] !== void 0 && entry[1] !== void 0
+    )
   );
   const workstreamRoot = objectValue2(records.workstreams?.value);
   const workstreamIds = new Set(
@@ -21279,44 +21976,82 @@ function validateEvents(records) {
     const expectedName = `${id}.yaml`;
     if (!record.path.endsWith(`/${expectedName}`)) {
       diagnostics.push(
-        error(
-          "journal.filename-mismatch",
-          record.path,
-          `Journal event filename must be ${expectedName}.`
-        )
+        error("event.filename-mismatch", record.path, `Event filename must be ${expectedName}.`)
       );
     }
     const previous = seen.get(id);
     if (previous !== void 0) {
       diagnostics.push(
-        error("journal.duplicate-event", record.path, `Event ID ${id} duplicates ${previous}.`)
+        error("event.duplicate", record.path, `Event ID ${id} duplicates ${previous}.`)
       );
     } else {
       seen.set(id, record.path);
     }
     const actor = objectValue2(event?.actor);
+    const recorder = objectValue2(event?.recorded_by);
     const actorType = stringValue(actor?.type);
     const actorId = stringValue(actor?.id);
-    const origin = stringValue(event?.origin);
-    if (actorType !== void 0 && origin !== void 0 && actorType !== origin) {
+    const recorderType = stringValue(recorder?.type);
+    const recorderId = stringValue(recorder?.id);
+    const basis = stringValue(event?.basis);
+    for (const [role, referenceType, referenceId] of [
+      ["actor", actorType, actorId],
+      ["recorder", recorderType, recorderId]
+    ]) {
+      if ((referenceType === "human" || referenceType === "agent") && referenceId !== void 0) {
+        const profileType = actorTypes.get(referenceId);
+        if (profileType === void 0) {
+          diagnostics.push(
+            error(
+              `event.unknown-${role}`,
+              record.path,
+              `Event ${role} references unknown ${referenceType} ${referenceId}.`
+            )
+          );
+        } else if (profileType !== referenceType) {
+          diagnostics.push(
+            error(
+              `event.${role}-type-mismatch`,
+              record.path,
+              `Event ${role} type ${referenceType} does not match profile type ${profileType}.`
+            )
+          );
+        }
+      }
+    }
+    const sameIdentity = actorType === recorderType && actorId === recorderId;
+    if (basis === "self" && !sameIdentity) {
       diagnostics.push(
         error(
-          "journal.origin-actor-mismatch",
+          "event.self-recorder-mismatch",
           record.path,
-          `Event origin ${origin} does not match actor type ${actorType}.`
+          "A self-recorded event must name the same actor and recorder."
         )
       );
     }
-    if (actorType === "agent" && actorId !== void 0 && !agentIds.has(actorId)) {
+    if ((basis === "reported" || basis === "observed") && sameIdentity) {
       diagnostics.push(
-        error("journal.unknown-agent", record.path, `Event references unknown agent ${actorId}.`)
+        error(
+          "event.external-basis-self-recorded",
+          record.path,
+          `A ${basis} event must be recorded by a different actor.`
+        )
+      );
+    }
+    if (basis === "system" && (actorType !== "system" || recorderType !== "system")) {
+      diagnostics.push(
+        error(
+          "event.system-basis-mismatch",
+          record.path,
+          "A system-basis event must name system as both actor and recorder."
+        )
       );
     }
     for (const workstreamId of stringArray2(event?.workstreams)) {
       if (!workstreamIds.has(workstreamId)) {
         diagnostics.push(
           error(
-            "journal.unknown-workstream",
+            "event.unknown-workstream",
             record.path,
             `Event references unknown workstream ${workstreamId}.`
           )
@@ -21328,8 +22063,13 @@ function validateEvents(records) {
 }
 function validateCheckpoints(records) {
   const diagnostics = [];
-  const agentIds = new Set(
-    records.agents.map((record) => stringValue(objectValue2(record.value)?.agent_id)).filter((id) => id !== void 0)
+  const actorTypes = new Map(
+    records.actors.map((record) => {
+      const profile = objectValue2(record.value);
+      return [stringValue(profile?.actor_id), stringValue(profile?.actor_type)];
+    }).filter(
+      (entry) => entry[0] !== void 0 && entry[1] !== void 0
+    )
   );
   const eventIds = new Set(
     records.events.map((record) => stringValue(objectValue2(record.value)?.event_id)).filter((id) => id !== void 0)
@@ -21350,15 +22090,26 @@ function validateCheckpoints(records) {
         )
       );
     }
-    const agentId = stringValue(checkpoint?.agent_id);
-    if (agentId !== void 0 && !agentIds.has(agentId)) {
-      diagnostics.push(
-        error(
-          "checkpoint.unknown-agent",
-          record.path,
-          `Checkpoint references unknown agent ${agentId}.`
-        )
-      );
+    const actorId = stringValue(checkpoint?.actor_id);
+    if (actorId !== void 0) {
+      const actorType = actorTypes.get(actorId);
+      if (actorType === void 0) {
+        diagnostics.push(
+          error(
+            "checkpoint.unknown-actor",
+            record.path,
+            `Checkpoint references unknown actor ${actorId}.`
+          )
+        );
+      } else if (actorType !== "agent") {
+        diagnostics.push(
+          error(
+            "checkpoint.human-actor",
+            record.path,
+            `Checkpoint actor ${actorId} must be an agent.`
+          )
+        );
+      }
     }
     const workstreamId = stringValue(checkpoint?.workstream_id);
     if (workstreamId !== void 0 && !workstreamIds.has(workstreamId)) {
@@ -21402,7 +22153,7 @@ function validateCanonicalSemantics(records) {
   return [
     ...validateProjectIdentity(records),
     ...validateWorkstreams(records),
-    ...validateAgents(records),
+    ...validateActors(records),
     ...validateEvents(records),
     ...validateCheckpoints(records),
     ...validateVcsPolicy(records)
@@ -21464,13 +22215,15 @@ function matchingOwnershipClasses(relativePath, patterns) {
 }
 
 // src/application/validate-canonical-layer.ts
-var GENERATED_MARKER2 = "<!-- PCP: GENERATED; DO NOT EDIT -->";
+var GENERATED_MARKER3 = "<!-- PCP: GENERATED; DO NOT EDIT -->";
 var REQUIRED_CANONICAL_PATHS = [
   ".gitignore",
   "00-index.md",
-  "agents/00-index.md",
-  "journal/00-index.md",
-  "journal/events/00-index.md",
+  "continuity/00-index.md",
+  "continuity/actors/00-index.md",
+  "continuity/archive/00-index.md",
+  "continuity/checkpoints/00-index.md",
+  "continuity/events/00-index.md",
   "knowledge/00-index.md",
   "operations/00-index.md",
   "pcp.yaml",
@@ -21507,12 +22260,12 @@ function stringArray3(value) {
   return Array.isArray(value) && value.every((item) => typeof item === "string") ? value : void 0;
 }
 function relativeFrom(root, target) {
-  return path9.relative(root, target).split(path9.sep).join("/");
+  return path10.relative(root, target).split(path10.sep).join("/");
 }
 function isInside2(root, target) {
-  const resolvedRoot = path9.resolve(root);
-  const resolvedTarget = path9.resolve(target);
-  return resolvedTarget === resolvedRoot || resolvedTarget.startsWith(`${resolvedRoot}${path9.sep}`);
+  const resolvedRoot = path10.resolve(root);
+  const resolvedTarget = path10.resolve(target);
+  return resolvedTarget === resolvedRoot || resolvedTarget.startsWith(`${resolvedRoot}${path10.sep}`);
 }
 function issue2(code2, relativePath, message) {
   return { severity: "error", code: code2, path: relativePath, message };
@@ -21533,7 +22286,7 @@ async function collectFiles2(directory, layerRoot, diagnostics) {
     return files;
   }
   for (const entry of entries.sort((left, right) => left.name.localeCompare(right.name))) {
-    const absolutePath = path9.join(directory, entry.name);
+    const absolutePath = path10.join(directory, entry.name);
     const relativePath = relativeFrom(layerRoot, absolutePath);
     if (entry.isSymbolicLink()) {
       diagnostics.push(
@@ -21553,9 +22306,11 @@ function schemaForPath(relativePath) {
   if (relativePath === "state/projects.yaml") return "project-registry";
   if (relativePath === "state/workstreams.yaml") return "workstreams";
   if (relativePath === "state/vcs-policy.yaml") return "vcs-policy";
-  if (/^agents\/[^/]+\.yaml$/.test(relativePath)) return "agent-profile";
-  if (/^journal\/events\/[^/]+\.yaml$/.test(relativePath)) return "journal-event";
-  if (/^runtime\/checkpoints\/[^/]+\.yaml$/.test(relativePath)) return "checkpoint";
+  if (/^continuity\/actors\/[^/]+\.yaml$/.test(relativePath)) return "actor-profile";
+  if (/^continuity\/(?:events|archive)\/[^/]+\.yaml$/.test(relativePath)) {
+    return "event";
+  }
+  if (/^continuity\/checkpoints\/[^/]+\.yaml$/.test(relativePath)) return "checkpoint";
   return void 0;
 }
 function addSemanticRecord(records, record) {
@@ -21563,8 +22318,8 @@ function addSemanticRecord(records, record) {
   if (record.path === "state/projects.yaml") records.project_registry = record;
   if (record.path === "state/workstreams.yaml") records.workstreams = record;
   if (record.path === "state/vcs-policy.yaml") records.vcs_policy = record;
-  if (record.schema === "agent-profile") records.agents.push(record);
-  if (record.schema === "journal-event") records.events.push(record);
+  if (record.schema === "actor-profile") records.actors.push(record);
+  if (record.schema === "event") records.events.push(record);
   if (record.schema === "checkpoint") records.checkpoints.push(record);
 }
 function ownershipPatterns(manifest) {
@@ -21586,10 +22341,10 @@ function normalizedLinkTarget(target) {
 }
 async function validateMarkdownLinks(projectRoot, layerRoot, records, diagnostics) {
   const graph = /* @__PURE__ */ new Map();
-  const canonicalMarkdown = new Set(records.map((record) => path9.resolve(record.absolute_path)));
+  const canonicalMarkdown = new Set(records.map((record) => path10.resolve(record.absolute_path)));
   for (const record of records) {
     const edges = /* @__PURE__ */ new Set();
-    graph.set(path9.resolve(record.absolute_path), edges);
+    graph.set(path10.resolve(record.absolute_path), edges);
     for (const link of record.parsed.links) {
       const diagnosticPath = `${record.relative_path}:${link.line}`;
       const rawTarget = link.target;
@@ -21632,7 +22387,7 @@ async function validateMarkdownLinks(projectRoot, layerRoot, records, diagnostic
         continue;
       }
       if (relativeTarget.length === 0) continue;
-      const target = path9.resolve(path9.dirname(record.absolute_path), relativeTarget);
+      const target = path10.resolve(path10.dirname(record.absolute_path), relativeTarget);
       if (!isInside2(projectRoot, target)) {
         diagnostics.push(
           issue2(
@@ -21659,11 +22414,11 @@ async function validateMarkdownLinks(projectRoot, layerRoot, records, diagnostic
 function validateMarkdownStructure(layerRoot, records, graph, diagnostics) {
   const byDirectory = /* @__PURE__ */ new Map();
   for (const record of records) {
-    const directory = path9.dirname(record.absolute_path);
+    const directory = path10.dirname(record.absolute_path);
     const siblings = byDirectory.get(directory) ?? [];
     siblings.push(record);
     byDirectory.set(directory, siblings);
-    const number = pathNumber(path9.basename(record.absolute_path));
+    const number = pathNumber(path10.basename(record.absolute_path));
     if (number === void 0) {
       diagnostics.push(
         issue2(
@@ -21683,7 +22438,7 @@ function validateMarkdownStructure(layerRoot, records, graph, diagnostics) {
     }
   }
   for (const [directory, siblings] of byDirectory) {
-    const index = siblings.find((record) => path9.basename(record.absolute_path) === "00-index.md");
+    const index = siblings.find((record) => path10.basename(record.absolute_path) === "00-index.md");
     if (index === void 0) {
       diagnostics.push(
         issue2(
@@ -21696,7 +22451,7 @@ function validateMarkdownStructure(layerRoot, records, graph, diagnostics) {
     }
     const seenNumbers = /* @__PURE__ */ new Map();
     for (const sibling of siblings) {
-      const number = pathNumber(path9.basename(sibling.absolute_path));
+      const number = pathNumber(path10.basename(sibling.absolute_path));
       if (number === void 0) continue;
       const previous = seenNumbers.get(number);
       if (previous !== void 0) {
@@ -21711,21 +22466,21 @@ function validateMarkdownStructure(layerRoot, records, graph, diagnostics) {
         seenNumbers.set(number, sibling.relative_path);
       }
     }
-    const indexTargets = graph.get(path9.resolve(index.absolute_path)) ?? /* @__PURE__ */ new Set();
+    const indexTargets = graph.get(path10.resolve(index.absolute_path)) ?? /* @__PURE__ */ new Set();
     for (const sibling of siblings) {
       if (sibling === index) continue;
-      if (!indexTargets.has(path9.resolve(sibling.absolute_path))) {
+      if (!indexTargets.has(path10.resolve(sibling.absolute_path))) {
         diagnostics.push(
           issue2(
             "index.unlisted-document",
             index.relative_path,
-            `Folder index does not link ${path9.basename(sibling.absolute_path)}.`
+            `Folder index does not link ${path10.basename(sibling.absolute_path)}.`
           )
         );
       }
     }
   }
-  const rootIndex = path9.resolve(layerRoot, "00-index.md");
+  const rootIndex = path10.resolve(layerRoot, "00-index.md");
   const reached = /* @__PURE__ */ new Set();
   const queue = [rootIndex];
   while (queue.length > 0) {
@@ -21735,7 +22490,7 @@ function validateMarkdownStructure(layerRoot, records, graph, diagnostics) {
     queue.push(...graph.get(current) ?? []);
   }
   for (const record of records) {
-    if (!reached.has(path9.resolve(record.absolute_path))) {
+    if (!reached.has(path10.resolve(record.absolute_path))) {
       diagnostics.push(
         issue2(
           "markdown.orphan",
@@ -21835,12 +22590,12 @@ async function validateOwnership(layerRoot, files, markdown, patterns, diagnosti
       );
     }
     if (matches[0] === "generated") {
-      if (!record.contents.includes(GENERATED_MARKER2)) {
+      if (!record.contents.includes(GENERATED_MARKER3)) {
         diagnostics.push(
           issue2(
             "generated.editable",
             file.relative_path,
-            `Generated Markdown must contain ${GENERATED_MARKER2}.`
+            `Generated Markdown must contain ${GENERATED_MARKER3}.`
           )
         );
       }
@@ -21883,8 +22638,8 @@ function assignLoadedYaml(loaded, relativePath, schema4, value) {
   loaded.set(relativePath, { path: relativePath, schema: schema4, value });
 }
 async function validateCanonicalLayer(projectRoot, options = {}) {
-  const resolvedProjectRoot = path9.resolve(projectRoot);
-  const layerRoot = path9.join(resolvedProjectRoot, ".pcp");
+  const resolvedProjectRoot = path10.resolve(projectRoot);
+  const layerRoot = path10.join(resolvedProjectRoot, ".pcp");
   const diagnostics = [];
   try {
     if (!(await stat2(layerRoot)).isDirectory()) {
@@ -21906,7 +22661,7 @@ async function validateCanonicalLayer(projectRoot, options = {}) {
   const schemaRegistry = new SchemaRegistry();
   const loadedYaml = /* @__PURE__ */ new Map();
   const semanticRecords = {
-    agents: [],
+    actors: [],
     events: [],
     checkpoints: []
   };
@@ -21922,7 +22677,7 @@ async function validateCanonicalLayer(projectRoot, options = {}) {
       );
       continue;
     }
-    const contents = await readFile7(file.absolute_path, "utf8");
+    const contents = await readFile8(file.absolute_path, "utf8");
     const document = parseDocument(contents, { prettyErrors: false, uniqueKeys: true });
     if (document.errors.length > 0) {
       for (const error2 of document.errors) {
@@ -21964,7 +22719,7 @@ async function validateCanonicalLayer(projectRoot, options = {}) {
   for (const file of files.filter(
     (item) => item.relative_path.endsWith(".md") && !item.relative_path.startsWith("runtime/")
   )) {
-    const contents = await readFile7(file.absolute_path, "utf8");
+    const contents = await readFile8(file.absolute_path, "utf8");
     try {
       const parsed = parseCanonicalMarkdown(contents);
       const result = schemaRegistry.validate("frontmatter", parsed.frontmatter);
@@ -22020,18 +22775,42 @@ async function validateCanonicalLayer(projectRoot, options = {}) {
   for (const file of files.filter(
     (item) => TEXT_FILE_PATTERN.test(item.relative_path) && !item.relative_path.startsWith("runtime/")
   )) {
-    validateTextSafety(file.relative_path, await readFile7(file.absolute_path, "utf8"), diagnostics);
+    validateTextSafety(file.relative_path, await readFile8(file.absolute_path, "utf8"), diagnostics);
   }
   diagnostics.push(...validateCanonicalSemantics(semanticRecords));
-  if (options.clean_genesis === true) {
-    if (files.some((file) => /^agents\/[^/]+\.yaml$/.test(file.relative_path))) {
+  const continuity = objectValue3(objectValue3(manifest)?.continuity);
+  const activeEventLimit = continuity?.active_event_limit;
+  if (typeof activeEventLimit === "number") {
+    const activeEventCount = files.filter(
+      (file) => /^continuity\/events\/[^/]+\.yaml$/.test(file.relative_path)
+    ).length;
+    if (activeEventCount > activeEventLimit) {
       diagnostics.push(
-        issue2("genesis.agent-profile", "agents", "Clean genesis must contain zero agent profiles.")
+        issue2(
+          "continuity.active-event-limit",
+          "continuity/events",
+          `Active events ${activeEventCount} exceed the configured limit ${activeEventLimit}; archive the oldest batch.`
+        )
       );
     }
-    if (files.some((file) => /^journal\/events\/[^/]+\.yaml$/.test(file.relative_path))) {
+  }
+  if (options.clean_genesis === true) {
+    if (files.some((file) => /^continuity\/actors\/[^/]+\.yaml$/.test(file.relative_path))) {
       diagnostics.push(
-        issue2("genesis.journal-event", "journal/events", "Clean genesis must contain zero events.")
+        issue2(
+          "genesis.actor-profile",
+          "continuity/actors",
+          "Clean genesis must contain zero actor profiles."
+        )
+      );
+    }
+    if (files.some((file) => /^continuity\/(?:events|archive)\/[^/]+\.yaml$/.test(file.relative_path))) {
+      diagnostics.push(
+        issue2(
+          "genesis.event",
+          "continuity",
+          "Clean genesis must contain zero active or archived events."
+        )
       );
     }
   }
@@ -22066,11 +22845,11 @@ var expectedDocuments = /* @__PURE__ */ new Map([
   ["operations/30-decisions.md", { type: "policy", status: "living" }]
 ]);
 function isInside3(root, candidate) {
-  const relative = path10.relative(root, candidate);
-  return relative === "" || !relative.startsWith(`..${path10.sep}`) && relative !== ".." && !path10.isAbsolute(relative);
+  const relative = path11.relative(root, candidate);
+  return relative === "" || !relative.startsWith(`..${path11.sep}`) && relative !== ".." && !path11.isAbsolute(relative);
 }
 function portableBasename(root) {
-  const normalized = path10.basename(root).normalize("NFKD").toLowerCase();
+  const normalized = path11.basename(root).normalize("NFKD").toLowerCase();
   const slug = normalized.replace(/[^a-z0-9]+/gu, "-").replace(/^-+|-+$/gu, "").slice(0, 63);
   return slug || "project";
 }
@@ -22097,10 +22876,10 @@ function questionsFor(inspection) {
     return [
       {
         id: "state-c-coverage",
-        prompt: "Provide complete foreign-context file and history coverage before adoption.",
+        prompt: "Complete every disposition in the emitted foreign-source coverage matrix.",
         reason: "State C translation and destructive removal require semantic dispositions.",
         required: true,
-        response_shape: "file-set"
+        response_shape: "object"
       }
     ];
   }
@@ -22115,11 +22894,11 @@ function questionsFor(inspection) {
       },
       {
         id: "vcs-profile",
-        prompt: "Select none, human-owned, agent-managed, or a complete custom VCS policy.",
-        reason: "PCP cannot infer version-control authority from repository presence.",
+        prompt: "Select recommended human-commit, none, human-owned, agent-managed, or a complete custom VCS policy.",
+        reason: "PCP recommends transparent human commits but cannot infer or enforce version-control authority.",
         required: true,
         response_shape: "enum",
-        options: ["none", "human-owned", "agent-managed", "custom"]
+        options: ["human-commit", "none", "human-owned", "agent-managed", "custom"]
       }
     ];
   }
@@ -22141,11 +22920,11 @@ function questionsFor(inspection) {
     },
     {
       id: "vcs-profile",
-      prompt: "Select none, human-owned, agent-managed, or a complete custom VCS policy.",
-      reason: "PCP cannot infer version-control authority.",
+      prompt: "Select recommended human-commit, none, human-owned, agent-managed, or a complete custom VCS policy.",
+      reason: "PCP recommends transparent human commits but cannot infer or enforce version-control authority.",
       required: true,
       response_shape: "enum",
-      options: ["none", "human-owned", "agent-managed", "custom"]
+      options: ["human-commit", "none", "human-owned", "agent-managed", "custom"]
     }
   ];
   if (inspection.inventory.files.length === 0) {
@@ -22159,8 +22938,8 @@ function questionsFor(inspection) {
   }
   return questions;
 }
-function previewWithoutPlan(root, inspection) {
-  return {
+async function previewWithoutPlan(root, inspection) {
+  const preview = {
     schema_version: ADOPTION_SCHEMA_VERSION,
     command: "adopt",
     candidate: ".",
@@ -22171,13 +22950,20 @@ function previewWithoutPlan(root, inspection) {
     baseline: baselineFor(root, inspection),
     mutated: false
   };
+  if (inspection.state === "C") {
+    const catalog = await discoverForeignCoverage(root, inspection);
+    preview.coverage = catalog.template;
+    preview.coverage_issues = catalog.issues;
+    preview.coverage_status = catalog.issues.length === 0 ? "requires-disposition" : "blocked";
+  }
+  return preview;
 }
 function schemaFailure(diagnostics) {
   const details = diagnostics.slice(0, 8).map((diagnostic2) => `${diagnostic2.path}: ${diagnostic2.message}`).join("; ");
   return new AdoptionError("PCP_ADOPTION_INPUT_INVALID", `Invalid adoption input: ${details}`);
 }
 async function loadAdoptionInput(inputPath, candidateRoot2) {
-  const resolvedInput = path10.resolve(inputPath);
+  const resolvedInput = path11.resolve(inputPath);
   if (isInside3(candidateRoot2, resolvedInput)) {
     throw new AdoptionError(
       "PCP_ADOPTION_INPUT_INSIDE_CANDIDATE",
@@ -22197,7 +22983,7 @@ async function loadAdoptionInput(inputPath, candidateRoot2) {
       "The adoption input must be a regular non-symlink file no larger than 4 MiB."
     );
   }
-  const document = parseDocument(await readFile8(resolvedInput, "utf8"), {
+  const document = parseDocument(await readFile9(resolvedInput, "utf8"), {
     prettyErrors: false,
     strict: true,
     uniqueKeys: true
@@ -22255,10 +23041,10 @@ function validateDocumentSet(input, inspection) {
         `Repository-grounded document has no evidence path: ${document.path}`
       );
     }
-    if (inspection.state === "B" && document.type === "knowledge" && document.basis !== "repository" && document.basis !== "repository-and-user") {
+    if ((inspection.state === "B" || inspection.state === "C") && document.type === "knowledge" && document.basis !== "repository" && document.basis !== "repository-and-user") {
       throw new AdoptionError(
         "PCP_ADOPTION_INPUT_INVALID",
-        `State B knowledge must cite current repository evidence: ${document.path}`
+        `Established-project knowledge must cite current repository evidence: ${document.path}`
       );
     }
     for (const evidencePath of document.evidence_paths) {
@@ -22291,10 +23077,16 @@ function validateProjectInput(input, inspection) {
       "Project context_roots must include .pcp."
     );
   }
-  if (inspection.state === "B" && input.scaffold_files.length > 0) {
+  if (inspection.state !== "C" && input.coverage !== void 0) {
     throw new AdoptionError(
-      "PCP_STATE_B_SCAFFOLD_FORBIDDEN",
-      "State B adoption preserves ordinary project topology and cannot add scaffold files."
+      "PCP_STATE_C_COVERAGE_FORBIDDEN",
+      "Foreign-context coverage belongs only to State C adoption input."
+    );
+  }
+  if ((inspection.state === "B" || inspection.state === "C") && input.scaffold_files.length > 0) {
+    throw new AdoptionError(
+      inspection.state === "B" ? "PCP_STATE_B_SCAFFOLD_FORBIDDEN" : "PCP_STATE_C_SCAFFOLD_FORBIDDEN",
+      `${inspection.state === "B" ? "State B adoption" : "State C translation"} preserves ordinary project topology and cannot add scaffold files.`
     );
   }
   if (inspection.state === "A" && inspection.inventory.files.length === 0 && input.scaffold_files.length === 0) {
@@ -22308,7 +23100,7 @@ function validateProjectInput(input, inspection) {
     throw new AdoptionError("PCP_ADOPTION_INPUT_INVALID", "Scaffold paths must be unique.");
   }
   for (const scaffold of input.scaffold_files) {
-    const normalized = path10.posix.normalize(scaffold.path);
+    const normalized = path11.posix.normalize(scaffold.path);
     if (scaffold.path === "." || normalized !== scaffold.path || scaffold.path.endsWith("/") || scaffold.path.startsWith(".pcp/")) {
       throw new AdoptionError("PCP_ADOPTION_PATH_UNSAFE", `Unsafe scaffold path: ${scaffold.path}`);
     }
@@ -22343,8 +23135,8 @@ ${body}
 }
 async function writeStageFiles(root, files) {
   for (const [relativePath, content] of files) {
-    const target = path10.join(root, ...relativePath.split("/"));
-    await mkdir2(path10.dirname(target), { recursive: true });
+    const target = path11.join(root, ...relativePath.split("/"));
+    await mkdir2(path11.dirname(target), { recursive: true });
     await writeFile3(target, content, { flag: "wx" });
   }
 }
@@ -22352,9 +23144,9 @@ async function collectStageFiles(directory, stageRoot, result) {
   const entries = await readdir3(directory, { withFileTypes: true });
   entries.sort((left, right) => comparePortablePaths(left.name, right.name));
   for (const entry of entries) {
-    const target = path10.join(directory, entry.name);
+    const target = path11.join(directory, entry.name);
     const metadata = await lstat4(target);
-    const relativePath = toPortablePath(path10.relative(stageRoot, target));
+    const relativePath = toPortablePath(path11.relative(stageRoot, target));
     if (metadata.isSymbolicLink()) {
       throw new AdoptionError(
         "PCP_ADOPTION_STAGE_INVALID",
@@ -22364,15 +23156,15 @@ async function collectStageFiles(directory, stageRoot, result) {
     if (metadata.isDirectory()) {
       await collectStageFiles(target, stageRoot, result);
     } else if (metadata.isFile()) {
-      result.set(relativePath, await readFile8(target));
+      result.set(relativePath, await readFile9(target));
     }
   }
 }
 function yamlBuffer(value) {
   return Buffer.from(stringify3(value, { lineWidth: 0, sortMapEntries: true }), "utf8");
 }
-async function stageCanonicalLayer(input) {
-  const stageRoot = await mkdtemp2(path10.join(tmpdir2(), "pcp-adoption-preview-"));
+async function stageCanonicalLayer(input, adapters = []) {
+  const stageRoot = await mkdtemp2(path11.join(tmpdir2(), "pcp-adoption-preview-"));
   try {
     const template = new Map(await loadCoreTemplateFiles());
     const manifestPath = ".pcp/pcp.yaml";
@@ -22382,6 +23174,7 @@ async function stageCanonicalLayer(input) {
     }
     const manifest = parse(manifestBytes.toString("utf8"));
     manifest.persistence = input.persistence;
+    manifest.adapter_ids = adapters.map((adapter) => adapter.manifest.adapter_id);
     template.set(manifestPath, yamlBuffer(manifest));
     template.set(".pcp/state/project.yaml", yamlBuffer(input.project));
     template.set(".pcp/state/projects.yaml", yamlBuffer(input.projects));
@@ -22406,7 +23199,16 @@ async function stageCanonicalLayer(input) {
       );
     }
     const result = /* @__PURE__ */ new Map();
-    await collectStageFiles(path10.join(stageRoot, ".pcp"), stageRoot, result);
+    await collectStageFiles(path11.join(stageRoot, ".pcp"), stageRoot, result);
+    for (const adapter of adapters) {
+      if (result.has(adapter.manifest.target_path)) {
+        throw new AdoptionError(
+          "PCP_ADAPTER_RENDER_INVALID",
+          `Generated adapter target collides with canonical staged content: ${adapter.manifest.target_path}`
+        );
+      }
+      result.set(adapter.manifest.target_path, adapter.content);
+    }
     return result;
   } finally {
     await rm2(stageRoot, { recursive: true, force: true });
@@ -22414,23 +23216,26 @@ async function stageCanonicalLayer(input) {
 }
 function parentDirectories(relativePath) {
   const result = [];
-  let parent = path10.posix.dirname(relativePath);
+  let parent = path11.posix.dirname(relativePath);
   while (parent !== ".") {
     result.push(parent);
-    parent = path10.posix.dirname(parent);
+    parent = path11.posix.dirname(parent);
   }
   return result;
 }
 function pathDepth(value) {
   return value.split("/").length;
 }
-async function assertNoTargetCollisions(root, content, inspection, persistence) {
+async function assertContentTargetsSafe(root, content, inspection, persistence, replaceablePaths = /* @__PURE__ */ new Set()) {
   const files = new Set(inspection.inventory.files.map((file) => file.path));
   const directories = new Set(inspection.inventory.directories);
   const symlinks = inspection.inventory.symlinks.map((link) => link.path);
   const existingPathKeys = /* @__PURE__ */ new Map();
   for (const existing of [...files, ...directories, ...symlinks]) {
-    existingPathKeys.set(portableCollisionKey(existing), existing);
+    const key = portableCollisionKey(existing);
+    const equivalents = existingPathKeys.get(key) ?? [];
+    equivalents.push(existing);
+    existingPathKeys.set(key, equivalents);
   }
   const desiredPaths = /* @__PURE__ */ new Set();
   for (const target of content.keys()) {
@@ -22449,19 +23254,20 @@ async function assertNoTargetCollisions(root, content, inspection, persistence) 
       );
     }
     desiredPathKeys.set(desiredKey, desired);
-    const existingEquivalent = existingPathKeys.get(desiredKey);
-    if (existingEquivalent !== void 0 && existingEquivalent !== desired) {
+    const existingEquivalents = existingPathKeys.get(desiredKey) ?? [];
+    const conflictingExisting = existingEquivalents.find((existing) => existing !== desired);
+    if (conflictingExisting !== void 0) {
       throw new AdoptionError(
         "PCP_ADOPTION_PATH_COLLISION",
-        `Planned path collides with existing path ${existingEquivalent}: ${desired}`
+        `Planned path collides with existing path ${conflictingExisting}: ${desired}`
       );
     }
   }
   for (const target of content.keys()) {
-    if (files.has(target) || directories.has(target) || symlinks.includes(target)) {
+    if (files.has(target) && !replaceablePaths.has(target) || directories.has(target) || symlinks.includes(target)) {
       throw new AdoptionError(
         "PCP_ADOPTION_PATH_COLLISION",
-        `Planned target already exists: ${target}`
+        `Planned target already exists and is not an approved file replacement: ${target}`
       );
     }
     const staticExclusion = mutationPathExclusion(target);
@@ -22502,7 +23308,7 @@ async function assertNoTargetCollisions(root, content, inspection, persistence) 
       }
     }
     for (const parent of parentDirectories(target)) {
-      if (files.has(parent) || symlinks.includes(parent)) {
+      if (files.has(parent) && !replaceablePaths.has(parent) || symlinks.includes(parent)) {
         throw new AdoptionError(
           "PCP_ADOPTION_PATH_COLLISION",
           `Planned target has a non-directory ancestor: ${target}`
@@ -22510,6 +23316,213 @@ async function assertNoTargetCollisions(root, content, inspection, persistence) 
       }
     }
   }
+}
+function normalizedCoverageDigest(coverage) {
+  const normalized = {
+    ...coverage,
+    records: coverage.records.map((record) => ({
+      ...record,
+      targets: [...record.targets].sort(comparePortablePaths),
+      evidence: [...record.evidence].sort(comparePortablePaths)
+    })).sort((left, right) => comparePortablePaths(left.source_id, right.source_id))
+  };
+  return sha256(canonicalJson(normalized));
+}
+function stateCRemovalPaths(input) {
+  if (input.coverage === void 0) return /* @__PURE__ */ new Set();
+  return new Set(
+    input.coverage.records.filter(
+      (record) => (record.source_kind === "file" || record.source_kind === "adapter") && record.disposition !== "project-owned"
+    ).map((record) => record.source_path)
+  );
+}
+function buildStateCOperations(content, inspection, removalPaths) {
+  const filesByPath = new Map(inspection.inventory.files.map((file) => [file.path, file]));
+  const existingDirectories = new Set(inspection.inventory.directories);
+  const contentPaths = [...content.keys()];
+  const preWriteRemovalPaths = [...removalPaths].filter(
+    (removalPath) => !content.has(removalPath) && contentPaths.some((target) => target.startsWith(`${removalPath}/`))
+  ).sort(comparePortablePaths);
+  const preWriteRemovals = preWriteRemovalPaths.map((removalPath) => {
+    const source = filesByPath.get(removalPath);
+    if (source === void 0) {
+      throw new AdoptionError(
+        "PCP_STATE_C_COVERAGE_INVALID",
+        `Reviewed foreign file is missing from the current inventory: ${removalPath}`
+      );
+    }
+    return {
+      action: "remove",
+      path: removalPath,
+      preimage_digest: source.sha256
+    };
+  });
+  const requiredDirectories = /* @__PURE__ */ new Set();
+  for (const target of contentPaths) {
+    for (const directory of parentDirectories(target)) {
+      if (!existingDirectories.has(directory)) requiredDirectories.add(directory);
+    }
+  }
+  const directoryOperations = [...requiredDirectories].sort((left, right) => pathDepth(left) - pathDepth(right) || comparePortablePaths(left, right)).map((directory) => ({ action: "mkdir", path: directory }));
+  const contentOperations = [...content.entries()].sort(([left], [right]) => comparePortablePaths(left, right)).map(([target, bytes]) => {
+    const existing = filesByPath.get(target);
+    return existing === void 0 ? { action: "write", path: target, content_digest: sha256(bytes) } : {
+      action: "replace",
+      path: target,
+      content_digest: sha256(bytes),
+      preimage_digest: existing.sha256
+    };
+  });
+  const earlyRemovalSet = new Set(preWriteRemovalPaths);
+  const postWriteRemovals = [...removalPaths].filter((removalPath) => !content.has(removalPath) && !earlyRemovalSet.has(removalPath)).sort(comparePortablePaths).map((removalPath) => {
+    const source = filesByPath.get(removalPath);
+    if (source === void 0) {
+      throw new AdoptionError(
+        "PCP_STATE_C_COVERAGE_INVALID",
+        `Reviewed foreign file is missing from the current inventory: ${removalPath}`
+      );
+    }
+    return {
+      action: "remove",
+      path: removalPath,
+      preimage_digest: source.sha256
+    };
+  });
+  return [...preWriteRemovals, ...directoryOperations, ...contentOperations, ...postWriteRemovals];
+}
+function stateCCoverageFailure(diagnostics) {
+  const details = diagnostics.slice(0, 8).map((diagnostic2) => `${diagnostic2.code} ${diagnostic2.path}: ${diagnostic2.message}`).join("; ");
+  return new AdoptionError(
+    "PCP_STATE_C_COVERAGE_INVALID",
+    `State C coverage is not ready: ${details}`
+  );
+}
+function assertSupportedStateCAdapters(input) {
+  if (input.coverage === void 0) return;
+  const unsupported = input.coverage.records.filter(
+    (record) => record.source_kind === "adapter" && supportedAdapterForSourcePath(record.source_path) === void 0
+  ).map((record) => record.source_path).sort(comparePortablePaths);
+  if (unsupported.length === 0) return;
+  const examples = unsupported.slice(0, 8).join(", ");
+  throw new AdoptionError(
+    "PCP_STATE_C_ADAPTER_UNSUPPORTED",
+    `State C contains adapter surfaces without a verified PCP replacement: ${examples}. Preserve the candidate and add an explicit adapter implementation before translation.`
+  );
+}
+function assertGeneratedPlatformAdapters(adapters) {
+  const registry = new SchemaRegistry();
+  const ids = /* @__PURE__ */ new Set();
+  const targets = /* @__PURE__ */ new Set();
+  for (const adapter of adapters) {
+    const validation = registry.validate("adapter", adapter.manifest);
+    if (!validation.valid) {
+      throw new AdoptionError(
+        "PCP_ADAPTER_RENDER_INVALID",
+        `Generated adapter ${adapter.manifest.adapter_id} is invalid: ${validation.diagnostics.slice(0, 8).map((diagnostic2) => `${diagnostic2.path}: ${diagnostic2.message}`).join("; ")}`
+      );
+    }
+    if (adapter.manifest.content_digest !== sha256(adapter.content)) {
+      throw new AdoptionError(
+        "PCP_ADAPTER_RENDER_INVALID",
+        `Generated adapter digest is stale: ${adapter.manifest.adapter_id}`
+      );
+    }
+    if (ids.has(adapter.manifest.adapter_id) || targets.has(adapter.manifest.target_path)) {
+      throw new AdoptionError(
+        "PCP_ADAPTER_RENDER_INVALID",
+        `Generated adapter ID or target appears more than once: ${adapter.manifest.adapter_id}`
+      );
+    }
+    ids.add(adapter.manifest.adapter_id);
+    targets.add(adapter.manifest.target_path);
+  }
+}
+function validateStateCCoverageTargets(input, content) {
+  if (input.coverage === void 0) return;
+  const diagnostics = [];
+  for (const [recordIndex, record] of input.coverage.records.entries()) {
+    for (const [targetIndex, target] of record.targets.entries()) {
+      if (!target.startsWith(".pcp/") || !content.has(target)) {
+        diagnostics.push({
+          code: "coverage-target-missing",
+          path: `/coverage/records/${recordIndex}/targets/${targetIndex}`,
+          message: `Coverage target is not a staged canonical file: ${target}`
+        });
+      }
+    }
+  }
+  if (diagnostics.length > 0) throw stateCCoverageFailure(diagnostics);
+}
+async function buildStateCTranslationPlan(root, inspection, input) {
+  if (inspection.state !== "C") {
+    throw new AdoptionError(
+      "PCP_ADOPTION_STATE_UNSUPPORTED",
+      `State C coverage review requires a State C candidate, not ${inspection.state}.`
+    );
+  }
+  if (input.coverage === void 0) {
+    throw new AdoptionError(
+      "PCP_STATE_C_COVERAGE_REQUIRED",
+      "State C adoption input must include the completed coverage matrix emitted for this candidate."
+    );
+  }
+  validateDocumentSet(input, inspection);
+  validateProjectInput(input, inspection);
+  if (input.persistence === "local" && !await isMutationDirectoryIgnored(root, ".pcp")) {
+    throw new AdoptionError(
+      "PCP_LOCAL_PERSISTENCE_NOT_IGNORED",
+      "Local persistence requires candidate ignore policy to cover the complete .pcp/ layer before adoption."
+    );
+  }
+  const catalog = await discoverForeignCoverage(root, inspection);
+  const validation = validateForeignCoverage(catalog, input.coverage);
+  if (!validation.valid) throw stateCCoverageFailure(validation.diagnostics);
+  assertSupportedStateCAdapters(input);
+  const adapters = renderPlatformAdapters();
+  assertGeneratedPlatformAdapters(adapters);
+  const content = await stageCanonicalLayer(input, adapters);
+  validateStateCCoverageTargets(input, content);
+  const removalPaths = stateCRemovalPaths(input);
+  await assertContentTargetsSafe(root, content, inspection, input.persistence, removalPaths);
+  const plan = createMutationPlan({
+    classification: "C",
+    coverageDigest: normalizedCoverageDigest(input.coverage),
+    inventory: inspection.inventory,
+    generatedAt: input.baseline_at,
+    operations: buildStateCOperations(content, inspection, removalPaths),
+    validations: [
+      "candidate-inventory",
+      "canonical-layer",
+      "clean-genesis",
+      "coverage",
+      "desired-hashes",
+      "foreign-removals",
+      "path-boundaries",
+      "platform-adapters",
+      "preimages",
+      "rollback",
+      "semantic-input"
+    ]
+  });
+  const planValidation = new SchemaRegistry().validate("mutation-plan", plan);
+  if (!planValidation.valid) throw schemaFailure(planValidation.diagnostics);
+  const preview = {
+    schema_version: ADOPTION_SCHEMA_VERSION,
+    command: "adopt",
+    candidate: ".",
+    classification: "C",
+    confidence: inspection.confidence,
+    applicable: true,
+    questions: [],
+    baseline: baselineFor(root, inspection),
+    coverage: input.coverage,
+    coverage_issues: [],
+    coverage_status: "complete",
+    adapters: adapters.map((adapter) => adapter.manifest),
+    plan,
+    mutated: false
+  };
+  return { inspection, input, preview, content_by_path: content };
 }
 async function buildPlanMaterial(root, inspection, input) {
   if (inspection.state !== "A" && inspection.state !== "B") {
@@ -22530,7 +23543,7 @@ async function buildPlanMaterial(root, inspection, input) {
   for (const scaffold of input.scaffold_files) {
     content.set(scaffold.path, Buffer.from(normalizeText(scaffold.content), "utf8"));
   }
-  await assertNoTargetCollisions(root, content, inspection, input.persistence);
+  await assertContentTargetsSafe(root, content, inspection, input.persistence);
   const existingDirectories = new Set(inspection.inventory.directories);
   const requiredDirectories = /* @__PURE__ */ new Set();
   for (const target of content.keys()) {
@@ -22578,14 +23591,163 @@ async function buildPlanMaterial(root, inspection, input) {
 async function planAdoption(candidate = ".", inputPath) {
   const root = await resolveCandidateRoot(candidate);
   const inspection = await inspectRepository(root);
-  if (inputPath === void 0 || inspection.state === "managed" || inspection.state === "C") {
+  if (inputPath === void 0 || inspection.state === "managed") {
     return previewWithoutPlan(root, inspection);
   }
   const input = await loadAdoptionInput(inputPath, root);
+  if (inspection.state === "C") return buildStateCTranslationPlan(root, inspection, input);
   return buildPlanMaterial(root, inspection, input);
 }
 function isPlanMaterial(value) {
   return "content_by_path" in value;
+}
+
+// src/application/validate-platform-adapters.ts
+import { lstat as lstat5, readFile as readFile10 } from "node:fs/promises";
+import path12 from "node:path";
+function isInside4(root, candidate) {
+  const relative = path12.relative(root, candidate);
+  return relative === "" || !relative.startsWith(`..${path12.sep}`) && relative !== ".." && !path12.isAbsolute(relative);
+}
+function absoluteTarget(root, portablePath) {
+  const normalized = path12.posix.normalize(portablePath);
+  if (portablePath === "." || normalized !== portablePath || portablePath.startsWith("/") || portablePath.includes("\\")) {
+    return void 0;
+  }
+  const target = path12.resolve(root, ...portablePath.split("/"));
+  return isInside4(root, target) && target !== path12.resolve(root) ? target : void 0;
+}
+function compareDiagnostics2(left, right) {
+  return comparePortablePaths(left.path, right.path) || comparePortablePaths(left.code, right.code);
+}
+async function validateRegularFile(root, portablePath, code2, diagnostics) {
+  const target = absoluteTarget(root, portablePath);
+  if (target === void 0) {
+    diagnostics.push({ code: `${code2}.path`, path: portablePath, message: "Path escapes root." });
+    return void 0;
+  }
+  try {
+    const metadata = await lstat5(target);
+    if (!metadata.isFile() || metadata.isSymbolicLink()) {
+      diagnostics.push({
+        code: `${code2}.type`,
+        path: portablePath,
+        message: "Expected a regular file with no symbolic-link boundary."
+      });
+      return void 0;
+    }
+    return await readFile10(target);
+  } catch (error2) {
+    diagnostics.push({
+      code: `${code2}.read`,
+      path: portablePath,
+      message: error2 instanceof Error ? error2.message : String(error2)
+    });
+    return void 0;
+  }
+}
+async function validatePlatformAdapters(root, adapters) {
+  const diagnostics = [];
+  const registry = new SchemaRegistry();
+  const ids = /* @__PURE__ */ new Set();
+  const targets = /* @__PURE__ */ new Set();
+  if (canonicalJson(adapters.map((adapter) => adapter.adapter_id)) !== canonicalJson(SUPPORTED_ADAPTER_IDS)) {
+    diagnostics.push({
+      code: "adapter.set",
+      path: ".pcp/pcp.yaml",
+      message: "Adapter manifests do not match the complete ordered platform contract."
+    });
+  }
+  for (const adapter of adapters) {
+    const schema4 = registry.validate("adapter", adapter);
+    diagnostics.push(
+      ...schema4.diagnostics.map((item) => ({
+        code: `adapter.schema.${item.keyword}`,
+        path: `${adapter.adapter_id}${item.path}`,
+        message: item.message
+      }))
+    );
+    if (ids.has(adapter.adapter_id)) {
+      diagnostics.push({
+        code: "adapter.id-duplicate",
+        path: adapter.adapter_id,
+        message: "Adapter ID appears more than once."
+      });
+    }
+    if (targets.has(adapter.target_path)) {
+      diagnostics.push({
+        code: "adapter.target-duplicate",
+        path: adapter.target_path,
+        message: "Adapter target appears more than once."
+      });
+    }
+    ids.add(adapter.adapter_id);
+    targets.add(adapter.target_path);
+    const bytes = await validateRegularFile(
+      root,
+      adapter.target_path,
+      "adapter.target",
+      diagnostics
+    );
+    if (bytes !== void 0 && sha256(bytes) !== adapter.content_digest) {
+      diagnostics.push({
+        code: "adapter.digest",
+        path: adapter.target_path,
+        message: "Adapter content does not match its generated digest."
+      });
+    }
+    for (const source of adapter.source_paths) {
+      await validateRegularFile(root, source, "adapter.source", diagnostics);
+    }
+  }
+  const manifestBytes = await validateRegularFile(
+    root,
+    ".pcp/pcp.yaml",
+    "adapter.manifest",
+    diagnostics
+  );
+  if (manifestBytes !== void 0) {
+    const document = parseDocument(manifestBytes.toString("utf8"), {
+      prettyErrors: false,
+      strict: true,
+      uniqueKeys: true
+    });
+    if (document.errors.length > 0) {
+      diagnostics.push({
+        code: "adapter.manifest.parse",
+        path: ".pcp/pcp.yaml",
+        message: document.errors.map((error2) => error2.message).join("; ")
+      });
+    } else {
+      let value;
+      try {
+        value = document.toJS({ mapAsMap: false, maxAliasCount: 50 });
+      } catch (error2) {
+        diagnostics.push({
+          code: "adapter.manifest.decode",
+          path: ".pcp/pcp.yaml",
+          message: error2 instanceof Error ? error2.message : String(error2)
+        });
+      }
+      if (value !== void 0) {
+        const adapterIds = typeof value === "object" && value !== null && !Array.isArray(value) ? value.adapter_ids : void 0;
+        const expected = adapters.map((adapter) => adapter.adapter_id);
+        if (canonicalJson(adapterIds) !== canonicalJson(expected)) {
+          diagnostics.push({
+            code: "adapter.manifest.ids",
+            path: ".pcp/pcp.yaml",
+            message: "Manifest adapter_ids do not match the generated adapter set."
+          });
+        }
+      }
+    }
+  }
+  diagnostics.sort(compareDiagnostics2);
+  return {
+    valid: diagnostics.length === 0,
+    checked_adapters: adapters.length,
+    diagnostics
+  };
 }
 
 // src/application/adopt-project.ts
@@ -22601,29 +23763,64 @@ function comparableInventory(inventory) {
     nested_repositories: inventory.nestedRepositories
   };
 }
-async function verifyAdoptionSourceStability(root, original, plan) {
-  if (plan.operations.some(
-    (operation) => operation.action !== "mkdir" && operation.action !== "write"
-  )) {
+async function verifyAdoptionSourceStability(root, original, plan, contentByPath, persistence) {
+  const allowedActions = plan.classification === "C" ? /* @__PURE__ */ new Set(["mkdir", "write", "replace", "remove"]) : /* @__PURE__ */ new Set(["mkdir", "write"]);
+  if (plan.operations.some((operation) => !allowedActions.has(operation.action))) {
     throw new AdoptionError(
       "PCP_ADOPTION_PLAN_UNSAFE",
-      "State A/B adoption may contain only new-directory and new-file operations.",
+      plan.classification === "C" ? "State C adoption may contain only directory creation, file creation, approved replacement, and approved removal operations." : "State A/B adoption may contain only new-directory and new-file operations.",
       true
     );
   }
-  const createdDirectories = new Set(
-    plan.operations.filter((operation) => operation.action === "mkdir").map((operation) => operation.path)
+  const expectedDirectories = new Set(original.directories);
+  const expectedFiles = new Map(
+    original.files.map((file) => [file.path, { ...file }])
   );
-  const createdFiles = new Set(
-    plan.operations.filter((operation) => operation.action === "write").map((operation) => operation.path)
-  );
-  const current = await inventoryRepository(root);
-  const withoutAdoption = {
-    ...current,
-    directories: current.directories.filter((item) => !createdDirectories.has(item)),
-    files: current.files.filter((item) => !createdFiles.has(item.path))
+  const hiddenByLocalPersistence = (candidatePath) => persistence === "local" && (candidatePath === ".pcp" || candidatePath.startsWith(".pcp/"));
+  for (const operation of plan.operations) {
+    if (hiddenByLocalPersistence(operation.path)) continue;
+    switch (operation.action) {
+      case "mkdir":
+        expectedDirectories.add(operation.path);
+        break;
+      case "write":
+      case "replace": {
+        const content = contentByPath.get(operation.path);
+        if (content === void 0 || operation.content_digest === void 0) {
+          throw new AdoptionError(
+            "PCP_ADOPTION_PLAN_CONTENT_MISMATCH",
+            `The approved operation is missing expected content: ${operation.path}`,
+            true
+          );
+        }
+        expectedFiles.set(operation.path, {
+          path: operation.path,
+          size: content.length,
+          sha256: operation.content_digest
+        });
+        break;
+      }
+      case "remove":
+        expectedFiles.delete(operation.path);
+        break;
+      case "move":
+        throw new AdoptionError(
+          "PCP_ADOPTION_PLAN_UNSAFE",
+          "Move operations are not enabled for adoption source-stability checks.",
+          true
+        );
+    }
+  }
+  const expected = {
+    directories: [...expectedDirectories].sort(comparePortablePaths),
+    files: [...expectedFiles.values()].sort(
+      (left, right) => comparePortablePaths(left.path, right.path)
+    ),
+    symlinks: original.symlinks,
+    nested_repositories: original.nestedRepositories
   };
-  if (canonicalJson(comparableInventory(withoutAdoption)) !== canonicalJson(comparableInventory(original))) {
+  const current = await inventoryRepository(root);
+  if (canonicalJson(comparableInventory(current)) !== canonicalJson(expected)) {
     throw new AdoptionError(
       "PCP_SOURCE_CHANGED",
       "Candidate-owned source changed while the adoption transaction was running.",
@@ -22643,7 +23840,7 @@ async function adoptProject(candidate = ".", options = {}) {
     if (options.apply !== void 0) {
       throw new AdoptionError(
         "PCP_ADOPTION_NOT_APPLICABLE",
-        `The ${planned.classification} candidate is not ready for an applicable State A/B plan.`
+        `The ${planned.classification} candidate is not ready for an applicable adoption plan.`
       );
     }
     return planned;
@@ -22663,7 +23860,13 @@ async function adoptProject(candidate = ".", options = {}) {
     planned.content_by_path,
     {
       ...options.fail_after_operation === void 0 ? {} : { fail_after_operation: options.fail_after_operation },
-      verify_source_stability: async () => verifyAdoptionSourceStability(root, planned.inspection.inventory, planned.preview.plan),
+      verify_source_stability: async () => verifyAdoptionSourceStability(
+        root,
+        planned.inspection.inventory,
+        planned.preview.plan,
+        planned.content_by_path,
+        planned.input.persistence
+      ),
       validate_live: async () => {
         const validation = await validateCanonicalLayer(root, { clean_genesis: true });
         if (!validation.valid) {
@@ -22674,6 +23877,34 @@ async function adoptProject(candidate = ".", options = {}) {
           );
         }
         checkedFiles = validation.checked_files;
+        if (planned.preview.classification === "C") {
+          const adapters = planned.preview.adapters ?? [];
+          if (adapters.length === 0) {
+            throw new AdoptionError(
+              "PCP_ADOPTION_LIVE_INVALID",
+              "State C apply did not retain its generated platform-adapter contract.",
+              true
+            );
+          }
+          const adapterValidation = await validatePlatformAdapters(root, adapters);
+          if (!adapterValidation.valid) {
+            throw new AdoptionError(
+              "PCP_ADOPTION_LIVE_INVALID",
+              `Applied platform adapters failed validation: ${adapterValidation.diagnostics.slice(0, 8).map((item) => `${item.path}: ${item.message}`).join("; ")}`,
+              true
+            );
+          }
+          if (planned.input.persistence === "tracked") {
+            const finalInspection = await inspectRepository(root);
+            if (finalInspection.state !== "managed") {
+              throw new AdoptionError(
+                "PCP_ADOPTION_LIVE_INVALID",
+                `Applied tracked project classified as ${finalInspection.state}, not managed.`,
+                true
+              );
+            }
+          }
+        }
       }
     }
   );
@@ -22685,7 +23916,7 @@ async function adoptProject(candidate = ".", options = {}) {
     plan_digest: planned.preview.plan.plan_digest,
     applied_operations: transaction.applied_operations,
     validation: { valid: true, checked_files: checkedFiles },
-    clean_genesis: { agent_profiles: 0, journal_events: 0 },
+    clean_genesis: { actor_profiles: 0, active_events: 0, archived_events: 0 },
     recovery_cleaned: transaction.recovery_cleaned,
     mutated: true
   };
@@ -22694,7 +23925,7 @@ async function adoptProject(candidate = ".", options = {}) {
 // src/domain/release.ts
 var PCP_NAME = "Persistent Context Protocol";
 var PCP_VERSION = "0.1.0";
-var PCP_RELEASE_STAGE = "state-a-b-adoption";
+var PCP_RELEASE_STAGE = "state-c-translation-preview";
 var PCP_COMMANDS = [
   "inspect",
   "adopt",
@@ -22720,7 +23951,7 @@ function formatAdoption(result) {
     output += line(`Plan digest: ${result.plan_digest}`);
     output += line(`Applied operations: ${result.applied_operations}`);
     output += line(`Validated canonical files: ${result.validation.checked_files}`);
-    output += line("Clean genesis: 0 agent profiles, 0 journal events");
+    output += line("Clean genesis: 0 actor profiles, 0 active events, 0 archived events");
     output += line("Recovery material: cleaned");
     output += line("Mutation: applied");
     return output;
@@ -22741,8 +23972,30 @@ function formatAdoption(result) {
       if (question.when !== void 0) output += line(`  when: ${question.when}`);
     }
   }
+  if (result.coverage !== void 0) {
+    output += line(`Foreign coverage records: ${result.coverage.records.length}`);
+    output += line(`Unresolved coverage records: ${result.coverage.unresolved_count}`);
+  }
+  if (result.coverage_status !== void 0) {
+    output += line(`Coverage review: ${result.coverage_status}`);
+  }
+  if (result.adapters !== void 0) {
+    output += line("Generated platform adapters:");
+    for (const adapter of result.adapters) {
+      output += line(`- ${adapter.adapter_id}: ${adapter.target_path}`);
+    }
+  }
+  if (result.coverage_issues !== void 0 && result.coverage_issues.length > 0) {
+    output += line("Blocking foreign-source issues:");
+    for (const issue3 of result.coverage_issues) {
+      output += line(`- ${issue3.code} ${issue3.path}: ${issue3.message}`);
+    }
+  }
   if (result.plan !== void 0) {
     output += line(`Plan digest: ${result.plan.plan_digest}`);
+    if (result.plan.coverage_digest !== void 0) {
+      output += line(`Coverage digest: ${result.plan.coverage_digest}`);
+    }
     output += line("Operations:");
     for (const operation of result.plan.operations) {
       const digest = operation.content_digest === void 0 ? "" : ` sha256:${operation.content_digest}`;
@@ -22831,9 +24084,9 @@ function formatInspection(result) {
 var commandDescriptions = {
   inspect: "Inspect and classify a candidate project without mutation",
   adopt: "Preview or apply adoption into the canonical .pcp layer",
-  register: "Create or recover a stable project agent identity",
+  register: "Create or recover a stable project actor identity",
   status: "Report project state and scoped reconciliation changes",
-  record: "Append one meaningful immutable journal event",
+  record: "Append one meaningful immutable continuity event",
   validate: "Validate an installed PCP layer and its projections",
   render: "Render generated canonical views",
   workstream: "Create, update, validate, or complete a workstream",
@@ -22900,7 +24153,7 @@ function addAdoptCommand(program2) {
   });
 }
 function addValidateCommand(program2) {
-  return program2.command("validate").description(commandDescriptions.validate).argument("[directory]", "managed project root", ".").option("--clean-genesis", "require zero agent profiles and zero journal events").option("--json", "emit stable structured JSON").action(async (directory, options) => {
+  return program2.command("validate").description(commandDescriptions.validate).argument("[directory]", "managed project root", ".").option("--clean-genesis", "require zero actor profiles and zero active or archived events").option("--json", "emit stable structured JSON").action(async (directory, options) => {
     try {
       const report = await validateCanonicalLayer(directory, {
         clean_genesis: options.cleanGenesis === true

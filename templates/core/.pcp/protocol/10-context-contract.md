@@ -3,7 +3,7 @@ doc: protocol/10-context-contract.md
 type: protocol
 status: static
 version: 1.0.0
-last_updated: 2026-07-12T13:10:00Z
+last_updated: 2026-07-14T07:20:00Z
 ownership: protocol
 ---
 
@@ -28,7 +28,7 @@ ownership: protocol
 ## Clean genesis
 
 - Adoption builds a complete current-state baseline, not a synthetic project history.
-- The initial `agents/` folder has no profile records.
-- The initial `journal/events/` folder has no event records.
+- The initial `continuity/actors/` folder has no profile records.
+- The initial `continuity/events/` and `continuity/archive/` folders have no event records.
 - Foreign histories and identities are never copied into the clean PCP baseline.
-- The first meaningful post-adoption durable change becomes the first journal event.
+- The first meaningful post-adoption durable change becomes the first continuity event.

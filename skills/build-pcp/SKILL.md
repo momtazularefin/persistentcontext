@@ -1,6 +1,6 @@
 ---
 name: build-pcp
-description: Adopt and maintain Persistent Context Protocol (PCP) in seed, established, or foreign-context-layer projects. Use when an agent needs to inspect or classify a repository for PCP, preview or apply adoption, migrate an existing AI/agent memory layer, register or reconcile agents, validate or render .pcp state, record a meaningful change, manage workstreams or CEBs, repair drift, or upgrade PCP.
+description: Adopt and maintain Persistent Context Protocol (PCP) in seed, established, or foreign-context-layer projects. Use when an agent needs to inspect or classify a repository for PCP, preview or apply adoption, migrate an existing AI/agent memory layer, register or reconcile project actors, validate or render .pcp state, record a meaningful change, manage workstreams or CEBs, repair drift, or upgrade PCP.
 ---
 
 # Build PCP
@@ -46,7 +46,7 @@ Never delete foreign context while any file, history entry, collision, or confli
 
 ## Fail closed during development
 
-`inspect`, State A/B `adopt`, `validate`, and `render` are available. Adoption is preview-only unless the exact recomputed plan digest is supplied with the same external semantic input; `render` may replace only the declared generated status view. State C translation and the remaining lifecycle commands still return `PCP_OPERATION_UNAVAILABLE` or a non-applicable preview. Do not simulate an unavailable operation or mutate the target around the engine.
+`inspect`, State A/B/C `adopt`, `validate`, and `render` are available. Adoption is preview-only unless the exact recomputed plan digest is supplied with the same external semantic input; `render` may replace only the declared generated status view. State C becomes applicable only after complete coverage review and emits a coverage-bound operation plan with deterministic adapters for the five declared platform targets. Apply must run through the engine so its lock, preimages, live validation, and exact rollback remain effective. An unimplemented adapter surface blocks the plan. The remaining lifecycle commands return `PCP_OPERATION_UNAVAILABLE`. Do not simulate an unavailable operation or mutate the target around the engine.
 
 ## Report evidence
 

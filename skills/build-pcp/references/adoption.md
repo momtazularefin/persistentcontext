@@ -45,7 +45,8 @@ Create a temporary YAML or JSON document outside the candidate that validates ag
 - exactly the five canonical knowledge documents and three operations documents named by the schema;
 - each document's canonical type/status, evidence basis, cited candidate-relative paths, and grounded Markdown body;
 - State A scaffold files only when they are explicitly appropriate; an empty State A target requires at least one;
-- an empty `scaffold_files` array for State B.
+- an empty `scaffold_files` array for State B;
+- for State C, an empty `scaffold_files` array plus the completed coverage matrix emitted for the current candidate inventory.
 
 Use `tracked` unless the candidate's existing ignore policy already covers the complete `.pcp/` layer. The engine rejects a `local` persistence claim that is not actually ignored and rejects tracked adoption into an ignored canonical path.
 
@@ -53,7 +54,7 @@ Use `repository` or `repository-and-user` only with cited paths from the engine 
 
 For State A software, resolve the actual language, runtime, package manager, license, and deployment choice before encoding any related scaffold. For non-software work, create only the structure appropriate to its real project type.
 
-## Preview and apply State A or B
+## Preview and apply
 
 Generate the normalized, non-mutating plan with the completed external input:
 
@@ -74,9 +75,12 @@ The engine fully recomputes the plan, rejects source drift, acquires a project l
 - Perform State B exploration against the real project first.
 - Discover foreign context by semantics, not directory name.
 - Translate useful current facts, decisions, rationale, rules, projects, and workstreams.
-- Do not import agent profiles, synchronization cursors, or historical events.
-- Require complete file and history coverage before preview can become applicable.
+- Do not import actor profiles, synchronization cursors, or historical events.
+- Require complete file and history coverage before planning any foreign removal.
+- Mark an ordinary file `project-owned` only when cautious directory expansion found it beside foreign context; leave it unchanged and give it no canonical target.
+
+Run `adopt` without input to obtain the transient matrix, then include the completed matrix as `coverage` in the external State C semantic input. A successful review reports `coverage_status: complete` and emits an applicable normalized plan whose digest binds coverage, canonical writes, generated platform adapters, preimages, and removals. Review every adapter `write`, `replace`, and legacy removal. PCP plans the replacement before removing a supported scoped convention and blocks any adapter surface outside the implemented five-product contract. Apply only the approved digest through the engine using the command above. Do not reproduce the plan with manual file operations: the engine must recheck the inventory, validate the live canonical layer and adapters, and restore exact preimages on failure.
 
 ## Clean genesis
 
-Every successful adoption has zero event records and zero agent-profile records. Adoption, installation, migration, and registration do not create events. The first meaningful later change becomes event one.
+Every successful adoption has zero actor profiles, zero active events, and zero archived events. Adoption, installation, migration, and registration do not create events. The first meaningful later change becomes the first continuity event; its ULID provides ordering without a shared sequential counter.

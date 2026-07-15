@@ -25,6 +25,7 @@ valid:
   vcs_policy:
     schema_version: 1
     mode: none
+    system: none
     provider: none
     repository:
       remote_name: none
@@ -53,8 +54,9 @@ valid:
     workflow:
       branch_pattern: disabled
       commit_convention: none
+      commit_signing: none
       push_cadence: never
-      pull_request_required: false
+      pull_request_policy: none
       human_merge_required: false
       post_merge: []
   documents:

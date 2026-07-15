@@ -5,9 +5,9 @@ import path from 'node:path';
 import { afterEach, describe, expect, it } from 'vitest';
 
 import {
+  AdoptionError,
   createMutationPlan,
   sha256,
-  type AdoptionError,
   type MutationPlan,
 } from '../../src/domain/adoption.js';
 import { executeFilesystemTransaction } from '../../src/infrastructure/filesystem-transaction.js';
@@ -138,5 +138,32 @@ describe('write-ahead filesystem transaction', () => {
       code: 'ENOENT',
     });
     expect(await readFile(path.join(fixture.root, 'moved.txt'), 'utf8')).toBe('move-before\n');
+  });
+
+  it('rolls back when live validation changes an applied file after its first hash check', async () => {
+    const fixture = await transactionFixture();
+    let caught: unknown;
+
+    try {
+      await executeFilesystemTransaction(fixture.root, fixture.plan, fixture.content, {
+        validate_live: async () => {
+          await writeFile(path.join(fixture.root, 'replace.txt'), 'changed-during-validation\n');
+        },
+      });
+    } catch (error) {
+      caught = error;
+    }
+
+    expect(caught).toBeInstanceOf(AdoptionError);
+    expect(caught).toMatchObject({ code: 'PCP_ADOPTION_LIVE_MISMATCH', mutated: false });
+    const recoveryRoot = (caught as AdoptionError).recoveryRoot;
+    expect(recoveryRoot).toBeTypeOf('string');
+    if (recoveryRoot !== undefined) {
+      await rm(recoveryRoot, { recursive: true, force: true });
+    }
+    expect((await inventoryRepository(fixture.root)).digest).toBe(fixture.inventoryDigest);
+    expect(await readFile(path.join(fixture.root, 'replace.txt'), 'utf8')).toBe('replace-before\n');
+    expect(await readFile(path.join(fixture.root, 'remove.txt'), 'utf8')).toBe('remove-before\n');
+    expect(await readFile(path.join(fixture.root, 'move.txt'), 'utf8')).toBe('move-before\n');
   });
 });
