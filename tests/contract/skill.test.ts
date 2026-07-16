@@ -35,6 +35,8 @@ describe('build-pcp skill contract', () => {
       'assets/schemas/v1/workstream-operation-input.schema.json',
       'assets/templates/core/.pcp/pcp.yaml',
       'assets/templates/core/.pcp/views/10-status.generated.md',
+      'assets/templates/core/.pcp/tools/pcp.mjs',
+      'assets/templates/core/.pcp/tools/pcp.sha256',
     ];
     for (const asset of assets) {
       await expect(access(new URL(asset, skillRoot))).resolves.toBeUndefined();

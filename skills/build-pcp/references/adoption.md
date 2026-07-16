@@ -68,7 +68,7 @@ Review every operation and present the returned `plan_digest` for approval. Appl
 node <pcp-engine> adopt --candidate <candidate-directory> --input <temporary-input> --apply <plan-digest> --json
 ```
 
-The engine fully recomputes the plan, rejects source drift, acquires a project lock, stages content outside the candidate, writes a preimage-backed operation log, applies atomically, validates the live clean genesis, rolls back exact source hashes on failure, and removes recovery material after success. Every State A/B/C plan includes the five canonical thin adapters and validates their manifest, sources, and content digests. Their target paths are reserved; do not use a State A scaffold to create independent platform instructions. Never bypass a digest mismatch or retained-recovery warning with shell writes.
+The engine fully recomputes the plan, rejects source drift, acquires a project lock, stages content outside the candidate, writes a preimage-backed operation log, applies atomically, validates the live clean genesis, rolls back exact source hashes on failure, and removes recovery material after success. Every State A/B/C plan includes the five canonical thin adapters and the exact checked engine at `.pcp/tools/pcp.mjs` with its adjacent SHA-256. Their target paths are reserved; do not use a State A scaffold to create independent platform instructions. Never bypass a digest mismatch or retained-recovery warning with shell writes.
 
 ## State C
 

@@ -1,3 +1,4 @@
+import { createHash } from 'node:crypto';
 import { readdir, readFile, stat } from 'node:fs/promises';
 import path from 'node:path';
 
@@ -66,6 +67,8 @@ const REQUIRED_CANONICAL_PATHS = [
   'state/workstreams.yaml',
   'templates/00-index.md',
   'tools/00-index.md',
+  'tools/pcp.mjs',
+  'tools/pcp.sha256',
   'views/00-index.md',
 ] as const;
 const TEXT_FILE_PATTERN = /(?:\.md|\.ya?ml|\.json|\.mjs|\.js|\.ts|\.txt|\.gitignore)$/i;
@@ -565,6 +568,20 @@ export async function validateCanonicalLayer(
       );
     }
   }
+  if (presentPaths.has('tools/pcp.mjs') && presentPaths.has('tools/pcp.sha256')) {
+    const engineBytes = await readFile(path.join(layerRoot, 'tools', 'pcp.mjs'));
+    const checksum = await readFile(path.join(layerRoot, 'tools', 'pcp.sha256'), 'utf8');
+    const actual = createHash('sha256').update(engineBytes).digest('hex');
+    if (checksum !== `${actual}  pcp.mjs\n`) {
+      diagnostics.push(
+        issue(
+          'engine.checksum',
+          'tools/pcp.sha256',
+          'Installed engine checksum does not match tools/pcp.mjs.',
+        ),
+      );
+    }
+  }
   const schemaRegistry = new SchemaRegistry();
   const loadedYaml = new Map<string, LoadedYaml>();
   const semanticRecords: CanonicalSemanticRecords = {
@@ -718,6 +735,7 @@ export async function validateCanonicalLayer(
     (item) =>
       TEXT_FILE_PATTERN.test(item.relative_path) &&
       !item.relative_path.startsWith('runtime/') &&
+      item.relative_path !== 'tools/pcp.mjs' &&
       !(
         options.archive_content === 'filenames-only' &&
         item.relative_path.startsWith('continuity/archive/')

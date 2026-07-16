@@ -8,6 +8,8 @@ export default tseslint.config(
       'dist/**',
       'node_modules/**',
       'skills/build-pcp/scripts/pcp.mjs',
+      'skills/build-pcp/assets/templates/core/.pcp/tools/pcp.mjs',
+      'templates/core/.pcp/tools/pcp.mjs',
       'tests/fixtures/**',
     ],
   },

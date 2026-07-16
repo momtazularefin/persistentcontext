@@ -21,7 +21,7 @@
     "test:unit": "vitest run tests/unit",
     "test:contract": "vitest run tests/contract",
     "test:coverage": "vitest run --coverage",
-    "build": "npm run clean && tsc -p tsconfig.build.json && node scripts/bundle-engine.mjs",
+    "build": "npm run clean && tsc -p tsconfig.build.json && node scripts/bundle-engine.mjs && node scripts/sync-installed-engine.mjs",
     "package:skill": "node scripts/package-skill.mjs",
     "validate:skill": "node scripts/validate-skill.mjs",
     "verify:dist": "node scripts/verify-dist.mjs",

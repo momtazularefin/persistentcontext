@@ -18,9 +18,9 @@ Load only the references required for the requested lifecycle operation.
 
 ## Resolve the engine
 
-1. Prefer `<project-root>/.pcp/tools/pcp.mjs` when a valid managed installation exists.
+1. Prefer `<project-root>/.pcp/tools/pcp.mjs` when its adjacent `pcp.sha256` matches and the managed installation validates.
 2. Otherwise use `scripts/pcp.mjs` from this skill.
-3. Verify the adjacent `pcp.sha256` before structural work when the bundled engine is used.
+3. Verify the adjacent `pcp.sha256` before structural work with either engine.
 4. Verify `assets/pcp-assets.sha256` before using bundled schemas or templates.
 5. Run the engine with Node.js 24 or a compatible version declared by the installed manifest.
 6. Stop if no verified engine is available. Do not reproduce structural operations with improvised shell commands.

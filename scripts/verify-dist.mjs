@@ -11,6 +11,8 @@ const projectRoot = new URL('../', import.meta.url);
 const distBundle = new URL('dist/pcp.mjs', projectRoot);
 const skillBundle = new URL('skills/build-pcp/scripts/pcp.mjs', projectRoot);
 const checksumPath = new URL('skills/build-pcp/scripts/pcp.sha256', projectRoot);
+const templateEnginePath = new URL('templates/core/.pcp/tools/pcp.mjs', projectRoot);
+const templateChecksumPath = new URL('templates/core/.pcp/tools/pcp.sha256', projectRoot);
 const assetRoot = new URL('skills/build-pcp/assets/', projectRoot);
 const assetManifestPath = new URL('pcp-assets.sha256', assetRoot);
 
@@ -25,19 +27,27 @@ async function collectFiles(directory) {
   return files;
 }
 
-const [dist, skill, checksum] = await Promise.all([
+const [dist, skill, checksum, templateEngine, templateChecksum] = await Promise.all([
   readFile(distBundle),
   readFile(skillBundle),
   readFile(checksumPath, 'utf8'),
+  readFile(templateEnginePath),
+  readFile(templateChecksumPath, 'utf8'),
 ]);
 
 if (!dist.equals(skill)) {
   throw new Error('Skill engine differs from dist/pcp.mjs.');
 }
+if (!dist.equals(templateEngine)) {
+  throw new Error('Installed template engine differs from dist/pcp.mjs.');
+}
 
 const expectedDigest = createHash('sha256').update(dist).digest('hex');
 if (checksum.trim() !== `${expectedDigest}  pcp.mjs`) {
   throw new Error('Skill engine checksum is stale.');
+}
+if (templateChecksum !== `${expectedDigest}  pcp.mjs\n`) {
+  throw new Error('Installed template engine checksum is stale.');
 }
 
 const sourceRoots = [
@@ -170,6 +180,25 @@ try {
     applyResult.recovery_cleaned !== true
   ) {
     throw new Error('Bundled pcp adoption apply returned an unexpected result.');
+  }
+
+  const installedEnginePath = join(adoptionCandidate, '.pcp', 'tools', 'pcp.mjs');
+  const installedChecksumPath = join(adoptionCandidate, '.pcp', 'tools', 'pcp.sha256');
+  const [installedEngineBytes, installedChecksum] = await Promise.all([
+    readFile(installedEnginePath),
+    readFile(installedChecksumPath, 'utf8'),
+  ]);
+  if (!installedEngineBytes.equals(dist) || installedChecksum !== `${expectedDigest}  pcp.mjs\n`) {
+    throw new Error('Bundled adoption did not install the exact checked engine.');
+  }
+  const installedVersion = spawnSync(process.execPath, [installedEnginePath, '--version'], {
+    encoding: 'utf8',
+    windowsHide: true,
+  });
+  if (installedVersion.status !== 0 || installedVersion.stdout.trim() !== '0.1.0') {
+    throw new Error(
+      `Installed PCP engine did not execute independently: ${installedVersion.stderr || installedVersion.stdout}`,
+    );
   }
 
   const expectedAdapterPaths = [
