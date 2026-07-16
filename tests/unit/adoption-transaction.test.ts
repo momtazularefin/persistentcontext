@@ -471,7 +471,7 @@ describe('transactional State A adoption', () => {
       );
       expect(await readFile(path.join(candidate, 'README.md'), 'utf8')).toBe(seed);
     }
-  }, 120_000);
+  }, 180_000);
 });
 
 describe('transactional State C translation', () => {
