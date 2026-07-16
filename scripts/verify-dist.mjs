@@ -5,7 +5,7 @@ import { tmpdir } from 'node:os';
 import { join, relative, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-import { parse } from 'yaml';
+import { parse, stringify } from 'yaml';
 
 const projectRoot = new URL('../', import.meta.url);
 const distBundle = new URL('dist/pcp.mjs', projectRoot);
@@ -557,6 +557,52 @@ try {
     repairApplyResult?.recovery_cleaned !== true
   ) {
     throw new Error(`Bundled pcp repair apply failed: ${repairApply.stderr || repairApply.stdout}`);
+  }
+
+  const managedManifestPath = join(adoptionCandidate, '.pcp', 'pcp.yaml');
+  const olderManifest = parse(await readFile(managedManifestPath, 'utf8'));
+  olderManifest.protocol.version = '0.0.9';
+  await writeFile(managedManifestPath, stringify(olderManifest), 'utf8');
+  const upgradePreview = spawnSync(
+    process.execPath,
+    [fileURLToPath(skillBundle), 'upgrade', adoptionCandidate, '--json'],
+    { encoding: 'utf8', windowsHide: true },
+  );
+  const upgradePreviewResult =
+    upgradePreview.status === 0 ? JSON.parse(upgradePreview.stdout) : undefined;
+  if (
+    upgradePreviewResult?.from_version !== '0.0.9' ||
+    upgradePreviewResult?.to_version !== '0.1.0' ||
+    upgradePreviewResult?.applicable !== true ||
+    !/^[a-f0-9]{64}$/.test(upgradePreviewResult?.plan?.plan_digest ?? '') ||
+    upgradePreviewResult?.mutated !== false
+  ) {
+    throw new Error(
+      `Bundled pcp upgrade preview failed: ${upgradePreview.stderr || upgradePreview.stdout}`,
+    );
+  }
+  const upgradeApply = spawnSync(
+    process.execPath,
+    [
+      fileURLToPath(skillBundle),
+      'upgrade',
+      adoptionCandidate,
+      '--apply',
+      upgradePreviewResult.plan.plan_digest,
+      '--json',
+    ],
+    { encoding: 'utf8', windowsHide: true },
+  );
+  const upgradeApplyResult =
+    upgradeApply.status === 0 ? JSON.parse(upgradeApply.stdout) : undefined;
+  if (
+    upgradeApplyResult?.mutated !== true ||
+    upgradeApplyResult?.validation?.checked_adapters !== 5 ||
+    upgradeApplyResult?.recovery_cleaned !== true
+  ) {
+    throw new Error(
+      `Bundled pcp upgrade apply failed: ${upgradeApply.stderr || upgradeApply.stdout}`,
+    );
   }
 } finally {
   await rm(adoptionRoot, { recursive: true, force: true });

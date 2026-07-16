@@ -44,4 +44,13 @@ If `applicable` is true, review every operation and apply only the returned dige
 node <pcp-engine> repair <project-root> --apply <plan-digest> --json
 ```
 
-The engine refuses unrelated canonical damage, manifest/source drift, symbolic links, and file/directory collisions. It binds replacements to exact preimages, writes missing adapters only through the structural transaction, validates the complete live layer, and restores every byte after a caught failure. Use `render` for generated status-view drift. Upgrade remains unavailable; do not replace protocol-owned files manually. A future upgrade may replace only protocol-owned and generated files while preserving project-owned knowledge, policies, projects, workstreams, profiles, and events.
+The engine refuses unrelated canonical damage, manifest/source drift, symbolic links, and file/directory collisions. It binds replacements to exact preimages, writes missing adapters only through the structural transaction, validates the complete live layer, and restores every byte after a caught failure. Use `render` for generated status-view drift.
+
+Preview an ownership-aware release upgrade, review its target paths and preservation digest, then apply only the exact plan:
+
+```text
+node <pcp-engine> upgrade <project-root> --json
+node <pcp-engine> upgrade <project-root> --apply <plan-digest> --json
+```
+
+Upgrade merges the installed persistence mode, capabilities, adapter contract, and VCS-policy path into the release manifest. It may replace only release protocol files, generated views, and generated adapters. It rejects a newer installed version, invalid source state, project/runtime ownership collisions, unsafe paths, or stale approval. Apply holds continuity and structural locks, validates the live result, and verifies the precomputed hash of every untargeted inventory file plus every project/runtime-owned canonical file. Never use upgrade to rewrite knowledge, policies, projects, workstreams, profiles, events, checkpoints, runtime caches, or ordinary project assets.
