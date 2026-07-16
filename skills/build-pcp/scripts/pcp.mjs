@@ -11768,7 +11768,6 @@ function createMutationPlan(input) {
     plan_id: deterministicUlid(
       canonicalJson([input.inventory.digest, operationSeed, coverageDigest])
     ),
-    generated_at: input.generatedAt,
     classification: input.classification,
     candidate_inventory_digest: input.inventory.digest,
     ...coverageDigest === void 0 ? {} : { coverage_digest: coverageDigest },
@@ -20612,7 +20611,6 @@ var mutation_plan_schema_default = {
   required: [
     "schema_version",
     "plan_id",
-    "generated_at",
     "classification",
     "candidate_inventory_digest",
     "operations",
@@ -20625,9 +20623,6 @@ var mutation_plan_schema_default = {
     },
     plan_id: {
       $ref: "urn:pcp:schema:v1:common#/$defs/ulid"
-    },
-    generated_at: {
-      $ref: "urn:pcp:schema:v1:common#/$defs/dateTime"
     },
     classification: {
       enum: ["A", "B", "C", "managed"]
@@ -24504,7 +24499,6 @@ async function buildStateCTranslationPlan(root, inspection, input) {
     classification: "C",
     coverageDigest: normalizedCoverageDigest(input.coverage),
     inventory: inspection.inventory,
-    generatedAt: input.baseline_at,
     operations: buildStateCOperations(content, inspection, removalPaths),
     validations: [
       "candidate-inventory",
@@ -24584,7 +24578,6 @@ async function buildPlanMaterial(root, inspection, input) {
   const plan = createMutationPlan({
     classification: inspection.state,
     inventory: inspection.inventory,
-    generatedAt: input.baseline_at,
     operations: [...directoryOperations, ...writeOperations],
     validations: [
       "candidate-inventory",
@@ -26495,11 +26488,6 @@ function digestMatches2(expected, supplied) {
   if (!/^[a-f0-9]{64}$/u.test(supplied)) return false;
   return timingSafeEqual2(Buffer.from(expected, "hex"), Buffer.from(supplied, "hex"));
 }
-function inventoryBoundTimestamp(digest2) {
-  const window2 = 50 * 365 * 24 * 60 * 60 * 1e3;
-  const offset = Number(BigInt(`0x${digest2.slice(0, 12)}`) % BigInt(window2));
-  return new Date(Date.UTC(2020, 0, 1) + offset).toISOString();
-}
 async function metadataOrUndefined2(target) {
   try {
     return await lstat9(target);
@@ -26636,7 +26624,6 @@ async function planRepairMaterial(candidate = ".") {
   if (operations.length === 0) return { ...base, applicable: false };
   const plan = createMutationPlan({
     inventory: inspection.inventory,
-    generatedAt: inventoryBoundTimestamp(inspection.inventory.digest),
     classification: "managed",
     operations,
     validations: [
@@ -27481,11 +27468,6 @@ function digestMatches3(expected, supplied) {
   if (!/^[a-f0-9]{64}$/u.test(supplied)) return false;
   return timingSafeEqual3(Buffer.from(expected, "hex"), Buffer.from(supplied, "hex"));
 }
-function inventoryBoundTimestamp2(digest2) {
-  const window2 = 50 * 365 * 24 * 60 * 60 * 1e3;
-  const offset = Number(BigInt(`0x${digest2.slice(0, 12)}`) % BigInt(window2));
-  return new Date(Date.UTC(2020, 0, 1) + offset).toISOString();
-}
 function semverParts(value) {
   const match = /^(\d+)\.(\d+)\.(\d+)(?:-[0-9A-Za-z.-]+)?(?:\+[0-9A-Za-z.-]+)?$/u.exec(value);
   if (match === null)
@@ -27784,7 +27766,6 @@ async function planUpgradeMaterial(candidate = ".") {
   if (operations.length === 0) return { ...base, applicable: false };
   const plan = createMutationPlan({
     inventory: inspection.inventory,
-    generatedAt: inventoryBoundTimestamp2(inspection.inventory.digest),
     classification: "managed",
     operations,
     validations: [

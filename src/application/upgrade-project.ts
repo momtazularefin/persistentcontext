@@ -56,12 +56,6 @@ function digestMatches(expected: string, supplied: string): boolean {
   return timingSafeEqual(Buffer.from(expected, 'hex'), Buffer.from(supplied, 'hex'));
 }
 
-function inventoryBoundTimestamp(digest: string): string {
-  const window = 50 * 365 * 24 * 60 * 60 * 1000;
-  const offset = Number(BigInt(`0x${digest.slice(0, 12)}`) % BigInt(window));
-  return new Date(Date.UTC(2020, 0, 1) + offset).toISOString();
-}
-
 function semverParts(value: string): [number, number, number] {
   const match = /^(\d+)\.(\d+)\.(\d+)(?:-[0-9A-Za-z.-]+)?(?:\+[0-9A-Za-z.-]+)?$/u.exec(value);
   if (match === null)
@@ -404,7 +398,6 @@ async function planUpgradeMaterial(candidate = '.'): Promise<UpgradePreview | Up
   if (operations.length === 0) return { ...base, applicable: false };
   const plan = createMutationPlan({
     inventory: inspection.inventory,
-    generatedAt: inventoryBoundTimestamp(inspection.inventory.digest),
     classification: 'managed',
     operations,
     validations: [

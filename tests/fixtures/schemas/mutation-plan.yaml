@@ -2,7 +2,6 @@ schema: mutation-plan
 valid:
   schema_version: 1
   plan_id: 01ARZ3NDEKTSV4RRFFQ69G5FAV
-  generated_at: 2026-07-12T00:00:00Z
   classification: B
   candidate_inventory_digest: aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
   operations:
@@ -13,6 +12,10 @@ valid:
   validations: [schemas, links, clean-genesis]
   plan_digest: cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 invalid:
+  - name: transient plan rejects a synthetic generation timestamp
+    operation: set
+    path: generated_at
+    value: 2041-09-19T09:07:38.326Z
   - name: State C plan without reviewed coverage digest
     operation: set
     path: classification

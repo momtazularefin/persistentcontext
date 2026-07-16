@@ -875,7 +875,6 @@ async function buildStateCTranslationPlan(
     classification: 'C',
     coverageDigest: normalizedCoverageDigest(input.coverage),
     inventory: inspection.inventory,
-    generatedAt: input.baseline_at,
     operations: buildStateCOperations(content, inspection, removalPaths),
     validations: [
       'candidate-inventory',
@@ -967,7 +966,6 @@ async function buildPlanMaterial(
   const plan = createMutationPlan({
     classification: inspection.state,
     inventory: inspection.inventory,
-    generatedAt: input.baseline_at,
     operations: [...directoryOperations, ...writeOperations],
     validations: [
       'candidate-inventory',

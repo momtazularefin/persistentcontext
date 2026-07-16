@@ -38,12 +38,6 @@ function digestMatches(expected: string, supplied: string): boolean {
   return timingSafeEqual(Buffer.from(expected, 'hex'), Buffer.from(supplied, 'hex'));
 }
 
-function inventoryBoundTimestamp(digest: string): string {
-  const window = 50 * 365 * 24 * 60 * 60 * 1000;
-  const offset = Number(BigInt(`0x${digest.slice(0, 12)}`) % BigInt(window));
-  return new Date(Date.UTC(2020, 0, 1) + offset).toISOString();
-}
-
 async function metadataOrUndefined(
   target: string,
 ): Promise<Awaited<ReturnType<typeof lstat>> | undefined> {
@@ -201,7 +195,6 @@ async function planRepairMaterial(candidate = '.'): Promise<RepairPreview | Repa
 
   const plan = createMutationPlan({
     inventory: inspection.inventory,
-    generatedAt: inventoryBoundTimestamp(inspection.inventory.digest),
     classification: 'managed',
     operations,
     validations: [

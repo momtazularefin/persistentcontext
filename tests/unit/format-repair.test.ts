@@ -15,7 +15,6 @@ describe('repair formatter', () => {
       plan: {
         schema_version: 1,
         plan_id: '01ARZ3NDEKTSV4RRFFQ69G5FAV',
-        generated_at: '2026-07-15T00:00:00.000Z',
         classification: 'managed',
         candidate_inventory_digest: 'a'.repeat(64),
         operations: [],

@@ -101,7 +101,6 @@ export interface MutationOperation {
 export interface MutationPlan {
   schema_version: 1;
   plan_id: string;
-  generated_at: string;
   classification: IntakeState;
   candidate_inventory_digest: string;
   coverage_digest?: string;
@@ -241,7 +240,6 @@ interface PlanOperationInput {
 
 type MutationPlanInput = {
   inventory: RepositoryInventory;
-  generatedAt: string;
   operations: PlanOperationInput[];
   validations: string[];
 } & (
@@ -270,7 +268,6 @@ export function createMutationPlan(input: MutationPlanInput): MutationPlan {
     plan_id: deterministicUlid(
       canonicalJson([input.inventory.digest, operationSeed, coverageDigest]),
     ),
-    generated_at: input.generatedAt,
     classification: input.classification,
     candidate_inventory_digest: input.inventory.digest,
     ...(coverageDigest === undefined ? {} : { coverage_digest: coverageDigest }),
