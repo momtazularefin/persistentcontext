@@ -38,7 +38,7 @@ Every successful adoption converges on a clean genesis: grounded current context
 - Installed layer: `.pcp/`.
 - Open skill: `build-pcp`.
 - Bundled executable: `pcp`.
-- `0.1.0` adapter targets: Codex, Antigravity, Claude Code Desktop, GitHub Copilot in Visual Studio Code, and Cursor IDE. Each remains a target rather than a support claim until its generation, collision, and reconstruction gates pass.
+- `0.1.0` adapters: [Codex](https://developers.openai.com/codex/guides/agents-md/), [Antigravity](https://antigravity.google/docs/rules-workflows), [Claude Code Desktop](https://code.claude.com/docs/en/desktop), [GitHub Copilot in Visual Studio Code](https://code.visualstudio.com/docs/copilot/customization/custom-instructions), and [Cursor IDE](https://docs.cursor.com/context/rules). PCP follows each product's documented project-instruction convention and proves that all five generated startup surfaces reconstruct the same canonical project context. This is an adapter-contract claim, not a claim that every editor UI and release has been exercised interactively.
 
 The executable is project-local in `0.1.0`; this repository does not publish a global npm CLI.
 
