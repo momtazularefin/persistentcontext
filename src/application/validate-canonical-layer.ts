@@ -1,5 +1,5 @@
 import { createHash } from 'node:crypto';
-import { readdir, readFile, stat } from 'node:fs/promises';
+import { lstat, readdir, readFile, stat } from 'node:fs/promises';
 import path from 'node:path';
 
 import { parseDocument } from 'yaml';
@@ -25,6 +25,7 @@ import {
   type OwnershipPatterns,
 } from '../infrastructure/canonical-ownership.js';
 import { canonicalSourceDigest } from '../infrastructure/canonical-source-digest.js';
+import { loadCapabilityTemplateFiles } from '../infrastructure/adoption-assets.js';
 import { SchemaRegistry } from '../infrastructure/schema-validator.js';
 import { renderPlatformAdapters } from './render-platform-adapters.js';
 import { validatePlatformAdapters } from './validate-platform-adapters.js';
@@ -710,6 +711,56 @@ export async function validateCanonicalLayer(
   validateMarkdownStructure(layerRoot, markdownRecords, graph, diagnostics);
 
   const manifest = loadedYaml.get('pcp.yaml')?.value;
+  const capabilityIds = stringArray(objectValue(manifest)?.capabilities);
+  if (capabilityIds !== undefined) {
+    try {
+      const capabilities = await loadCapabilityTemplateFiles(capabilityIds);
+      for (const capability of capabilities.manifests) {
+        for (const entry of capability.index_entries) {
+          const requiredPath = `${entry.folder}/${entry.path}`;
+          if (!presentPaths.has(requiredPath)) {
+            diagnostics.push(
+              issue(
+                'capability.required-path',
+                requiredPath,
+                `Enabled capability ${capability.capability_id} requires this canonical file.`,
+              ),
+            );
+          }
+        }
+        for (const rootPath of capability.root_paths) {
+          try {
+            const metadata = await lstat(path.join(resolvedProjectRoot, ...rootPath.split('/')));
+            if (!metadata.isFile() || metadata.isSymbolicLink()) {
+              diagnostics.push(
+                issue(
+                  'capability.root-path',
+                  rootPath,
+                  `Enabled capability ${capability.capability_id} requires a regular project file.`,
+                ),
+              );
+            }
+          } catch {
+            diagnostics.push(
+              issue(
+                'capability.root-path',
+                rootPath,
+                `Enabled capability ${capability.capability_id} requires this project file.`,
+              ),
+            );
+          }
+        }
+      }
+    } catch (error) {
+      diagnostics.push(
+        issue(
+          'capability.selection',
+          'pcp.yaml#capabilities',
+          error instanceof Error ? error.message : 'Unable to validate enabled capabilities.',
+        ),
+      );
+    }
+  }
   const adapterIds = stringArray(objectValue(manifest)?.adapter_ids);
   if (adapterIds !== undefined && adapterIds.length > 0) {
     const expectedAdapters = renderPlatformAdapters().map((adapter) => adapter.manifest);

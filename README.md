@@ -27,6 +27,8 @@ One adoption workflow classifies:
 2. State B: an established project with substantive assets but no persistent agent layer. Grounded preview and transactional adoption are implemented without reorganizing project-owned assets.
 3. State C: a project with an existing non-PCP instruction, knowledge, memory, planning, or orchestration layer. Classification, transient source/entry coverage, canonical adapter replacement planning, preview, transactional apply, live validation, and exact rollback are implemented.
 
+Adoption also takes an explicit capability selection. Core-only projects use an empty array; supported opt-in overlays add Concurrent Execution Blocks, spec-driven projects, scratch space, or walkthroughs through the same checked plan and transaction.
+
 Every successful adoption converges on a clean genesis: grounded current context, no actor profiles, and no imported, active, archived, or synthetic events.
 
 ## Product surfaces

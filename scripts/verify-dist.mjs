@@ -119,6 +119,12 @@ try {
   const fixtureWrapper = parse(
     await readFile(new URL('tests/fixtures/schemas/adoption-input.yaml', projectRoot), 'utf8'),
   );
+  fixtureWrapper.valid.capabilities = [
+    'walkthroughs',
+    'spec-driven-projects',
+    'concurrent-execution-blocks',
+    'scratch-space',
+  ];
   await writeFile(adoptionInput, `${JSON.stringify(fixtureWrapper.valid, null, 2)}\n`, 'utf8');
 
   const adoptionPreview = spawnSync(
@@ -181,6 +187,31 @@ try {
   ) {
     throw new Error('Bundled pcp adoption apply returned an unexpected result.');
   }
+
+  const installedManifest = parse(
+    await readFile(join(adoptionCandidate, '.pcp', 'pcp.yaml'), 'utf8'),
+  );
+  const expectedCapabilities = [
+    'concurrent-execution-blocks',
+    'scratch-space',
+    'spec-driven-projects',
+    'walkthroughs',
+  ];
+  if (JSON.stringify(installedManifest.capabilities) !== JSON.stringify(expectedCapabilities)) {
+    throw new Error('Bundled pcp adoption did not normalize selected capabilities.');
+  }
+  await Promise.all(
+    [
+      '.pcp/protocol/80-spec-driven-delivery.md',
+      '.pcp/protocol/90-concurrent-execution-blocks.md',
+      '.pcp/protocol/100-scratch-space.md',
+      '.pcp/protocol/110-walkthrough-creation.md',
+      '.pcp/templates/30-project-spec.md',
+      '.pcp/templates/40-workstream.md',
+      '.pcp/templates/50-walkthrough.md',
+      'scratch/README.md',
+    ].map((capabilityPath) => readFile(join(adoptionCandidate, capabilityPath))),
+  );
 
   const installedEnginePath = join(adoptionCandidate, '.pcp', 'tools', 'pcp.mjs');
   const installedChecksumPath = join(adoptionCandidate, '.pcp', 'tools', 'pcp.sha256');

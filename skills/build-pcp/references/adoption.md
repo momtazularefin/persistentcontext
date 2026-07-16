@@ -41,7 +41,7 @@ node <pcp-engine> adopt --candidate <candidate-directory> --json
 
 Create a temporary YAML or JSON document outside the candidate that validates against `assets/schemas/v1/adoption-input.schema.json`. Do not leave this transient synthesis artifact in the project. It must contain:
 
-- the baseline timestamp, persistence profile, schema-valid project state, grounded project registry and workstreams (empty only when evidence supports that), and explicit VCS policy;
+- the baseline timestamp, persistence profile, explicit supported capability selection (an empty array means core only), schema-valid project state, grounded project registry and workstreams (empty only when evidence supports that), and explicit VCS policy;
 - exactly the five canonical knowledge documents and three operations documents named by the schema;
 - each document's canonical type/status, evidence basis, cited candidate-relative paths, and grounded Markdown body;
 - State A scaffold files only when they are explicitly appropriate; an empty State A target requires at least one;

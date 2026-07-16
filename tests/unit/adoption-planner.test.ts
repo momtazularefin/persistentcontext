@@ -4,6 +4,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 import { afterEach, describe, expect, it, vi } from 'vitest';
+import { parse } from 'yaml';
 
 import { isPlanMaterial, planAdoption } from '../../src/application/plan-adoption.js';
 import { inspectRepository } from '../../src/application/inspect-repository.js';
@@ -98,6 +99,7 @@ function adoptionInput(options: {
   return {
     schema_version: 1,
     baseline_at: '2026-07-13T09:45:00Z',
+    capabilities: [],
     persistence: 'tracked',
     project: {
       schema_version: 1,
@@ -139,7 +141,12 @@ describe('State A and State B adoption planning', () => {
       mutated: false,
     });
     expect('questions' in result ? result.questions.map((question) => question.id) : []).toEqual(
-      expect.arrayContaining(['project-identity', 'software-stack', 'initial-scaffold']),
+      expect.arrayContaining([
+        'project-identity',
+        'software-stack',
+        'initial-scaffold',
+        'capability-selection',
+      ]),
     );
     const vcsQuestion =
       'questions' in result
@@ -162,6 +169,7 @@ describe('State A and State B adoption planning', () => {
     expect(result.questions.map((question) => question.id)).toEqual([
       'grounded-baseline',
       'vcs-profile',
+      'capability-selection',
     ]);
     expect(result.questions[1]?.options?.[0]).toBe('human-commit');
   });
@@ -205,6 +213,49 @@ describe('State A and State B adoption planning', () => {
       ),
     ).toBe(true);
     expect((await inspectRepository(candidate)).inventory.digest).toBe(before.inventory.digest);
+  });
+
+  it('installs explicitly selected capabilities in canonical order', async () => {
+    const candidate = path.join(fixtureRoot, 'conventional');
+    const value = adoptionInput({ projectType: 'software', evidencePath: 'package.json' });
+    value.capabilities = [
+      'walkthroughs',
+      'spec-driven-projects',
+      'concurrent-execution-blocks',
+      'scratch-space',
+    ];
+    const result = await planAdoption(candidate, await writeInput(value));
+    if (!isPlanMaterial(result)) throw new Error('Expected an applicable capability plan.');
+
+    expect(
+      parse(result.content_by_path.get('.pcp/pcp.yaml')?.toString('utf8') ?? ''),
+    ).toMatchObject({
+      capabilities: [
+        'concurrent-execution-blocks',
+        'scratch-space',
+        'spec-driven-projects',
+        'walkthroughs',
+      ],
+    });
+    for (const installedPath of [
+      '.pcp/protocol/80-spec-driven-delivery.md',
+      '.pcp/protocol/90-concurrent-execution-blocks.md',
+      '.pcp/protocol/100-scratch-space.md',
+      '.pcp/protocol/110-walkthrough-creation.md',
+      '.pcp/templates/30-project-spec.md',
+      '.pcp/templates/40-workstream.md',
+      '.pcp/templates/50-walkthrough.md',
+      'scratch/README.md',
+    ]) {
+      expect(result.content_by_path.has(installedPath), installedPath).toBe(true);
+    }
+    const protocolIndex = result.content_by_path.get('.pcp/protocol/00-index.md')?.toString('utf8');
+    expect(protocolIndex).toContain('[80-spec-driven-delivery.md](80-spec-driven-delivery.md)');
+    expect(protocolIndex).toContain(
+      '[90-concurrent-execution-blocks.md](90-concurrent-execution-blocks.md)',
+    );
+    expect(protocolIndex).toContain('[100-scratch-space.md](100-scratch-space.md)');
+    expect(protocolIndex).toContain('[110-walkthrough-creation.md](110-walkthrough-creation.md)');
   });
 
   it('plans an explicit non-software State A scaffold while preserving the seed boundary', async () => {

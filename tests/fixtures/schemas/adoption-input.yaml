@@ -3,6 +3,7 @@ valid:
   schema_version: 1
   baseline_at: 2026-07-13T09:30:00Z
   persistence: tracked
+  capabilities: []
   project:
     schema_version: 1
     project_id: sample-project
@@ -112,6 +113,10 @@ valid:
     - path: src/index.ts
       content: "export {};\n"
 invalid:
+  - name: unsupported capability
+    operation: set
+    path: capabilities
+    value: [unknown-module]
   - name: missing project state
     operation: delete
     path: project

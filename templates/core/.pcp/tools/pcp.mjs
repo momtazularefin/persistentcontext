@@ -19511,7 +19511,7 @@ async function inspectRepository(candidate = ".") {
 }
 
 // src/application/plan-adoption.ts
-import { lstat as lstat5, mkdir as mkdir2, mkdtemp as mkdtemp2, readFile as readFile10, readdir as readdir3, rm as rm2, writeFile as writeFile3 } from "node:fs/promises";
+import { lstat as lstat6, mkdir as mkdir2, mkdtemp as mkdtemp2, readFile as readFile10, readdir as readdir3, rm as rm2, writeFile as writeFile3 } from "node:fs/promises";
 import { tmpdir as tmpdir2 } from "node:os";
 import path12 from "node:path";
 
@@ -19573,12 +19573,33 @@ function supportedAdapterForSourcePath(candidatePath) {
 import { lstat as lstat3, readdir, readFile as readFile4 } from "node:fs/promises";
 import path6 from "node:path";
 import { fileURLToPath } from "node:url";
+
+// src/domain/capabilities.ts
+var SUPPORTED_CAPABILITY_IDS = [
+  "concurrent-execution-blocks",
+  "scratch-space",
+  "spec-driven-projects",
+  "walkthroughs"
+];
+function normalizeCapabilityIds(values) {
+  const selected = new Set(values);
+  return SUPPORTED_CAPABILITY_IDS.filter((capability) => selected.has(capability));
+}
+
+// src/infrastructure/adoption-assets.ts
 var moduleDirectory = path6.dirname(fileURLToPath(import.meta.url));
 function candidateTemplateRoots() {
   return [
     path6.resolve(moduleDirectory, "../../templates/core"),
     path6.resolve(moduleDirectory, "../templates/core"),
     path6.resolve(moduleDirectory, "../assets/templates/core")
+  ];
+}
+function candidateCapabilityRoots() {
+  return [
+    path6.resolve(moduleDirectory, "../../templates/capabilities"),
+    path6.resolve(moduleDirectory, "../templates/capabilities"),
+    path6.resolve(moduleDirectory, "../assets/templates/capabilities")
   ];
 }
 async function isCoreTemplateRoot(candidate) {
@@ -19599,6 +19620,26 @@ async function resolveCoreTemplateRoot() {
     "The verified core PCP template assets could not be located beside the engine."
   );
 }
+async function isCapabilityTemplateRoot(candidate) {
+  try {
+    const entries = await readdir(candidate, { withFileTypes: true });
+    return SUPPORTED_CAPABILITY_IDS.every(
+      (capability) => entries.some((entry) => entry.isDirectory() && entry.name === capability)
+    );
+  } catch (error2) {
+    if (error2.code === "ENOENT") return false;
+    throw error2;
+  }
+}
+async function resolveCapabilityTemplateRoot() {
+  for (const candidate of candidateCapabilityRoots()) {
+    if (await isCapabilityTemplateRoot(candidate)) return candidate;
+  }
+  throw new AdoptionError(
+    "PCP_ADOPTION_ASSETS_MISSING",
+    "The verified PCP capability assets could not be located beside the engine."
+  );
+}
 async function collectFiles(directory, root, result) {
   const entries = await readdir(directory, { withFileTypes: true });
   entries.sort((left, right) => comparePortablePaths(left.name, right.name));
@@ -19609,7 +19650,7 @@ async function collectFiles(directory, root, result) {
     if (metadata.isSymbolicLink()) {
       throw new AdoptionError(
         "PCP_ADOPTION_ASSET_SYMLINK",
-        `The core template contains an unsupported symbolic link: ${relativePath}`
+        `A PCP template contains an unsupported symbolic link: ${relativePath}`
       );
     }
     if (metadata.isDirectory()) {
@@ -19625,6 +19666,146 @@ async function loadCoreTemplateFiles() {
   await collectFiles(root, root, files);
   files.sort((left, right) => comparePortablePaths(left.path, right.path));
   return new Map(files.map((file) => [file.path, file.content]));
+}
+function isPortableRelativePath(value) {
+  return typeof value === "string" && value.length > 0 && value === path6.posix.normalize(value) && value !== "." && !value.startsWith("../") && !value.startsWith("/") && !value.includes("\\");
+}
+function capabilityManifest(value, expected) {
+  if (typeof value !== "object" || value === null || Array.isArray(value)) {
+    throw new AdoptionError(
+      "PCP_ADOPTION_CAPABILITY_INVALID",
+      `Capability ${expected} has an invalid manifest.`
+    );
+  }
+  const item = value;
+  const dependencies = item.dependencies;
+  const indexEntries = item.index_entries;
+  const rootPaths = item.root_paths;
+  if (item.schema_version !== 1 || item.capability_id !== expected || item.manifest_value !== expected || item.overlay_root !== "overlay" || typeof item.name !== "string" || typeof item.description !== "string" || !Array.isArray(dependencies) || !dependencies.every(
+    (entry) => typeof entry === "string" && SUPPORTED_CAPABILITY_IDS.includes(entry)
+  ) || !Array.isArray(indexEntries) || !indexEntries.every(
+    (entry) => typeof entry === "object" && entry !== null && !Array.isArray(entry) && isPortableRelativePath(entry.folder) && isPortableRelativePath(entry.path) && typeof entry.title === "string"
+  ) || !Array.isArray(rootPaths) || !rootPaths.every(isPortableRelativePath)) {
+    throw new AdoptionError(
+      "PCP_ADOPTION_CAPABILITY_INVALID",
+      `Capability ${expected} has malformed or unsafe metadata.`
+    );
+  }
+  return value;
+}
+async function loadCapabilityTemplateFiles(selectedValues) {
+  const selected = normalizeCapabilityIds(selectedValues);
+  if (selected.length !== new Set(selectedValues).size) {
+    throw new AdoptionError(
+      "PCP_ADOPTION_CAPABILITY_INVALID",
+      "Capability selection contains an unknown or duplicate value."
+    );
+  }
+  if (selected.length === 0) return { manifests: [], files: /* @__PURE__ */ new Map() };
+  const root = await resolveCapabilityTemplateRoot();
+  const manifests = [];
+  const files = /* @__PURE__ */ new Map();
+  for (const capability of selected) {
+    const capabilityRoot = path6.join(root, capability);
+    const manifest2 = capabilityManifest(
+      parse(await readFile4(path6.join(capabilityRoot, "capability.yaml"), "utf8")),
+      capability
+    );
+    for (const dependency of manifest2.dependencies) {
+      if (!selected.includes(dependency)) {
+        throw new AdoptionError(
+          "PCP_ADOPTION_CAPABILITY_DEPENDENCY",
+          `Capability ${capability} requires ${dependency}.`
+        );
+      }
+    }
+    const overlayRoot = path6.join(capabilityRoot, manifest2.overlay_root);
+    const collected = [];
+    await collectFiles(overlayRoot, overlayRoot, collected);
+    const declaredMarkdown = new Set(
+      manifest2.index_entries.map((entry) => `.pcp/${entry.folder}/${entry.path}`)
+    );
+    for (const file of collected) {
+      if (files.has(file.path)) {
+        throw new AdoptionError(
+          "PCP_ADOPTION_CAPABILITY_COLLISION",
+          `Selected capability overlays collide at ${file.path}.`
+        );
+      }
+      if (file.path.startsWith(".pcp/") && file.path.endsWith(".md") && !declaredMarkdown.has(file.path)) {
+        throw new AdoptionError(
+          "PCP_ADOPTION_CAPABILITY_INVALID",
+          `Capability ${capability} has an undeclared canonical document: ${file.path}.`
+        );
+      }
+      files.set(file.path, file.content);
+    }
+    for (const declared of declaredMarkdown) {
+      if (!files.has(declared)) {
+        throw new AdoptionError(
+          "PCP_ADOPTION_CAPABILITY_INVALID",
+          `Capability ${capability} declares a missing document: ${declared}.`
+        );
+      }
+    }
+    for (const rootPath of manifest2.root_paths) {
+      if (!files.has(rootPath)) {
+        throw new AdoptionError(
+          "PCP_ADOPTION_CAPABILITY_INVALID",
+          `Capability ${capability} declares a missing root path: ${rootPath}.`
+        );
+      }
+    }
+    manifests.push(manifest2);
+  }
+  return { manifests, files };
+}
+function addCapabilityIndexEntry(source, linkPath, title) {
+  const text = normalizeText(source.toString("utf8"));
+  const link = `[${linkPath}](${linkPath})`;
+  if (text.includes(link)) return source;
+  const lines = text.trimEnd().split("\n");
+  const insertion = lines.findIndex((line2) => line2.startsWith("Optional capabilities "));
+  if (insertion < 0) {
+    throw new AdoptionError(
+      "PCP_ADOPTION_CAPABILITY_INVALID",
+      `Capability index has no extension marker for ${linkPath}.`
+    );
+  }
+  const highest = lines.reduce((value, line2) => {
+    const number = /^(\d+)\. /u.exec(line2)?.[1];
+    return number === void 0 ? value : Math.max(value, Number(number));
+  }, 0);
+  lines.splice(insertion, 0, `${highest + 1}. ${link} \u2014 ${title}.`, "");
+  return Buffer.from(`${lines.join("\n")}
+`, "utf8");
+}
+async function loadReleaseTemplateFiles(selectedValues) {
+  const files = new Map(await loadCoreTemplateFiles());
+  const capabilities = await loadCapabilityTemplateFiles(selectedValues);
+  for (const capability of capabilities.manifests) {
+    for (const entry of capability.index_entries) {
+      const indexPath = `.pcp/${entry.folder}/00-index.md`;
+      const index = files.get(indexPath);
+      if (index === void 0) {
+        throw new AdoptionError(
+          "PCP_ADOPTION_CAPABILITY_INVALID",
+          `Capability ${capability.capability_id} targets a missing index: ${indexPath}.`
+        );
+      }
+      files.set(indexPath, addCapabilityIndexEntry(index, entry.path, entry.title));
+    }
+  }
+  for (const [overlayPath, content] of capabilities.files) {
+    if (files.has(overlayPath)) {
+      throw new AdoptionError(
+        "PCP_ADOPTION_CAPABILITY_COLLISION",
+        `Capability overlay collides with core content: ${overlayPath}.`
+      );
+    }
+    files.set(overlayPath, content);
+  }
+  return { manifests: capabilities.manifests, files };
 }
 
 // src/infrastructure/schema-validator.ts
@@ -19694,6 +19875,7 @@ var adoption_input_schema_default = {
     "schema_version",
     "baseline_at",
     "persistence",
+    "capabilities",
     "project",
     "projects",
     "workstreams",
@@ -19710,6 +19892,18 @@ var adoption_input_schema_default = {
     },
     persistence: {
       enum: ["tracked", "local"]
+    },
+    capabilities: {
+      type: "array",
+      items: {
+        enum: [
+          "concurrent-execution-blocks",
+          "scratch-space",
+          "spec-driven-projects",
+          "walkthroughs"
+        ]
+      },
+      uniqueItems: true
     },
     project: {
       $ref: "urn:pcp:schema:v1:project"
@@ -20598,7 +20792,16 @@ var pcp_manifest_schema_default = {
       enum: ["tracked", "local"]
     },
     capabilities: {
-      $ref: "urn:pcp:schema:v1:common#/$defs/slugArray"
+      type: "array",
+      items: {
+        enum: [
+          "concurrent-execution-blocks",
+          "scratch-space",
+          "spec-driven-projects",
+          "walkthroughs"
+        ]
+      },
+      uniqueItems: true
     },
     continuity: {
       type: "object",
@@ -22167,7 +22370,7 @@ async function renderCanonicalViews(projectRoot, options = {}) {
 
 // src/application/validate-canonical-layer.ts
 import { createHash as createHash7 } from "node:crypto";
-import { readdir as readdir2, readFile as readFile9, stat as stat2 } from "node:fs/promises";
+import { lstat as lstat5, readdir as readdir2, readFile as readFile9, stat as stat2 } from "node:fs/promises";
 import path11 from "node:path";
 
 // src/domain/recording.ts
@@ -23503,6 +23706,56 @@ async function validateCanonicalLayer(projectRoot, options = {}) {
   );
   validateMarkdownStructure(layerRoot, markdownRecords, graph, diagnostics);
   const manifest2 = loadedYaml.get("pcp.yaml")?.value;
+  const capabilityIds = stringArray3(objectValue3(manifest2)?.capabilities);
+  if (capabilityIds !== void 0) {
+    try {
+      const capabilities = await loadCapabilityTemplateFiles(capabilityIds);
+      for (const capability of capabilities.manifests) {
+        for (const entry of capability.index_entries) {
+          const requiredPath = `${entry.folder}/${entry.path}`;
+          if (!presentPaths.has(requiredPath)) {
+            diagnostics.push(
+              issue2(
+                "capability.required-path",
+                requiredPath,
+                `Enabled capability ${capability.capability_id} requires this canonical file.`
+              )
+            );
+          }
+        }
+        for (const rootPath of capability.root_paths) {
+          try {
+            const metadata = await lstat5(path11.join(resolvedProjectRoot, ...rootPath.split("/")));
+            if (!metadata.isFile() || metadata.isSymbolicLink()) {
+              diagnostics.push(
+                issue2(
+                  "capability.root-path",
+                  rootPath,
+                  `Enabled capability ${capability.capability_id} requires a regular project file.`
+                )
+              );
+            }
+          } catch {
+            diagnostics.push(
+              issue2(
+                "capability.root-path",
+                rootPath,
+                `Enabled capability ${capability.capability_id} requires this project file.`
+              )
+            );
+          }
+        }
+      }
+    } catch (error2) {
+      diagnostics.push(
+        issue2(
+          "capability.selection",
+          "pcp.yaml#capabilities",
+          error2 instanceof Error ? error2.message : "Unable to validate enabled capabilities."
+        )
+      );
+    }
+  }
   const adapterIds = stringArray3(objectValue3(manifest2)?.adapter_ids);
   if (adapterIds !== void 0 && adapterIds.length > 0) {
     const expectedAdapters = renderPlatformAdapters().map((adapter) => adapter.manifest);
@@ -23623,6 +23876,13 @@ function baselineFor(root, inspection) {
 }
 function questionsFor(inspection) {
   if (inspection.state === "managed") return [];
+  const capabilityQuestion = {
+    id: "capability-selection",
+    prompt: "Select zero or more supported optional capabilities: Concurrent Execution Blocks, spec-driven projects, scratch space, or walkthroughs.",
+    reason: "PCP installs optional project workflows only through explicit selection.",
+    required: true,
+    response_shape: "object"
+  };
   if (inspection.state === "C") {
     return [
       {
@@ -23631,7 +23891,8 @@ function questionsFor(inspection) {
         reason: "State C translation and destructive removal require semantic dispositions.",
         required: true,
         response_shape: "object"
-      }
+      },
+      capabilityQuestion
     ];
   }
   if (inspection.state === "B") {
@@ -23650,7 +23911,8 @@ function questionsFor(inspection) {
         required: true,
         response_shape: "enum",
         options: ["human-commit", "none", "human-owned", "agent-managed", "custom"]
-      }
+      },
+      capabilityQuestion
     ];
   }
   const questions = [
@@ -23676,7 +23938,8 @@ function questionsFor(inspection) {
       required: true,
       response_shape: "enum",
       options: ["human-commit", "none", "human-owned", "agent-managed", "custom"]
-    }
+    },
+    capabilityQuestion
   ];
   if (inspection.inventory.files.length === 0) {
     questions.push({
@@ -23721,7 +23984,7 @@ async function loadAdoptionInput(inputPath, candidateRoot2) {
       "Store the transient adoption input outside the candidate project so it cannot become project state."
     );
   }
-  const metadata = await lstat5(resolvedInput).catch((error2) => {
+  const metadata = await lstat6(resolvedInput).catch((error2) => {
     const detail = error2 instanceof Error ? error2.message : String(error2);
     throw new AdoptionError(
       "PCP_ADOPTION_INPUT_UNREADABLE",
@@ -23896,7 +24159,7 @@ async function collectStageFiles(directory, stageRoot, result) {
   entries.sort((left, right) => comparePortablePaths(left.name, right.name));
   for (const entry of entries) {
     const target = path12.join(directory, entry.name);
-    const metadata = await lstat5(target);
+    const metadata = await lstat6(target);
     const relativePath = toPortablePath(path12.relative(stageRoot, target));
     if (metadata.isSymbolicLink()) {
       throw new AdoptionError(
@@ -23917,7 +24180,8 @@ function yamlBuffer(value) {
 async function stageCanonicalLayer(input, adapters = []) {
   const stageRoot = await mkdtemp2(path12.join(tmpdir2(), "pcp-adoption-preview-"));
   try {
-    const template = new Map(await loadCoreTemplateFiles());
+    const release = await loadReleaseTemplateFiles(input.capabilities);
+    const template = new Map(release.files);
     const manifestPath = ".pcp/pcp.yaml";
     const manifestBytes = template.get(manifestPath);
     if (manifestBytes === void 0) {
@@ -23925,6 +24189,7 @@ async function stageCanonicalLayer(input, adapters = []) {
     }
     const manifest2 = parse(manifestBytes.toString("utf8"));
     manifest2.persistence = input.persistence;
+    manifest2.capabilities = release.manifests.map((capability) => capability.manifest_value);
     manifest2.adapter_ids = adapters.map((adapter) => adapter.manifest.adapter_id);
     template.set(manifestPath, yamlBuffer(manifest2));
     template.set(".pcp/state/project.yaml", yamlBuffer(input.project));
@@ -24537,7 +24802,7 @@ async function adoptProject(candidate = ".", options = {}) {
 import { createHash as createHash10, randomUUID as randomUUID3 } from "node:crypto";
 import {
   chmod as chmod2,
-  lstat as lstat7,
+  lstat as lstat8,
   mkdtemp as mkdtemp4,
   open as open4,
   readFile as readFile13,
@@ -24554,7 +24819,7 @@ import path15 from "node:path";
 // src/application/record-event.ts
 import { createHash as createHash9, randomUUID as randomUUID2 } from "node:crypto";
 import {
-  lstat as lstat6,
+  lstat as lstat7,
   mkdtemp as mkdtemp3,
   open as open3,
   readFile as readFile12,
@@ -24707,7 +24972,7 @@ async function loadEventInput(inputPath, projectRoot) {
   }
   let metadata;
   try {
-    metadata = await lstat6(resolvedInput);
+    metadata = await lstat7(resolvedInput);
   } catch (error2) {
     throw new RecordingError(
       "PCP_RECORD_INPUT_UNREADABLE",
@@ -25316,7 +25581,7 @@ async function loadWorkstreamInput(inputPath, projectRoot, expectedOperation) {
   }
   let metadata;
   try {
-    metadata = await lstat7(resolvedInput);
+    metadata = await lstat8(resolvedInput);
   } catch (error2) {
     throw new WorkstreamError(
       "PCP_WORKSTREAM_INPUT_UNREADABLE",
@@ -25447,7 +25712,7 @@ async function desiredStatusView(root, workstreamContents, registry) {
 }
 async function loadRegistry(root) {
   const absolutePath = path15.join(root, ...WORKSTREAM_PATH2.split("/"));
-  const metadata = await lstat7(absolutePath).catch((error2) => {
+  const metadata = await lstat8(absolutePath).catch((error2) => {
     throw new WorkstreamError(
       "PCP_WORKSTREAM_REGISTRY_UNREADABLE",
       `Cannot read the canonical workstream registry: ${error2 instanceof Error ? error2.message : String(error2)}`
@@ -25492,7 +25757,7 @@ async function writeDurableExclusive(file, bytes) {
 }
 async function exists(file) {
   try {
-    await lstat7(file);
+    await lstat8(file);
     return true;
   } catch (error2) {
     if (error2.code === "ENOENT") return false;
@@ -26207,7 +26472,7 @@ async function registerActor(projectRoot, input) {
 
 // src/application/repair-project.ts
 import { timingSafeEqual as timingSafeEqual2 } from "node:crypto";
-import { lstat as lstat8, readFile as readFile15 } from "node:fs/promises";
+import { lstat as lstat9, readFile as readFile15 } from "node:fs/promises";
 import path17 from "node:path";
 
 // src/domain/repair.ts
@@ -26237,7 +26502,7 @@ function inventoryBoundTimestamp(digest2) {
 }
 async function metadataOrUndefined2(target) {
   try {
-    return await lstat8(target);
+    return await lstat9(target);
   } catch (error2) {
     if (error2.code === "ENOENT") return void 0;
     throw error2;
@@ -26474,7 +26739,7 @@ async function repairProject(candidate = ".", options = {}) {
 
 // src/application/report-status.ts
 import { randomUUID as randomUUID4 } from "node:crypto";
-import { lstat as lstat9, mkdir as mkdir5, open as open6, readFile as readFile16, readdir as readdir6, rename as rename4, unlink as unlink6 } from "node:fs/promises";
+import { lstat as lstat10, mkdir as mkdir5, open as open6, readFile as readFile16, readdir as readdir6, rename as rename4, unlink as unlink6 } from "node:fs/promises";
 import path18 from "node:path";
 
 // src/domain/reconciliation.ts
@@ -26680,7 +26945,7 @@ function layerPath(relativePath) {
 async function assertNoSymlinkFromLayer(layerRoot, target) {
   let current = target;
   while (true) {
-    const metadata = await lstat9(current);
+    const metadata = await lstat10(current);
     if (metadata.isSymbolicLink()) throw new Error("path has a symbolic-link boundary");
     if (current === layerRoot) return;
     current = path18.dirname(current);
@@ -26708,7 +26973,7 @@ async function readSchemaFile(layerRoot, relativePath, schema4) {
   let contents;
   try {
     await assertNoSymlinkFromLayer(layerRoot, absolutePath);
-    const metadata = await lstat9(absolutePath);
+    const metadata = await lstat10(absolutePath);
     if (!metadata.isFile() || metadata.isSymbolicLink()) {
       throw new Error("path is not a regular file");
     }
@@ -26735,7 +27000,7 @@ async function readSchemaDirectory(layerRoot, relativeDirectory, schema4) {
   let entries;
   try {
     await assertNoSymlinkFromLayer(layerRoot, absoluteDirectory);
-    const metadata = await lstat9(absoluteDirectory);
+    const metadata = await lstat10(absoluteDirectory);
     if (!metadata.isDirectory() || metadata.isSymbolicLink()) {
       throw new Error("path is not a regular directory");
     }
@@ -26771,7 +27036,7 @@ async function listArchiveEventIds(layerRoot) {
   let entries;
   try {
     await assertNoSymlinkFromLayer(layerRoot, absoluteDirectory);
-    const metadata = await lstat9(absoluteDirectory);
+    const metadata = await lstat10(absoluteDirectory);
     if (!metadata.isDirectory() || metadata.isSymbolicLink()) {
       throw new Error("path is not a regular directory");
     }
@@ -27177,7 +27442,7 @@ async function reportStatus(projectRoot, input) {
 
 // src/application/upgrade-project.ts
 import { timingSafeEqual as timingSafeEqual3 } from "node:crypto";
-import { lstat as lstat10, readFile as readFile17, readdir as readdir7 } from "node:fs/promises";
+import { lstat as lstat11, readFile as readFile17, readdir as readdir7 } from "node:fs/promises";
 import path19 from "node:path";
 
 // src/domain/release.ts
@@ -27251,7 +27516,7 @@ function yamlBuffer2(value) {
 }
 async function metadataOrUndefined3(target) {
   try {
-    return await lstat10(target);
+    return await lstat11(target);
   } catch (error2) {
     if (error2.code === "ENOENT") return void 0;
     throw error2;
@@ -27279,7 +27544,7 @@ async function collectLayerFiles(directory, layerRoot, result) {
   entries.sort((left, right) => comparePortablePaths(left.name, right.name));
   for (const entry of entries) {
     const target = path19.join(directory, entry.name);
-    const metadata = await lstat10(target);
+    const metadata = await lstat11(target);
     const relative = path19.relative(layerRoot, target).split(path19.sep).join("/");
     if (metadata.isSymbolicLink()) {
       throw new UpgradeError(
@@ -27391,7 +27656,20 @@ async function planUpgradeMaterial(candidate = ".") {
     parse(await readFile17(path19.join(root, ".pcp", "pcp.yaml"), "utf8")),
     "Installed"
   );
-  const template = new Map(await loadCoreTemplateFiles());
+  const selectedCapabilities = liveManifest.capabilities;
+  let release;
+  try {
+    release = await loadReleaseTemplateFiles(selectedCapabilities);
+  } catch (error2) {
+    if (error2 instanceof AdoptionError) {
+      throw new UpgradeError(
+        "PCP_UPGRADE_CAPABILITY_UNSUPPORTED",
+        `Installed capability selection is not supported by this release: ${error2.message}`
+      );
+    }
+    throw error2;
+  }
+  const template = new Map(release.files);
   const templateManifestBytes = template.get(".pcp/pcp.yaml");
   if (templateManifestBytes === void 0) {
     throw new UpgradeError("PCP_UPGRADE_ASSETS_MISSING", "Release manifest asset is missing.");

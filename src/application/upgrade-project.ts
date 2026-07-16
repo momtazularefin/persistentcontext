@@ -19,7 +19,7 @@ import {
   type UpgradePlanMaterial,
   type UpgradePreview,
 } from '../domain/upgrade.js';
-import { loadCoreTemplateFiles } from '../infrastructure/adoption-assets.js';
+import { loadReleaseTemplateFiles } from '../infrastructure/adoption-assets.js';
 import {
   matchingOwnershipClasses,
   type OwnershipPatterns,
@@ -270,7 +270,20 @@ async function planUpgradeMaterial(candidate = '.'): Promise<UpgradePreview | Up
     parse(await readFile(path.join(root, '.pcp', 'pcp.yaml'), 'utf8')),
     'Installed',
   );
-  const template = new Map(await loadCoreTemplateFiles());
+  const selectedCapabilities = liveManifest.capabilities as string[];
+  let release: Awaited<ReturnType<typeof loadReleaseTemplateFiles>>;
+  try {
+    release = await loadReleaseTemplateFiles(selectedCapabilities);
+  } catch (error) {
+    if (error instanceof AdoptionError) {
+      throw new UpgradeError(
+        'PCP_UPGRADE_CAPABILITY_UNSUPPORTED',
+        `Installed capability selection is not supported by this release: ${error.message}`,
+      );
+    }
+    throw error;
+  }
+  const template = new Map(release.files);
   const templateManifestBytes = template.get('.pcp/pcp.yaml');
   if (templateManifestBytes === undefined) {
     throw new UpgradeError('PCP_UPGRADE_ASSETS_MISSING', 'Release manifest asset is missing.');

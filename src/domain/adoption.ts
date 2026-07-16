@@ -4,6 +4,7 @@ import { ulid } from 'ulid';
 
 import type { CoverageMatrix, ForeignCoverageIssue } from './coverage.js';
 import type { AdapterManifest } from './adapters.js';
+import type { SupportedCapabilityId } from './capabilities.js';
 import type {
   InspectionConfidence,
   InspectionResult,
@@ -70,6 +71,7 @@ export interface AdoptionInput {
   schema_version: 1;
   baseline_at: string;
   persistence: 'tracked' | 'local';
+  capabilities: SupportedCapabilityId[];
   project: AdoptionProjectState;
   projects: {
     schema_version: 1;

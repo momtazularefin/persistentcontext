@@ -5,7 +5,7 @@ valid:
     name: persistent-context-protocol
     version: 0.1.0
   persistence: tracked
-  capabilities: [core, vcs-policy]
+  capabilities: [concurrent-execution-blocks, spec-driven-projects]
   continuity:
     active_event_limit: 64
     archive_batch_size: 32
@@ -22,6 +22,10 @@ valid:
     generated_views_read_only: true
   vcs_policy_path: .pcp/operations/20-vcs-policy.yaml
 invalid:
+  - name: unsupported capability
+    operation: set
+    path: capabilities
+    value: [unknown-module]
   - name: wrong protocol identity
     operation: set
     path: protocol.name

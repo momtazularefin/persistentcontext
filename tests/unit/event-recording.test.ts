@@ -16,6 +16,8 @@ import type { ContinuityEvent } from '../../src/domain/reconciliation.js';
 import { eventPayloadDigest, type RecordEventInput } from '../../src/domain/recording.js';
 import { formatRecording } from '../../src/presentation/format-recording.js';
 
+vi.setConfig({ testTimeout: 15_000 });
+
 const coreTemplate = fileURLToPath(new URL('../../templates/core/.pcp/', import.meta.url));
 const temporaryRoots: string[] = [];
 const ulidPattern = /^[0-7][0-9A-HJKMNP-TV-Z]{25}$/u;

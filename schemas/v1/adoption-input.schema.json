@@ -8,6 +8,7 @@
     "schema_version",
     "baseline_at",
     "persistence",
+    "capabilities",
     "project",
     "projects",
     "workstreams",
@@ -24,6 +25,18 @@
     },
     "persistence": {
       "enum": ["tracked", "local"]
+    },
+    "capabilities": {
+      "type": "array",
+      "items": {
+        "enum": [
+          "concurrent-execution-blocks",
+          "scratch-space",
+          "spec-driven-projects",
+          "walkthroughs"
+        ]
+      },
+      "uniqueItems": true
     },
     "project": {
       "$ref": "urn:pcp:schema:v1:project"

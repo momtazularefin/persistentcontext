@@ -22,7 +22,7 @@ import {
 } from '../domain/adoption.js';
 import { supportedAdapterForSourcePath } from '../domain/adapters.js';
 import { comparePortablePaths, type InspectionResult } from '../domain/inspection.js';
-import { loadCoreTemplateFiles } from '../infrastructure/adoption-assets.js';
+import { loadReleaseTemplateFiles } from '../infrastructure/adoption-assets.js';
 import {
   isMutationDirectoryIgnored,
   isMutationPathIgnored,
@@ -104,6 +104,14 @@ function baselineFor(root: string, inspection: InspectionResult): AdoptionBaseli
 
 function questionsFor(inspection: InspectionResult): AdoptionQuestion[] {
   if (inspection.state === 'managed') return [];
+  const capabilityQuestion: AdoptionQuestion = {
+    id: 'capability-selection',
+    prompt:
+      'Select zero or more supported optional capabilities: Concurrent Execution Blocks, spec-driven projects, scratch space, or walkthroughs.',
+    reason: 'PCP installs optional project workflows only through explicit selection.',
+    required: true,
+    response_shape: 'object',
+  };
   if (inspection.state === 'C') {
     return [
       {
@@ -113,6 +121,7 @@ function questionsFor(inspection: InspectionResult): AdoptionQuestion[] {
         required: true,
         response_shape: 'object',
       },
+      capabilityQuestion,
     ];
   }
   if (inspection.state === 'B') {
@@ -135,6 +144,7 @@ function questionsFor(inspection: InspectionResult): AdoptionQuestion[] {
         response_shape: 'enum',
         options: ['human-commit', 'none', 'human-owned', 'agent-managed', 'custom'],
       },
+      capabilityQuestion,
     ];
   }
 
@@ -165,6 +175,7 @@ function questionsFor(inspection: InspectionResult): AdoptionQuestion[] {
       response_shape: 'enum',
       options: ['human-commit', 'none', 'human-owned', 'agent-managed', 'custom'],
     },
+    capabilityQuestion,
   ];
   if (inspection.inventory.files.length === 0) {
     questions.push({
@@ -463,7 +474,8 @@ async function stageCanonicalLayer(
 ): Promise<ReadonlyMap<string, Buffer>> {
   const stageRoot = await mkdtemp(path.join(tmpdir(), 'pcp-adoption-preview-'));
   try {
-    const template = new Map(await loadCoreTemplateFiles());
+    const release = await loadReleaseTemplateFiles(input.capabilities);
+    const template = new Map(release.files);
     const manifestPath = '.pcp/pcp.yaml';
     const manifestBytes = template.get(manifestPath);
     if (manifestBytes === undefined) {
@@ -471,6 +483,7 @@ async function stageCanonicalLayer(
     }
     const manifest = parse(manifestBytes.toString('utf8')) as Record<string, unknown>;
     manifest.persistence = input.persistence;
+    manifest.capabilities = release.manifests.map((capability) => capability.manifest_value);
     manifest.adapter_ids = adapters.map((adapter) => adapter.manifest.adapter_id);
     template.set(manifestPath, yamlBuffer(manifest));
     template.set('.pcp/state/project.yaml', yamlBuffer(input.project));

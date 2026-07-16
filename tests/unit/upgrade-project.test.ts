@@ -10,24 +10,38 @@ import { renderPlatformAdapters } from '../../src/application/render-platform-ad
 import { upgradeProject } from '../../src/application/upgrade-project.js';
 import { validateCanonicalLayer } from '../../src/application/validate-canonical-layer.js';
 import type { UpgradeApplyResult, UpgradePreview } from '../../src/domain/upgrade.js';
+import { loadReleaseTemplateFiles } from '../../src/infrastructure/adoption-assets.js';
 import { inventoryRepository } from '../../src/infrastructure/filesystem-inventory.js';
 
 const coreTemplate = fileURLToPath(new URL('../../templates/core/.pcp/', import.meta.url));
 const temporaryRoots: string[] = [];
 
-vi.setConfig({ testTimeout: 15_000 });
+vi.setConfig({ testTimeout: 30_000 });
 
-async function olderManagedProject(version = '0.0.9'): Promise<{
+async function olderManagedProject(
+  version = '0.0.9',
+  capabilities: string[] = [],
+): Promise<{
   root: string;
   preserved: Map<string, Buffer>;
 }> {
   const root = await mkdtemp(path.join(tmpdir(), 'pcp-upgrade-project-'));
   temporaryRoots.push(root);
-  await cp(coreTemplate, path.join(root, '.pcp'), { recursive: true });
+  if (capabilities.length === 0) {
+    await cp(coreTemplate, path.join(root, '.pcp'), { recursive: true });
+  } else {
+    const release = await loadReleaseTemplateFiles(capabilities);
+    for (const [portablePath, content] of release.files) {
+      const target = path.join(root, ...portablePath.split('/'));
+      await mkdir(path.dirname(target), { recursive: true });
+      await writeFile(target, content);
+    }
+  }
   const adapters = renderPlatformAdapters();
   const manifestPath = path.join(root, '.pcp', 'pcp.yaml');
   const manifest = parse(await readFile(manifestPath, 'utf8')) as Record<string, unknown>;
   (manifest.protocol as Record<string, unknown>).version = version;
+  manifest.capabilities = capabilities;
   manifest.adapter_ids = adapters.map((adapter) => adapter.manifest.adapter_id);
   await writeFile(manifestPath, stringify(manifest), 'utf8');
   for (const adapter of adapters) {
@@ -167,6 +181,30 @@ describe('ownership-aware upgrade', () => {
     await expect(upgradeProject(newer.root)).rejects.toMatchObject({
       code: 'PCP_UPGRADE_DOWNGRADE_FORBIDDEN',
     });
+  });
+
+  it('refreshes selected capability protocol while preserving its project-owned scaffold', async () => {
+    const { root } = await olderManagedProject('0.0.9', ['spec-driven-projects']);
+    const protocolPath = path.join(root, '.pcp', 'protocol', '80-spec-driven-delivery.md');
+    const scaffoldPath = path.join(root, '.pcp', 'templates', '30-project-spec.md');
+    await writeFile(
+      protocolPath,
+      `${await readFile(protocolPath, 'utf8')}\nOlder capability protocol text.\n`,
+    );
+    const personalizedScaffold = `${await readFile(scaffoldPath, 'utf8')}\nProject customization.\n`;
+    await writeFile(scaffoldPath, personalizedScaffold);
+
+    const preview = await upgradeProject(root);
+    applicable(preview);
+    expect(preview.upgrade_paths).toContain('.pcp/protocol/80-spec-driven-delivery.md');
+    expect(preview.upgrade_paths).not.toContain('.pcp/templates/30-project-spec.md');
+    await upgradeProject(root, { apply: preview.plan.plan_digest });
+
+    expect(await readFile(protocolPath, 'utf8')).not.toContain('Older capability protocol text.');
+    expect(await readFile(scaffoldPath, 'utf8')).toBe(personalizedScaffold);
+    expect(await validateCanonicalLayer(root, { archive_content: 'filenames-only' })).toMatchObject(
+      { valid: true },
+    );
   });
 
   it('restores the exact project after failure at every upgrade boundary', async () => {

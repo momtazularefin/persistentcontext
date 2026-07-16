@@ -204,6 +204,34 @@ describe('transactional State A adoption', () => {
     expect((await inspectRepository(candidate)).inventory.digest).toBe(before.inventory.digest);
   });
 
+  it('applies selected capability overlays as part of the approved adoption transaction', async () => {
+    const candidate = await temporaryRoot('pcp-capability-seed-');
+    await writeFile(path.join(candidate, 'README.md'), '# Capability project\n\nExplicit seed.\n');
+    const input = await adoptionFixture();
+    input.capabilities = ['scratch-space', 'spec-driven-projects'];
+    const inputPath = await writeExternalInput(input);
+    const preview = await previewDigest(candidate, inputPath);
+
+    await adoptProject(candidate, { input: inputPath, apply: preview.digest });
+
+    const manifest = parse(await readFile(path.join(candidate, '.pcp', 'pcp.yaml'), 'utf8')) as {
+      capabilities: string[];
+    };
+    expect(manifest.capabilities).toEqual(['scratch-space', 'spec-driven-projects']);
+    await expect(
+      readFile(path.join(candidate, '.pcp', 'protocol', '100-scratch-space.md'), 'utf8'),
+    ).resolves.toContain('# Scratch space');
+    await expect(
+      readFile(path.join(candidate, '.pcp', 'templates', '30-project-spec.md'), 'utf8'),
+    ).resolves.toContain('# Project specification');
+    await expect(readFile(path.join(candidate, 'scratch', 'README.md'), 'utf8')).resolves.toContain(
+      'noncanonical workspace',
+    );
+    expect(await validateCanonicalLayer(candidate, { clean_genesis: true })).toMatchObject({
+      valid: true,
+    });
+  }, 15_000);
+
   it('adopts an empty non-software State A project from an explicit scaffold', async () => {
     const candidate = await temporaryRoot('pcp-empty-research-');
     const input = await adoptionFixture();
