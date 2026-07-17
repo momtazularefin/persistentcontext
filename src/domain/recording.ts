@@ -44,10 +44,14 @@ export class RecordingError extends Error {
     public readonly code: string,
     message: string,
     public readonly mutated = false,
-    public readonly recovery_retained = false,
+    public readonly recovery_paths: readonly string[] = [],
   ) {
     super(message);
     this.name = 'RecordingError';
+  }
+
+  public get recovery_retained(): boolean {
+    return this.recovery_paths.length > 0;
   }
 }
 

@@ -6,7 +6,7 @@ PCP fails closed and reports stable error codes. Start with structured output, p
 
 1. Stop repeating a mutating command until its result is understood.
 2. Rerun the corresponding preview or read-only operation with `--json`.
-3. Record the `code`, `message`, `mutated`, and `recovery_retained` fields from stderr.
+3. Record the `code`, `message`, `mutated`, `recovery_retained`, and `recovery_path` fields from stderr.
 4. Confirm the candidate path, current branch or backup state, Node version, and whether another PCP process is active.
 5. If `mutated` or `recovery_retained` is true, preserve the project and recovery material before attempting repair.
 
@@ -92,10 +92,10 @@ PCP cannot prove enough space for staging and preimages. Free space outside the 
 Codes such as `PCP_ADOPTION_LIVE_INVALID`, `PCP_ADOPTION_LIVE_MISMATCH`, `PCP_ADOPTION_TRANSACTION_FAILED`, and `PCP_ROLLBACK_VERIFICATION_FAILED` indicate that apply did not reach an accepted live result.
 
 - If `mutated: false` and `recovery_retained: false`, the engine verified exact rollback.
-- If recovery is retained, leave it intact and preserve the candidate. Inspect the reported project state and validation diagnostics before any manual action.
+- If recovery is retained, leave it intact and preserve the candidate. `recovery_path` gives its absolute location on the current machine; a rare nested failure also includes `recovery_paths` with every retained location. Inspect the reported project state and validation diagnostics before any manual action.
 - If rollback verification failed, treat the project as requiring recovery from retained preimages, protected VCS, or an external backup. Do not rerun adoption over an unexplained partial state.
 
-The CLI reports whether recovery was retained but does not emit its absolute path. Retained structural folders use a `pcp-transaction-*` prefix under the operating-system temporary directory; event and workstream transactions use `pcp-event-transaction-*` and `pcp-workstream-transaction-*`. Identify the folder on the same machine by command time and project-specific digest prefix, preserve it, and do not touch similarly named folders from another project. This is a current diagnostic limitation, not permission to discard recovery evidence.
+When no recovery material remains, `recovery_path` is `null`. The path is ephemeral diagnostic output: do not copy it into canonical `.pcp/` documents, continuity events, fixtures, issues, or commits. Retained structural folders use a `pcp-transaction-*` prefix under the operating-system temporary directory; event and workstream transactions use `pcp-event-transaction-*` and `pcp-workstream-transaction-*`.
 
 ## Canonical validation
 

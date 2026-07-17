@@ -65,8 +65,8 @@ df646010d23da001e3eb839bf3c371df800ccf5e0757b2ddb9f7b31434fb1410  templates/core
 aa5a834b11a7e6e8f85f11f00fa3677dab92e116aad66cd08bfc3217a8c737be  templates/core/.pcp/templates/10-project-record.md
 78aa5426b208e0caa362834922147d192d458ab38a27bc0cfddb5c03f1df8d85  templates/core/.pcp/templates/20-decision-record.md
 3eb03fc427c7ba44eaf568778b0d52abe09172786fddf0bf05e5806d118bd210  templates/core/.pcp/tools/00-index.md
-e9b4c85d4998d50378f033ff37bc6ce38094d7c97f758de465b21a9ea4ae02fe  templates/core/.pcp/tools/pcp.mjs
-ebc98d1ca13c54be1c5aa559e199d7983bb15e7e94ca9208261aa2561bdb3f13  templates/core/.pcp/tools/pcp.sha256
+11bae48d72dc96caf0d013df0ab852e6ea574c7a757f80cd35f7206c2c03ec7c  templates/core/.pcp/tools/pcp.mjs
+7650c5714c19eeb0359e882a57ca771bc8aa2907e122f03612604bb6a66a7f16  templates/core/.pcp/tools/pcp.sha256
 0b988b9acb2676c0462ab0ce4baed703e82a4539218e6a46006d9d8f8e26907c  templates/core/.pcp/views/00-index.md
 192549ec90069cb45cb1d340bff79552699c95bc9d456b7cec22c2bc0274aaae  templates/core/.pcp/views/10-status.generated.md
 1eddd35af245fc1ed16b1a38ddd3bf0a838a348c42dd5bbfc498a005bcaec4ef  templates/README.md

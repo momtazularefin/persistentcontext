@@ -461,7 +461,7 @@ async function executeEventTransaction(
         'PCP_RECORD_ROLLBACK_FAILED',
         `Event recording failed (${error instanceof Error ? error.message : String(error)}) and exact rollback could not be verified: ${rollbackFailures.join('; ')}`,
         true,
-        true,
+        recoveryRoot === undefined ? [] : [recoveryRoot],
       );
     }
     if (recoveryRoot !== undefined) {
@@ -472,12 +472,12 @@ async function executeEventTransaction(
           'PCP_RECORD_RECOVERY_CLEANUP_FAILED',
           `Event recording failed and project state was restored, but recovery data could not be removed: ${cleanupError instanceof Error ? cleanupError.message : String(cleanupError)}`,
           false,
-          true,
+          [recoveryRoot],
         );
       }
     }
     if (error instanceof RecordingError) {
-      throw new RecordingError(error.code, error.message, false, false);
+      throw new RecordingError(error.code, error.message, false, error.recovery_paths);
     }
     throw new RecordingError(
       'PCP_RECORD_TRANSACTION_FAILED',

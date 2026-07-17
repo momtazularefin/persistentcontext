@@ -110,6 +110,8 @@ describe('public documentation contract', () => {
     ]) {
       expect(safety, boundary).toContain(boundary);
     }
+    expect(safety).toContain('only as ephemeral diagnostic output');
+    expect(safety).toContain('never persisted in canonical state or continuity events');
     expect(policy).toContain("GitHub's private vulnerability-reporting form");
     expect(policy).toContain('Include no vulnerability details');
     expect(policy).toContain('does not claim to sandbox agents');
@@ -151,6 +153,8 @@ describe('public documentation contract', () => {
     }
     expect(troubleshooting).toContain('Do not use force deletion');
     expect(troubleshooting).toContain('preserve recovery evidence');
+    expect(troubleshooting).toContain('`recovery_path` is `null`');
+    expect(troubleshooting).toContain('do not copy it into canonical `.pcp/` documents');
     expect(troubleshooting).toContain('Do not create a second independent instruction layer');
   });
 });

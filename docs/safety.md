@@ -47,7 +47,7 @@ Structural adoption, repair, and upgrade share the following controls:
 11. live canonical and adapter validation; and
 12. reverse exact rollback after any caught failure.
 
-Recovery evidence is retained when rollback or cleanup cannot be proven. Temporary recovery material is removed only after successful live acceptance.
+Recovery evidence is retained when rollback or cleanup cannot be proven. Temporary recovery material is removed only after successful live acceptance. Structured mutation failures expose the absolute local `recovery_path` (and `recovery_paths` when nested transactions retain more than one location) only as ephemeral diagnostic output; machine-specific paths are never persisted in canonical state or continuity events.
 
 State C requires complete coverage for every selected foreign file and every parsed history or registry entry. Encrypted, binary, invalid UTF-8, unreadable, malformed, unrecognized structured, oversized, excluded, and symbolic-link sources are blocking issues. An unsupported adapter surface also blocks destructive translation. `project-owned` files caught by cautious directory expansion are preserved without a canonical target.
 

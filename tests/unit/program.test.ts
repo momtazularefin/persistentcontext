@@ -44,6 +44,7 @@ describe('pcp command surface', () => {
         expect.stringContaining('"code":"PCP_UPGRADE_NOT_MANAGED"'),
       );
       expect(errorOutput).toHaveBeenCalledWith(expect.stringContaining('"mutated":false'));
+      expect(errorOutput).toHaveBeenCalledWith(expect.stringContaining('"recovery_path":null'));
     } finally {
       process.exitCode = previousExitCode;
       errorOutput.mockRestore();

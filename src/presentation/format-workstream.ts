@@ -19,7 +19,9 @@ export function formatWorkstream(result: WorkstreamResult): string {
     `Event: ${result.event_id}`,
     `Registry digest: ${result.registry_digest_after}`,
     ...(result.announcement === null ? [] : [`Announcement: ${result.announcement}`]),
-    ...(result.recovery_retained ? ['Warning: recovery material was retained.'] : []),
+    ...(result.recovery_path === null
+      ? []
+      : [`Warning: recovery material was retained at ${result.recovery_path}`]),
     '',
   ].join('\n');
 }
