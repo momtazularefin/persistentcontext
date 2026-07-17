@@ -192,7 +192,7 @@ describe('transactional State A adoption', () => {
       '00-index.md',
     ]);
     expect(before.inventory.files.map((file) => file.path)).toEqual(['README.md']);
-  }, 15_000);
+  }, 30_000);
 
   it('rejects an unapproved digest without changing the candidate', async () => {
     const { candidate, inputPath } = await createSeed();

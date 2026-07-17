@@ -228,6 +228,7 @@ describe('workstream management', () => {
       event_created: true,
       mutated: true,
       recovery_retained: false,
+      recovery_path: null,
     });
     expect(result.event_payload_digest).toMatch(/^[a-f0-9]{64}$/u);
     expect(registry.workstreams).toEqual([

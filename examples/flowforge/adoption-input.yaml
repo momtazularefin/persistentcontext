@@ -1,0 +1,162 @@
+schema_version: 1
+baseline_at: 2026-07-17T12:00:00Z
+persistence: tracked
+capabilities: []
+project:
+  schema_version: 1
+  project_id: flowforge
+  name: FlowForge
+  purpose: Run dependency-aware task graphs in deterministic order with retries, failure propagation, and JSON run history.
+  project_type: software
+  lifecycle: active
+  artifact_roots: [src, tests, examples]
+  context_roots: [.pcp]
+  repositories: []
+  tags: [dotnet, dag, cli]
+projects:
+  schema_version: 1
+  projects: []
+workstreams:
+  schema_version: 1
+  workstreams: []
+vcs_policy:
+  schema_version: 1
+  mode: none
+  system: none
+  provider: none
+  repository:
+    remote_name: none
+    default_branch: main
+  responsibilities:
+    initialize: prohibited
+    create_repository: prohibited
+    configure_remote: prohibited
+    configure_protection: prohibited
+    sync_default: prohibited
+    create_branch: prohibited
+    stage: prohibited
+    commit: prohibited
+    push: prohibited
+    open_pull_request: prohibited
+    repair_ci: prohibited
+    review_pull_request: prohibited
+    merge_pull_request: prohibited
+    cleanup_branch: prohibited
+    tag: prohibited
+    release: prohibited
+    force_push: prohibited
+    rewrite_history: prohibited
+    destructive_recovery: prohibited
+    manage_credentials: prohibited
+  workflow:
+    branch_pattern: disabled
+    commit_convention: none
+    commit_signing: none
+    push_cadence: never
+    pull_request_policy: none
+    human_merge_required: false
+    post_merge: []
+documents:
+  - path: knowledge/10-overview.md
+    type: knowledge
+    status: static
+    basis: repository
+    evidence_paths: [README.md]
+    body: |
+      # Project overview
+
+      FlowForge is a dependency-aware task graph runner with no external package dependencies. It validates a directed acyclic graph, executes tasks in deterministic topological order, retries failures when configured, propagates skipped work, and persists run history as JSON.
+  - path: knowledge/20-architecture.md
+    type: knowledge
+    status: static
+    basis: repository
+    evidence_paths:
+      [
+        FlowForge.slnx,
+        src/FlowForge/Domain/TaskGraph.cs,
+        src/FlowForge/Engine/Scheduler.cs,
+        src/FlowForge/Storage/JsonRunStore.cs,
+      ]
+    body: |
+      # Architecture
+
+      The solution separates a reusable FlowForge library, a command-line adapter, and a self-contained test runner. The library is divided into Domain graph types, Engine scheduling and execution, Storage persistence, and Config path resolution. The CLI parses a JSON pipeline, maps task kinds to actions, runs the scheduler, and writes one run record.
+  - path: knowledge/30-source-map.md
+    type: knowledge
+    status: static
+    basis: repository
+    evidence_paths: [FlowForge.slnx, README.md]
+    body: |
+      # Source map
+
+      - `src/FlowForge/` contains the domain, engine, storage, and configuration library.
+      - `src/FlowForge.Cli/` contains pipeline parsing and the executable entry point.
+      - `tests/FlowForge.Tests/` contains the dependency-free console test runner.
+      - `examples/pipeline.json` is a representative dependency graph.
+  - path: knowledge/40-build-and-tooling.md
+    type: knowledge
+    status: static
+    basis: repository
+    evidence_paths:
+      [
+        README.md,
+        src/FlowForge/FlowForge.csproj,
+        src/FlowForge.Cli/FlowForge.Cli.csproj,
+        tests/FlowForge.Tests/FlowForge.Tests.csproj,
+      ]
+    body: |
+      # Build and tooling
+
+      FlowForge targets .NET 10 and uses no external NuGet packages. Build with `dotnet build FlowForge.slnx`, run the example with `dotnet run --project src/FlowForge.Cli -- run examples/pipeline.json`, and run checks with `dotnet run --project tests/FlowForge.Tests`.
+  - path: knowledge/50-domain-and-invariants.md
+    type: knowledge
+    status: static
+    basis: repository
+    evidence_paths:
+      [
+        src/FlowForge/Domain/TaskGraph.cs,
+        src/FlowForge/Engine/Scheduler.cs,
+        tests/FlowForge.Tests/GraphTests.cs,
+        tests/FlowForge.Tests/SchedulerTests.cs,
+      ]
+    body: |
+      # Domain and invariants
+
+      Task IDs are unique, every dependency names an existing task, and cycles are rejected before execution. Scheduling order is deterministic. A task runs only after all dependencies succeed; failed prerequisites cause dependent tasks to be skipped. Retry counts represent additional attempts and cannot be negative.
+  - path: operations/10-working-agreement.md
+    type: policy
+    status: living
+    basis: user
+    evidence_paths: []
+    body: |
+      # Working agreement
+
+      Preserve the dependency-free design and deterministic scheduling semantics. Keep project source and test structure project-owned. Require focused tests for changes to graph validation, scheduling, execution, or persistence.
+  - path: operations/20-plan.md
+    type: plan
+    status: living
+    basis: user
+    evidence_paths: []
+    body: |
+      # Project plan
+
+      ## Current state
+
+      The source example is complete and its self-contained test runner is the acceptance boundary.
+
+      ## Next actions
+
+      - Keep the sample buildable on the declared .NET SDK.
+      - Extend behavior only with matching dependency, retry, and failure-propagation checks.
+  - path: operations/30-decisions.md
+    type: policy
+    status: living
+    basis: user
+    evidence_paths: []
+    body: |
+      # Decision ledger
+
+      - Keep the core runner dependency-free.
+      - Use deterministic topological scheduling.
+      - Persist run records as JSON outside the source tree.
+scaffold_files: []

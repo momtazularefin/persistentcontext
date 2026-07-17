@@ -487,6 +487,7 @@ async function executeMutation(
       event_created: true,
       mutated: true,
       recovery_retained: recoveryRetained,
+      recovery_path: recoveryRetained ? recoveryRoot : null,
     };
   } catch (error) {
     const rollbackFailures: string[] = [];
@@ -535,20 +536,24 @@ async function executeMutation(
     }
 
     if (rollbackFailures.length > 0) {
+      const retainedPaths = [
+        ...(recoveryRoot === undefined ? [] : [recoveryRoot]),
+        ...(error instanceof RecordingError ? error.recovery_paths : []),
+      ];
       throw new WorkstreamError(
         'PCP_WORKSTREAM_ROLLBACK_FAILED',
         `Workstream mutation failed (${error instanceof Error ? error.message : String(error)}) and exact rollback could not be verified: ${rollbackFailures.join('; ')}`,
         true,
-        true,
+        retainedPaths,
       );
     }
 
-    let recoveryRetained = error instanceof RecordingError && error.recovery_retained;
+    const retainedPaths = error instanceof RecordingError ? [...error.recovery_paths] : [];
     if (recoveryRoot !== undefined) {
       try {
         await rm(recoveryRoot, { recursive: true, force: true });
       } catch {
-        recoveryRetained = true;
+        retainedPaths.push(recoveryRoot);
       }
     }
     const code =
@@ -559,7 +564,7 @@ async function executeMutation(
       code,
       error instanceof Error ? error.message : String(error),
       false,
-      recoveryRetained,
+      retainedPaths,
     );
   }
 }

@@ -333,6 +333,7 @@ describe('continuity event recording', () => {
         code: 'PCP_FAULT_INJECTED',
         mutated: false,
         recovery_retained: false,
+        recovery_paths: [],
       });
       expect(await historySnapshot(root)).toEqual(before);
       expect(await recoveryDirectories(root)).toEqual([]);

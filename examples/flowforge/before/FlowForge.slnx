@@ -1,0 +1,9 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/FlowForge.Cli/FlowForge.Cli.csproj" />
+    <Project Path="src/FlowForge/FlowForge.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/FlowForge.Tests/FlowForge.Tests.csproj" />
+  </Folder>
+</Solution>

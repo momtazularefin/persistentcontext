@@ -68,6 +68,7 @@ export interface WorkstreamMutationResult {
   event_created: true;
   mutated: true;
   recovery_retained: boolean;
+  recovery_path: string | null;
 }
 
 export type WorkstreamResult = WorkstreamValidationResult | WorkstreamMutationResult;
@@ -82,10 +83,14 @@ export class WorkstreamError extends Error {
     public readonly code: string,
     message: string,
     public readonly mutated = false,
-    public readonly recovery_retained = false,
+    public readonly recovery_paths: readonly string[] = [],
   ) {
     super(message);
     this.name = 'WorkstreamError';
+  }
+
+  public get recovery_retained(): boolean {
+    return this.recovery_paths.length > 0;
   }
 }
 

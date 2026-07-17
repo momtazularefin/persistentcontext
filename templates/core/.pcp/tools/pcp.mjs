@@ -22374,16 +22374,19 @@ function eventPayloadDigest(payload) {
   return createHash6("sha256").update(canonicalJson(payload)).digest("hex");
 }
 var RecordingError = class extends Error {
-  constructor(code2, message, mutated = false, recovery_retained = false) {
+  constructor(code2, message, mutated = false, recovery_paths = []) {
     super(message);
     this.code = code2;
     this.mutated = mutated;
-    this.recovery_retained = recovery_retained;
+    this.recovery_paths = recovery_paths;
     this.name = "RecordingError";
   }
   code;
   mutated;
-  recovery_retained;
+  recovery_paths;
+  get recovery_retained() {
+    return this.recovery_paths.length > 0;
+  }
 };
 function nextEventId(existingIds, now = Date.now()) {
   const newest = [...existingIds].sort((left, right) => left.localeCompare(right)).at(-1);
@@ -25269,7 +25272,7 @@ async function executeEventTransaction(root, event, activeEvents, archiveIds, op
         "PCP_RECORD_ROLLBACK_FAILED",
         `Event recording failed (${error2 instanceof Error ? error2.message : String(error2)}) and exact rollback could not be verified: ${rollbackFailures.join("; ")}`,
         true,
-        true
+        recoveryRoot === void 0 ? [] : [recoveryRoot]
       );
     }
     if (recoveryRoot !== void 0) {
@@ -25280,12 +25283,12 @@ async function executeEventTransaction(root, event, activeEvents, archiveIds, op
           "PCP_RECORD_RECOVERY_CLEANUP_FAILED",
           `Event recording failed and project state was restored, but recovery data could not be removed: ${cleanupError instanceof Error ? cleanupError.message : String(cleanupError)}`,
           false,
-          true
+          [recoveryRoot]
         );
       }
     }
     if (error2 instanceof RecordingError) {
-      throw new RecordingError(error2.code, error2.message, false, false);
+      throw new RecordingError(error2.code, error2.message, false, error2.recovery_paths);
     }
     throw new RecordingError(
       "PCP_RECORD_TRANSACTION_FAILED",
@@ -25352,16 +25355,19 @@ async function recordEvent(projectRoot, inputPath, options = {}) {
 
 // src/domain/workstreams.ts
 var WorkstreamError = class extends Error {
-  constructor(code2, message, mutated = false, recovery_retained = false) {
+  constructor(code2, message, mutated = false, recovery_paths = []) {
     super(message);
     this.code = code2;
     this.mutated = mutated;
-    this.recovery_retained = recovery_retained;
+    this.recovery_paths = recovery_paths;
     this.name = "WorkstreamError";
   }
   code;
   mutated;
-  recovery_retained;
+  recovery_paths;
+  get recovery_retained() {
+    return this.recovery_paths.length > 0;
+  }
 };
 function sorted(values) {
   return [...values].sort((left, right) => left.localeCompare(right));
@@ -25893,7 +25899,8 @@ async function executeMutation(root, loaded, input, nextRegistry, workstreamId, 
       announcement: input.operation === "complete" ? input.announcement.trim() : null,
       event_created: true,
       mutated: true,
-      recovery_retained: recoveryRetained
+      recovery_retained: recoveryRetained,
+      recovery_path: recoveryRetained ? recoveryRoot : null
     };
   } catch (error2) {
     const rollbackFailures = [];
@@ -25941,19 +25948,23 @@ async function executeMutation(root, loaded, input, nextRegistry, workstreamId, 
         rollbackFailures.push(`restored layer is invalid: ${layerSummary(report)}`);
     }
     if (rollbackFailures.length > 0) {
+      const retainedPaths2 = [
+        ...recoveryRoot === void 0 ? [] : [recoveryRoot],
+        ...error2 instanceof RecordingError ? error2.recovery_paths : []
+      ];
       throw new WorkstreamError(
         "PCP_WORKSTREAM_ROLLBACK_FAILED",
         `Workstream mutation failed (${error2 instanceof Error ? error2.message : String(error2)}) and exact rollback could not be verified: ${rollbackFailures.join("; ")}`,
         true,
-        true
+        retainedPaths2
       );
     }
-    let recoveryRetained = error2 instanceof RecordingError && error2.recovery_retained;
+    const retainedPaths = error2 instanceof RecordingError ? [...error2.recovery_paths] : [];
     if (recoveryRoot !== void 0) {
       try {
         await rm4(recoveryRoot, { recursive: true, force: true });
       } catch {
-        recoveryRetained = true;
+        retainedPaths.push(recoveryRoot);
       }
     }
     const code2 = error2 instanceof WorkstreamError || error2 instanceof RecordingError ? error2.code : "PCP_WORKSTREAM_TRANSACTION_FAILED";
@@ -25961,7 +25972,7 @@ async function executeMutation(root, loaded, input, nextRegistry, workstreamId, 
       code2,
       error2 instanceof Error ? error2.message : String(error2),
       false,
-      recoveryRetained
+      retainedPaths
     );
   }
 }
@@ -28035,6 +28046,16 @@ function formatRecording(result) {
   ].join("\n");
 }
 
+// src/presentation/format-recovery.ts
+function formatRecoveryDetails(paths) {
+  const uniquePaths2 = [...new Set(paths)];
+  return {
+    recovery_retained: uniquePaths2.length > 0,
+    recovery_path: uniquePaths2[0] ?? null,
+    ...uniquePaths2.length > 1 ? { recovery_paths: uniquePaths2 } : {}
+  };
+}
+
 // src/presentation/format-registration.ts
 function formatRegistration(result) {
   const verb = result.status === "created" ? "Created" : "Recovered";
@@ -28138,7 +28159,7 @@ function formatWorkstream(result) {
     `Event: ${result.event_id}`,
     `Registry digest: ${result.registry_digest_after}`,
     ...result.announcement === null ? [] : [`Announcement: ${result.announcement}`],
-    ...result.recovery_retained ? ["Warning: recovery material was retained."] : [],
+    ...result.recovery_path === null ? [] : [`Warning: recovery material was retained at ${result.recovery_path}`],
     ""
   ].join("\n");
 }
@@ -28179,9 +28200,9 @@ function reportAdoptionError(error2) {
   const code2 = error2 instanceof AdoptionError ? error2.code : "PCP_ADOPTION_FAILED";
   const message = error2 instanceof Error ? error2.message : String(error2);
   const mutated = error2 instanceof AdoptionError ? error2.mutated : false;
-  const recoveryRetained = error2 instanceof AdoptionError && error2.recoveryRoot !== void 0;
+  const recoveryPaths = error2 instanceof AdoptionError && error2.recoveryRoot !== void 0 ? [error2.recoveryRoot] : [];
   process.stderr.write(
-    `${JSON.stringify({ code: code2, message, mutated, recovery_retained: recoveryRetained })}
+    `${JSON.stringify({ code: code2, message, mutated, ...formatRecoveryDetails(recoveryPaths) })}
 `
   );
   process.exitCode = 2;
@@ -28206,9 +28227,9 @@ function reportRecordingError(error2) {
   const code2 = error2 instanceof RecordingError ? error2.code : "PCP_RECORD_FAILED";
   const message = error2 instanceof Error ? error2.message : String(error2);
   const mutated = error2 instanceof RecordingError ? error2.mutated : false;
-  const recoveryRetained = error2 instanceof RecordingError ? error2.recovery_retained : false;
+  const recoveryPaths = error2 instanceof RecordingError ? error2.recovery_paths : [];
   process.stderr.write(
-    `${JSON.stringify({ code: code2, message, mutated, recovery_retained: recoveryRetained })}
+    `${JSON.stringify({ code: code2, message, mutated, ...formatRecoveryDetails(recoveryPaths) })}
 `
   );
   process.exitCode = 2;
@@ -28217,9 +28238,9 @@ function reportWorkstreamError(error2) {
   const code2 = error2 instanceof WorkstreamError ? error2.code : "PCP_WORKSTREAM_FAILED";
   const message = error2 instanceof Error ? error2.message : String(error2);
   const mutated = error2 instanceof WorkstreamError ? error2.mutated : false;
-  const recoveryRetained = error2 instanceof WorkstreamError ? error2.recovery_retained : false;
+  const recoveryPaths = error2 instanceof WorkstreamError ? error2.recovery_paths : [];
   process.stderr.write(
-    `${JSON.stringify({ code: code2, message, mutated, recovery_retained: recoveryRetained })}
+    `${JSON.stringify({ code: code2, message, mutated, ...formatRecoveryDetails(recoveryPaths) })}
 `
   );
   process.exitCode = 2;
@@ -28228,9 +28249,9 @@ function reportRepairError(error2) {
   const code2 = error2 instanceof RepairError ? error2.code : "PCP_REPAIR_FAILED";
   const message = error2 instanceof Error ? error2.message : String(error2);
   const mutated = error2 instanceof RepairError ? error2.mutated : false;
-  const recoveryRetained = error2 instanceof RepairError && error2.recovery_root !== void 0;
+  const recoveryPaths = error2 instanceof RepairError && error2.recovery_root !== void 0 ? [error2.recovery_root] : [];
   process.stderr.write(
-    `${JSON.stringify({ code: code2, message, mutated, recovery_retained: recoveryRetained })}
+    `${JSON.stringify({ code: code2, message, mutated, ...formatRecoveryDetails(recoveryPaths) })}
 `
   );
   process.exitCode = 2;
@@ -28239,9 +28260,9 @@ function reportUpgradeError(error2) {
   const code2 = error2 instanceof UpgradeError ? error2.code : "PCP_UPGRADE_FAILED";
   const message = error2 instanceof Error ? error2.message : String(error2);
   const mutated = error2 instanceof UpgradeError ? error2.mutated : false;
-  const recoveryRetained = error2 instanceof UpgradeError && error2.recovery_root !== void 0;
+  const recoveryPaths = error2 instanceof UpgradeError && error2.recovery_root !== void 0 ? [error2.recovery_root] : [];
   process.stderr.write(
-    `${JSON.stringify({ code: code2, message, mutated, recovery_retained: recoveryRetained })}
+    `${JSON.stringify({ code: code2, message, mutated, ...formatRecoveryDetails(recoveryPaths) })}
 `
   );
   process.exitCode = 2;

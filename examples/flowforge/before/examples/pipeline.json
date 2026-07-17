@@ -1,0 +1,11 @@
+{
+  "name": "demo-build-pipeline",
+  "tasks": [
+    { "id": "checkout", "kind": "echo", "value": "fetching sources" },
+    { "id": "restore", "kind": "echo", "value": "restoring deps", "dependsOn": ["checkout"] },
+    { "id": "build", "kind": "echo", "value": "compiling", "dependsOn": ["restore"] },
+    { "id": "unit", "kind": "echo", "value": "unit tests", "dependsOn": ["build"] },
+    { "id": "integ", "kind": "sleep", "value": "10", "dependsOn": ["build"] },
+    { "id": "package", "kind": "echo", "value": "packaging", "dependsOn": ["unit", "integ"] }
+  ]
+}

@@ -24,9 +24,12 @@
     "build": "npm run clean && tsc -p tsconfig.build.json && node scripts/bundle-engine.mjs && node scripts/sync-installed-engine.mjs",
     "package:skill": "node scripts/package-skill.mjs",
     "validate:skill": "node scripts/validate-skill.mjs",
-    "verify:dist": "node scripts/verify-dist.mjs",
+    "scan:package": "node scripts/scan-package-content.mjs",
     "scan:private": "node scripts/scan-private-data.mjs",
-    "verify": "npm run format:check && npm run lint && npm run typecheck && npm run test:coverage && npm run build && npm run package:skill && npm run validate:skill && npm run verify:dist && npm run scan:private"
+    "test:golden": "node scripts/verify-dist.mjs",
+    "verify:dist": "npm run test:golden",
+    "verify:quality": "npm run format:check && npm run lint && npm run typecheck && npm run test:coverage && npm run build && npm run package:skill && npm run validate:skill",
+    "verify": "npm run verify:quality && npm run scan:package && npm run scan:private && npm run test:golden"
   },
   "dependencies": {
     "ajv": "8.20.0",

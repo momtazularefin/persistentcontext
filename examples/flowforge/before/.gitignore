@@ -1,0 +1,10 @@
+# .NET build output
+bin/
+obj/
+
+# IDE
+.vs/
+*.user
+
+# FlowForge local run history (default dev location)
+.flowforge/

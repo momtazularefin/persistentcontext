@@ -35,6 +35,7 @@ import {
 } from '../presentation/format-canonical.js';
 import { formatInspection } from '../presentation/format-inspection.js';
 import { formatRecording } from '../presentation/format-recording.js';
+import { formatRecoveryDetails } from '../presentation/format-recovery.js';
 import { formatRegistration } from '../presentation/format-registration.js';
 import { formatRepair } from '../presentation/format-repair.js';
 import { formatStatus } from '../presentation/format-status.js';
@@ -145,9 +146,10 @@ function reportAdoptionError(error: unknown): void {
   const code = error instanceof AdoptionError ? error.code : 'PCP_ADOPTION_FAILED';
   const message = error instanceof Error ? error.message : String(error);
   const mutated = error instanceof AdoptionError ? error.mutated : false;
-  const recoveryRetained = error instanceof AdoptionError && error.recoveryRoot !== undefined;
+  const recoveryPaths =
+    error instanceof AdoptionError && error.recoveryRoot !== undefined ? [error.recoveryRoot] : [];
   process.stderr.write(
-    `${JSON.stringify({ code, message, mutated, recovery_retained: recoveryRetained })}\n`,
+    `${JSON.stringify({ code, message, mutated, ...formatRecoveryDetails(recoveryPaths) })}\n`,
   );
   process.exitCode = 2;
 }
@@ -172,9 +174,9 @@ function reportRecordingError(error: unknown): void {
   const code = error instanceof RecordingError ? error.code : 'PCP_RECORD_FAILED';
   const message = error instanceof Error ? error.message : String(error);
   const mutated = error instanceof RecordingError ? error.mutated : false;
-  const recoveryRetained = error instanceof RecordingError ? error.recovery_retained : false;
+  const recoveryPaths = error instanceof RecordingError ? error.recovery_paths : [];
   process.stderr.write(
-    `${JSON.stringify({ code, message, mutated, recovery_retained: recoveryRetained })}\n`,
+    `${JSON.stringify({ code, message, mutated, ...formatRecoveryDetails(recoveryPaths) })}\n`,
   );
   process.exitCode = 2;
 }
@@ -183,9 +185,9 @@ function reportWorkstreamError(error: unknown): void {
   const code = error instanceof WorkstreamError ? error.code : 'PCP_WORKSTREAM_FAILED';
   const message = error instanceof Error ? error.message : String(error);
   const mutated = error instanceof WorkstreamError ? error.mutated : false;
-  const recoveryRetained = error instanceof WorkstreamError ? error.recovery_retained : false;
+  const recoveryPaths = error instanceof WorkstreamError ? error.recovery_paths : [];
   process.stderr.write(
-    `${JSON.stringify({ code, message, mutated, recovery_retained: recoveryRetained })}\n`,
+    `${JSON.stringify({ code, message, mutated, ...formatRecoveryDetails(recoveryPaths) })}\n`,
   );
   process.exitCode = 2;
 }
@@ -194,9 +196,10 @@ function reportRepairError(error: unknown): void {
   const code = error instanceof RepairError ? error.code : 'PCP_REPAIR_FAILED';
   const message = error instanceof Error ? error.message : String(error);
   const mutated = error instanceof RepairError ? error.mutated : false;
-  const recoveryRetained = error instanceof RepairError && error.recovery_root !== undefined;
+  const recoveryPaths =
+    error instanceof RepairError && error.recovery_root !== undefined ? [error.recovery_root] : [];
   process.stderr.write(
-    `${JSON.stringify({ code, message, mutated, recovery_retained: recoveryRetained })}\n`,
+    `${JSON.stringify({ code, message, mutated, ...formatRecoveryDetails(recoveryPaths) })}\n`,
   );
   process.exitCode = 2;
 }
@@ -205,9 +208,10 @@ function reportUpgradeError(error: unknown): void {
   const code = error instanceof UpgradeError ? error.code : 'PCP_UPGRADE_FAILED';
   const message = error instanceof Error ? error.message : String(error);
   const mutated = error instanceof UpgradeError ? error.mutated : false;
-  const recoveryRetained = error instanceof UpgradeError && error.recovery_root !== undefined;
+  const recoveryPaths =
+    error instanceof UpgradeError && error.recovery_root !== undefined ? [error.recovery_root] : [];
   process.stderr.write(
-    `${JSON.stringify({ code, message, mutated, recovery_retained: recoveryRetained })}\n`,
+    `${JSON.stringify({ code, message, mutated, ...formatRecoveryDetails(recoveryPaths) })}\n`,
   );
   process.exitCode = 2;
 }

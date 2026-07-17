@@ -4,6 +4,8 @@ Persistent Context Protocol (PCP): repository-native context, safe handoffs, and
 
 Most coding agents can complete a task. The harder problem is helping the next agent understand what changed, why it changed, which rules still apply, and what work can safely continue. PCP is designed to make that context portable plain-text project state instead of leaving it trapped in conversations or one machine.
 
+See the [public documentation](docs/README.md) for the architecture, full lifecycle, and evidence-backed capability lineage.
+
 ## Development status
 
 PCP is under active `0.1.0` development. The engine performs read-only repository inventory and explainable intake classification, safely adopts State A and State B projects, and translates reviewed State C foreign context into canonical PCP state. It creates or recovers stable human and agent identities while issuing a separate execution ULID for each registration. It previews scoped reconciliation across workstreams, dependencies, shared state, and overlapping paths, then advances a local checkpoint only when the caller acknowledges the exact recomputed status digest. It records meaningful durable changes as minimal immutable events, preserving the distinction between who acted and who reported or observed the action. It manages digest-bound workstream creation, updates, validation, and evidence-backed completion while keeping the canonical registry, generated view, and attributed history atomic. It validates the canonical `.pcp/` contract and deterministically checks or renders the generated project-status view. Every adoption installs the exact checked self-contained engine at `.pcp/tools/pcp.mjs`; upgrade keeps that project-local engine byte-identical to the running release. It fingerprints files with SHA-256, honors ignore and nested-repository boundaries, records symlinks without following them, and distinguishes a managed PCP project from State A, B, or C.
@@ -91,6 +93,8 @@ node dist/pcp.mjs upgrade path/to/managed-project --apply <plan-digest> --json
 The source baseline lives under [`templates/core/.pcp/`](templates/core/.pcp/). It starts with zero actor profiles and zero active or archived events, keeps machine authority in versioned YAML, uses numbered Markdown with a `00-index.md` per folder, and separates protocol, project, generated, and runtime ownership. Ongoing installations keep durable identity, active events, archive, and scoped checkpoints together under `.pcp/continuity/`, while ignored `.pcp/runtime/actors/` caches project-local identity recovery. The active event window is capped at 64 records and rotates its oldest 32 records to explicit-only archive history. Optional overlays add spec-driven projects, Concurrent Execution Blocks, scratch space, and incremental walkthroughs.
 
 The open skill ships byte-identical copies of the release schemas, templates, bundled engine, and installed engine plus checksum manifests. The build synchronizes one engine into `dist/pcp.mjs`, `skills/build-pcp/scripts/pcp.mjs`, and `templates/core/.pcp/tools/pcp.mjs`. Distribution verification adopts a project, proves the installed bytes and checksum match that release, and executes the installed engine independently before continuing the lifecycle probes.
+
+The [capability lineage and parity record](docs/capability-parity.md) traces the practical orchestration behaviors that PCP preserves and the earlier mechanisms it deliberately supersedes. Each claim is backed by a machine-readable record and contract-tested public evidence.
 
 ## Version-control policy
 
