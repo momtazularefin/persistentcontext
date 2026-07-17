@@ -68,4 +68,50 @@ describe('public documentation contract', () => {
       expect(lifecycle, boundary).toContain(boundary);
     }
   });
+
+  it('keeps compatibility claims inside the verified product contract', async () => {
+    const compatibility = await readFile(new URL('docs/compatibility.md', projectRoot), 'utf8');
+
+    for (const claim of [
+      '`>=24 <25`',
+      '`windows-latest`',
+      '`ubuntu-latest`',
+      'macOS should be treated as unverified rather than promised',
+      '`codex`',
+      '`antigravity`',
+      '`claude-code-desktop`',
+      '`github-copilot-vscode`',
+      '`cursor`',
+      'AGENTS.md',
+      '.agents/rules/pcp.md',
+      'CLAUDE.md',
+      '.github/copilot-instructions.md',
+      '.cursor/rules/pcp.mdc',
+      'adapter-contract claim',
+      'Downgrades are rejected',
+    ]) {
+      expect(compatibility, claim).toContain(claim);
+    }
+  });
+
+  it('states security controls and limitations without implying authentication', async () => {
+    const [safety, policy] = await Promise.all([
+      readFile(new URL('docs/safety.md', projectRoot), 'utf8'),
+      readFile(new URL('SECURITY.md', projectRoot), 'utf8'),
+    ]);
+
+    for (const boundary of [
+      'never follows them',
+      'reverse exact rollback',
+      'not digital signatures',
+      'not a general-purpose secret scanner',
+      'Credential management cannot be assigned to an agent',
+      'checksum proves byte equality',
+    ]) {
+      expect(safety, boundary).toContain(boundary);
+    }
+    expect(policy).toContain("GitHub's private vulnerability-reporting form");
+    expect(policy).toContain('Include no vulnerability details');
+    expect(policy).toContain('does not claim to sandbox agents');
+  });
 });
