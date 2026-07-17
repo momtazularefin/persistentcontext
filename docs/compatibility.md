@@ -8,8 +8,8 @@ This matrix describes the implemented PCP `0.1.0` contract. It distinguishes ver
 | ------------------ | ---------------------------------------- | ----------------------------------------------------------------------------------- |
 | Node.js            | `>=24 <25`                               | Declared by `package.json`; build and all engine commands run on Node 24.           |
 | npm                | `11.16.0` lockstep development toolchain | Declared by `packageManager`; clean CI uses `npm ci`.                               |
-| Windows            | `windows-latest`                         | Complete `npm run verify` matrix job.                                               |
-| Linux              | `ubuntu-latest`                          | Complete `npm run verify` matrix job.                                               |
+| Windows            | `windows-latest`                         | Quality, package/private scans, and packaged lifecycle golden matrix jobs.          |
+| Linux              | `ubuntu-latest`                          | Quality, package/private scans, and packaged lifecycle golden matrix jobs.          |
 | Text normalization | LF in the repository                     | Enforced by `.gitattributes`; runtime path handling normalizes platform separators. |
 
 macOS is not part of the `0.1.0` CI matrix. PCP uses portable Node APIs and repository-relative paths, but absence of a macOS verification job means macOS should be treated as unverified rather than promised.

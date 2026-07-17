@@ -50,5 +50,11 @@ describe('public project contract', () => {
     expect(attributes.trim()).toBe('* text=auto eol=lf');
     expect(workflow).toContain('uses: actions/checkout@v5');
     expect(workflow).not.toContain('uses: actions/checkout@v4');
+    expect(workflow).toContain('npm run scan:package');
+    expect(workflow).toContain('npm run scan:private');
+    expect(workflow).toContain('golden (${{ matrix.os }})');
+    expect(workflow).toContain('os: [ubuntu-latest, windows-latest]');
+    expect(workflow).toContain('npm run test:golden');
+    expect(workflow).toContain('needs: [verify, golden]');
   });
 });

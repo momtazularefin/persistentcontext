@@ -82,7 +82,7 @@ git diff --check
 git status --short
 ```
 
-The full gate checks formatting, lint, strict types, coverage, build, skill packaging and validation, distribution integrity, installed-engine execution, and private-data leakage. Review all generated changes and confirm the worktree contains only the intended contribution.
+The full gate checks formatting, lint, strict types, coverage, build, skill packaging and validation, an allowlisted package-content and checksum audit, private-data leakage, distribution integrity, and the installed-engine lifecycle golden test. CI runs the quality and publication scans on both Windows and Ubuntu, then requires a separate packaged lifecycle golden job on both systems before the aggregate `test` check can pass. Review all generated changes and confirm the worktree contains only the intended contribution.
 
 ## Commit and pull-request style
 

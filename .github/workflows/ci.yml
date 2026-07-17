@@ -30,16 +30,50 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Verify project
-        run: npm run verify
+      - name: Verify source, tests, build, and skill
+        run: npm run verify:quality
+
+      - name: Audit packaged skill contents
+        run: npm run scan:package
+
+      - name: Scan repository and generated packages for private data
+        run: npm run scan:private
+
+  golden:
+    name: golden (${{ matrix.os }})
+    needs: verify
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v5
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v5
+        with:
+          node-version: 24
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build and package the release candidate
+        run: npm run build && npm run package:skill
+
+      - name: Run the packaged lifecycle golden test
+        run: npm run test:golden
 
   test:
     name: test
-    needs: verify
+    needs: [verify, golden]
     if: ${{ always() }}
     runs-on: ubuntu-latest
     steps:
       - name: Require every verification job
         env:
           VERIFY_RESULT: ${{ needs.verify.result }}
-        run: test "$VERIFY_RESULT" = "success"
+          GOLDEN_RESULT: ${{ needs.golden.result }}
+        run: test "$VERIFY_RESULT" = "success" && test "$GOLDEN_RESULT" = "success"
