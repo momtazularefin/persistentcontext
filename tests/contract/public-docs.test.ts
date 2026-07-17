@@ -114,4 +114,43 @@ describe('public documentation contract', () => {
     expect(policy).toContain('Include no vulnerability details');
     expect(policy).toContain('does not claim to sandbox agents');
   });
+
+  it('guides contributions through authoritative sources and complete verification', async () => {
+    const contributing = await readFile(new URL('CONTRIBUTING.md', projectRoot), 'utf8');
+
+    for (const claim of [
+      'Source-of-truth boundaries',
+      'Do not hand-edit synchronized engine files',
+      'Transaction tests',
+      'at least two meaningful invalid cases',
+      'State C translation',
+      'Use synthetic names, identities, histories, paths, credentials',
+      'npm run verify',
+      'A safe refusal is part of the product contract',
+    ]) {
+      expect(contributing, claim).toContain(claim);
+    }
+  });
+
+  it('troubleshoots stable error families without recommending destructive bypasses', async () => {
+    const troubleshooting = await readFile(new URL('docs/troubleshooting.md', projectRoot), 'utf8');
+
+    for (const code of [
+      'PCP_UNSAFE_ROOT',
+      'PCP_SOURCE_CHANGED',
+      'PCP_PLAN_DIGEST_MISMATCH',
+      'PCP_ADOPTION_LIVE_INVALID',
+      'PCP_REGISTRATION_STALE_CACHE',
+      'PCP_STATUS_DIGEST_MISMATCH',
+      'PCP_RECORD_DUPLICATE_CHANGE',
+      'PCP_WORKSTREAM_REGISTRY_CHANGED',
+      'PCP_REPAIR_NOT_APPLICABLE',
+      'PCP_UPGRADE_PRESERVATION_FAILED',
+    ]) {
+      expect(troubleshooting, code).toContain(code);
+    }
+    expect(troubleshooting).toContain('Do not use force deletion');
+    expect(troubleshooting).toContain('preserve recovery evidence');
+    expect(troubleshooting).toContain('Do not create a second independent instruction layer');
+  });
 });
