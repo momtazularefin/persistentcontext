@@ -39,6 +39,9 @@ jobs:
       - name: Scan repository and generated packages for private data
         run: npm run scan:private
 
+      - name: Verify frozen release-candidate identity
+        run: npm run verify:candidate
+
   golden:
     name: golden (${{ matrix.os }})
     needs: verify

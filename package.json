@@ -28,8 +28,10 @@
     "scan:private": "node scripts/scan-private-data.mjs",
     "test:golden": "node scripts/verify-dist.mjs",
     "verify:dist": "npm run test:golden",
+    "freeze:candidate": "node scripts/release-candidate.mjs --write",
+    "verify:candidate": "node scripts/release-candidate.mjs",
     "verify:quality": "npm run format:check && npm run lint && npm run typecheck && npm run test:coverage && npm run build && npm run package:skill && npm run validate:skill",
-    "verify": "npm run verify:quality && npm run scan:package && npm run scan:private && npm run test:golden"
+    "verify": "npm run verify:quality && npm run scan:package && npm run scan:private && npm run test:golden && npm run verify:candidate"
   },
   "dependencies": {
     "ajv": "8.20.0",
