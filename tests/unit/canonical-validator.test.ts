@@ -138,6 +138,24 @@ describe('installed canonical layer validation', () => {
     expect(diagnosticCodes(await validateCanonicalLayer(root))).toContain('layer.required-path');
   });
 
+  it('rejects an installed engine whose checksum no longer matches', async () => {
+    const root = await createProject();
+    await writeFile(path.join(root, '.pcp', 'tools', 'pcp.sha256'), `${'0'.repeat(64)}  pcp.mjs\n`);
+
+    expect(diagnosticCodes(await validateCanonicalLayer(root))).toContain('engine.checksum');
+  });
+
+  it('requires every file declared by an enabled capability', async () => {
+    const root = await createProject();
+    const manifestPath = path.join(root, '.pcp', 'pcp.yaml');
+    const manifest = await readYamlObject(manifestPath);
+    manifest.capabilities = ['spec-driven-projects'];
+    await writeYamlObject(manifestPath, manifest);
+
+    const report = await validateCanonicalLayer(root);
+    expect(diagnosticCodes(report)).toContain('capability.required-path');
+  });
+
   it('rejects machine paths, file URIs, and secret material', async () => {
     const root = await createProject();
     const privateFileUri = ['file:', '///C:/Users/example/private.md'].join('');

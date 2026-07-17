@@ -10,3 +10,9 @@ export interface CanonicalRenderReport {
   changed_paths: string[];
   diagnostics: CanonicalDiagnostic[];
 }
+
+export interface CanonicalRenderBuild {
+  valid: boolean;
+  content?: string;
+  diagnostics: CanonicalDiagnostic[];
+}

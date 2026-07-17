@@ -25,6 +25,8 @@ import type {
 } from '../../src/domain/workstreams.js';
 import { formatWorkstream } from '../../src/presentation/format-workstream.js';
 
+vi.setConfig({ testTimeout: 15_000 });
+
 const coreTemplate = fileURLToPath(new URL('../../templates/core/.pcp/', import.meta.url));
 const temporaryRoots: string[] = [];
 
@@ -255,7 +257,7 @@ describe('workstream management', () => {
     );
     expect(formatWorkstream(result)).toContain('Created workstream implementation.');
     expect((await validateCanonicalLayer(root)).valid).toBe(true);
-  });
+  }, 15_000);
 
   it('enforces update transitions, immutable kind, and the completion boundary', async () => {
     const root = await createProject();

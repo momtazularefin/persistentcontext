@@ -32,4 +32,27 @@ State C becomes applicable only after the engine accepts complete reviewed cover
 
 ## Repair and upgrade
 
-Repair only mechanically recoverable drift and always preview structural writes. During upgrade, replace protocol-owned and generated files only. Preserve project-owned knowledge, policies, projects, workstreams, profiles, and events.
+Repair only mechanically recoverable generated-adapter drift. Preview without mutation:
+
+```text
+node <pcp-engine> repair <project-root> --json
+```
+
+If `applicable` is true, review every operation and apply only the returned digest:
+
+```text
+node <pcp-engine> repair <project-root> --apply <plan-digest> --json
+```
+
+The engine refuses unrelated canonical damage, manifest/source drift, symbolic links, and file/directory collisions. It binds replacements to exact preimages, writes missing adapters only through the structural transaction, validates the complete live layer, and restores every byte after a caught failure. Use `render` for generated status-view drift.
+
+Run upgrade with the incoming release's verified bundled engine, which carries the matching release template and capability assets. The engine already installed under the managed project's `.pcp/tools/` is for that installed release and cannot supply a newer release's assets. Preview the ownership-aware upgrade, review its target paths and preservation digest, then apply only the exact plan:
+
+```text
+node <pcp-engine> upgrade <project-root> --json
+node <pcp-engine> upgrade <project-root> --apply <plan-digest> --json
+```
+
+Upgrade merges the installed persistence mode, capabilities, adapter contract, and VCS-policy path into the release manifest. It may replace only release protocol files, generated views, and generated adapters. It rejects a newer installed version, invalid source state, project/runtime ownership collisions, unsafe paths, or stale approval. Apply holds continuity and structural locks, validates the live result, and verifies the precomputed hash of every untargeted inventory file plus every project/runtime-owned canonical file. Never use upgrade to rewrite knowledge, policies, projects, workstreams, profiles, events, checkpoints, runtime caches, or ordinary project assets.
+
+When the installed and bundled release versions and bytes already match, preview returns `applicable: false` with no plan digest. Treat that as a successful current-state check; do not fabricate an older version or force an apply.

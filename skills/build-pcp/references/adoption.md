@@ -41,7 +41,7 @@ node <pcp-engine> adopt --candidate <candidate-directory> --json
 
 Create a temporary YAML or JSON document outside the candidate that validates against `assets/schemas/v1/adoption-input.schema.json`. Do not leave this transient synthesis artifact in the project. It must contain:
 
-- the baseline timestamp, persistence profile, schema-valid project state, grounded project registry and workstreams (empty only when evidence supports that), and explicit VCS policy;
+- the baseline timestamp, persistence profile, explicit supported capability selection (an empty array means core only), schema-valid primary project state, grounded related-project registry and workstreams, and explicit VCS policy;
 - exactly the five canonical knowledge documents and three operations documents named by the schema;
 - each document's canonical type/status, evidence basis, cited candidate-relative paths, and grounded Markdown body;
 - State A scaffold files only when they are explicitly appropriate; an empty State A target requires at least one;
@@ -51,6 +51,8 @@ Create a temporary YAML or JSON document outside the candidate that validates ag
 Use `tracked` unless the candidate's existing ignore policy already covers the complete `.pcp/` layer. The engine rejects a `local` persistence claim that is not actually ignored and rejects tracked adoption into an ignored canonical path.
 
 Use `repository` or `repository-and-user` only with cited paths from the engine inventory. Every State B knowledge document must use one of those repository-grounded bases. Use `user` for explicit current direction and `not-applicable` only when the document says why. Preserve uncertainty; never fill a baseline with guesses or template placeholders.
+
+The singular `project` record is the adopted primary project. The `projects.projects` array contains only additional related or nested projects; do not duplicate the primary project there. Use an empty array when no secondary project is established by evidence.
 
 For State A software, resolve the actual language, runtime, package manager, license, and deployment choice before encoding any related scaffold. For non-software work, create only the structure appropriate to its real project type.
 
@@ -68,7 +70,7 @@ Review every operation and present the returned `plan_digest` for approval. Appl
 node <pcp-engine> adopt --candidate <candidate-directory> --input <temporary-input> --apply <plan-digest> --json
 ```
 
-The engine fully recomputes the plan, rejects source drift, acquires a project lock, stages content outside the candidate, writes a preimage-backed operation log, applies atomically, validates the live clean genesis, rolls back exact source hashes on failure, and removes recovery material after success. Never bypass a digest mismatch or retained-recovery warning with shell writes.
+The engine fully recomputes the plan, rejects source drift, acquires a project lock, stages content outside the candidate, writes a preimage-backed operation log, applies atomically, validates the live clean genesis, rolls back exact source hashes on failure, and removes recovery material after success. Every State A/B/C plan includes the five canonical thin adapters and the exact checked engine at `.pcp/tools/pcp.mjs` with its adjacent SHA-256. Their target paths are reserved; do not use a State A scaffold to create independent platform instructions. Never bypass a digest mismatch or retained-recovery warning with shell writes.
 
 ## State C
 

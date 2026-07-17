@@ -48,7 +48,6 @@ async function transactionFixture(): Promise<{
   const plan = createMutationPlan({
     classification: 'B',
     inventory,
-    generatedAt: '2026-07-13T10:00:00Z',
     operations: [
       { action: 'mkdir', path: 'new' },
       { action: 'write', path: 'new/new.txt', content_digest: sha256(content.get('new/new.txt')!) },

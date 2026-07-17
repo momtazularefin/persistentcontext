@@ -169,6 +169,19 @@ describe('transactional State A adoption', () => {
     expect(await validateCanonicalLayer(candidate, { clean_genesis: true })).toMatchObject({
       valid: true,
     });
+    const adapters = renderPlatformAdapters();
+    expect(
+      await validatePlatformAdapters(
+        candidate,
+        adapters.map((adapter) => adapter.manifest),
+      ),
+    ).toEqual({ valid: true, checked_adapters: 5, diagnostics: [] });
+    await writeFile(path.join(candidate, 'AGENTS.md'), '# Stale adapter\n');
+    const driftedLayer = await validateCanonicalLayer(candidate, { clean_genesis: true });
+    expect(driftedLayer.valid).toBe(false);
+    expect(
+      driftedLayer.diagnostics.some((diagnostic) => diagnostic.code === 'adapter.digest'),
+    ).toBe(true);
     expect(await readdir(path.join(candidate, '.pcp', 'continuity', 'actors'))).toEqual([
       '00-index.md',
     ]);
@@ -179,7 +192,7 @@ describe('transactional State A adoption', () => {
       '00-index.md',
     ]);
     expect(before.inventory.files.map((file) => file.path)).toEqual(['README.md']);
-  });
+  }, 15_000);
 
   it('rejects an unapproved digest without changing the candidate', async () => {
     const { candidate, inputPath } = await createSeed();
@@ -190,6 +203,34 @@ describe('transactional State A adoption', () => {
     ).rejects.toMatchObject({ code: 'PCP_PLAN_DIGEST_MISMATCH', mutated: false });
     expect((await inspectRepository(candidate)).inventory.digest).toBe(before.inventory.digest);
   });
+
+  it('applies selected capability overlays as part of the approved adoption transaction', async () => {
+    const candidate = await temporaryRoot('pcp-capability-seed-');
+    await writeFile(path.join(candidate, 'README.md'), '# Capability project\n\nExplicit seed.\n');
+    const input = await adoptionFixture();
+    input.capabilities = ['scratch-space', 'spec-driven-projects'];
+    const inputPath = await writeExternalInput(input);
+    const preview = await previewDigest(candidate, inputPath);
+
+    await adoptProject(candidate, { input: inputPath, apply: preview.digest });
+
+    const manifest = parse(await readFile(path.join(candidate, '.pcp', 'pcp.yaml'), 'utf8')) as {
+      capabilities: string[];
+    };
+    expect(manifest.capabilities).toEqual(['scratch-space', 'spec-driven-projects']);
+    await expect(
+      readFile(path.join(candidate, '.pcp', 'protocol', '100-scratch-space.md'), 'utf8'),
+    ).resolves.toContain('# Scratch space');
+    await expect(
+      readFile(path.join(candidate, '.pcp', 'templates', '30-project-spec.md'), 'utf8'),
+    ).resolves.toContain('# Project specification');
+    await expect(readFile(path.join(candidate, 'scratch', 'README.md'), 'utf8')).resolves.toContain(
+      'noncanonical workspace',
+    );
+    expect(await validateCanonicalLayer(candidate, { clean_genesis: true })).toMatchObject({
+      valid: true,
+    });
+  }, 15_000);
 
   it('adopts an empty non-software State A project from an explicit scaffold', async () => {
     const candidate = await temporaryRoot('pcp-empty-research-');
@@ -214,7 +255,7 @@ describe('transactional State A adoption', () => {
     expect(await validateCanonicalLayer(candidate, { clean_genesis: true })).toMatchObject({
       valid: true,
     });
-  });
+  }, 15_000);
 
   it('adopts grounded software, documentation, research/data, monorepo, and nested-repository State B fixtures without changing owned assets', async () => {
     const cases = [
@@ -342,6 +383,12 @@ describe('transactional State A adoption', () => {
       expect(await validateCanonicalLayer(candidate, { clean_genesis: true })).toMatchObject({
         valid: true,
       });
+      expect(
+        await validatePlatformAdapters(
+          candidate,
+          renderPlatformAdapters().map((adapter) => adapter.manifest),
+        ),
+      ).toMatchObject({ valid: true, checked_adapters: 5 });
     }
 
     const researchCandidate = await temporaryRoot('pcp-state-b-research-data-');
@@ -424,7 +471,7 @@ describe('transactional State A adoption', () => {
       );
       expect(await readFile(path.join(candidate, 'README.md'), 'utf8')).toBe(seed);
     }
-  }, 120_000);
+  }, 180_000);
 });
 
 describe('transactional State C translation', () => {

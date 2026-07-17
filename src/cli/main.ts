@@ -8,9 +8,11 @@ import { inspectRepository } from '../application/inspect-repository.js';
 import { mutateWorkstream, validateWorkstreamRegistry } from '../application/manage-workstreams.js';
 import { recordEvent } from '../application/record-event.js';
 import { registerActor } from '../application/register-actor.js';
+import { repairProject } from '../application/repair-project.js';
 import { reportStatus } from '../application/report-status.js';
 import { renderCanonicalViews } from '../application/render-canonical-views.js';
 import { validateCanonicalLayer } from '../application/validate-canonical-layer.js';
+import { upgradeProject } from '../application/upgrade-project.js';
 import {
   PCP_COMMANDS,
   PCP_NAME,
@@ -23,6 +25,8 @@ import { InspectionError } from '../domain/inspection.js';
 import { RecordingError } from '../domain/recording.js';
 import { normalizeMachineLabel, RegistrationError } from '../domain/registration.js';
 import { ReconciliationError } from '../domain/reconciliation.js';
+import { RepairError } from '../domain/repair.js';
+import { UpgradeError } from '../domain/upgrade.js';
 import { WorkstreamError } from '../domain/workstreams.js';
 import { formatAdoption } from '../presentation/format-adoption.js';
 import {
@@ -32,7 +36,9 @@ import {
 import { formatInspection } from '../presentation/format-inspection.js';
 import { formatRecording } from '../presentation/format-recording.js';
 import { formatRegistration } from '../presentation/format-registration.js';
+import { formatRepair } from '../presentation/format-repair.js';
 import { formatStatus } from '../presentation/format-status.js';
+import { formatUpgrade } from '../presentation/format-upgrade.js';
 import { formatWorkstream } from '../presentation/format-workstream.js';
 
 const commandDescriptions: Record<PcpCommandName, string> = {
@@ -109,6 +115,18 @@ interface RenderOptions {
   json?: boolean;
 }
 
+interface RepairOptions {
+  candidate?: string;
+  apply?: string;
+  json?: boolean;
+}
+
+interface UpgradeOptions {
+  candidate?: string;
+  apply?: string;
+  json?: boolean;
+}
+
 interface WorkstreamOptions {
   candidate?: string;
   input: string;
@@ -166,6 +184,28 @@ function reportWorkstreamError(error: unknown): void {
   const message = error instanceof Error ? error.message : String(error);
   const mutated = error instanceof WorkstreamError ? error.mutated : false;
   const recoveryRetained = error instanceof WorkstreamError ? error.recovery_retained : false;
+  process.stderr.write(
+    `${JSON.stringify({ code, message, mutated, recovery_retained: recoveryRetained })}\n`,
+  );
+  process.exitCode = 2;
+}
+
+function reportRepairError(error: unknown): void {
+  const code = error instanceof RepairError ? error.code : 'PCP_REPAIR_FAILED';
+  const message = error instanceof Error ? error.message : String(error);
+  const mutated = error instanceof RepairError ? error.mutated : false;
+  const recoveryRetained = error instanceof RepairError && error.recovery_root !== undefined;
+  process.stderr.write(
+    `${JSON.stringify({ code, message, mutated, recovery_retained: recoveryRetained })}\n`,
+  );
+  process.exitCode = 2;
+}
+
+function reportUpgradeError(error: unknown): void {
+  const code = error instanceof UpgradeError ? error.code : 'PCP_UPGRADE_FAILED';
+  const message = error instanceof Error ? error.message : String(error);
+  const mutated = error instanceof UpgradeError ? error.mutated : false;
+  const recoveryRetained = error instanceof UpgradeError && error.recovery_root !== undefined;
   process.stderr.write(
     `${JSON.stringify({ code, message, mutated, recovery_retained: recoveryRetained })}\n`,
   );
@@ -442,6 +482,50 @@ function addWorkstreamCommand(program: Command): Command {
   return command;
 }
 
+function addRepairCommand(program: Command): Command {
+  return program
+    .command('repair')
+    .description(commandDescriptions.repair)
+    .argument('[directory]', 'managed project root')
+    .option('--candidate <directory>', 'managed project root')
+    .option('--apply <digest>', 'apply only the matching fully recomputed preview digest')
+    .option('--json', 'emit stable structured JSON')
+    .action(async (directory: string | undefined, options: RepairOptions) => {
+      try {
+        const result = await repairProject(options.candidate ?? directory ?? '.', {
+          ...(options.apply === undefined ? {} : { apply: options.apply }),
+        });
+        process.stdout.write(
+          options.json === true ? `${JSON.stringify(result, null, 2)}\n` : formatRepair(result),
+        );
+      } catch (error) {
+        reportRepairError(error);
+      }
+    });
+}
+
+function addUpgradeCommand(program: Command): Command {
+  return program
+    .command('upgrade')
+    .description(commandDescriptions.upgrade)
+    .argument('[directory]', 'managed project root')
+    .option('--candidate <directory>', 'managed project root')
+    .option('--apply <digest>', 'apply only the matching fully recomputed preview digest')
+    .option('--json', 'emit stable structured JSON')
+    .action(async (directory: string | undefined, options: UpgradeOptions) => {
+      try {
+        const result = await upgradeProject(options.candidate ?? directory ?? '.', {
+          ...(options.apply === undefined ? {} : { apply: options.apply }),
+        });
+        process.stdout.write(
+          options.json === true ? `${JSON.stringify(result, null, 2)}\n` : formatUpgrade(result),
+        );
+      } catch (error) {
+        reportUpgradeError(error);
+      }
+    });
+}
+
 function reportOperationError(code: string, error: unknown, mutationPossible: boolean): void {
   const message = error instanceof Error ? error.message : String(error);
   process.stderr.write(`${JSON.stringify({ code, message, mutated: false, mutationPossible })}\n`);
@@ -450,15 +534,6 @@ function reportOperationError(code: string, error: unknown, mutationPossible: bo
 
 function addUnavailableCommand(program: Command, commandName: PcpCommandName): Command {
   const command = program.command(commandName).description(commandDescriptions[commandName]);
-
-  switch (commandName) {
-    case 'upgrade':
-    case 'repair':
-      command.option('--apply <digest>', 'apply only the matching preview digest');
-      break;
-    default:
-      break;
-  }
 
   command.action(() => {
     reportUnavailable(commandName);
@@ -492,6 +567,10 @@ export function createProgram(): Command {
       addRenderCommand(program);
     } else if (commandName === 'workstream') {
       addWorkstreamCommand(program);
+    } else if (commandName === 'repair') {
+      addRepairCommand(program);
+    } else if (commandName === 'upgrade') {
+      addUpgradeCommand(program);
     } else {
       addUnavailableCommand(program, commandName);
     }

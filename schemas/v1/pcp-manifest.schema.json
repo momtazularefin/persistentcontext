@@ -36,7 +36,16 @@
       "enum": ["tracked", "local"]
     },
     "capabilities": {
-      "$ref": "urn:pcp:schema:v1:common#/$defs/slugArray"
+      "type": "array",
+      "items": {
+        "enum": [
+          "concurrent-execution-blocks",
+          "scratch-space",
+          "spec-driven-projects",
+          "walkthroughs"
+        ]
+      },
+      "uniqueItems": true
     },
     "continuity": {
       "type": "object",

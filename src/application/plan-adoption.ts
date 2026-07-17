@@ -22,7 +22,7 @@ import {
 } from '../domain/adoption.js';
 import { supportedAdapterForSourcePath } from '../domain/adapters.js';
 import { comparePortablePaths, type InspectionResult } from '../domain/inspection.js';
-import { loadCoreTemplateFiles } from '../infrastructure/adoption-assets.js';
+import { loadReleaseTemplateFiles } from '../infrastructure/adoption-assets.js';
 import {
   isMutationDirectoryIgnored,
   isMutationPathIgnored,
@@ -104,6 +104,14 @@ function baselineFor(root: string, inspection: InspectionResult): AdoptionBaseli
 
 function questionsFor(inspection: InspectionResult): AdoptionQuestion[] {
   if (inspection.state === 'managed') return [];
+  const capabilityQuestion: AdoptionQuestion = {
+    id: 'capability-selection',
+    prompt:
+      'Select zero or more supported optional capabilities: Concurrent Execution Blocks, spec-driven projects, scratch space, or walkthroughs.',
+    reason: 'PCP installs optional project workflows only through explicit selection.',
+    required: true,
+    response_shape: 'object',
+  };
   if (inspection.state === 'C') {
     return [
       {
@@ -113,6 +121,7 @@ function questionsFor(inspection: InspectionResult): AdoptionQuestion[] {
         required: true,
         response_shape: 'object',
       },
+      capabilityQuestion,
     ];
   }
   if (inspection.state === 'B') {
@@ -135,6 +144,7 @@ function questionsFor(inspection: InspectionResult): AdoptionQuestion[] {
         response_shape: 'enum',
         options: ['human-commit', 'none', 'human-owned', 'agent-managed', 'custom'],
       },
+      capabilityQuestion,
     ];
   }
 
@@ -165,6 +175,7 @@ function questionsFor(inspection: InspectionResult): AdoptionQuestion[] {
       response_shape: 'enum',
       options: ['human-commit', 'none', 'human-owned', 'agent-managed', 'custom'],
     },
+    capabilityQuestion,
   ];
   if (inspection.inventory.files.length === 0) {
     questions.push({
@@ -463,7 +474,8 @@ async function stageCanonicalLayer(
 ): Promise<ReadonlyMap<string, Buffer>> {
   const stageRoot = await mkdtemp(path.join(tmpdir(), 'pcp-adoption-preview-'));
   try {
-    const template = new Map(await loadCoreTemplateFiles());
+    const release = await loadReleaseTemplateFiles(input.capabilities);
+    const template = new Map(release.files);
     const manifestPath = '.pcp/pcp.yaml';
     const manifestBytes = template.get(manifestPath);
     if (manifestBytes === undefined) {
@@ -471,6 +483,7 @@ async function stageCanonicalLayer(
     }
     const manifest = parse(manifestBytes.toString('utf8')) as Record<string, unknown>;
     manifest.persistence = input.persistence;
+    manifest.capabilities = release.manifests.map((capability) => capability.manifest_value);
     manifest.adapter_ids = adapters.map((adapter) => adapter.manifest.adapter_id);
     template.set(manifestPath, yamlBuffer(manifest));
     template.set('.pcp/state/project.yaml', yamlBuffer(input.project));
@@ -479,6 +492,15 @@ async function stageCanonicalLayer(
     template.set('.pcp/state/vcs-policy.yaml', yamlBuffer(input.vcs_policy));
     for (const document of input.documents) {
       template.set(`.pcp/${document.path}`, renderDocument(document, input.baseline_at));
+    }
+    for (const adapter of adapters) {
+      if (template.has(adapter.manifest.target_path)) {
+        throw new AdoptionError(
+          'PCP_ADAPTER_RENDER_INVALID',
+          `Generated adapter target collides with canonical staged content: ${adapter.manifest.target_path}`,
+        );
+      }
+      template.set(adapter.manifest.target_path, adapter.content);
     }
 
     await writeStageFiles(stageRoot, template);
@@ -501,16 +523,7 @@ async function stageCanonicalLayer(
     }
 
     const result = new Map<string, Buffer>();
-    await collectStageFiles(path.join(stageRoot, '.pcp'), stageRoot, result);
-    for (const adapter of adapters) {
-      if (result.has(adapter.manifest.target_path)) {
-        throw new AdoptionError(
-          'PCP_ADAPTER_RENDER_INVALID',
-          `Generated adapter target collides with canonical staged content: ${adapter.manifest.target_path}`,
-        );
-      }
-      result.set(adapter.manifest.target_path, adapter.content);
-    }
+    await collectStageFiles(stageRoot, stageRoot, result);
     return result;
   } finally {
     await rm(stageRoot, { recursive: true, force: true });
@@ -862,7 +875,6 @@ async function buildStateCTranslationPlan(
     classification: 'C',
     coverageDigest: normalizedCoverageDigest(input.coverage),
     inventory: inspection.inventory,
-    generatedAt: input.baseline_at,
     operations: buildStateCOperations(content, inspection, removalPaths),
     validations: [
       'candidate-inventory',
@@ -920,8 +932,16 @@ async function buildPlanMaterial(
     );
   }
 
-  const content = new Map(await stageCanonicalLayer(input));
+  const adapters = renderPlatformAdapters();
+  assertGeneratedPlatformAdapters(adapters);
+  const content = new Map(await stageCanonicalLayer(input, adapters));
   for (const scaffold of input.scaffold_files) {
+    if (content.has(scaffold.path)) {
+      throw new AdoptionError(
+        'PCP_ADOPTION_PATH_BOUNDARY',
+        `State A scaffold path is reserved by the canonical PCP installation: ${scaffold.path}`,
+      );
+    }
     content.set(scaffold.path, Buffer.from(normalizeText(scaffold.content), 'utf8'));
   }
   await assertContentTargetsSafe(root, content, inspection, input.persistence);
@@ -946,7 +966,6 @@ async function buildPlanMaterial(
   const plan = createMutationPlan({
     classification: inspection.state,
     inventory: inspection.inventory,
-    generatedAt: input.baseline_at,
     operations: [...directoryOperations, ...writeOperations],
     validations: [
       'candidate-inventory',
@@ -954,6 +973,7 @@ async function buildPlanMaterial(
       'clean-genesis',
       'desired-hashes',
       'path-boundaries',
+      'platform-adapters',
       'rollback',
       'semantic-input',
     ],
@@ -970,6 +990,7 @@ async function buildPlanMaterial(
     applicable: true,
     questions: [],
     baseline: baselineFor(root, inspection),
+    adapters: adapters.map((adapter) => adapter.manifest),
     plan,
     mutated: false,
   };

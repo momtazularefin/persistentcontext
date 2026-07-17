@@ -7,7 +7,6 @@
   "required": [
     "schema_version",
     "plan_id",
-    "generated_at",
     "classification",
     "candidate_inventory_digest",
     "operations",
@@ -20,9 +19,6 @@
     },
     "plan_id": {
       "$ref": "urn:pcp:schema:v1:common#/$defs/ulid"
-    },
-    "generated_at": {
-      "$ref": "urn:pcp:schema:v1:common#/$defs/dateTime"
     },
     "classification": {
       "enum": ["A", "B", "C", "managed"]

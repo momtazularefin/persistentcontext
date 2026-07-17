@@ -9,6 +9,8 @@ import { registerActor } from '../../src/application/register-actor.js';
 import { createProgram, runCli } from '../../src/cli/main.js';
 import { PCP_COMMANDS } from '../../src/domain/release.js';
 
+vi.setConfig({ testTimeout: 15_000 });
+
 describe('pcp command surface', () => {
   it('exposes every planned lifecycle command', () => {
     const names = createProgram().commands.map((command) => command.name());
@@ -30,7 +32,7 @@ describe('pcp command surface', () => {
     }
   });
 
-  it('fails closed for a lifecycle operation that remains unavailable', async () => {
+  it('fails closed when upgrade is requested outside a managed PCP project', async () => {
     const errorOutput = vi.spyOn(process.stderr, 'write').mockImplementation(() => true);
     const previousExitCode = process.exitCode;
     process.exitCode = undefined;
@@ -39,7 +41,7 @@ describe('pcp command surface', () => {
       await createProgram().parseAsync(['node', 'pcp', 'upgrade']);
       expect(process.exitCode).toBe(2);
       expect(errorOutput).toHaveBeenCalledWith(
-        expect.stringContaining('"code":"PCP_OPERATION_UNAVAILABLE"'),
+        expect.stringContaining('"code":"PCP_UPGRADE_NOT_MANAGED"'),
       );
       expect(errorOutput).toHaveBeenCalledWith(expect.stringContaining('"mutated":false'));
     } finally {

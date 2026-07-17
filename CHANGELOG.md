@@ -4,6 +4,9 @@ All notable public protocol changes will be documented here after the first rele
 
 ## Unreleased
 
+- Clarified primary-versus-related project input and release-engine upgrade routing, and removed misleading synthetic timestamps from deterministic transient mutation plans.
+- Proved that the documented startup surfaces for all five adapters reach one canonical entry and reconstruct identical project identity, purpose, lifecycle, workstream, VCS, overview, and next-action context.
+- Made optional capability overlays explicitly selectable, transactionally installable, canonically indexed, validated, and upgrade-aware.
 - Established the reproducible `0.1.0` project and open-skill scaffold.
 - Added read-only repository inventory, SHA-256 fingerprints, boundary-safe traversal, and explainable managed/State A/State B/State C intake classification.
 - Added versioned canonical schemas, a clean-genesis `.pcp/` baseline, four optional capability overlays, and explicit configurable VCS responsibility profiles.
@@ -17,6 +20,10 @@ All notable public protocol changes will be documented here after the first rele
 - Added normalized preview-first State C translation plans with coverage-bound digests, explicit canonical writes/replacements, fingerprinted foreign-file removals, and file-to-directory collision ordering.
 - Added deterministic five-platform adapter manifests and delegations to State C plans, including preimage-backed convention-file replacement, replacement-before-removal ordering, and fail-closed handling for unimplemented adapter surfaces.
 - Added approved State C transactional apply with exact expected-inventory checks, live canonical and adapter validation, clean genesis, source-drift refusal, reverse rollback at every operation boundary, and recovery cleanup after success.
+- Extended the deterministic five-adapter installation and live-validation contract to State A and State B adoption, reserved generated adapter paths from scaffold ownership, and made canonical validation detect installed adapter drift.
+- Added preview-first managed adapter repair with inventory-stable plan digests, preimage-bound replacements, missing-parent creation, collision refusal, live validation, and exact fault-injection rollback.
+- Added ownership-aware managed upgrades that merge project-specific manifest fields, replace only release protocol/generated targets, reject downgrades, and prove byte preservation across project, runtime, continuity, and untargeted files.
+- Installed the exact checked self-contained engine and adjacent SHA-256 in every adoption and upgrade, with canonical checksum validation and source/skill/template/installed distribution parity checks.
 - Added event-free `pcp register` with stable human and agent profiles, ignored project-local identity caches, separate execution ULIDs, serialized concurrent recovery, and fail-closed stale or ambiguous identity handling.
 - Added two-phase `pcp status` with transitive dependency, shared-state, registry, semantic-scope, and overlapping-path relevance; read-only previews produce stable digests, while matching acknowledgements atomically advance one local checkpoint without creating an event.
 - Kept archived event contents out of normal registration and reconciliation while retaining filename-based active-floor detection and explicit full archive validation.

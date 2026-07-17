@@ -5,12 +5,14 @@ import { tmpdir } from 'node:os';
 import { join, relative, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-import { parse } from 'yaml';
+import { parse, stringify } from 'yaml';
 
 const projectRoot = new URL('../', import.meta.url);
 const distBundle = new URL('dist/pcp.mjs', projectRoot);
 const skillBundle = new URL('skills/build-pcp/scripts/pcp.mjs', projectRoot);
 const checksumPath = new URL('skills/build-pcp/scripts/pcp.sha256', projectRoot);
+const templateEnginePath = new URL('templates/core/.pcp/tools/pcp.mjs', projectRoot);
+const templateChecksumPath = new URL('templates/core/.pcp/tools/pcp.sha256', projectRoot);
 const assetRoot = new URL('skills/build-pcp/assets/', projectRoot);
 const assetManifestPath = new URL('pcp-assets.sha256', assetRoot);
 
@@ -25,19 +27,27 @@ async function collectFiles(directory) {
   return files;
 }
 
-const [dist, skill, checksum] = await Promise.all([
+const [dist, skill, checksum, templateEngine, templateChecksum] = await Promise.all([
   readFile(distBundle),
   readFile(skillBundle),
   readFile(checksumPath, 'utf8'),
+  readFile(templateEnginePath),
+  readFile(templateChecksumPath, 'utf8'),
 ]);
 
 if (!dist.equals(skill)) {
   throw new Error('Skill engine differs from dist/pcp.mjs.');
 }
+if (!dist.equals(templateEngine)) {
+  throw new Error('Installed template engine differs from dist/pcp.mjs.');
+}
 
 const expectedDigest = createHash('sha256').update(dist).digest('hex');
 if (checksum.trim() !== `${expectedDigest}  pcp.mjs`) {
   throw new Error('Skill engine checksum is stale.');
+}
+if (templateChecksum !== `${expectedDigest}  pcp.mjs\n`) {
+  throw new Error('Installed template engine checksum is stale.');
 }
 
 const sourceRoots = [
@@ -109,6 +119,12 @@ try {
   const fixtureWrapper = parse(
     await readFile(new URL('tests/fixtures/schemas/adoption-input.yaml', projectRoot), 'utf8'),
   );
+  fixtureWrapper.valid.capabilities = [
+    'walkthroughs',
+    'spec-driven-projects',
+    'concurrent-execution-blocks',
+    'scratch-space',
+  ];
   await writeFile(adoptionInput, `${JSON.stringify(fixtureWrapper.valid, null, 2)}\n`, 'utf8');
 
   const adoptionPreview = spawnSync(
@@ -134,6 +150,7 @@ try {
     previewResult.classification !== 'A' ||
     previewResult.applicable !== true ||
     previewResult.mutated !== false ||
+    previewResult.adapters?.length !== 5 ||
     !/^[a-f0-9]{64}$/.test(previewResult.plan?.plan_digest ?? '')
   ) {
     throw new Error('Bundled pcp adoption preview returned an unexpected result.');
@@ -170,6 +187,72 @@ try {
   ) {
     throw new Error('Bundled pcp adoption apply returned an unexpected result.');
   }
+
+  const installedManifest = parse(
+    await readFile(join(adoptionCandidate, '.pcp', 'pcp.yaml'), 'utf8'),
+  );
+  const expectedCapabilities = [
+    'concurrent-execution-blocks',
+    'scratch-space',
+    'spec-driven-projects',
+    'walkthroughs',
+  ];
+  if (JSON.stringify(installedManifest.capabilities) !== JSON.stringify(expectedCapabilities)) {
+    throw new Error('Bundled pcp adoption did not normalize selected capabilities.');
+  }
+  await Promise.all(
+    [
+      '.pcp/protocol/80-spec-driven-delivery.md',
+      '.pcp/protocol/90-concurrent-execution-blocks.md',
+      '.pcp/protocol/100-scratch-space.md',
+      '.pcp/protocol/110-walkthrough-creation.md',
+      '.pcp/templates/30-project-spec.md',
+      '.pcp/templates/40-workstream.md',
+      '.pcp/templates/50-walkthrough.md',
+      'scratch/README.md',
+    ].map((capabilityPath) => readFile(join(adoptionCandidate, capabilityPath))),
+  );
+
+  const installedEnginePath = join(adoptionCandidate, '.pcp', 'tools', 'pcp.mjs');
+  const installedChecksumPath = join(adoptionCandidate, '.pcp', 'tools', 'pcp.sha256');
+  const [installedEngineBytes, installedChecksum] = await Promise.all([
+    readFile(installedEnginePath),
+    readFile(installedChecksumPath, 'utf8'),
+  ]);
+  if (!installedEngineBytes.equals(dist) || installedChecksum !== `${expectedDigest}  pcp.mjs\n`) {
+    throw new Error('Bundled adoption did not install the exact checked engine.');
+  }
+  const installedVersion = spawnSync(process.execPath, [installedEnginePath, '--version'], {
+    encoding: 'utf8',
+    windowsHide: true,
+  });
+  if (installedVersion.status !== 0 || installedVersion.stdout.trim() !== '0.1.0') {
+    throw new Error(
+      `Installed PCP engine did not execute independently: ${installedVersion.stderr || installedVersion.stdout}`,
+    );
+  }
+
+  const expectedAdapterPaths = [
+    'AGENTS.md',
+    '.agents/rules/pcp.md',
+    'CLAUDE.md',
+    '.github/copilot-instructions.md',
+    '.cursor/rules/pcp.mdc',
+  ];
+  if (
+    JSON.stringify(previewResult.adapters.map((adapter) => adapter.target_path)) !==
+    JSON.stringify(expectedAdapterPaths)
+  ) {
+    throw new Error('Bundled pcp adoption preview returned an unexpected adapter contract.');
+  }
+  await Promise.all(
+    expectedAdapterPaths.map(async (adapterPath) => {
+      const content = await readFile(join(adoptionCandidate, adapterPath), 'utf8');
+      if (!content.includes('.pcp/')) {
+        throw new Error(`Bundled pcp adoption wrote an invalid adapter: ${adapterPath}`);
+      }
+    }),
+  );
 
   const registrationArguments = [
     fileURLToPath(skillBundle),
@@ -494,6 +577,91 @@ try {
   if (managedInspection.status !== 0 || JSON.parse(managedInspection.stdout).state !== 'managed') {
     throw new Error(
       `Bundled adopted-project inspection failed: ${managedInspection.stderr || managedInspection.stdout}`,
+    );
+  }
+
+  await writeFile(join(adoptionCandidate, 'AGENTS.md'), '# Drifted generated adapter\n', 'utf8');
+  const repairPreview = spawnSync(
+    process.execPath,
+    [fileURLToPath(skillBundle), 'repair', adoptionCandidate, '--json'],
+    { encoding: 'utf8', windowsHide: true },
+  );
+  const repairPreviewResult =
+    repairPreview.status === 0 ? JSON.parse(repairPreview.stdout) : undefined;
+  if (
+    repairPreviewResult?.applicable !== true ||
+    repairPreviewResult?.repair_paths?.[0] !== 'AGENTS.md' ||
+    !/^[a-f0-9]{64}$/.test(repairPreviewResult?.plan?.plan_digest ?? '') ||
+    repairPreviewResult?.mutated !== false
+  ) {
+    throw new Error(
+      `Bundled pcp repair preview failed: ${repairPreview.stderr || repairPreview.stdout}`,
+    );
+  }
+  const repairApply = spawnSync(
+    process.execPath,
+    [
+      fileURLToPath(skillBundle),
+      'repair',
+      adoptionCandidate,
+      '--apply',
+      repairPreviewResult.plan.plan_digest,
+      '--json',
+    ],
+    { encoding: 'utf8', windowsHide: true },
+  );
+  const repairApplyResult = repairApply.status === 0 ? JSON.parse(repairApply.stdout) : undefined;
+  if (
+    repairApplyResult?.mutated !== true ||
+    repairApplyResult?.validation?.checked_adapters !== 5 ||
+    repairApplyResult?.recovery_cleaned !== true
+  ) {
+    throw new Error(`Bundled pcp repair apply failed: ${repairApply.stderr || repairApply.stdout}`);
+  }
+
+  const managedManifestPath = join(adoptionCandidate, '.pcp', 'pcp.yaml');
+  const olderManifest = parse(await readFile(managedManifestPath, 'utf8'));
+  olderManifest.protocol.version = '0.0.9';
+  await writeFile(managedManifestPath, stringify(olderManifest), 'utf8');
+  const upgradePreview = spawnSync(
+    process.execPath,
+    [fileURLToPath(skillBundle), 'upgrade', adoptionCandidate, '--json'],
+    { encoding: 'utf8', windowsHide: true },
+  );
+  const upgradePreviewResult =
+    upgradePreview.status === 0 ? JSON.parse(upgradePreview.stdout) : undefined;
+  if (
+    upgradePreviewResult?.from_version !== '0.0.9' ||
+    upgradePreviewResult?.to_version !== '0.1.0' ||
+    upgradePreviewResult?.applicable !== true ||
+    !/^[a-f0-9]{64}$/.test(upgradePreviewResult?.plan?.plan_digest ?? '') ||
+    upgradePreviewResult?.mutated !== false
+  ) {
+    throw new Error(
+      `Bundled pcp upgrade preview failed: ${upgradePreview.stderr || upgradePreview.stdout}`,
+    );
+  }
+  const upgradeApply = spawnSync(
+    process.execPath,
+    [
+      fileURLToPath(skillBundle),
+      'upgrade',
+      adoptionCandidate,
+      '--apply',
+      upgradePreviewResult.plan.plan_digest,
+      '--json',
+    ],
+    { encoding: 'utf8', windowsHide: true },
+  );
+  const upgradeApplyResult =
+    upgradeApply.status === 0 ? JSON.parse(upgradeApply.stdout) : undefined;
+  if (
+    upgradeApplyResult?.mutated !== true ||
+    upgradeApplyResult?.validation?.checked_adapters !== 5 ||
+    upgradeApplyResult?.recovery_cleaned !== true
+  ) {
+    throw new Error(
+      `Bundled pcp upgrade apply failed: ${upgradeApply.stderr || upgradeApply.stdout}`,
     );
   }
 } finally {

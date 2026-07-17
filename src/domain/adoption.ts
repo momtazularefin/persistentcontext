@@ -4,6 +4,7 @@ import { ulid } from 'ulid';
 
 import type { CoverageMatrix, ForeignCoverageIssue } from './coverage.js';
 import type { AdapterManifest } from './adapters.js';
+import type { SupportedCapabilityId } from './capabilities.js';
 import type {
   InspectionConfidence,
   InspectionResult,
@@ -70,6 +71,7 @@ export interface AdoptionInput {
   schema_version: 1;
   baseline_at: string;
   persistence: 'tracked' | 'local';
+  capabilities: SupportedCapabilityId[];
   project: AdoptionProjectState;
   projects: {
     schema_version: 1;
@@ -99,7 +101,6 @@ export interface MutationOperation {
 export interface MutationPlan {
   schema_version: 1;
   plan_id: string;
-  generated_at: string;
   classification: IntakeState;
   candidate_inventory_digest: string;
   coverage_digest?: string;
@@ -239,11 +240,10 @@ interface PlanOperationInput {
 
 type MutationPlanInput = {
   inventory: RepositoryInventory;
-  generatedAt: string;
   operations: PlanOperationInput[];
   validations: string[];
 } & (
-  | { classification: 'A' | 'B'; coverageDigest?: never }
+  | { classification: 'A' | 'B' | 'managed'; coverageDigest?: never }
   | { classification: 'C'; coverageDigest: string }
 );
 
@@ -268,7 +268,6 @@ export function createMutationPlan(input: MutationPlanInput): MutationPlan {
     plan_id: deterministicUlid(
       canonicalJson([input.inventory.digest, operationSeed, coverageDigest]),
     ),
-    generated_at: input.generatedAt,
     classification: input.classification,
     candidate_inventory_digest: input.inventory.digest,
     ...(coverageDigest === undefined ? {} : { coverage_digest: coverageDigest }),

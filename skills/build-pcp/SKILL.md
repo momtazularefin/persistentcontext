@@ -18,9 +18,9 @@ Load only the references required for the requested lifecycle operation.
 
 ## Resolve the engine
 
-1. Prefer `<project-root>/.pcp/tools/pcp.mjs` when a valid managed installation exists.
+1. Prefer `<project-root>/.pcp/tools/pcp.mjs` when its adjacent `pcp.sha256` matches and the managed installation validates.
 2. Otherwise use `scripts/pcp.mjs` from this skill.
-3. Verify the adjacent `pcp.sha256` before structural work when the bundled engine is used.
+3. Verify the adjacent `pcp.sha256` before structural work with either engine.
 4. Verify `assets/pcp-assets.sha256` before using bundled schemas or templates.
 5. Run the engine with Node.js 24 or a compatible version declared by the installed manifest.
 6. Stop if no verified engine is available. Do not reproduce structural operations with improvised shell commands.
@@ -46,7 +46,7 @@ Never delete foreign context while any file, history entry, collision, or confli
 
 ## Fail closed during development
 
-`inspect`, State A/B/C `adopt`, `register`, `status`, `record`, `validate`, `render`, and `workstream` are available. Adoption is preview-only unless the exact recomputed plan digest is supplied with the same external semantic input; `render` may replace only the declared generated status view. `register` requires a valid installed layer, recovers a durable profile before creating one, keeps its cache under ignored runtime ownership, returns a separate execution ULID, and never creates an event. `status` is read-only unless the caller supplies its exact recomputed acknowledgement digest after absorbing the reported context; acknowledgement changes only one ignored checkpoint and never creates an event. `record` accepts one external schema-valid description of a meaningful change, preserves performer and recorder attribution, and transactionally appends one immutable event under the continuity lock. `workstream` binds every mutation to the exact current registry digest and atomically updates the registry, generated status view, and attributed event. These ordinary operations inspect archive filenames but do not read archive contents. State C becomes applicable only after complete coverage review and emits a coverage-bound operation plan with deterministic adapters for the five declared platform targets. Apply must run through the engine so its lock, preimages, live validation, and exact rollback remain effective. An unimplemented adapter surface blocks the plan. `upgrade` and `repair` return `PCP_OPERATION_UNAVAILABLE`. Do not simulate an unavailable operation or mutate the target around the engine.
+All declared commands are available. Adoption, repair, and upgrade are preview-only unless the exact recomputed plan digest is supplied. Every adoption installs the same five adapters. Repair changes only missing or stale generated adapters. Upgrade merges live project selections into the release manifest and targets only protocol/generated files; it hashes and rechecks every untargeted and project/runtime-owned file. Both use preimages, continuity and structural locks where applicable, live validation, and exact rollback. Use `render` for the generated status view. `register` recovers or creates durable identity; `status` advances one ignored checkpoint only after exact digest acknowledgement; `record` appends one attributed immutable event; and `workstream` atomically updates canonical state, its view, and continuity. Ordinary operations inspect archive filenames but not archive contents. An unimplemented adapter surface blocks State C adoption. Never bypass a plan digest or mutate around the engine.
 
 ## Report evidence
 

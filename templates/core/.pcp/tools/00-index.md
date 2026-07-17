@@ -9,4 +9,7 @@ ownership: protocol
 
 # Project-local PCP tools
 
-`pcp.mjs` is the self-contained deterministic engine installed with this protocol version. Use the project-local engine so validation, rendering, planning, and lifecycle behavior stay reproducible across machines and supported agent platforms.
+Use the project-local engine so validation, rendering, planning, and lifecycle behavior stay reproducible across machines and supported agent platforms.
+
+- [pcp.mjs](pcp.mjs) — self-contained deterministic engine installed with this protocol version.
+- [pcp.sha256](pcp.sha256) — exact SHA-256 identity of the adjacent engine.

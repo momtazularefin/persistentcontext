@@ -1,4 +1,5 @@
-import { readdir, readFile, stat } from 'node:fs/promises';
+import { createHash } from 'node:crypto';
+import { lstat, readdir, readFile, stat } from 'node:fs/promises';
 import path from 'node:path';
 
 import { parseDocument } from 'yaml';
@@ -24,7 +25,10 @@ import {
   type OwnershipPatterns,
 } from '../infrastructure/canonical-ownership.js';
 import { canonicalSourceDigest } from '../infrastructure/canonical-source-digest.js';
+import { loadCapabilityTemplateFiles } from '../infrastructure/adoption-assets.js';
 import { SchemaRegistry } from '../infrastructure/schema-validator.js';
+import { renderPlatformAdapters } from './render-platform-adapters.js';
+import { validatePlatformAdapters } from './validate-platform-adapters.js';
 
 interface CanonicalFile {
   absolute_path: string;
@@ -64,6 +68,8 @@ const REQUIRED_CANONICAL_PATHS = [
   'state/workstreams.yaml',
   'templates/00-index.md',
   'tools/00-index.md',
+  'tools/pcp.mjs',
+  'tools/pcp.sha256',
   'views/00-index.md',
 ] as const;
 const TEXT_FILE_PATTERN = /(?:\.md|\.ya?ml|\.json|\.mjs|\.js|\.ts|\.txt|\.gitignore)$/i;
@@ -563,6 +569,20 @@ export async function validateCanonicalLayer(
       );
     }
   }
+  if (presentPaths.has('tools/pcp.mjs') && presentPaths.has('tools/pcp.sha256')) {
+    const engineBytes = await readFile(path.join(layerRoot, 'tools', 'pcp.mjs'));
+    const checksum = await readFile(path.join(layerRoot, 'tools', 'pcp.sha256'), 'utf8');
+    const actual = createHash('sha256').update(engineBytes).digest('hex');
+    if (checksum !== `${actual}  pcp.mjs\n`) {
+      diagnostics.push(
+        issue(
+          'engine.checksum',
+          'tools/pcp.sha256',
+          'Installed engine checksum does not match tools/pcp.mjs.',
+        ),
+      );
+    }
+  }
   const schemaRegistry = new SchemaRegistry();
   const loadedYaml = new Map<string, LoadedYaml>();
   const semanticRecords: CanonicalSemanticRecords = {
@@ -691,6 +711,66 @@ export async function validateCanonicalLayer(
   validateMarkdownStructure(layerRoot, markdownRecords, graph, diagnostics);
 
   const manifest = loadedYaml.get('pcp.yaml')?.value;
+  const capabilityIds = stringArray(objectValue(manifest)?.capabilities);
+  if (capabilityIds !== undefined) {
+    try {
+      const capabilities = await loadCapabilityTemplateFiles(capabilityIds);
+      for (const capability of capabilities.manifests) {
+        for (const entry of capability.index_entries) {
+          const requiredPath = `${entry.folder}/${entry.path}`;
+          if (!presentPaths.has(requiredPath)) {
+            diagnostics.push(
+              issue(
+                'capability.required-path',
+                requiredPath,
+                `Enabled capability ${capability.capability_id} requires this canonical file.`,
+              ),
+            );
+          }
+        }
+        for (const rootPath of capability.root_paths) {
+          try {
+            const metadata = await lstat(path.join(resolvedProjectRoot, ...rootPath.split('/')));
+            if (!metadata.isFile() || metadata.isSymbolicLink()) {
+              diagnostics.push(
+                issue(
+                  'capability.root-path',
+                  rootPath,
+                  `Enabled capability ${capability.capability_id} requires a regular project file.`,
+                ),
+              );
+            }
+          } catch {
+            diagnostics.push(
+              issue(
+                'capability.root-path',
+                rootPath,
+                `Enabled capability ${capability.capability_id} requires this project file.`,
+              ),
+            );
+          }
+        }
+      }
+    } catch (error) {
+      diagnostics.push(
+        issue(
+          'capability.selection',
+          'pcp.yaml#capabilities',
+          error instanceof Error ? error.message : 'Unable to validate enabled capabilities.',
+        ),
+      );
+    }
+  }
+  const adapterIds = stringArray(objectValue(manifest)?.adapter_ids);
+  if (adapterIds !== undefined && adapterIds.length > 0) {
+    const expectedAdapters = renderPlatformAdapters().map((adapter) => adapter.manifest);
+    const adapterValidation = await validatePlatformAdapters(resolvedProjectRoot, expectedAdapters);
+    diagnostics.push(
+      ...adapterValidation.diagnostics.map((diagnostic) =>
+        issue(diagnostic.code, diagnostic.path, diagnostic.message),
+      ),
+    );
+  }
   const patterns = ownershipPatterns(manifest);
   if (patterns !== undefined) {
     await validateOwnership(
@@ -706,6 +786,7 @@ export async function validateCanonicalLayer(
     (item) =>
       TEXT_FILE_PATTERN.test(item.relative_path) &&
       !item.relative_path.startsWith('runtime/') &&
+      item.relative_path !== 'tools/pcp.mjs' &&
       !(
         options.archive_content === 'filenames-only' &&
         item.relative_path.startsWith('continuity/archive/')

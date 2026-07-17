@@ -61,6 +61,12 @@ const requiredAssets = [
   'schemas/v1/workstream-operation-input.schema.json',
   'templates/core/.pcp/pcp.yaml',
   'templates/core/.pcp/views/10-status.generated.md',
+  'templates/core/.pcp/tools/pcp.mjs',
+  'templates/core/.pcp/tools/pcp.sha256',
+  'templates/capabilities/concurrent-execution-blocks/capability.yaml',
+  'templates/capabilities/scratch-space/capability.yaml',
+  'templates/capabilities/spec-driven-projects/capability.yaml',
+  'templates/capabilities/walkthroughs/capability.yaml',
 ];
 for (const asset of requiredAssets) {
   await access(new URL(`assets/${asset}`, skillRoot));

@@ -25,17 +25,22 @@ describe('public project contract', () => {
     expect(readme).toContain('node dist/pcp.mjs render path/to/managed-project --check');
     expect(readme).toContain('node dist/pcp.mjs workstream validate path/to/managed-project');
     expect(readme).toContain('node dist/pcp.mjs workstream complete path/to/managed-project');
+    expect(readme).toContain('node dist/pcp.mjs repair path/to/managed-project --json');
+    expect(readme).toContain('node dist/pcp.mjs upgrade path/to/managed-project --json');
     expect(readme).toContain('All adoption is preview-first');
-    expect(readme).toContain('State C intake discovers complete foreign directories');
+    expect(readme).toContain('Every applicable State A, B, or C plan installs the same five');
+    expect(readme).toContain('State C intake additionally discovers complete foreign directories');
     expect(readme).toContain('can be marked `project-owned` and preserved unchanged');
     expect(readme).toContain('five generated platform delegations');
     expect(readme).toContain('outside the five-product contract fails closed');
     expect(readme).toContain('that digest also binds the reviewed coverage');
-    expect(readme).toContain('Apply revalidates the live canonical layer and platform adapters');
+    expect(readme).toContain('Apply revalidates the live canonical layer and complete adapter set');
+    expect(readme).toContain('generated views and adapters');
     expect(readme).toContain('Every successful invocation returns a fresh execution ULID');
     expect(readme).toContain('one proof per criterion');
     expect(readme).toContain('stable caller-supplied `change_key`');
     expect(readme).toContain('event payload digests and duplicate change keys');
+    expect(readme).toContain('reject downgrades and unsafe collisions');
   });
 
   it('normalizes text for deterministic cross-platform checks', async () => {

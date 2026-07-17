@@ -4,6 +4,7 @@ import path from 'node:path';
 import { parseDocument } from 'yaml';
 
 import type {
+  CanonicalRenderBuild,
   CanonicalRenderOptions,
   CanonicalRenderReport,
 } from '../domain/canonical-rendering.js';
@@ -225,10 +226,7 @@ export function renderCanonicalStatusView(
   return lines.join('\n');
 }
 
-export async function renderCanonicalViews(
-  projectRoot: string,
-  options: CanonicalRenderOptions = {},
-): Promise<CanonicalRenderReport> {
+export async function buildCanonicalStatusView(projectRoot: string): Promise<CanonicalRenderBuild> {
   const layerRoot = path.join(path.resolve(projectRoot), '.pcp');
   const diagnostics: CanonicalDiagnostic[] = [];
   const registry = new SchemaRegistry();
@@ -240,12 +238,7 @@ export async function renderCanonicalViews(
   }
   if (diagnostics.length > 0) {
     diagnostics.sort(compareCanonicalDiagnostics);
-    return {
-      valid: false,
-      mode: options.check === true ? 'check' : 'write',
-      changed_paths: [],
-      diagnostics,
-    };
+    return { valid: false, diagnostics };
   }
 
   const digest = canonicalSourceDigestFromContents(
@@ -261,25 +254,20 @@ export async function renderCanonicalViews(
       SOURCES.map(([source]) => source),
     );
   } catch (error) {
-    diagnostics.push(
-      issue(
-        'render.source-digest',
-        '.pcp/state',
-        error instanceof Error ? error.message : 'Unable to fingerprint render sources.',
-      ),
-    );
     return {
       valid: false,
-      mode: options.check === true ? 'check' : 'write',
-      changed_paths: [],
-      diagnostics,
+      diagnostics: [
+        issue(
+          'render.source-digest',
+          '.pcp/state',
+          error instanceof Error ? error.message : 'Unable to fingerprint render sources.',
+        ),
+      ],
     };
   }
   if (currentSourceDigest !== digest) {
     return {
       valid: false,
-      mode: options.check === true ? 'check' : 'write',
-      changed_paths: [],
       diagnostics: [
         issue(
           'render.source-drift',
@@ -292,7 +280,25 @@ export async function renderCanonicalViews(
   const sources = new Map(
     [...loadedSources].map(([sourcePath, source]) => [sourcePath, source.value] as const),
   );
-  const desired = renderCanonicalStatusView(sources, digest);
+  return { valid: true, content: renderCanonicalStatusView(sources, digest), diagnostics: [] };
+}
+
+export async function renderCanonicalViews(
+  projectRoot: string,
+  options: CanonicalRenderOptions = {},
+): Promise<CanonicalRenderReport> {
+  const layerRoot = path.join(path.resolve(projectRoot), '.pcp');
+  const built = await buildCanonicalStatusView(projectRoot);
+  if (!built.valid || built.content === undefined) {
+    return {
+      valid: false,
+      mode: options.check === true ? 'check' : 'write',
+      changed_paths: [],
+      diagnostics: built.diagnostics,
+    };
+  }
+  const desired = built.content;
+  const diagnostics: CanonicalDiagnostic[] = [];
   const absoluteViewPath = path.join(layerRoot, VIEW_PATH);
   let current: string | undefined;
   try {

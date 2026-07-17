@@ -86,7 +86,7 @@ node <pcp-engine> render <project-root> --check --json
 node <pcp-engine> render <project-root> --json
 ```
 
-Treat a digest mismatch as stale output. Generated Markdown is never an independent source of truth. State C adoption installs its approved generated adapters transactionally; standalone adapter regeneration remains unavailable.
+Treat a digest mismatch as stale output. Generated Markdown is never an independent source of truth. Adoption installs generated adapters transactionally; use the preview-first `repair` workflow for missing or changed installed adapters.
 
 ## Workstreams and CEBs
 

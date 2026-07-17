@@ -185,35 +185,33 @@ export async function adoptProject(
         }
         checkedFiles = validation.checked_files;
 
-        if (planned.preview.classification === 'C') {
-          const adapters = planned.preview.adapters ?? [];
-          if (adapters.length === 0) {
+        const adapters = planned.preview.adapters ?? [];
+        if (adapters.length === 0) {
+          throw new AdoptionError(
+            'PCP_ADOPTION_LIVE_INVALID',
+            `State ${planned.preview.classification} apply did not retain its generated platform-adapter contract.`,
+            true,
+          );
+        }
+        const adapterValidation = await validatePlatformAdapters(root, adapters);
+        if (!adapterValidation.valid) {
+          throw new AdoptionError(
+            'PCP_ADOPTION_LIVE_INVALID',
+            `Applied platform adapters failed validation: ${adapterValidation.diagnostics
+              .slice(0, 8)
+              .map((item) => `${item.path}: ${item.message}`)
+              .join('; ')}`,
+            true,
+          );
+        }
+        if (planned.input.persistence === 'tracked') {
+          const finalInspection = await inspectRepository(root);
+          if (finalInspection.state !== 'managed') {
             throw new AdoptionError(
               'PCP_ADOPTION_LIVE_INVALID',
-              'State C apply did not retain its generated platform-adapter contract.',
+              `Applied tracked project classified as ${finalInspection.state}, not managed.`,
               true,
             );
-          }
-          const adapterValidation = await validatePlatformAdapters(root, adapters);
-          if (!adapterValidation.valid) {
-            throw new AdoptionError(
-              'PCP_ADOPTION_LIVE_INVALID',
-              `Applied platform adapters failed validation: ${adapterValidation.diagnostics
-                .slice(0, 8)
-                .map((item) => `${item.path}: ${item.message}`)
-                .join('; ')}`,
-              true,
-            );
-          }
-          if (planned.input.persistence === 'tracked') {
-            const finalInspection = await inspectRepository(root);
-            if (finalInspection.state !== 'managed') {
-              throw new AdoptionError(
-                'PCP_ADOPTION_LIVE_INVALID',
-                `Applied tracked project classified as ${finalInspection.state}, not managed.`,
-                true,
-              );
-            }
           }
         }
       },

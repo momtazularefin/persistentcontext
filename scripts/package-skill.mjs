@@ -8,6 +8,8 @@ const bundlePath = new URL('dist/pcp.mjs', projectRoot);
 const skillScripts = new URL('skills/build-pcp/scripts/', projectRoot);
 const skillBundle = new URL('pcp.mjs', skillScripts);
 const skillAssets = new URL('skills/build-pcp/assets/', projectRoot);
+const installedEngine = new URL('templates/core/.pcp/tools/pcp.mjs', projectRoot);
+const installedChecksum = new URL('templates/core/.pcp/tools/pcp.sha256', projectRoot);
 
 async function collectFiles(directory) {
   const entries = await readdir(directory, { withFileTypes: true });
@@ -21,6 +23,18 @@ async function collectFiles(directory) {
 }
 
 await mkdir(skillScripts, { recursive: true });
+const [distributionBytes, installedBytes, installedDigest] = await Promise.all([
+  readFile(bundlePath),
+  readFile(installedEngine),
+  readFile(installedChecksum, 'utf8'),
+]);
+const expectedInstalledDigest = createHash('sha256').update(distributionBytes).digest('hex');
+if (!distributionBytes.equals(installedBytes)) {
+  throw new Error('Installed template engine differs from dist/pcp.mjs; run npm run build.');
+}
+if (installedDigest !== `${expectedInstalledDigest}  pcp.mjs\n`) {
+  throw new Error('Installed template engine checksum is stale.');
+}
 await copyFile(bundlePath, skillBundle);
 
 const bundle = await readFile(skillBundle);
