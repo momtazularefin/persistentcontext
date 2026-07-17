@@ -1,0 +1,210 @@
+version: 1
+sources:
+  - id: portable-reference-layer
+    description: A reusable repository-native context template.
+  - id: advanced-command-center
+    description: A mature multi-project, multi-agent operating layer.
+capabilities:
+  - id: canonical-entry-and-reading-order
+    source: portable-reference-layer
+    outcome: preserved
+    pcp: A compact root index leads into numbered, indexed canonical documents.
+    evidence:
+      {
+        path: templates/core/.pcp/00-index.md,
+        contains: ['Guided reading order', 'protocol/00-index.md'],
+      }
+  - id: repository-source-of-truth
+    source: portable-reference-layer
+    outcome: preserved
+    pcp: Durable project context lives in the repository rather than an agent conversation.
+    evidence:
+      {
+        path: templates/core/.pcp/protocol/10-context-contract.md,
+        contains: ['state/*.yaml', 'repository outranks private agent memory'],
+      }
+  - id: tiered-read-only-exploration
+    source: portable-reference-layer
+    outcome: preserved
+    pcp: Exploration begins read-only and deepens only as evidence requires.
+    evidence:
+      {
+        path: templates/core/.pcp/protocol/30-exploration.md,
+        contains: ['without mutation', 'Progressive tiers'],
+      }
+  - id: grounded-knowledge-baseline
+    source: portable-reference-layer
+    outcome: preserved
+    pcp: Numbered knowledge documents retain grounded architecture, source, tooling, and invariant context.
+    evidence:
+      {
+        path: templates/core/.pcp/knowledge/00-index.md,
+        contains: ['grounded baseline', 'architecture'],
+      }
+  - id: snapshot-plus-changelog-reconstruction
+    source: portable-reference-layer
+    outcome: superseded
+    pcp: Living canonical state is authoritative; events explain changes but are not replayed to reconstruct current truth.
+    evidence:
+      {
+        path: templates/core/.pcp/protocol/20-actor-continuity.md,
+        contains: ['do not reconstruct current state from event prose alone', 'current documents'],
+      }
+  - id: mandatory-full-startup-reread
+    source: portable-reference-layer
+    outcome: superseded
+    pcp: Digest-bound, workstream-scoped status identifies only relevant current files and events.
+    evidence:
+      {
+        path: templates/core/.pcp/protocol/20-actor-continuity.md,
+        contains: ['returning agent runs `pcp status`', 'full reread'],
+      }
+  - id: agent-only-registration
+    source: portable-reference-layer
+    outcome: superseded
+    pcp: Stable human and agent profiles are distinct from the fresh execution ULID issued for each invocation.
+    evidence:
+      {
+        path: templates/core/.pcp/protocol/20-actor-continuity.md,
+        contains: ['human', 'execution'],
+      }
+  - id: unbounded-append-only-changelog
+    source: portable-reference-layer
+    outcome: superseded
+    pcp: Immutable active events use a bounded window and rotate older history into an explicit-only archive.
+    evidence:
+      {
+        path: templates/core/.pcp/pcp.yaml,
+        contains: ['active_event_limit: 64', 'archive_batch_size: 32'],
+      }
+  - id: documentation-and-discoverability
+    source: portable-reference-layer
+    outcome: preserved
+    pcp: Metadata, numbered Markdown, folder indexes, and reachability are validated protocol rules.
+    evidence:
+      {
+        path: templates/core/.pcp/protocol/40-documentation.md,
+        contains: ['00-index.md', 'numbered'],
+      }
+  - id: naming-portability-and-safety
+    source: portable-reference-layer
+    outcome: preserved
+    pcp: Canonical files use portable relative paths and exclude secrets and machine-specific state.
+    evidence:
+      {
+        path: templates/core/.pcp/protocol/50-portability-and-safety.md,
+        contains: ['repository-relative', 'private keys'],
+      }
+  - id: noncanonical-scratch-space
+    source: portable-reference-layer
+    outcome: preserved
+    pcp: An optional scratch capability provides explicitly noncanonical temporary space.
+    evidence:
+      {
+        path: templates/capabilities/scratch-space/capability.yaml,
+        contains: ['noncanonical', 'scratch'],
+      }
+  - id: incremental-walkthroughs
+    source: portable-reference-layer
+    outcome: preserved
+    pcp: An optional walkthrough capability captures tested questions incrementally.
+    evidence:
+      {
+        path: templates/capabilities/walkthroughs/capability.yaml,
+        contains: ['Incremental walkthroughs', 'questions and answers'],
+      }
+  - id: fixed-copy-adoption
+    source: portable-reference-layer
+    outcome: superseded
+    pcp: Evidence-based State A, B, and C intake produces a digest-bound preview and transactional apply.
+    evidence: { path: README.md, contains: ['Adoption states', 'preview-first'] }
+  - id: multi-project-portfolio
+    source: advanced-command-center
+    outcome: preserved
+    pcp: Structured project registries and optional human-readable project records support a broader portfolio.
+    evidence:
+      { path: templates/core/.pcp/projects/00-index.md, contains: ['managed projects', 'goals'] }
+  - id: spec-driven-delivery
+    source: advanced-command-center
+    outcome: preserved
+    pcp: An optional capability adds specification, design, tasks, decisions, and evaluation records.
+    evidence:
+      {
+        path: templates/capabilities/spec-driven-projects/capability.yaml,
+        contains: ['spec-to-plan-to-task', 'Project specification'],
+      }
+  - id: concurrent-execution-blocks
+    source: advanced-command-center
+    outcome: preserved
+    pcp: Optional Concurrent Execution Blocks specialize the generic workstream lifecycle for safe parallel work.
+    evidence:
+      {
+        path: templates/capabilities/concurrent-execution-blocks/capability.yaml,
+        contains: ['Concurrent Execution Blocks', 'parallel work'],
+      }
+  - id: dependency-and-completion-evidence
+    source: advanced-command-center
+    outcome: preserved
+    pcp: Workstreams declare dependencies and require criterion-bound evidence before completion.
+    evidence:
+      {
+        path: templates/core/.pcp/protocol/70-workstreams.md,
+        contains: ['dependencies', 'evidence'],
+      }
+  - id: human-and-agent-attribution
+    source: advanced-command-center
+    outcome: preserved
+    pcp: Events distinguish the actor from the reporter or observer, including human work noticed later.
+    evidence:
+      {
+        path: templates/core/.pcp/protocol/20-actor-continuity.md,
+        contains: ['reported', 'observed'],
+      }
+  - id: scoped-reconciliation
+    source: advanced-command-center
+    outcome: preserved
+    pcp: Checkpoints are scoped to workstreams, dependencies, semantic scopes, and paths.
+    evidence:
+      {
+        path: templates/core/.pcp/continuity/checkpoints/00-index.md,
+        contains: ['workstream', 'dependency'],
+      }
+  - id: configurable-vcs-ownership
+    source: advanced-command-center
+    outcome: preserved
+    pcp: Explicit profiles support human-owned, human-commit, agent-managed, no-VCS, and custom responsibility maps.
+    evidence:
+      {
+        path: templates/core/.pcp/protocol/60-version-control.md,
+        contains: ['human-commit', 'custom'],
+      }
+  - id: three-state-intake-and-translation
+    source: advanced-command-center
+    outcome: preserved
+    pcp: State C translates a foreign context layer while State A and B cover clean and established projects.
+    evidence:
+      { path: templates/core/.pcp/protocol/30-exploration.md, contains: ['State A', 'State C'] }
+  - id: clean-genesis
+    source: advanced-command-center
+    outcome: preserved
+    pcp: Adoption starts canonical continuity with no imported actors or event history.
+    evidence: { path: README.md, contains: ['clean genesis', 'no actor profiles'] }
+  - id: canonical-platform-adapters
+    source: advanced-command-center
+    outcome: preserved
+    pcp: Five generated product adapters reconstruct one canonical project context.
+    evidence:
+      {
+        path: README.md,
+        contains: ['same five generated platform delegations', 'adapter-contract claim'],
+      }
+  - id: ownership-aware-repair-and-upgrade
+    source: advanced-command-center
+    outcome: preserved
+    pcp: Repair and upgrade replace only approved PCP-owned targets and prove other files remain unchanged.
+    evidence: { path: README.md, contains: ['ownership-aware release upgrades', 'byte-identical'] }
+  - id: optional-capability-overlays
+    source: advanced-command-center
+    outcome: preserved
+    pcp: Projects opt into specialized capabilities without forcing one repository topology on everyone.
+    evidence: { path: README.md, contains: ['explicit capability selection', 'Core-only projects'] }

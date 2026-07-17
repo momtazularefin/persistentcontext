@@ -92,6 +92,8 @@ The source baseline lives under [`templates/core/.pcp/`](templates/core/.pcp/). 
 
 The open skill ships byte-identical copies of the release schemas, templates, bundled engine, and installed engine plus checksum manifests. The build synchronizes one engine into `dist/pcp.mjs`, `skills/build-pcp/scripts/pcp.mjs`, and `templates/core/.pcp/tools/pcp.mjs`. Distribution verification adopts a project, proves the installed bytes and checksum match that release, and executes the installed engine independently before continuing the lifecycle probes.
 
+The [capability lineage and parity record](docs/capability-parity.md) traces the practical orchestration behaviors that PCP preserves and the earlier mechanisms it deliberately supersedes. Each claim is backed by a machine-readable record and contract-tested public evidence.
+
 ## Version-control policy
 
 PCP requires an explicit `none`, `human-owned`, recommended `human-commit`, `agent-managed`, or complete `custom` profile. Until selection it performs no VCS writes. In the recommended profile, agents prepare and verify coherent units, then hand the human exact signed-commit commands and wait for confirmation. Milestone PRs are recommended rather than enforced; projects may change the responsibility map, decline PRs, or use a non-Git system through a custom policy. See the [bare-minimum Git and GitHub reference](templates/core/.pcp/references/10-git-github-bare-minimum.md).
