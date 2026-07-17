@@ -1,0 +1,47 @@
+schema_version: 1
+classification: B
+original_file_count: 29
+project:
+  project_id: flowforge
+  name: FlowForge
+  lifecycle: active
+  vcs_mode: none
+capabilities: []
+canonical_documents:
+  - .pcp/knowledge/10-overview.md
+  - .pcp/knowledge/20-architecture.md
+  - .pcp/knowledge/30-source-map.md
+  - .pcp/knowledge/40-build-and-tooling.md
+  - .pcp/knowledge/50-domain-and-invariants.md
+  - .pcp/operations/10-working-agreement.md
+  - .pcp/operations/20-plan.md
+  - .pcp/operations/30-decisions.md
+adapters:
+  - AGENTS.md
+  - .agents/rules/pcp.md
+  - CLAUDE.md
+  - .github/copilot-instructions.md
+  - .cursor/rules/pcp.mdc
+signals:
+  .pcp/knowledge/10-overview.md: dependency-aware task graph runner
+  .pcp/knowledge/20-architecture.md: command-line adapter
+  .pcp/knowledge/30-source-map.md: examples/pipeline.json
+  .pcp/knowledge/40-build-and-tooling.md: dotnet build FlowForge.slnx
+  .pcp/knowledge/50-domain-and-invariants.md: Scheduling order is deterministic
+  .pcp/operations/20-plan.md: Extend behavior only with matching dependency
+clean_genesis:
+  actors: 0
+  active_events: 0
+  archived_events: 0
+fresh_agent:
+  client: codex
+  machine_label: reference-host
+  required_paths:
+    - .pcp/knowledge/00-index.md
+    - .pcp/operations/00-index.md
+    - .pcp/pcp.yaml
+    - .pcp/protocol/00-index.md
+    - .pcp/state/project.yaml
+    - .pcp/state/projects.yaml
+    - .pcp/state/vcs-policy.yaml
+    - .pcp/state/workstreams.yaml
