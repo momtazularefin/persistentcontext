@@ -31,7 +31,11 @@ import {
   toPortablePath,
 } from '../infrastructure/filesystem-inventory.js';
 import { SchemaRegistry } from '../infrastructure/schema-validator.js';
-import { discoverForeignCoverage, validateForeignCoverage } from './foreign-coverage.js';
+import {
+  discoverForeignCoverage,
+  foreignRootReviewTemplate,
+  validateForeignCoverage,
+} from './foreign-coverage.js';
 import {
   renderPlatformAdapters,
   type GeneratedPlatformAdapter,
@@ -115,6 +119,15 @@ function questionsFor(inspection: InspectionResult): AdoptionQuestion[] {
   if (inspection.state === 'C') {
     return [
       {
+        id: 'state-c-root-review',
+        prompt:
+          'Review every detected foreign root: translate live agent context or preserve ordinary project material.',
+        reason:
+          'Semantic signals may occur inside examples, archives, or project-owned trees that must not be swept into translation.',
+        required: true,
+        response_shape: 'object',
+      },
+      {
         id: 'state-c-coverage',
         prompt: 'Complete every disposition in the emitted foreign-source coverage matrix.',
         reason: 'State C translation and destructive removal require semantic dispositions.',
@@ -190,10 +203,7 @@ function questionsFor(inspection: InspectionResult): AdoptionQuestion[] {
   return questions;
 }
 
-async function previewWithoutPlan(
-  root: string,
-  inspection: InspectionResult,
-): Promise<AdoptionPreview> {
+function previewWithoutPlan(root: string, inspection: InspectionResult): AdoptionPreview {
   const preview: AdoptionPreview = {
     schema_version: ADOPTION_SCHEMA_VERSION,
     command: 'adopt',
@@ -206,10 +216,8 @@ async function previewWithoutPlan(
     mutated: false,
   };
   if (inspection.state === 'C') {
-    const catalog = await discoverForeignCoverage(root, inspection);
-    preview.coverage = catalog.template;
-    preview.coverage_issues = catalog.issues;
-    preview.coverage_status = catalog.issues.length === 0 ? 'requires-disposition' : 'blocked';
+    preview.foreign_roots = foreignRootReviewTemplate(inspection);
+    preview.coverage_status = 'requires-root-review';
   }
   return preview;
 }
@@ -371,6 +379,18 @@ function validateProjectInput(input: AdoptionInput, inspection: InspectionResult
     throw new AdoptionError(
       'PCP_STATE_C_COVERAGE_FORBIDDEN',
       'Foreign-context coverage belongs only to State C adoption input.',
+    );
+  }
+  if (inspection.state !== 'C' && input.foreign_roots !== undefined) {
+    throw new AdoptionError(
+      'PCP_STATE_C_ROOT_REVIEW_FORBIDDEN',
+      'Foreign-root review belongs only to State C adoption input.',
+    );
+  }
+  if (inspection.state === 'C' && input.foreign_roots === undefined) {
+    throw new AdoptionError(
+      'PCP_STATE_C_ROOT_REVIEW_REQUIRED',
+      'State C adoption input must review every detected foreign root before coverage discovery.',
     );
   }
   if ((inspection.state === 'B' || inspection.state === 'C') && input.scaffold_files.length > 0) {
@@ -653,6 +673,12 @@ async function assertContentTargetsSafe(
 function normalizedCoverageDigest(coverage: NonNullable<AdoptionInput['coverage']>): string {
   const normalized = {
     ...coverage,
+    foreign_roots: coverage.foreign_roots
+      .map((review) => ({
+        ...review,
+        evidence: [...review.evidence].sort(comparePortablePaths),
+      }))
+      .sort((left, right) => comparePortablePaths(left.root, right.root)),
     records: coverage.records
       .map((record) => ({
         ...record,
@@ -860,7 +886,7 @@ async function buildStateCTranslationPlan(
     );
   }
 
-  const catalog = await discoverForeignCoverage(root, inspection);
+  const catalog = await discoverForeignCoverage(root, inspection, input.foreign_roots);
   const validation = validateForeignCoverage(catalog, input.coverage);
   if (!validation.valid) throw stateCCoverageFailure(validation.diagnostics);
   assertSupportedStateCAdapters(input);
@@ -910,6 +936,31 @@ async function buildStateCTranslationPlan(
     mutated: false,
   };
   return { inspection, input, preview, content_by_path: content };
+}
+
+async function previewScopedStateCCoverage(
+  root: string,
+  inspection: InspectionResult,
+  input: AdoptionInput,
+): Promise<AdoptionPreview> {
+  validateDocumentSet(input, inspection);
+  validateProjectInput(input, inspection);
+  const catalog = await discoverForeignCoverage(root, inspection, input.foreign_roots);
+  return {
+    schema_version: ADOPTION_SCHEMA_VERSION,
+    command: 'adopt',
+    candidate: '.',
+    classification: 'C',
+    confidence: inspection.confidence,
+    applicable: false,
+    questions: questionsFor(inspection).filter((question) => question.id === 'state-c-coverage'),
+    baseline: baselineFor(root, inspection),
+    foreign_roots: catalog.foreign_roots,
+    coverage: catalog.template,
+    coverage_issues: catalog.issues,
+    coverage_status: catalog.issues.length === 0 ? 'requires-disposition' : 'blocked',
+    mutated: false,
+  };
 }
 
 async function buildPlanMaterial(
@@ -1007,7 +1058,10 @@ export async function planAdoption(
     return previewWithoutPlan(root, inspection);
   }
   const input = await loadAdoptionInput(inputPath, root);
-  if (inspection.state === 'C') return buildStateCTranslationPlan(root, inspection, input);
+  if (inspection.state === 'C') {
+    if (input.coverage === undefined) return previewScopedStateCCoverage(root, inspection, input);
+    return buildStateCTranslationPlan(root, inspection, input);
+  }
   return buildPlanMaterial(root, inspection, input);
 }
 

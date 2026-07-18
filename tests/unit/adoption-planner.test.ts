@@ -322,6 +322,9 @@ describe('State A and State B adoption planning', () => {
       schema_version: 1,
       coverage_id: '01ARZ3NDEKTSV4RRFFQ69G5FAV',
       source_inventory_digest: 'a'.repeat(64),
+      foreign_roots: [
+        { root: '.', disposition: 'translate', evidence: ['Reviewed test fixture.'] },
+      ],
       records: [],
       unresolved_count: 0,
     };
@@ -340,6 +343,9 @@ describe('State A and State B adoption planning', () => {
       schema_version: 1,
       coverage_id: '01ARZ3NDEKTSV4RRFFQ69G5FAV',
       source_inventory_digest: 'a'.repeat(64),
+      foreign_roots: [
+        { root: '.', disposition: 'translate', evidence: ['Reviewed test fixture.'] },
+      ],
       records: [],
       unresolved_count: 0,
     };

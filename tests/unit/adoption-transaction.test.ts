@@ -117,6 +117,7 @@ async function createStateC(): Promise<{ candidate: string; inputPath: string }>
   const catalog = await discoverForeignCoverage(candidate, inspection);
   const input = await adoptionFixture();
   input.scaffold_files = [];
+  input.foreign_roots = structuredClone(catalog.foreign_roots);
   input.coverage = reviewedCoverage(catalog.template);
   return { candidate, inputPath: await writeExternalInput(input) };
 }
@@ -132,6 +133,7 @@ async function createEquivalentStateC(
   if (catalog.issues.length > 0) throw new Error(`${layout} contains blocked foreign coverage.`);
   const input = await adoptionFixture();
   input.scaffold_files = [];
+  input.foreign_roots = structuredClone(catalog.foreign_roots);
   input.coverage = representedCoverage(catalog.template);
   return { candidate, inputPath: await writeExternalInput(input) };
 }

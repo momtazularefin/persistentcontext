@@ -8,6 +8,7 @@
     "schema_version",
     "coverage_id",
     "source_inventory_digest",
+    "foreign_roots",
     "records",
     "unresolved_count"
   ],
@@ -20,6 +21,14 @@
     },
     "source_inventory_digest": {
       "$ref": "urn:pcp:schema:v1:common#/$defs/sha256"
+    },
+    "foreign_roots": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/foreignRoot"
+      },
+      "minItems": 1,
+      "uniqueItems": true
     },
     "records": {
       "type": "array",
@@ -34,6 +43,27 @@
     }
   },
   "$defs": {
+    "foreignRoot": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["root", "disposition", "evidence"],
+      "properties": {
+        "root": {
+          "anyOf": [{ "const": "." }, { "$ref": "urn:pcp:schema:v1:common#/$defs/relativePath" }]
+        },
+        "disposition": {
+          "enum": ["translate", "project-owned", "unresolved"]
+        },
+        "evidence": {
+          "type": "array",
+          "items": {
+            "$ref": "urn:pcp:schema:v1:common#/$defs/nonEmptyString"
+          },
+          "minItems": 1,
+          "uniqueItems": true
+        }
+      }
+    },
     "record": {
       "type": "object",
       "additionalProperties": false,

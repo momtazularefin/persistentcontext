@@ -19924,6 +19924,14 @@ var adoption_input_schema_default = {
       minItems: 8,
       maxItems: 8
     },
+    foreign_roots: {
+      type: "array",
+      items: {
+        $ref: "urn:pcp:schema:v1:coverage#/$defs/foreignRoot"
+      },
+      minItems: 1,
+      uniqueItems: true
+    },
     coverage: {
       $ref: "urn:pcp:schema:v1:coverage"
     },
@@ -20213,6 +20221,7 @@ var coverage_schema_default = {
     "schema_version",
     "coverage_id",
     "source_inventory_digest",
+    "foreign_roots",
     "records",
     "unresolved_count"
   ],
@@ -20225,6 +20234,14 @@ var coverage_schema_default = {
     },
     source_inventory_digest: {
       $ref: "urn:pcp:schema:v1:common#/$defs/sha256"
+    },
+    foreign_roots: {
+      type: "array",
+      items: {
+        $ref: "#/$defs/foreignRoot"
+      },
+      minItems: 1,
+      uniqueItems: true
     },
     records: {
       type: "array",
@@ -20239,6 +20256,27 @@ var coverage_schema_default = {
     }
   },
   $defs: {
+    foreignRoot: {
+      type: "object",
+      additionalProperties: false,
+      required: ["root", "disposition", "evidence"],
+      properties: {
+        root: {
+          anyOf: [{ const: "." }, { $ref: "urn:pcp:schema:v1:common#/$defs/relativePath" }]
+        },
+        disposition: {
+          enum: ["translate", "project-owned", "unresolved"]
+        },
+        evidence: {
+          type: "array",
+          items: {
+            $ref: "urn:pcp:schema:v1:common#/$defs/nonEmptyString"
+          },
+          minItems: 1,
+          uniqueItems: true
+        }
+      }
+    },
     record: {
       type: "object",
       additionalProperties: false,
@@ -21581,14 +21619,6 @@ var PENDING_COVERAGE_EVIDENCE = "Pending semantic disposition.";
 
 // src/application/foreign-coverage.ts
 var MAXIMUM_STRUCTURED_SOURCE_BYTES = 4 * 1048576;
-var FOREIGN_CATEGORIES = /* @__PURE__ */ new Set([
-  "agent-instructions",
-  "persistent-memory",
-  "agent-identity",
-  "change-journal",
-  "workflow",
-  "orchestration"
-]);
 var ENCRYPTED_EXTENSION = /\.(?:age|asc|enc|gpg|p12|pfx|pgp)$/iu;
 var ENCRYPTED_CONTENT = /-----BEGIN (?:PGP MESSAGE|ENCRYPTED PRIVATE KEY)-----|age-encryption\.org\/v1/iu;
 var HISTORY_BASENAME = /^(?:change[-_ ]?log|events?|history|journal)(?:\.[a-z0-9_-]+)?\.(?:json|md|ya?ml)$/iu;
@@ -21702,20 +21732,89 @@ function entrySources(sourcePath, kind, entries) {
     };
   });
 }
-function selectedForeignFiles(inspection) {
-  const directPaths = new Set(
-    inspection.signals.filter((signal) => FOREIGN_CATEGORIES.has(signal.category)).map((signal) => signal.path)
+function foreignRootReviewTemplate(inspection) {
+  return inspection.foreignCandidates.map((candidate) => ({
+    root: candidate.root,
+    disposition: "unresolved",
+    evidence: [PENDING_COVERAGE_EVIDENCE]
+  }));
+}
+function defaultForeignRootReviews(inspection) {
+  return inspection.foreignCandidates.map((candidate) => ({
+    root: candidate.root,
+    disposition: "translate",
+    evidence: ["Included by direct foreign-coverage discovery."]
+  }));
+}
+function normalizedForeignRoots(reviews) {
+  return reviews.map((review) => ({ ...review, evidence: [...review.evidence].sort(comparePortablePaths) })).sort((left, right) => comparePortablePaths(left.root, right.root));
+}
+function validateForeignRootReviews(inspection, reviews) {
+  const diagnostics = [];
+  const expected = inspection.foreignCandidates.map((candidate) => candidate.root);
+  const expectedSet = new Set(expected);
+  const seen = /* @__PURE__ */ new Set();
+  for (const [index, review] of reviews.entries()) {
+    if (seen.has(review.root)) {
+      diagnostics.push({
+        code: "foreign-root-duplicate",
+        path: `/foreign_roots/${index}/root`,
+        message: `Foreign root appears more than once: ${review.root}`
+      });
+    }
+    seen.add(review.root);
+    if (!expectedSet.has(review.root)) {
+      diagnostics.push({
+        code: "foreign-root-unexpected",
+        path: `/foreign_roots/${index}/root`,
+        message: `Foreign root was not detected in the current inventory: ${review.root}`
+      });
+    }
+    if (review.disposition === "unresolved") {
+      diagnostics.push({
+        code: "foreign-root-unresolved",
+        path: `/foreign_roots/${index}/disposition`,
+        message: `Foreign root remains unresolved: ${review.root}`
+      });
+    }
+    if (review.evidence.includes(PENDING_COVERAGE_EVIDENCE)) {
+      diagnostics.push({
+        code: "foreign-root-evidence-pending",
+        path: `/foreign_roots/${index}/evidence`,
+        message: `Resolved foreign root requires concrete evidence: ${review.root}`
+      });
+    }
+  }
+  for (const root of expected) {
+    if (!seen.has(root)) {
+      diagnostics.push({
+        code: "foreign-root-missing",
+        path: "/foreign_roots",
+        message: `Detected foreign root has no review: ${root}`
+      });
+    }
+  }
+  return diagnostics;
+}
+function selectedForeignFiles(inspection, reviews) {
+  const translatedRoots = new Set(
+    reviews.filter((review) => review.disposition === "translate").map((review) => review.root)
   );
+  const directPaths = /* @__PURE__ */ new Set();
   for (const candidate of inspection.foreignCandidates) {
+    if (!translatedRoots.has(candidate.root)) continue;
     for (const candidatePath of candidate.paths) directPaths.add(candidatePath);
   }
-  const roots = inspection.foreignCandidates.map((candidate) => candidate.root).filter((root) => root !== ".");
+  const roots = inspection.foreignCandidates.filter((candidate) => translatedRoots.has(candidate.root)).map((candidate) => candidate.root).filter((root) => root !== ".");
   return inspection.inventory.files.filter(
     (file) => directPaths.has(file.path) || roots.some((root) => isInsideForeignRoot(file.path, root))
   );
 }
-function boundaryIssues(inspection) {
-  const roots = inspection.foreignCandidates.map((candidate) => candidate.root).filter((root) => root !== ".");
+function boundaryIssues(inspection, reviews) {
+  const translatedRoots = new Set(
+    reviews.filter((review) => review.disposition === "translate").map((review) => review.root)
+  );
+  const roots = inspection.foreignCandidates.filter((candidate) => translatedRoots.has(candidate.root)).map((candidate) => candidate.root).filter((root) => root !== ".");
   const issues = [];
   for (const link of inspection.inventory.symlinks) {
     if (!roots.some((root) => isInsideForeignRoot(link.path, root))) continue;
@@ -21743,7 +21842,7 @@ function issueKey(issue3) {
 function compareSources(left, right) {
   return comparePortablePaths(left.source_path, right.source_path) || comparePortablePaths(left.source_kind, right.source_kind) || comparePortablePaths(left.source_id, right.source_id);
 }
-function createCoverageTemplate(inventoryDigest2, sources) {
+function createCoverageTemplate(inventoryDigest2, foreignRoots, sources) {
   const records = sources.map((source) => ({
     ...source,
     disposition: "unresolved",
@@ -21752,22 +21851,34 @@ function createCoverageTemplate(inventoryDigest2, sources) {
   }));
   return {
     schema_version: COVERAGE_SCHEMA_VERSION,
-    coverage_id: deterministicUlid(canonicalJson([inventoryDigest2, sources])),
+    coverage_id: deterministicUlid(canonicalJson([inventoryDigest2, foreignRoots, sources])),
     source_inventory_digest: inventoryDigest2,
+    foreign_roots: foreignRoots.map((review) => ({
+      ...review,
+      evidence: [...review.evidence]
+    })),
     records,
     unresolved_count: records.length
   };
 }
-async function discoverForeignCoverage(root, inspection) {
+async function discoverForeignCoverage(root, inspection, foreignRoots = defaultForeignRootReviews(inspection)) {
   if (inspection.state !== "C") {
     throw new AdoptionError(
       "PCP_STATE_C_REQUIRED",
       `Foreign coverage discovery requires a State C candidate, not ${inspection.state}.`
     );
   }
+  const rootDiagnostics = validateForeignRootReviews(inspection, foreignRoots);
+  if (rootDiagnostics.length > 0) {
+    throw new AdoptionError(
+      "PCP_STATE_C_ROOT_REVIEW_INVALID",
+      `State C foreign-root review is not ready: ${rootDiagnostics.slice(0, 8).map((diagnostic2) => `${diagnostic2.code} ${diagnostic2.path}: ${diagnostic2.message}`).join("; ")}`
+    );
+  }
+  const normalizedRoots = normalizedForeignRoots(foreignRoots);
   const sources = [];
-  const issues = boundaryIssues(inspection);
-  for (const file of selectedForeignFiles(inspection)) {
+  const issues = boundaryIssues(inspection, normalizedRoots);
+  for (const file of selectedForeignFiles(inspection, normalizedRoots)) {
     sources.push({
       source_id: `${isForeignAdapterSourcePath(file.path) ? "adapter" : "file"}:${file.path}`,
       source_path: file.path,
@@ -21844,9 +21955,10 @@ async function discoverForeignCoverage(root, inspection) {
   );
   return {
     source_inventory_digest: inspection.inventory.digest,
+    foreign_roots: normalizedRoots,
     sources,
     issues: uniqueIssues,
-    template: createCoverageTemplate(inspection.inventory.digest, sources)
+    template: createCoverageTemplate(inspection.inventory.digest, normalizedRoots, sources)
   };
 }
 function validateForeignCoverage(catalog, value) {
@@ -21879,6 +21991,13 @@ function validateForeignCoverage(catalog, value) {
       code: "coverage-inventory-mismatch",
       path: "/source_inventory_digest",
       message: "Coverage was prepared against a different candidate inventory."
+    });
+  }
+  if (canonicalJson(normalizedForeignRoots(coverage.foreign_roots)) !== canonicalJson(normalizedForeignRoots(catalog.foreign_roots))) {
+    diagnostics.push({
+      code: "coverage-foreign-roots-mismatch",
+      path: "/foreign_roots",
+      message: "Coverage foreign-root review does not match the scoped matrix for this candidate."
     });
   }
   const recordsById = /* @__PURE__ */ new Map();
@@ -23884,6 +24003,13 @@ function questionsFor(inspection) {
   if (inspection.state === "C") {
     return [
       {
+        id: "state-c-root-review",
+        prompt: "Review every detected foreign root: translate live agent context or preserve ordinary project material.",
+        reason: "Semantic signals may occur inside examples, archives, or project-owned trees that must not be swept into translation.",
+        required: true,
+        response_shape: "object"
+      },
+      {
         id: "state-c-coverage",
         prompt: "Complete every disposition in the emitted foreign-source coverage matrix.",
         reason: "State C translation and destructive removal require semantic dispositions.",
@@ -23950,7 +24076,7 @@ function questionsFor(inspection) {
   }
   return questions;
 }
-async function previewWithoutPlan(root, inspection) {
+function previewWithoutPlan(root, inspection) {
   const preview = {
     schema_version: ADOPTION_SCHEMA_VERSION,
     command: "adopt",
@@ -23963,10 +24089,8 @@ async function previewWithoutPlan(root, inspection) {
     mutated: false
   };
   if (inspection.state === "C") {
-    const catalog = await discoverForeignCoverage(root, inspection);
-    preview.coverage = catalog.template;
-    preview.coverage_issues = catalog.issues;
-    preview.coverage_status = catalog.issues.length === 0 ? "requires-disposition" : "blocked";
+    preview.foreign_roots = foreignRootReviewTemplate(inspection);
+    preview.coverage_status = "requires-root-review";
   }
   return preview;
 }
@@ -24093,6 +24217,18 @@ function validateProjectInput(input, inspection) {
     throw new AdoptionError(
       "PCP_STATE_C_COVERAGE_FORBIDDEN",
       "Foreign-context coverage belongs only to State C adoption input."
+    );
+  }
+  if (inspection.state !== "C" && input.foreign_roots !== void 0) {
+    throw new AdoptionError(
+      "PCP_STATE_C_ROOT_REVIEW_FORBIDDEN",
+      "Foreign-root review belongs only to State C adoption input."
+    );
+  }
+  if (inspection.state === "C" && input.foreign_roots === void 0) {
+    throw new AdoptionError(
+      "PCP_STATE_C_ROOT_REVIEW_REQUIRED",
+      "State C adoption input must review every detected foreign root before coverage discovery."
     );
   }
   if ((inspection.state === "B" || inspection.state === "C") && input.scaffold_files.length > 0) {
@@ -24334,6 +24470,10 @@ async function assertContentTargetsSafe(root, content, inspection, persistence, 
 function normalizedCoverageDigest(coverage) {
   const normalized = {
     ...coverage,
+    foreign_roots: coverage.foreign_roots.map((review) => ({
+      ...review,
+      evidence: [...review.evidence].sort(comparePortablePaths)
+    })).sort((left, right) => comparePortablePaths(left.root, right.root)),
     records: coverage.records.map((record) => ({
       ...record,
       targets: [...record.targets].sort(comparePortablePaths),
@@ -24488,7 +24628,7 @@ async function buildStateCTranslationPlan(root, inspection, input) {
       "Local persistence requires candidate ignore policy to cover the complete .pcp/ layer before adoption."
     );
   }
-  const catalog = await discoverForeignCoverage(root, inspection);
+  const catalog = await discoverForeignCoverage(root, inspection, input.foreign_roots);
   const validation = validateForeignCoverage(catalog, input.coverage);
   if (!validation.valid) throw stateCCoverageFailure(validation.diagnostics);
   assertSupportedStateCAdapters(input);
@@ -24536,6 +24676,26 @@ async function buildStateCTranslationPlan(root, inspection, input) {
     mutated: false
   };
   return { inspection, input, preview, content_by_path: content };
+}
+async function previewScopedStateCCoverage(root, inspection, input) {
+  validateDocumentSet(input, inspection);
+  validateProjectInput(input, inspection);
+  const catalog = await discoverForeignCoverage(root, inspection, input.foreign_roots);
+  return {
+    schema_version: ADOPTION_SCHEMA_VERSION,
+    command: "adopt",
+    candidate: ".",
+    classification: "C",
+    confidence: inspection.confidence,
+    applicable: false,
+    questions: questionsFor(inspection).filter((question) => question.id === "state-c-coverage"),
+    baseline: baselineFor(root, inspection),
+    foreign_roots: catalog.foreign_roots,
+    coverage: catalog.template,
+    coverage_issues: catalog.issues,
+    coverage_status: catalog.issues.length === 0 ? "requires-disposition" : "blocked",
+    mutated: false
+  };
 }
 async function buildPlanMaterial(root, inspection, input) {
   if (inspection.state !== "A" && inspection.state !== "B") {
@@ -24617,7 +24777,10 @@ async function planAdoption(candidate = ".", inputPath) {
     return previewWithoutPlan(root, inspection);
   }
   const input = await loadAdoptionInput(inputPath, root);
-  if (inspection.state === "C") return buildStateCTranslationPlan(root, inspection, input);
+  if (inspection.state === "C") {
+    if (input.coverage === void 0) return previewScopedStateCCoverage(root, inspection, input);
+    return buildStateCTranslationPlan(root, inspection, input);
+  }
   return buildPlanMaterial(root, inspection, input);
 }
 function isPlanMaterial(value) {
@@ -27923,6 +28086,12 @@ function formatAdoption(result) {
     for (const question of result.questions) {
       output += line(`- ${question.id}: ${question.prompt}`);
       if (question.when !== void 0) output += line(`  when: ${question.when}`);
+    }
+  }
+  if (result.foreign_roots !== void 0) {
+    output += line("Detected foreign roots:");
+    for (const root of result.foreign_roots) {
+      output += line(`- ${root.root}: ${root.disposition}`);
     }
   }
   if (result.coverage !== void 0) {

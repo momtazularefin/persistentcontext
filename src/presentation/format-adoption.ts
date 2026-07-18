@@ -34,6 +34,12 @@ export function formatAdoption(result: AdoptionPreview | AdoptionApplyResult): s
       if (question.when !== undefined) output += line(`  when: ${question.when}`);
     }
   }
+  if (result.foreign_roots !== undefined) {
+    output += line('Detected foreign roots:');
+    for (const root of result.foreign_roots) {
+      output += line(`- ${root.root}: ${root.disposition}`);
+    }
+  }
   if (result.coverage !== undefined) {
     output += line(`Foreign coverage records: ${result.coverage.records.length}`);
     output += line(`Unresolved coverage records: ${result.coverage.unresolved_count}`);

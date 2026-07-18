@@ -43,7 +43,7 @@ PCP does not require a conventional source or documentation layout. Intake and a
 
 Inventory honors ignore rules, fingerprints large and binary files without semantic parsing, records symlinks without following them, and stops at nested repository boundaries. A target that crosses a symlink or nested repository boundary is rejected.
 
-PCP preserves ordinary project-owned assets in State B. State A alone may create explicitly approved initial scaffold files. State C may remove foreign context only after complete file/entry coverage and live staged validation.
+PCP preserves ordinary project-owned assets in State B. State A alone may create explicitly approved initial scaffold files. State C requires an evidence-backed disposition for every detected foreign root, preserves roots reviewed as project-owned, and may remove translated foreign context only after complete file/entry coverage and live staged validation.
 
 ## Persistence and optional capabilities
 

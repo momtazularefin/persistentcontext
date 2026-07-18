@@ -2,7 +2,7 @@ import { createHash } from 'node:crypto';
 
 import { ulid } from 'ulid';
 
-import type { CoverageMatrix, ForeignCoverageIssue } from './coverage.js';
+import type { CoverageMatrix, ForeignCoverageIssue, ForeignRootReview } from './coverage.js';
 import type { AdapterManifest } from './adapters.js';
 import type { SupportedCapabilityId } from './capabilities.js';
 import type {
@@ -83,6 +83,7 @@ export interface AdoptionInput {
   };
   vcs_policy: Record<string, unknown>;
   documents: AdoptionDocumentInput[];
+  foreign_roots?: ForeignRootReview[];
   coverage?: CoverageMatrix;
   scaffold_files: AdoptionScaffoldFile[];
 }
@@ -144,9 +145,10 @@ export interface AdoptionPreview {
   applicable: boolean;
   questions: AdoptionQuestion[];
   baseline: AdoptionBaseline;
+  foreign_roots?: ForeignRootReview[];
   coverage?: CoverageMatrix;
   coverage_issues?: ForeignCoverageIssue[];
-  coverage_status?: 'requires-disposition' | 'blocked' | 'complete';
+  coverage_status?: 'requires-root-review' | 'requires-disposition' | 'blocked' | 'complete';
   adapters?: AdapterManifest[];
   plan?: MutationPlan;
   mutated: false;

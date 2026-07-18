@@ -95,7 +95,10 @@ async function stateCInput(coverage?: CoverageMatrix): Promise<AdoptionInput> {
   };
   const input = structuredClone(fixture.valid);
   input.scaffold_files = [];
-  if (coverage !== undefined) input.coverage = coverage;
+  if (coverage !== undefined) {
+    input.foreign_roots = structuredClone(coverage.foreign_roots);
+    input.coverage = coverage;
+  }
   return input;
 }
 
@@ -158,15 +161,29 @@ describe('State C foreign coverage', () => {
       classification: 'C',
       applicable: false,
       mutated: false,
+      foreign_roots: first.template.foreign_roots.map((review) => ({
+        root: review.root,
+        disposition: 'unresolved',
+        evidence: ['Pending semantic disposition.'],
+      })),
+      coverage_status: 'requires-root-review',
+    });
+    if (isPlanMaterial(preview)) throw new Error('State C coverage intake cannot mutate.');
+    const formatted = formatAdoption(preview);
+    expect(formatted).toContain('Detected foreign roots:');
+    expect(formatted).toContain('Coverage review: requires-root-review');
+
+    const scopedInput = await stateCInput();
+    scopedInput.foreign_roots = structuredClone(first.template.foreign_roots);
+    const scoped = await planAdoption(fixtureRoot, await writeInput(scopedInput));
+    if (isPlanMaterial(scoped)) throw new Error('Incomplete State C coverage cannot apply.');
+    expect(scoped).toMatchObject({
+      applicable: false,
+      foreign_roots: first.template.foreign_roots,
       coverage: first.template,
       coverage_issues: [],
       coverage_status: 'requires-disposition',
     });
-    if (isPlanMaterial(preview)) throw new Error('State C coverage intake cannot mutate.');
-    const formatted = formatAdoption(preview);
-    expect(formatted).toContain('Foreign coverage records: 12');
-    expect(formatted).toContain('Unresolved coverage records: 12');
-    expect(formatted).toContain('Coverage review: requires-disposition');
     expect((await inspectRepository(fixtureRoot)).inventory.digest).toBe(before);
   });
 
@@ -188,6 +205,24 @@ describe('State C foreign coverage', () => {
       valid: true,
       diagnostics: [],
     });
+  });
+
+  it('requires one resolved evidence-backed review for every detected foreign root', async () => {
+    const inspection = await inspectRepository(fixtureRoot);
+    const catalog = await discoverForeignCoverage(fixtureRoot, inspection);
+    await expect(
+      discoverForeignCoverage(fixtureRoot, inspection, catalog.foreign_roots.slice(1)),
+    ).rejects.toMatchObject({ code: 'PCP_STATE_C_ROOT_REVIEW_INVALID', mutated: false });
+
+    const unresolved = structuredClone(catalog.foreign_roots);
+    unresolved[0] = {
+      ...unresolved[0]!,
+      disposition: 'unresolved',
+      evidence: ['Pending semantic disposition.'],
+    };
+    await expect(
+      discoverForeignCoverage(fixtureRoot, inspection, unresolved),
+    ).rejects.toMatchObject({ code: 'PCP_STATE_C_ROOT_REVIEW_INVALID', mutated: false });
   });
 
   it('builds a stable applicable translation plan without mutating State C', async () => {
@@ -372,6 +407,8 @@ describe('State C foreign coverage', () => {
     const catalog = await discoverForeignCoverage(fixtureRoot, inspection);
     const originalCoverage = reviewedCoverage(catalog.template);
     const reorderedCoverage = structuredClone(originalCoverage);
+    reorderedCoverage.foreign_roots.reverse();
+    for (const review of reorderedCoverage.foreign_roots) review.evidence.reverse();
     reorderedCoverage.records.reverse();
     for (const record of reorderedCoverage.records) {
       record.targets.reverse();
@@ -485,13 +522,15 @@ describe('State C foreign coverage', () => {
     ).rejects.toMatchObject({ code: 'PCP_ADOPTION_PATH_COLLISION' });
   });
 
-  it('requires current complete coverage and real staged canonical targets', async () => {
-    await expect(
-      planAdoption(fixtureRoot, await writeInput(await stateCInput())),
-    ).rejects.toMatchObject({ code: 'PCP_STATE_C_COVERAGE_REQUIRED' });
-
+  it('previews scoped coverage before requiring complete dispositions and real targets', async () => {
     const inspection = await inspectRepository(fixtureRoot);
     const catalog = await discoverForeignCoverage(fixtureRoot, inspection);
+    const scopedInput = await stateCInput();
+    scopedInput.foreign_roots = structuredClone(catalog.foreign_roots);
+    const scoped = await planAdoption(fixtureRoot, await writeInput(scopedInput));
+    if (isPlanMaterial(scoped)) throw new Error('Expected a scoped coverage preview.');
+    expect(scoped.coverage).toEqual(catalog.template);
+
     const unresolved = reviewedCoverage(catalog.template);
     unresolved.records[0]!.disposition = 'unresolved';
     unresolved.records[0]!.targets = [];
@@ -605,10 +644,92 @@ describe('State C foreign coverage', () => {
     );
   });
 
+  it('preserves embedded reference trees while scoping coverage to live foreign context', async () => {
+    const root = await temporaryRoot('pcp-scoped-foreign-roots-');
+    await mkdir(path.join(root, 'legacy-context'), { recursive: true });
+    await mkdir(path.join(root, 'scratch', 'reference', 'node_modules'), { recursive: true });
+    await writeFile(
+      path.join(root, 'README.md'),
+      '# Existing project\n\nA maintained project with live context and archived examples.\n',
+      'utf8',
+    );
+    await writeFile(
+      path.join(root, 'legacy-context', 'AGENTS.md'),
+      '# Continuity\n\nThis is the source of truth for agents and their current handoffs.\n',
+      'utf8',
+    );
+    await writeFile(
+      path.join(root, 'scratch', 'reference', 'AGENTS.md'),
+      '# Example agent instructions\n\nThis archived template is not active project context.\n',
+      'utf8',
+    );
+    await writeFile(
+      path.join(root, 'scratch', 'reference', 'recording.bin'),
+      Buffer.from([0, 1, 2, 3]),
+    );
+    await writeFile(
+      path.join(root, 'scratch', 'reference', 'node_modules', 'ignored.txt'),
+      'excluded dependency fixture\n',
+      'utf8',
+    );
+
+    const inspection = await inspectRepository(root);
+    expect(inspection.state).toBe('C');
+    expect(inspection.foreignCandidates.map((candidate) => candidate.root)).toEqual([
+      'legacy-context',
+      'scratch',
+    ]);
+    const unscoped = await discoverForeignCoverage(root, inspection);
+    expect(unscoped.issues.map((issue) => issue.code)).toEqual(
+      expect.arrayContaining(['foreign-source-excluded', 'foreign-source-not-text']),
+    );
+
+    const reviews = unscoped.foreign_roots.map((review) =>
+      review.root === 'scratch'
+        ? {
+            root: review.root,
+            disposition: 'project-owned' as const,
+            evidence: ['scratch/reference is an embedded example, not live project context.'],
+          }
+        : {
+            root: review.root,
+            disposition: 'translate' as const,
+            evidence: ['legacy-context is the live agent continuity layer.'],
+          },
+    );
+    const scoped = await discoverForeignCoverage(root, inspection, reviews);
+    expect(scoped.issues).toEqual([]);
+    expect(scoped.sources.map((source) => source.source_path)).toEqual([
+      'legacy-context/AGENTS.md',
+    ]);
+    expect(scoped.template.foreign_roots).toEqual(reviews);
+
+    const input = await stateCInput();
+    input.foreign_roots = reviews;
+    const preview = await planAdoption(root, await writeInput(input));
+    if (isPlanMaterial(preview)) throw new Error('Scoped coverage still requires dispositions.');
+    expect(preview).toMatchObject({
+      applicable: false,
+      foreign_roots: reviews,
+      coverage: scoped.template,
+      coverage_issues: [],
+      coverage_status: 'requires-disposition',
+      mutated: false,
+    });
+    expect(await readFile(path.join(root, 'scratch', 'reference', 'recording.bin'))).toEqual(
+      Buffer.from([0, 1, 2, 3]),
+    );
+  });
+
   it('fails closed on excluded, encrypted, and malformed foreign sources', async () => {
     const root = await temporaryRoot('pcp-unsafe-foreign-');
     const legacy = path.join(root, 'legacy-context');
     await mkdir(legacy, { recursive: true });
+    await writeFile(
+      path.join(root, 'README.md'),
+      '# Existing project\n\nA maintained project with a legacy context layer.\n',
+      'utf8',
+    );
     await writeFile(
       path.join(legacy, 'continuity.md'),
       '# Continuity\n\nThis is the source of truth for coding agents and their checkpoint handoffs.\n',
@@ -637,7 +758,9 @@ describe('State C foreign coverage', () => {
         'foreign-structured-source-malformed',
       ]),
     );
-    const preview = await planAdoption(root);
+    const rootReview = await stateCInput();
+    rootReview.foreign_roots = structuredClone(catalog.foreign_roots);
+    const preview = await planAdoption(root, await writeInput(rootReview));
     if (isPlanMaterial(preview)) throw new Error('Blocked State C intake cannot mutate.');
     expect(preview.coverage_status).toBe('blocked');
     const result = validateForeignCoverage(catalog, resolvedCoverage(catalog.template));

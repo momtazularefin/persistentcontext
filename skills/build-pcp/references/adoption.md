@@ -46,7 +46,7 @@ Create a temporary YAML or JSON document outside the candidate that validates ag
 - each document's canonical type/status, evidence basis, cited candidate-relative paths, and grounded Markdown body;
 - State A scaffold files only when they are explicitly appropriate; an empty State A target requires at least one;
 - an empty `scaffold_files` array for State B;
-- for State C, an empty `scaffold_files` array plus the completed coverage matrix emitted for the current candidate inventory.
+- for State C, an empty `scaffold_files` array, a disposition for every detected foreign root, and then the completed coverage matrix emitted for that reviewed scope.
 
 Use `tracked` unless the candidate's existing ignore policy already covers the complete `.pcp/` layer. The engine rejects a `local` persistence claim that is not actually ignored and rejects tracked adoption into an ignored canonical path.
 
@@ -76,12 +76,13 @@ The engine fully recomputes the plan, rejects source drift, acquires a project l
 
 - Perform State B exploration against the real project first.
 - Discover foreign context by semantics, not directory name.
+- Review every detected foreign root before file coverage. Mark live context `translate`; mark embedded examples, archives, or ordinary project trees `project-owned`, cite concrete evidence, and preserve them intact.
 - Translate useful current facts, decisions, rationale, rules, projects, and workstreams.
 - Do not import actor profiles, synchronization cursors, or historical events.
 - Require complete file and history coverage before planning any foreign removal.
 - Mark an ordinary file `project-owned` only when cautious directory expansion found it beside foreign context; leave it unchanged and give it no canonical target.
 
-Run `adopt` without input to obtain the transient matrix, then include the completed matrix as `coverage` in the external State C semantic input. A successful review reports `coverage_status: complete` and emits an applicable normalized plan whose digest binds coverage, canonical writes, generated platform adapters, preimages, and removals. Review every adapter `write`, `replace`, and legacy removal. PCP plans the replacement before removing a supported scoped convention and blocks any adapter surface outside the implemented five-product contract. Apply only the approved digest through the engine using the command above. Do not reproduce the plan with manual file operations: the engine must recheck the inventory, validate the live canonical layer and adapters, and restore exact preimages on failure.
+State C uses two non-mutating review passes. Run `adopt` without input to obtain `foreign_roots` with `coverage_status: requires-root-review`. Copy every root into the external input, replace `unresolved` with `translate` or `project-owned`, and replace pending evidence with concrete evidence. Run `adopt` with that input to obtain the scoped transient matrix. Complete every record, include it as `coverage` without changing its root review or identity, and run preview again. A successful review reports `coverage_status: complete` and emits an applicable normalized plan whose digest binds the root scope, coverage, canonical writes, generated platform adapters, preimages, and removals. Review every adapter `write`, `replace`, and legacy removal. PCP plans the replacement before removing a supported scoped convention and blocks any adapter surface outside the implemented five-product contract. Apply only the approved digest through the engine using the command above. Do not reproduce the plan with manual file operations: the engine must recheck the inventory, validate the live canonical layer and adapters, and restore exact preimages on failure.
 
 ## Clean genesis
 
