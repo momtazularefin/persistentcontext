@@ -1,8 +1,8 @@
 # Changelog
 
-All notable public protocol changes will be documented here after the first release candidate exists.
+All notable public protocol changes are documented here from the first release candidate onward.
 
-## Unreleased
+## 0.1.0-rc — release candidate
 
 - Clarified primary-versus-related project input and release-engine upgrade routing, and removed misleading synthetic timestamps from deterministic transient mutation plans.
 - Proved that the documented startup surfaces for all five adapters reach one canonical entry and reconstruct identical project identity, purpose, lifecycle, workstream, VCS, overview, and next-action context.
@@ -29,3 +29,8 @@ All notable public protocol changes will be documented here after the first rele
 - Kept archived event contents out of normal registration and reconciliation while retaining filename-based active-floor detection and explicit full archive validation.
 - Added `pcp record` with external schema-valid input, performer/recorder attribution, stable-key suppression for duplicate reported/observed changes, tamper-evident payload digests, globally ordered ULIDs, automatic 64/32 active-history rotation, and exact rollback across every caught failure boundary.
 - Added digest-bound `pcp workstream validate/create/update/complete` operations with lifecycle guards, dependency-safe criterion evidence, completion announcements, concurrent stale-plan refusal, automatic workstream events, and one transaction over the registry, generated view, active history, and archive rotation.
+- Added evidence-backed parity coverage and a sanitized source-only FlowForge State B reference adoption.
+- Documented architecture, lifecycle, compatibility, safety, contribution, troubleshooting, and private vulnerability-reporting boundaries without overstating adapter, checksum, or secret-scan guarantees.
+- Exposed exact retained recovery locations through ephemeral structured diagnostics without persisting machine paths in canonical state.
+- Added allowlisted package-content auditing, generated-package private-data scanning, and explicit Ubuntu/Windows packaged lifecycle golden jobs required by aggregate CI.
+- Added a reproducible release-candidate source manifest, public acceptance audit, and explicit unfreeze/re-verification rule before private dogfood may continue.

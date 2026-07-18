@@ -12,5 +12,6 @@ These documents explain the public protocol from the outside in. The installed f
 6. [Troubleshooting](troubleshooting.md) — error-code-led diagnosis and safe recovery boundaries.
 7. [Contributing](../CONTRIBUTING.md) — source ownership, test expectations, fixtures, and review checklist.
 8. [Capability lineage and parity](capability-parity.md) — behaviors preserved or deliberately superseded from earlier orchestration experience.
+9. [0.1.0 release candidate](release-candidate.md) — public acceptance audit, reproducible identity, verification contract, and freeze rule.
 
 The root [README](../README.md) remains the concise command reference and current implementation statement. When explanatory documentation and installed protocol text disagree, treat the installed release assets and executable validation as authoritative, then correct the stale explanation.

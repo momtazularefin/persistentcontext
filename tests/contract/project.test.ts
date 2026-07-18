@@ -55,6 +55,28 @@ describe('public project contract', () => {
     expect(workflow).toContain('golden (${{ matrix.os }})');
     expect(workflow).toContain('os: [ubuntu-latest, windows-latest]');
     expect(workflow).toContain('npm run test:golden');
+    expect(workflow).toContain('npm run verify:candidate');
     expect(workflow).toContain('needs: [verify, golden]');
+  });
+
+  it('publishes a reproducible release-candidate contract without claiming dogfood', async () => {
+    const [readme, documentation, manifestText] = await Promise.all([
+      readFile(new URL('README.md', projectRoot), 'utf8'),
+      readFile(new URL('docs/release-candidate.md', projectRoot), 'utf8'),
+      readFile(new URL('release/0.1.0-rc.json', projectRoot), 'utf8'),
+    ]);
+    const manifest = JSON.parse(manifestText) as unknown;
+
+    expect(readme).toContain('is a release candidate');
+    expect(documentation).toContain(
+      'The private `rise` conversion criteria are intentionally not claimed',
+    );
+    expect(documentation).toContain('explicitly unfreeze this candidate');
+    expect(manifest).toMatchObject({
+      schema_version: 1,
+      release: '0.1.0',
+      stage: 'release-candidate',
+      verification: { local_command: 'npm ci && npm run verify' },
+    });
   });
 });
