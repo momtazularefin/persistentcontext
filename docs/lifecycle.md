@@ -28,7 +28,8 @@ The `build-pcp` skill guides the judgment-heavy phase. It explores progressively
 - project identity, purpose, type, lifecycle, artifact roots, and persistence profile;
 - optional related projects and workstreams;
 - an explicit VCS policy and capability selection;
-- eight canonical knowledge and operations documents with evidence basis;
+- the eight required canonical knowledge and operations documents with evidence basis;
+- optional grounded, numbered per-project documents when the spec-driven-projects capability is selected; PCP generates both the managed-project and project-local reading-order indexes;
 - State A scaffold files when appropriate; or
 - a reviewed disposition for every detected State C foreign root, followed by a complete source/history coverage matrix for roots selected for translation.
 

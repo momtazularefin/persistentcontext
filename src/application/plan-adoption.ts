@@ -66,6 +66,8 @@ const expectedDocuments = new Map<string, Pick<AdoptionDocumentInput, 'type' | '
   ['operations/20-plan.md', { type: 'plan', status: 'living' }],
   ['operations/30-decisions.md', { type: 'policy', status: 'living' }],
 ]);
+const PROJECT_DOCUMENT_PATH =
+  /^projects\/([a-z0-9]+(?:-[a-z0-9]+)*)\/([1-9][0-9])-[a-z0-9]+(?:-[a-z0-9]+)*\.md$/u;
 
 function isInside(root: string, candidate: string): boolean {
   const relative = path.relative(root, candidate);
@@ -276,10 +278,10 @@ async function loadAdoptionInput(inputPath: string, candidateRoot: string): Prom
 
 function validateDocumentSet(input: AdoptionInput, inspection: InspectionResult): void {
   const paths = input.documents.map((document) => document.path);
-  if (new Set(paths).size !== REQUIRED_ADOPTION_DOCUMENTS.length) {
+  if (new Set(paths).size !== paths.length) {
     throw new AdoptionError(
       'PCP_ADOPTION_INPUT_INVALID',
-      'Each required canonical adoption document must appear exactly once.',
+      'Each canonical adoption document path must appear exactly once.',
     );
   }
   for (const requiredPath of REQUIRED_ADOPTION_DOCUMENTS) {
@@ -296,17 +298,37 @@ function validateDocumentSet(input: AdoptionInput, inspection: InspectionResult)
     ...inspection.inventory.files.map((file) => file.path),
     ...inspection.inventory.nestedRepositories,
   ]);
+  const projectIds = new Set([
+    input.project.project_id,
+    ...input.projects.projects.map((project) => project.project_id),
+  ]);
   for (const document of input.documents) {
     const expected = expectedDocuments.get(document.path);
+    const projectMatch = PROJECT_DOCUMENT_PATH.exec(document.path);
     if (
-      expected === undefined ||
-      expected.type !== document.type ||
-      expected.status !== document.status
+      expected !== undefined &&
+      (expected.type !== document.type || expected.status !== document.status)
     ) {
       throw new AdoptionError(
         'PCP_ADOPTION_INPUT_INVALID',
         `Document metadata does not match its canonical role: ${document.path}`,
       );
+    }
+    if (expected === undefined) {
+      const projectId = projectMatch?.[1];
+      const order = Number(projectMatch?.[2]);
+      if (
+        projectId === undefined ||
+        !projectIds.has(projectId) ||
+        order % 10 !== 0 ||
+        document.type !== 'project' ||
+        !input.capabilities.includes('spec-driven-projects')
+      ) {
+        throw new AdoptionError(
+          'PCP_ADOPTION_INPUT_INVALID',
+          `Unsupported canonical project document: ${document.path}`,
+        );
+      }
     }
     const body = normalizeText(document.body).trim();
     if (!body.startsWith('# ') || body.startsWith('---') || PLACEHOLDER_PATTERN.test(body)) {
@@ -326,7 +348,7 @@ function validateDocumentSet(input: AdoptionInput, inspection: InspectionResult)
     }
     if (
       (inspection.state === 'B' || inspection.state === 'C') &&
-      document.type === 'knowledge' &&
+      (document.type === 'knowledge' || document.type === 'project') &&
       document.basis !== 'repository' &&
       document.basis !== 'repository-and-user'
     ) {
@@ -344,6 +366,82 @@ function validateDocumentSet(input: AdoptionInput, inspection: InspectionResult)
       }
     }
   }
+}
+
+function documentTitle(document: AdoptionDocumentInput): string {
+  const heading = normalizeText(document.body)
+    .split('\n')
+    .find((line) => line.startsWith('# '));
+  return (heading?.slice(2).trim() || path.posix.basename(document.path, '.md'))
+    .replaceAll('[', '')
+    .replaceAll(']', '');
+}
+
+function renderIndex(
+  documentPath: string,
+  title: string,
+  baselineAt: string,
+  links: readonly { path: string; title: string }[],
+): Buffer {
+  const frontmatter = stringify(
+    {
+      doc: documentPath,
+      type: 'index',
+      status: 'living',
+      version: '1.0.0',
+      last_updated: baselineAt,
+      ownership: 'project',
+    },
+    { lineWidth: 0 },
+  ).trimEnd();
+  const readingOrder = links.map((link) => `- [${link.title}](${link.path})`).join('\n');
+  return Buffer.from(
+    `---\n${frontmatter}\n---\n\n# ${title}\n\n## Reading order\n\n${readingOrder}\n`,
+    'utf8',
+  );
+}
+
+function renderProjectDocumentIndexes(input: AdoptionInput): Map<string, Buffer> {
+  const projects = new Map(
+    [input.project, ...input.projects.projects].map((project) => [project.project_id, project]),
+  );
+  const grouped = new Map<string, AdoptionDocumentInput[]>();
+  for (const document of input.documents) {
+    const projectId = PROJECT_DOCUMENT_PATH.exec(document.path)?.[1];
+    if (projectId === undefined) continue;
+    const documents = grouped.get(projectId) ?? [];
+    documents.push(document);
+    grouped.set(projectId, documents);
+  }
+
+  const rendered = new Map<string, Buffer>();
+  const rootLinks: { path: string; title: string }[] = [];
+  for (const projectId of [...grouped.keys()].sort(comparePortablePaths)) {
+    const project = projects.get(projectId);
+    if (project === undefined) continue;
+    const documents = grouped.get(projectId) ?? [];
+    documents.sort((left, right) => comparePortablePaths(left.path, right.path));
+    rendered.set(
+      `.pcp/projects/${projectId}/00-index.md`,
+      renderIndex(
+        `projects/${projectId}/00-index.md`,
+        project.name,
+        input.baseline_at,
+        documents.map((document) => ({
+          path: path.posix.basename(document.path),
+          title: documentTitle(document),
+        })),
+      ),
+    );
+    rootLinks.push({ path: `${projectId}/00-index.md`, title: project.name });
+  }
+  if (rootLinks.length > 0) {
+    rendered.set(
+      '.pcp/projects/00-index.md',
+      renderIndex('projects/00-index.md', 'Managed projects', input.baseline_at, rootLinks),
+    );
+  }
+  return rendered;
 }
 
 function portableCollisionKey(value: string): string {
@@ -512,6 +610,9 @@ async function stageCanonicalLayer(
     template.set('.pcp/state/vcs-policy.yaml', yamlBuffer(input.vcs_policy));
     for (const document of input.documents) {
       template.set(`.pcp/${document.path}`, renderDocument(document, input.baseline_at));
+    }
+    for (const [indexPath, content] of renderProjectDocumentIndexes(input)) {
+      template.set(indexPath, content);
     }
     for (const adapter of adapters) {
       if (template.has(adapter.manifest.target_path)) {

@@ -56,7 +56,7 @@
         "$ref": "#/$defs/document"
       },
       "minItems": 8,
-      "maxItems": 8
+      "maxItems": 256
     },
     "foreign_roots": {
       "type": "array",
@@ -84,19 +84,27 @@
       "required": ["path", "type", "status", "basis", "evidence_paths", "body"],
       "properties": {
         "path": {
-          "enum": [
-            "knowledge/10-overview.md",
-            "knowledge/20-architecture.md",
-            "knowledge/30-source-map.md",
-            "knowledge/40-build-and-tooling.md",
-            "knowledge/50-domain-and-invariants.md",
-            "operations/10-working-agreement.md",
-            "operations/20-plan.md",
-            "operations/30-decisions.md"
+          "oneOf": [
+            {
+              "enum": [
+                "knowledge/10-overview.md",
+                "knowledge/20-architecture.md",
+                "knowledge/30-source-map.md",
+                "knowledge/40-build-and-tooling.md",
+                "knowledge/50-domain-and-invariants.md",
+                "operations/10-working-agreement.md",
+                "operations/20-plan.md",
+                "operations/30-decisions.md"
+              ]
+            },
+            {
+              "type": "string",
+              "pattern": "^projects/[a-z0-9]+(?:-[a-z0-9]+)*/[1-9][0-9]-[a-z0-9]+(?:-[a-z0-9]+)*\\.md$"
+            }
           ]
         },
         "type": {
-          "enum": ["knowledge", "policy", "plan"]
+          "enum": ["knowledge", "policy", "plan", "project"]
         },
         "status": {
           "enum": ["static", "living"]

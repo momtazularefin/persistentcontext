@@ -26,13 +26,13 @@ export const REQUIRED_ADOPTION_DOCUMENTS = [
 ] as const;
 
 export type RequiredAdoptionDocumentPath = (typeof REQUIRED_ADOPTION_DOCUMENTS)[number];
-export type AdoptionDocumentType = 'knowledge' | 'policy' | 'plan';
+export type AdoptionDocumentType = 'knowledge' | 'policy' | 'plan' | 'project';
 export type AdoptionDocumentStatus = 'static' | 'living';
 export type AdoptionEvidenceBasis =
   'repository' | 'user' | 'repository-and-user' | 'not-applicable';
 
 export interface AdoptionDocumentInput {
-  path: RequiredAdoptionDocumentPath;
+  path: string;
   type: AdoptionDocumentType;
   status: AdoptionDocumentStatus;
   basis: AdoptionEvidenceBasis;
@@ -75,7 +75,7 @@ export interface AdoptionInput {
   project: AdoptionProjectState;
   projects: {
     schema_version: 1;
-    projects: Array<Record<string, unknown>>;
+    projects: AdoptionProjectState[];
   };
   workstreams: {
     schema_version: 1;

@@ -19933,7 +19933,7 @@ var adoption_input_schema_default = {
         $ref: "#/$defs/document"
       },
       minItems: 8,
-      maxItems: 8
+      maxItems: 256
     },
     foreign_roots: {
       type: "array",
@@ -19961,19 +19961,27 @@ var adoption_input_schema_default = {
       required: ["path", "type", "status", "basis", "evidence_paths", "body"],
       properties: {
         path: {
-          enum: [
-            "knowledge/10-overview.md",
-            "knowledge/20-architecture.md",
-            "knowledge/30-source-map.md",
-            "knowledge/40-build-and-tooling.md",
-            "knowledge/50-domain-and-invariants.md",
-            "operations/10-working-agreement.md",
-            "operations/20-plan.md",
-            "operations/30-decisions.md"
+          oneOf: [
+            {
+              enum: [
+                "knowledge/10-overview.md",
+                "knowledge/20-architecture.md",
+                "knowledge/30-source-map.md",
+                "knowledge/40-build-and-tooling.md",
+                "knowledge/50-domain-and-invariants.md",
+                "operations/10-working-agreement.md",
+                "operations/20-plan.md",
+                "operations/30-decisions.md"
+              ]
+            },
+            {
+              type: "string",
+              pattern: "^projects/[a-z0-9]+(?:-[a-z0-9]+)*/[1-9][0-9]-[a-z0-9]+(?:-[a-z0-9]+)*\\.md$"
+            }
           ]
         },
         type: {
-          enum: ["knowledge", "policy", "plan"]
+          enum: ["knowledge", "policy", "plan", "project"]
         },
         status: {
           enum: ["static", "living"]
@@ -23993,6 +24001,7 @@ var expectedDocuments = /* @__PURE__ */ new Map([
   ["operations/20-plan.md", { type: "plan", status: "living" }],
   ["operations/30-decisions.md", { type: "policy", status: "living" }]
 ]);
+var PROJECT_DOCUMENT_PATH = /^projects\/([a-z0-9]+(?:-[a-z0-9]+)*)\/([1-9][0-9])-[a-z0-9]+(?:-[a-z0-9]+)*\.md$/u;
 function isInside4(root, candidate) {
   const relative = path12.relative(root, candidate);
   return relative === "" || !relative.startsWith(`..${path12.sep}`) && relative !== ".." && !path12.isAbsolute(relative);
@@ -24165,10 +24174,10 @@ async function loadAdoptionInput(inputPath, candidateRoot2) {
 }
 function validateDocumentSet(input, inspection) {
   const paths = input.documents.map((document) => document.path);
-  if (new Set(paths).size !== REQUIRED_ADOPTION_DOCUMENTS.length) {
+  if (new Set(paths).size !== paths.length) {
     throw new AdoptionError(
       "PCP_ADOPTION_INPUT_INVALID",
-      "Each required canonical adoption document must appear exactly once."
+      "Each canonical adoption document path must appear exactly once."
     );
   }
   for (const requiredPath of REQUIRED_ADOPTION_DOCUMENTS) {
@@ -24184,13 +24193,28 @@ function validateDocumentSet(input, inspection) {
     ...inspection.inventory.files.map((file) => file.path),
     ...inspection.inventory.nestedRepositories
   ]);
+  const projectIds = /* @__PURE__ */ new Set([
+    input.project.project_id,
+    ...input.projects.projects.map((project) => project.project_id)
+  ]);
   for (const document of input.documents) {
     const expected = expectedDocuments.get(document.path);
-    if (expected === void 0 || expected.type !== document.type || expected.status !== document.status) {
+    const projectMatch = PROJECT_DOCUMENT_PATH.exec(document.path);
+    if (expected !== void 0 && (expected.type !== document.type || expected.status !== document.status)) {
       throw new AdoptionError(
         "PCP_ADOPTION_INPUT_INVALID",
         `Document metadata does not match its canonical role: ${document.path}`
       );
+    }
+    if (expected === void 0) {
+      const projectId = projectMatch?.[1];
+      const order = Number(projectMatch?.[2]);
+      if (projectId === void 0 || !projectIds.has(projectId) || order % 10 !== 0 || document.type !== "project" || !input.capabilities.includes("spec-driven-projects")) {
+        throw new AdoptionError(
+          "PCP_ADOPTION_INPUT_INVALID",
+          `Unsupported canonical project document: ${document.path}`
+        );
+      }
     }
     const body = normalizeText(document.body).trim();
     if (!body.startsWith("# ") || body.startsWith("---") || PLACEHOLDER_PATTERN.test(body)) {
@@ -24205,7 +24229,7 @@ function validateDocumentSet(input, inspection) {
         `Repository-grounded document has no evidence path: ${document.path}`
       );
     }
-    if ((inspection.state === "B" || inspection.state === "C") && document.type === "knowledge" && document.basis !== "repository" && document.basis !== "repository-and-user") {
+    if ((inspection.state === "B" || inspection.state === "C") && (document.type === "knowledge" || document.type === "project") && document.basis !== "repository" && document.basis !== "repository-and-user") {
       throw new AdoptionError(
         "PCP_ADOPTION_INPUT_INVALID",
         `Established-project knowledge must cite current repository evidence: ${document.path}`
@@ -24220,6 +24244,78 @@ function validateDocumentSet(input, inspection) {
       }
     }
   }
+}
+function documentTitle(document) {
+  const heading = normalizeText(document.body).split("\n").find((line2) => line2.startsWith("# "));
+  return (heading?.slice(2).trim() || path12.posix.basename(document.path, ".md")).replaceAll("[", "").replaceAll("]", "");
+}
+function renderIndex(documentPath, title, baselineAt, links) {
+  const frontmatter = stringify3(
+    {
+      doc: documentPath,
+      type: "index",
+      status: "living",
+      version: "1.0.0",
+      last_updated: baselineAt,
+      ownership: "project"
+    },
+    { lineWidth: 0 }
+  ).trimEnd();
+  const readingOrder = links.map((link) => `- [${link.title}](${link.path})`).join("\n");
+  return Buffer.from(
+    `---
+${frontmatter}
+---
+
+# ${title}
+
+## Reading order
+
+${readingOrder}
+`,
+    "utf8"
+  );
+}
+function renderProjectDocumentIndexes(input) {
+  const projects = new Map(
+    [input.project, ...input.projects.projects].map((project) => [project.project_id, project])
+  );
+  const grouped = /* @__PURE__ */ new Map();
+  for (const document of input.documents) {
+    const projectId = PROJECT_DOCUMENT_PATH.exec(document.path)?.[1];
+    if (projectId === void 0) continue;
+    const documents = grouped.get(projectId) ?? [];
+    documents.push(document);
+    grouped.set(projectId, documents);
+  }
+  const rendered = /* @__PURE__ */ new Map();
+  const rootLinks = [];
+  for (const projectId of [...grouped.keys()].sort(comparePortablePaths)) {
+    const project = projects.get(projectId);
+    if (project === void 0) continue;
+    const documents = grouped.get(projectId) ?? [];
+    documents.sort((left, right) => comparePortablePaths(left.path, right.path));
+    rendered.set(
+      `.pcp/projects/${projectId}/00-index.md`,
+      renderIndex(
+        `projects/${projectId}/00-index.md`,
+        project.name,
+        input.baseline_at,
+        documents.map((document) => ({
+          path: path12.posix.basename(document.path),
+          title: documentTitle(document)
+        }))
+      )
+    );
+    rootLinks.push({ path: `${projectId}/00-index.md`, title: project.name });
+  }
+  if (rootLinks.length > 0) {
+    rendered.set(
+      ".pcp/projects/00-index.md",
+      renderIndex("projects/00-index.md", "Managed projects", input.baseline_at, rootLinks)
+    );
+  }
+  return rendered;
 }
 function portableCollisionKey(value) {
   return value.normalize("NFKC").toLowerCase();
@@ -24360,6 +24456,9 @@ async function stageCanonicalLayer(input, adapters = []) {
     template.set(".pcp/state/vcs-policy.yaml", yamlBuffer(input.vcs_policy));
     for (const document of input.documents) {
       template.set(`.pcp/${document.path}`, renderDocument(document, input.baseline_at));
+    }
+    for (const [indexPath, content] of renderProjectDocumentIndexes(input)) {
+      template.set(indexPath, content);
     }
     for (const adapter of adapters) {
       if (template.has(adapter.manifest.target_path)) {
