@@ -45,6 +45,13 @@ export interface AdoptionScaffoldFile {
   content: string;
 }
 
+export interface AdoptionExternalRewrite {
+  path: string;
+  preimage_digest: string;
+  replacements: Array<{ from: string; to: string }>;
+  evidence: string[];
+}
+
 export interface AdoptionProjectState {
   schema_version: 1;
   project_id: string;
@@ -85,6 +92,7 @@ export interface AdoptionInput {
   documents: AdoptionDocumentInput[];
   foreign_roots?: ForeignRootReview[];
   coverage?: CoverageMatrix;
+  external_rewrites?: AdoptionExternalRewrite[];
   scaffold_files: AdoptionScaffoldFile[];
 }
 

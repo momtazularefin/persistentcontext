@@ -5,7 +5,7 @@
   "identity": {
     "algorithm": "sha256",
     "scope": "Git-known working-tree files excluding release/0.1.0-rc.json and ignored build, coverage, dependency, and runtime output.",
-    "source_tree_digest": "a13c368ace19712ce3a73ff691e86debd8591061752f6416d6c019eac1a7239e",
+    "source_tree_digest": "b1d7f696f70e5f9f18f99955fa72721ef07829e6d7b35b3453b12c889157c899",
     "file_count": 355,
     "files": [
       {
@@ -70,8 +70,8 @@
       },
       {
         "path": "docs/lifecycle.md",
-        "bytes": 10660,
-        "sha256": "dccad996ea958561c9bd57fc5242ca6124fc2b64ad989081c89619ab6e41ec5f"
+        "bytes": 11392,
+        "sha256": "24fc5bd09396a37c63b912292761888ab38fc8ce43d64096e56a18559e1d26a0"
       },
       {
         "path": "docs/README.md",
@@ -280,8 +280,8 @@
       },
       {
         "path": "README.md",
-        "bytes": 16259,
-        "sha256": "9ebebb2c12c5a34df56928c852fa4691a25b4f5bb8a057b6da9f7253a5aaad66"
+        "bytes": 16588,
+        "sha256": "774b597a261431c7d46dfcdb1876e485b1d3d0f63d17043a980dfed25071b47d"
       },
       {
         "path": "schemas/v1/actor-profile.schema.json",
@@ -295,8 +295,8 @@
       },
       {
         "path": "schemas/v1/adoption-input.schema.json",
-        "bytes": 3650,
-        "sha256": "6da9e8eec4d9f11e0a1f1f02547faf5c93a671023991d96a4cee093f6de7f5f9"
+        "bytes": 4807,
+        "sha256": "03f276927ebb03adc7d4c6631c2c9486193f177b3f4214789e822d1f5f4c4dfb"
       },
       {
         "path": "schemas/v1/checkpoint.schema.json",
@@ -410,8 +410,8 @@
       },
       {
         "path": "SECURITY.md",
-        "bytes": 2932,
-        "sha256": "0576e6ffe58ac3dd67a9a48e15a26824b1fa676c2f126d5ab901f27aeb394fee"
+        "bytes": 3081,
+        "sha256": "01ce2ed5875f6fc3a735aae273a8d6795f40ed0a9ee73b5e3662fd2c08124cb1"
       },
       {
         "path": "skills/build-pcp/agents/openai.yaml",
@@ -421,7 +421,7 @@
       {
         "path": "skills/build-pcp/assets/pcp-assets.sha256",
         "bytes": 8199,
-        "sha256": "248821938c65f771e72cbb7bd723375b863df39118e8ae11ee495727cfa6b88c"
+        "sha256": "9ea5b2b92f9a6d88886cc939fe81bc047b419dd5ee24df0fea0b22f2e189e3ce"
       },
       {
         "path": "skills/build-pcp/assets/schemas/v1/actor-profile.schema.json",
@@ -435,8 +435,8 @@
       },
       {
         "path": "skills/build-pcp/assets/schemas/v1/adoption-input.schema.json",
-        "bytes": 3650,
-        "sha256": "6da9e8eec4d9f11e0a1f1f02547faf5c93a671023991d96a4cee093f6de7f5f9"
+        "bytes": 4807,
+        "sha256": "03f276927ebb03adc7d4c6631c2c9486193f177b3f4214789e822d1f5f4c4dfb"
       },
       {
         "path": "skills/build-pcp/assets/schemas/v1/checkpoint.schema.json",
@@ -760,13 +760,13 @@
       },
       {
         "path": "skills/build-pcp/assets/templates/core/.pcp/tools/pcp.mjs",
-        "bytes": 1011945,
-        "sha256": "df36dfd763a8762f75254dea0d27b5aecb4b82772e42fbbe6936743c9e2a6cf9"
+        "bytes": 1021586,
+        "sha256": "175c965e3020dcd07d0a612854879ca6ae414c4ffd0f529d337b1e084afa5484"
       },
       {
         "path": "skills/build-pcp/assets/templates/core/.pcp/tools/pcp.sha256",
         "bytes": 74,
-        "sha256": "0110df087bd8dea7df0d222ab34ebdb93d7274143741fba1363b671d4d788863"
+        "sha256": "98e00579e18dc4b349f58ca46599fd00f2b78ccfc0b7586b1c6afca4c157cbd2"
       },
       {
         "path": "skills/build-pcp/assets/templates/core/.pcp/views/00-index.md",
@@ -785,8 +785,8 @@
       },
       {
         "path": "skills/build-pcp/references/adoption.md",
-        "bytes": 7941,
-        "sha256": "62c0225e1e3105ce5134b8f4aba6ccf4712f616a3af3464caf71a52a3d444510"
+        "bytes": 8532,
+        "sha256": "95db3e31ad200ce93621b1055ffc8f747c4228c1b3bbfd1337f6fc99aa6de8b5"
       },
       {
         "path": "skills/build-pcp/references/capabilities.md",
@@ -795,8 +795,8 @@
       },
       {
         "path": "skills/build-pcp/references/migration-and-repair.md",
-        "bytes": 4627,
-        "sha256": "d3826cb98ef0a21ec46c3677afecb5e3a33361e42c936cdcfe271423f1bd9b41"
+        "bytes": 4911,
+        "sha256": "acb5d8c1443d3091d4cbe12d508bcd42e738dc9dddf22ec2d0f7b5284769987f"
       },
       {
         "path": "skills/build-pcp/references/operation.md",
@@ -805,13 +805,13 @@
       },
       {
         "path": "skills/build-pcp/scripts/pcp.mjs",
-        "bytes": 1011945,
-        "sha256": "df36dfd763a8762f75254dea0d27b5aecb4b82772e42fbbe6936743c9e2a6cf9"
+        "bytes": 1021586,
+        "sha256": "175c965e3020dcd07d0a612854879ca6ae414c4ffd0f529d337b1e084afa5484"
       },
       {
         "path": "skills/build-pcp/scripts/pcp.sha256",
         "bytes": 74,
-        "sha256": "0110df087bd8dea7df0d222ab34ebdb93d7274143741fba1363b671d4d788863"
+        "sha256": "98e00579e18dc4b349f58ca46599fd00f2b78ccfc0b7586b1c6afca4c157cbd2"
       },
       {
         "path": "skills/build-pcp/SKILL.md",
@@ -820,8 +820,8 @@
       },
       {
         "path": "src/application/adopt-project.ts",
-        "bytes": 8785,
-        "sha256": "18851c58b7d3972fbd74027cfff8a89547b685b327cca5b14e93e7a338925ae1"
+        "bytes": 10488,
+        "sha256": "087cd294497adf6049156902522852990d85dc9374eb4e8f7f37debd76cef7d6"
       },
       {
         "path": "src/application/foreign-coverage.ts",
@@ -840,8 +840,8 @@
       },
       {
         "path": "src/application/plan-adoption.ts",
-        "bytes": 48578,
-        "sha256": "9dc86406f186a6e8046b854b84c8049c564a03377b296f0c5ac2ebe2d695d702"
+        "bytes": 55993,
+        "sha256": "c14d86044fa33f0050565c0741a39ee1909721c7a408b150da5cd381293b3feb"
       },
       {
         "path": "src/application/record-event.ts",
@@ -900,8 +900,8 @@
       },
       {
         "path": "src/domain/adoption.ts",
-        "bytes": 7706,
-        "sha256": "8429f60fd82deac703045e4258545ec25624c2c6a2c52e1952bcfab2e7a1bd18"
+        "bytes": 7919,
+        "sha256": "02e2d11d0f76f4b75eb0a51c8a493f5b5a7c5b2bb836cf272e96fa7a530d7aa3"
       },
       {
         "path": "src/domain/canonical-rendering.ts",
@@ -1325,13 +1325,13 @@
       },
       {
         "path": "templates/core/.pcp/tools/pcp.mjs",
-        "bytes": 1011945,
-        "sha256": "df36dfd763a8762f75254dea0d27b5aecb4b82772e42fbbe6936743c9e2a6cf9"
+        "bytes": 1021586,
+        "sha256": "175c965e3020dcd07d0a612854879ca6ae414c4ffd0f529d337b1e084afa5484"
       },
       {
         "path": "templates/core/.pcp/tools/pcp.sha256",
         "bytes": 74,
-        "sha256": "0110df087bd8dea7df0d222ab34ebdb93d7274143741fba1363b671d4d788863"
+        "sha256": "98e00579e18dc4b349f58ca46599fd00f2b78ccfc0b7586b1c6afca4c157cbd2"
       },
       {
         "path": "templates/core/.pcp/views/00-index.md",
@@ -1660,8 +1660,8 @@
       },
       {
         "path": "tests/unit/adoption-transaction.test.ts",
-        "bytes": 28845,
-        "sha256": "5b8f4a8ac91791acaf2df86a7de5656f20aef4661a71538de78c0fcb6c9c39fc"
+        "bytes": 30840,
+        "sha256": "7068fbbf2e0605867a8ba8251006136a4cc0e96911c603d05837418e05eacb15"
       },
       {
         "path": "tests/unit/canonical-renderer.test.ts",
@@ -1685,8 +1685,8 @@
       },
       {
         "path": "tests/unit/foreign-coverage.test.ts",
-        "bytes": 35897,
-        "sha256": "a6ea5f160996d57c9e2e55dbd7f8744021c75871a5b789fed78cb2218a1391b2"
+        "bytes": 40857,
+        "sha256": "4027a0ea61088fe219b40a48dbcbb0151bcc826ca7bd2f1a77383d2bcc6fe6cb"
       },
       {
         "path": "tests/unit/format-canonical.test.ts",
@@ -1787,7 +1787,7 @@
   },
   "artifacts": {
     "engine": {
-      "sha256": "df36dfd763a8762f75254dea0d27b5aecb4b82772e42fbbe6936743c9e2a6cf9",
+      "sha256": "175c965e3020dcd07d0a612854879ca6ae414c4ffd0f529d337b1e084afa5484",
       "copies": [
         "skills/build-pcp/scripts/pcp.mjs",
         "skills/build-pcp/assets/templates/core/.pcp/tools/pcp.mjs",
@@ -1796,12 +1796,12 @@
     },
     "skill_assets_manifest": {
       "path": "skills/build-pcp/assets/pcp-assets.sha256",
-      "sha256": "248821938c65f771e72cbb7bd723375b863df39118e8ae11ee495727cfa6b88c"
+      "sha256": "9ea5b2b92f9a6d88886cc939fe81bc047b419dd5ee24df0fea0b22f2e189e3ce"
     },
     "skill_package": {
       "path": "skills/build-pcp",
       "file_count": 81,
-      "bytes": 2156615
+      "bytes": 2177929
     }
   },
   "verification": {

@@ -327,7 +327,7 @@ var require_ignore = __commonJS({
       //   path matching.
       // - check `string` either `MODE_IGNORE` or `MODE_CHECK_IGNORE`
       // @returns {TestResult} true if a file is ignored
-      test(path20, checkUnignored, mode) {
+      test(path21, checkUnignored, mode) {
         let ignored = false;
         let unignored = false;
         let matchedRule;
@@ -336,7 +336,7 @@ var require_ignore = __commonJS({
           if (unignored === negative && ignored !== unignored || negative && !ignored && !unignored && !checkUnignored) {
             return;
           }
-          const matched = rule[mode].test(path20);
+          const matched = rule[mode].test(path21);
           if (!matched) {
             return;
           }
@@ -357,17 +357,17 @@ var require_ignore = __commonJS({
     var throwError = (message, Ctor) => {
       throw new Ctor(message);
     };
-    var checkPath = (path20, originalPath, doThrow) => {
-      if (!isString(path20)) {
+    var checkPath = (path21, originalPath, doThrow) => {
+      if (!isString(path21)) {
         return doThrow(
           `path must be a string, but got \`${originalPath}\``,
           TypeError
         );
       }
-      if (!path20) {
+      if (!path21) {
         return doThrow(`path must not be empty`, TypeError);
       }
-      if (checkPath.isNotRelative(path20)) {
+      if (checkPath.isNotRelative(path21)) {
         const r = "`path.relative()`d";
         return doThrow(
           `path should be a ${r} string, but got "${originalPath}"`,
@@ -376,7 +376,7 @@ var require_ignore = __commonJS({
       }
       return true;
     };
-    var isNotRelative = (path20) => REGEX_TEST_INVALID_PATH.test(path20);
+    var isNotRelative = (path21) => REGEX_TEST_INVALID_PATH.test(path21);
     checkPath.isNotRelative = isNotRelative;
     checkPath.convert = (p) => p;
     var Ignore = class {
@@ -406,19 +406,19 @@ var require_ignore = __commonJS({
       }
       // @returns {TestResult}
       _test(originalPath, cache, checkUnignored, slices) {
-        const path20 = originalPath && checkPath.convert(originalPath);
+        const path21 = originalPath && checkPath.convert(originalPath);
         checkPath(
-          path20,
+          path21,
           originalPath,
           this._strictPathCheck ? throwError : RETURN_FALSE
         );
-        return this._t(path20, cache, checkUnignored, slices);
+        return this._t(path21, cache, checkUnignored, slices);
       }
-      checkIgnore(path20) {
-        if (!REGEX_TEST_TRAILING_SLASH.test(path20)) {
-          return this.test(path20);
+      checkIgnore(path21) {
+        if (!REGEX_TEST_TRAILING_SLASH.test(path21)) {
+          return this.test(path21);
         }
-        const slices = path20.split(SLASH).filter(Boolean);
+        const slices = path21.split(SLASH).filter(Boolean);
         slices.pop();
         if (slices.length) {
           const parent = this._t(
@@ -431,18 +431,18 @@ var require_ignore = __commonJS({
             return parent;
           }
         }
-        return this._rules.test(path20, false, MODE_CHECK_IGNORE);
+        return this._rules.test(path21, false, MODE_CHECK_IGNORE);
       }
-      _t(path20, cache, checkUnignored, slices) {
-        if (path20 in cache) {
-          return cache[path20];
+      _t(path21, cache, checkUnignored, slices) {
+        if (path21 in cache) {
+          return cache[path21];
         }
         if (!slices) {
-          slices = path20.split(SLASH).filter(Boolean);
+          slices = path21.split(SLASH).filter(Boolean);
         }
         slices.pop();
         if (!slices.length) {
-          return cache[path20] = this._rules.test(path20, checkUnignored, MODE_IGNORE);
+          return cache[path21] = this._rules.test(path21, checkUnignored, MODE_IGNORE);
         }
         const parent = this._t(
           slices.join(SLASH) + SLASH,
@@ -450,29 +450,29 @@ var require_ignore = __commonJS({
           checkUnignored,
           slices
         );
-        return cache[path20] = parent.ignored ? parent : this._rules.test(path20, checkUnignored, MODE_IGNORE);
+        return cache[path21] = parent.ignored ? parent : this._rules.test(path21, checkUnignored, MODE_IGNORE);
       }
-      ignores(path20) {
-        return this._test(path20, this._ignoreCache, false).ignored;
+      ignores(path21) {
+        return this._test(path21, this._ignoreCache, false).ignored;
       }
       createFilter() {
-        return (path20) => !this.ignores(path20);
+        return (path21) => !this.ignores(path21);
       }
       filter(paths) {
         return makeArray(paths).filter(this.createFilter());
       }
       // @returns {TestResult}
-      test(path20) {
-        return this._test(path20, this._testCache, true);
+      test(path21) {
+        return this._test(path21, this._testCache, true);
       }
     };
     var factory = (options) => new Ignore(options);
-    var isPathValid = (path20) => checkPath(path20 && checkPath.convert(path20), path20, RETURN_FALSE);
+    var isPathValid = (path21) => checkPath(path21 && checkPath.convert(path21), path21, RETURN_FALSE);
     var setupWindows = () => {
       const makePosix = (str) => /^\\\\\?\\/.test(str) || /["<>|\u0000-\u001F]+/u.test(str) ? str : str.replace(/\\/g, "/");
       checkPath.convert = makePosix;
       const REGEX_TEST_WINDOWS_PATH_ABSOLUTE = /^[a-z]:\//i;
-      checkPath.isNotRelative = (path20) => REGEX_TEST_WINDOWS_PATH_ABSOLUTE.test(path20) || isNotRelative(path20);
+      checkPath.isNotRelative = (path21) => REGEX_TEST_WINDOWS_PATH_ABSOLUTE.test(path21) || isNotRelative(path21);
     };
     if (
       // Detect `process` so that it can run in browsers.
@@ -3683,8 +3683,8 @@ var require_utils = __commonJS({
       }
       return ind;
     }
-    function removeDotSegments(path20) {
-      let input = path20;
+    function removeDotSegments(path21) {
+      let input = path21;
       const output = [];
       let nextSlash = -1;
       let len = 0;
@@ -3936,8 +3936,8 @@ var require_schemes = __commonJS({
         wsComponent.secure = void 0;
       }
       if (wsComponent.resourceName) {
-        const [path20, query] = wsComponent.resourceName.split("?");
-        wsComponent.path = path20 && path20 !== "/" ? path20 : void 0;
+        const [path21, query] = wsComponent.resourceName.split("?");
+        wsComponent.path = path21 && path21 !== "/" ? path21 : void 0;
         wsComponent.query = query;
         wsComponent.resourceName = void 0;
       }
@@ -11282,9 +11282,9 @@ Expecting one of '${allowedValues.join("', '")}'`);
    * @param {string} [path]
    * @return {(string|null|Command)}
    */
-  executableDir(path20) {
-    if (path20 === void 0) return this._executableDir;
-    this._executableDir = path20;
+  executableDir(path21) {
+    if (path21 === void 0) return this._executableDir;
+    this._executableDir = path21;
     return this;
   }
   /**
@@ -11541,6 +11541,8 @@ var program = new Command();
 
 // src/application/adopt-project.ts
 import { timingSafeEqual } from "node:crypto";
+import { readFile as readFile11 } from "node:fs/promises";
+import path13 from "node:path";
 
 // src/domain/adoption.ts
 import { createHash } from "node:crypto";
@@ -12647,17 +12649,17 @@ function visit(node, visitor) {
 visit.BREAK = BREAK;
 visit.SKIP = SKIP;
 visit.REMOVE = REMOVE;
-function visit_(key, node, visitor, path20) {
-  const ctrl = callVisitor(key, node, visitor, path20);
+function visit_(key, node, visitor, path21) {
+  const ctrl = callVisitor(key, node, visitor, path21);
   if (isNode(ctrl) || isPair(ctrl)) {
-    replaceNode(key, path20, ctrl);
-    return visit_(key, ctrl, visitor, path20);
+    replaceNode(key, path21, ctrl);
+    return visit_(key, ctrl, visitor, path21);
   }
   if (typeof ctrl !== "symbol") {
     if (isCollection(node)) {
-      path20 = Object.freeze(path20.concat(node));
+      path21 = Object.freeze(path21.concat(node));
       for (let i = 0; i < node.items.length; ++i) {
-        const ci = visit_(i, node.items[i], visitor, path20);
+        const ci = visit_(i, node.items[i], visitor, path21);
         if (typeof ci === "number")
           i = ci - 1;
         else if (ci === BREAK)
@@ -12668,13 +12670,13 @@ function visit_(key, node, visitor, path20) {
         }
       }
     } else if (isPair(node)) {
-      path20 = Object.freeze(path20.concat(node));
-      const ck = visit_("key", node.key, visitor, path20);
+      path21 = Object.freeze(path21.concat(node));
+      const ck = visit_("key", node.key, visitor, path21);
       if (ck === BREAK)
         return BREAK;
       else if (ck === REMOVE)
         node.key = null;
-      const cv = visit_("value", node.value, visitor, path20);
+      const cv = visit_("value", node.value, visitor, path21);
       if (cv === BREAK)
         return BREAK;
       else if (cv === REMOVE)
@@ -12695,17 +12697,17 @@ async function visitAsync(node, visitor) {
 visitAsync.BREAK = BREAK;
 visitAsync.SKIP = SKIP;
 visitAsync.REMOVE = REMOVE;
-async function visitAsync_(key, node, visitor, path20) {
-  const ctrl = await callVisitor(key, node, visitor, path20);
+async function visitAsync_(key, node, visitor, path21) {
+  const ctrl = await callVisitor(key, node, visitor, path21);
   if (isNode(ctrl) || isPair(ctrl)) {
-    replaceNode(key, path20, ctrl);
-    return visitAsync_(key, ctrl, visitor, path20);
+    replaceNode(key, path21, ctrl);
+    return visitAsync_(key, ctrl, visitor, path21);
   }
   if (typeof ctrl !== "symbol") {
     if (isCollection(node)) {
-      path20 = Object.freeze(path20.concat(node));
+      path21 = Object.freeze(path21.concat(node));
       for (let i = 0; i < node.items.length; ++i) {
-        const ci = await visitAsync_(i, node.items[i], visitor, path20);
+        const ci = await visitAsync_(i, node.items[i], visitor, path21);
         if (typeof ci === "number")
           i = ci - 1;
         else if (ci === BREAK)
@@ -12716,13 +12718,13 @@ async function visitAsync_(key, node, visitor, path20) {
         }
       }
     } else if (isPair(node)) {
-      path20 = Object.freeze(path20.concat(node));
-      const ck = await visitAsync_("key", node.key, visitor, path20);
+      path21 = Object.freeze(path21.concat(node));
+      const ck = await visitAsync_("key", node.key, visitor, path21);
       if (ck === BREAK)
         return BREAK;
       else if (ck === REMOVE)
         node.key = null;
-      const cv = await visitAsync_("value", node.value, visitor, path20);
+      const cv = await visitAsync_("value", node.value, visitor, path21);
       if (cv === BREAK)
         return BREAK;
       else if (cv === REMOVE)
@@ -12749,23 +12751,23 @@ function initVisitor(visitor) {
   }
   return visitor;
 }
-function callVisitor(key, node, visitor, path20) {
+function callVisitor(key, node, visitor, path21) {
   if (typeof visitor === "function")
-    return visitor(key, node, path20);
+    return visitor(key, node, path21);
   if (isMap(node))
-    return visitor.Map?.(key, node, path20);
+    return visitor.Map?.(key, node, path21);
   if (isSeq(node))
-    return visitor.Seq?.(key, node, path20);
+    return visitor.Seq?.(key, node, path21);
   if (isPair(node))
-    return visitor.Pair?.(key, node, path20);
+    return visitor.Pair?.(key, node, path21);
   if (isScalar(node))
-    return visitor.Scalar?.(key, node, path20);
+    return visitor.Scalar?.(key, node, path21);
   if (isAlias(node))
-    return visitor.Alias?.(key, node, path20);
+    return visitor.Alias?.(key, node, path21);
   return void 0;
 }
-function replaceNode(key, path20, node) {
-  const parent = path20[path20.length - 1];
+function replaceNode(key, path21, node) {
+  const parent = path21[path21.length - 1];
   if (isCollection(parent)) {
     parent.items[key] = node;
   } else if (isPair(parent)) {
@@ -13294,10 +13296,10 @@ function createNode(value, tagName, ctx) {
 }
 
 // node_modules/yaml/browser/dist/nodes/Collection.js
-function collectionFromPath(schema4, path20, value) {
+function collectionFromPath(schema4, path21, value) {
   let v = value;
-  for (let i = path20.length - 1; i >= 0; --i) {
-    const k = path20[i];
+  for (let i = path21.length - 1; i >= 0; --i) {
+    const k = path21[i];
     if (typeof k === "number" && Number.isInteger(k) && k >= 0) {
       const a = [];
       a[k] = v;
@@ -13316,7 +13318,7 @@ function collectionFromPath(schema4, path20, value) {
     sourceObjects: /* @__PURE__ */ new Map()
   });
 }
-var isEmptyPath = (path20) => path20 == null || typeof path20 === "object" && !!path20[Symbol.iterator]().next().done;
+var isEmptyPath = (path21) => path21 == null || typeof path21 === "object" && !!path21[Symbol.iterator]().next().done;
 var Collection = class extends NodeBase {
   constructor(type, schema4) {
     super(type);
@@ -13346,11 +13348,11 @@ var Collection = class extends NodeBase {
    * be a Pair instance or a `{ key, value }` object, which may not have a key
    * that already exists in the map.
    */
-  addIn(path20, value) {
-    if (isEmptyPath(path20))
+  addIn(path21, value) {
+    if (isEmptyPath(path21))
       this.add(value);
     else {
-      const [key, ...rest] = path20;
+      const [key, ...rest] = path21;
       const node = this.get(key, true);
       if (isCollection(node))
         node.addIn(rest, value);
@@ -13364,8 +13366,8 @@ var Collection = class extends NodeBase {
    * Removes a value from the collection.
    * @returns `true` if the item was found and removed.
    */
-  deleteIn(path20) {
-    const [key, ...rest] = path20;
+  deleteIn(path21) {
+    const [key, ...rest] = path21;
     if (rest.length === 0)
       return this.delete(key);
     const node = this.get(key, true);
@@ -13379,8 +13381,8 @@ var Collection = class extends NodeBase {
    * scalar values from their surrounding node; to disable set `keepScalar` to
    * `true` (collections are always returned intact).
    */
-  getIn(path20, keepScalar) {
-    const [key, ...rest] = path20;
+  getIn(path21, keepScalar) {
+    const [key, ...rest] = path21;
     const node = this.get(key, true);
     if (rest.length === 0)
       return !keepScalar && isScalar(node) ? node.value : node;
@@ -13398,8 +13400,8 @@ var Collection = class extends NodeBase {
   /**
    * Checks if the collection includes a value with the key `key`.
    */
-  hasIn(path20) {
-    const [key, ...rest] = path20;
+  hasIn(path21) {
+    const [key, ...rest] = path21;
     if (rest.length === 0)
       return this.has(key);
     const node = this.get(key, true);
@@ -13409,8 +13411,8 @@ var Collection = class extends NodeBase {
    * Sets a value in this collection. For `!!set`, `value` needs to be a
    * boolean to add/remove the item from the set.
    */
-  setIn(path20, value) {
-    const [key, ...rest] = path20;
+  setIn(path21, value) {
+    const [key, ...rest] = path21;
     if (rest.length === 0) {
       this.set(key, value);
     } else {
@@ -15549,9 +15551,9 @@ var Document = class _Document {
       this.contents.add(value);
   }
   /** Adds a value to the document. */
-  addIn(path20, value) {
+  addIn(path21, value) {
     if (assertCollection(this.contents))
-      this.contents.addIn(path20, value);
+      this.contents.addIn(path21, value);
   }
   /**
    * Create a new `Alias` node, ensuring that the target `node` has the required anchor.
@@ -15626,14 +15628,14 @@ var Document = class _Document {
    * Removes a value from the document.
    * @returns `true` if the item was found and removed.
    */
-  deleteIn(path20) {
-    if (isEmptyPath(path20)) {
+  deleteIn(path21) {
+    if (isEmptyPath(path21)) {
       if (this.contents == null)
         return false;
       this.contents = null;
       return true;
     }
-    return assertCollection(this.contents) ? this.contents.deleteIn(path20) : false;
+    return assertCollection(this.contents) ? this.contents.deleteIn(path21) : false;
   }
   /**
    * Returns item at `key`, or `undefined` if not found. By default unwraps
@@ -15648,10 +15650,10 @@ var Document = class _Document {
    * scalar values from their surrounding node; to disable set `keepScalar` to
    * `true` (collections are always returned intact).
    */
-  getIn(path20, keepScalar) {
-    if (isEmptyPath(path20))
+  getIn(path21, keepScalar) {
+    if (isEmptyPath(path21))
       return !keepScalar && isScalar(this.contents) ? this.contents.value : this.contents;
-    return isCollection(this.contents) ? this.contents.getIn(path20, keepScalar) : void 0;
+    return isCollection(this.contents) ? this.contents.getIn(path21, keepScalar) : void 0;
   }
   /**
    * Checks if the document includes a value with the key `key`.
@@ -15662,10 +15664,10 @@ var Document = class _Document {
   /**
    * Checks if the document includes a value at `path`.
    */
-  hasIn(path20) {
-    if (isEmptyPath(path20))
+  hasIn(path21) {
+    if (isEmptyPath(path21))
       return this.contents !== void 0;
-    return isCollection(this.contents) ? this.contents.hasIn(path20) : false;
+    return isCollection(this.contents) ? this.contents.hasIn(path21) : false;
   }
   /**
    * Sets a value in this document. For `!!set`, `value` needs to be a
@@ -15682,13 +15684,13 @@ var Document = class _Document {
    * Sets a value in this document. For `!!set`, `value` needs to be a
    * boolean to add/remove the item from the set.
    */
-  setIn(path20, value) {
-    if (isEmptyPath(path20)) {
+  setIn(path21, value) {
+    if (isEmptyPath(path21)) {
       this.contents = value;
     } else if (this.contents == null) {
-      this.contents = collectionFromPath(this.schema, Array.from(path20), value);
+      this.contents = collectionFromPath(this.schema, Array.from(path21), value);
     } else if (assertCollection(this.contents)) {
-      this.contents.setIn(path20, value);
+      this.contents.setIn(path21, value);
     }
   }
   /**
@@ -17238,9 +17240,9 @@ function visit2(cst, visitor) {
 visit2.BREAK = BREAK2;
 visit2.SKIP = SKIP2;
 visit2.REMOVE = REMOVE2;
-visit2.itemAtPath = (cst, path20) => {
+visit2.itemAtPath = (cst, path21) => {
   let item = cst;
-  for (const [field, index] of path20) {
+  for (const [field, index] of path21) {
     const tok = item?.[field];
     if (tok && "items" in tok) {
       item = tok.items[index];
@@ -17249,23 +17251,23 @@ visit2.itemAtPath = (cst, path20) => {
   }
   return item;
 };
-visit2.parentCollection = (cst, path20) => {
-  const parent = visit2.itemAtPath(cst, path20.slice(0, -1));
-  const field = path20[path20.length - 1][0];
+visit2.parentCollection = (cst, path21) => {
+  const parent = visit2.itemAtPath(cst, path21.slice(0, -1));
+  const field = path21[path21.length - 1][0];
   const coll = parent?.[field];
   if (coll && "items" in coll)
     return coll;
   throw new Error("Parent collection not found");
 };
-function _visit(path20, item, visitor) {
-  let ctrl = visitor(item, path20);
+function _visit(path21, item, visitor) {
+  let ctrl = visitor(item, path21);
   if (typeof ctrl === "symbol")
     return ctrl;
   for (const field of ["key", "value"]) {
     const token = item[field];
     if (token && "items" in token) {
       for (let i = 0; i < token.items.length; ++i) {
-        const ci = _visit(Object.freeze(path20.concat([[field, i]])), token.items[i], visitor);
+        const ci = _visit(Object.freeze(path21.concat([[field, i]])), token.items[i], visitor);
         if (typeof ci === "number")
           i = ci - 1;
         else if (ci === BREAK2)
@@ -17276,10 +17278,10 @@ function _visit(path20, item, visitor) {
         }
       }
       if (typeof ctrl === "function" && field === "key")
-        ctrl = ctrl(item, path20);
+        ctrl = ctrl(item, path21);
     }
   }
-  return typeof ctrl === "function" ? ctrl(item, path20) : ctrl;
+  return typeof ctrl === "function" ? ctrl(item, path21) : ctrl;
 }
 
 // node_modules/yaml/browser/dist/parse/cst.js
@@ -19946,6 +19948,13 @@ var adoption_input_schema_default = {
     coverage: {
       $ref: "urn:pcp:schema:v1:coverage"
     },
+    external_rewrites: {
+      type: "array",
+      items: {
+        $ref: "#/$defs/externalRewrite"
+      },
+      maxItems: 256
+    },
     scaffold_files: {
       type: "array",
       items: {
@@ -19995,6 +20004,38 @@ var adoption_input_schema_default = {
         body: {
           type: "string",
           minLength: 3
+        }
+      }
+    },
+    externalRewrite: {
+      type: "object",
+      additionalProperties: false,
+      required: ["path", "preimage_digest", "replacements", "evidence"],
+      properties: {
+        path: {
+          $ref: "urn:pcp:schema:v1:common#/$defs/relativePath"
+        },
+        preimage_digest: {
+          $ref: "urn:pcp:schema:v1:common#/$defs/sha256"
+        },
+        replacements: {
+          type: "array",
+          minItems: 1,
+          maxItems: 64,
+          items: {
+            type: "object",
+            additionalProperties: false,
+            required: ["from", "to"],
+            properties: {
+              from: { type: "string", minLength: 1, maxLength: 16384 },
+              to: { type: "string", minLength: 1, maxLength: 16384 }
+            }
+          }
+        },
+        evidence: {
+          type: "array",
+          minItems: 1,
+          items: { type: "string", minLength: 1, maxLength: 2048 }
         }
       }
     },
@@ -22562,8 +22603,8 @@ function objectArray2(value) {
 function stringArray2(value) {
   return Array.isArray(value) ? value.filter((item) => typeof item === "string") : [];
 }
-function error(code2, path20, message) {
-  return { severity: "error", code: code2, path: path20, message };
+function error(code2, path21, message) {
+  return { severity: "error", code: code2, path: path21, message };
 }
 function validateProjectIdentity(records) {
   const diagnostics = [];
@@ -23981,6 +24022,7 @@ async function validateCanonicalLayer(projectRoot, options = {}) {
 
 // src/application/plan-adoption.ts
 var MAXIMUM_ADOPTION_INPUT_BYTES = 4 * 1048576;
+var MAXIMUM_EXTERNAL_REWRITE_BYTES = 4 * 1048576;
 var PLACEHOLDER_PATTERN = /replace this baseline|pending project|grounded project purpose/iu;
 var WINDOWS_RESERVED_NAME = /^(?:con|prn|aux|nul|com[1-9]|lpt[1-9])(?:\..*)?$/iu;
 var WINDOWS_FORBIDDEN_CHARACTER = /[<>:"|?*]/u;
@@ -24349,6 +24391,12 @@ function validateProjectInput(input, inspection) {
       "Foreign-root review belongs only to State C adoption input."
     );
   }
+  if (inspection.state !== "C" && (input.external_rewrites?.length ?? 0) > 0) {
+    throw new AdoptionError(
+      "PCP_STATE_C_EXTERNAL_REWRITE_FORBIDDEN",
+      "External reference rewrites belong only to State C adoption input."
+    );
+  }
   if (inspection.state === "C" && input.foreign_roots === void 0) {
     throw new AdoptionError(
       "PCP_STATE_C_ROOT_REVIEW_REQUIRED",
@@ -24617,6 +24665,148 @@ function stateCRemovalPaths(input) {
     ).map((record) => record.source_path)
   );
 }
+async function metadataOrUndefined2(target) {
+  try {
+    return await lstat6(target);
+  } catch (error2) {
+    if (error2.code === "ENOENT") return void 0;
+    throw error2;
+  }
+}
+async function assertExternalRewritePathHasNoSymlink(root, target) {
+  let current = target;
+  while (current !== root) {
+    const metadata = await metadataOrUndefined2(current);
+    if (metadata?.isSymbolicLink() === true) {
+      throw new AdoptionError(
+        "PCP_ADOPTION_PATH_BOUNDARY",
+        `External rewrite crosses a symbolic-link boundary: ${toPortablePath(path12.relative(root, target))}`
+      );
+    }
+    current = path12.dirname(current);
+  }
+}
+async function prepareExternalRewrites(root, inspection, input, reservedPaths) {
+  const rewrites = input.external_rewrites ?? [];
+  const paths = rewrites.map((rewrite) => rewrite.path);
+  if (new Set(paths).size !== paths.length) {
+    throw new AdoptionError("PCP_ADOPTION_INPUT_INVALID", "External rewrite paths must be unique.");
+  }
+  if (input.coverage === void 0 && rewrites.length > 0) {
+    throw new AdoptionError(
+      "PCP_STATE_C_COVERAGE_REQUIRED",
+      "External rewrites require the completed State C coverage matrix."
+    );
+  }
+  const translatedRoots = (input.coverage?.foreign_roots ?? []).filter((review) => review.disposition === "translate").map((review) => review.root).filter((reviewRoot) => reviewRoot !== ".");
+  const inventoriedFiles = new Set(inspection.inventory.files.map((file) => file.path));
+  const prepared = [];
+  for (const rewrite of rewrites) {
+    assertPortableMutationPath(rewrite.path);
+    if (rewrite.path === ".pcp" || rewrite.path.startsWith(".pcp/") || translatedRoots.some((reviewRoot) => isInsideReviewedRoot(rewrite.path, reviewRoot)) || reservedPaths.has(rewrite.path)) {
+      throw new AdoptionError(
+        "PCP_ADOPTION_PATH_BOUNDARY",
+        `External rewrite must target an existing project-owned file outside canonical and translated paths: ${rewrite.path}`
+      );
+    }
+    const staticExclusion = mutationPathExclusion(rewrite.path);
+    if (staticExclusion !== void 0) {
+      throw new AdoptionError(
+        "PCP_ADOPTION_PATH_BOUNDARY",
+        `External rewrite enters a ${staticExclusion} path: ${rewrite.path}`
+      );
+    }
+    const nestedBoundary = inspection.inventory.nestedRepositories.find(
+      (nested) => rewrite.path.startsWith(`${nested}/`)
+    );
+    if (nestedBoundary === void 0 && !inventoriedFiles.has(rewrite.path)) {
+      throw new AdoptionError(
+        "PCP_ADOPTION_EVIDENCE_MISSING",
+        `External rewrite source is not an inventoried file or a reviewed nested-repository file: ${rewrite.path}`
+      );
+    }
+    const blockedExclusion = inspection.inventory.exclusions.find(
+      (exclusion) => exclusion.reason !== "nested-repository" && (rewrite.path === exclusion.path || rewrite.path.startsWith(`${exclusion.path}/`))
+    );
+    if (blockedExclusion !== void 0) {
+      throw new AdoptionError(
+        "PCP_ADOPTION_PATH_BOUNDARY",
+        `External rewrite enters an excluded ${blockedExclusion.reason} boundary: ${rewrite.path}`
+      );
+    }
+    if (nestedBoundary === void 0 && await isMutationPathIgnored(root, rewrite.path)) {
+      throw new AdoptionError(
+        "PCP_ADOPTION_PATH_BOUNDARY",
+        `External rewrite target is ignored by candidate policy: ${rewrite.path}`
+      );
+    }
+    const target = path12.resolve(root, ...rewrite.path.split("/"));
+    if (!isInside4(root, target) || target === root) {
+      throw new AdoptionError(
+        "PCP_ADOPTION_PATH_UNSAFE",
+        `Unsafe external rewrite path: ${rewrite.path}`
+      );
+    }
+    await assertExternalRewritePathHasNoSymlink(root, target);
+    const metadata = await metadataOrUndefined2(target);
+    if (metadata === void 0) {
+      throw new AdoptionError(
+        "PCP_ADOPTION_EVIDENCE_MISSING",
+        `External rewrite source does not exist: ${rewrite.path}`
+      );
+    }
+    if (!metadata.isFile() || metadata.isSymbolicLink()) {
+      throw new AdoptionError(
+        "PCP_ADOPTION_PREIMAGE_UNSUPPORTED",
+        `External rewrite source must be a regular file: ${rewrite.path}`
+      );
+    }
+    if (metadata.size > MAXIMUM_EXTERNAL_REWRITE_BYTES) {
+      throw new AdoptionError(
+        "PCP_ADOPTION_INPUT_TOO_LARGE",
+        `External rewrite source exceeds 4 MiB: ${rewrite.path}`
+      );
+    }
+    const bytes = await readFile10(target);
+    if (sha256(bytes) !== rewrite.preimage_digest) {
+      throw new AdoptionError(
+        "PCP_SOURCE_CHANGED",
+        `External rewrite preimage does not match the reviewed file: ${rewrite.path}`
+      );
+    }
+    let content;
+    try {
+      content = new TextDecoder("utf-8", { fatal: true }).decode(bytes);
+    } catch {
+      throw new AdoptionError(
+        "PCP_ADOPTION_PREIMAGE_UNSUPPORTED",
+        `External rewrite source is not valid UTF-8 text: ${rewrite.path}`
+      );
+    }
+    const fromValues = rewrite.replacements.map((replacement) => replacement.from);
+    if (new Set(fromValues).size !== fromValues.length) {
+      throw new AdoptionError(
+        "PCP_ADOPTION_INPUT_INVALID",
+        `External rewrite contains duplicate source text: ${rewrite.path}`
+      );
+    }
+    for (const replacement of rewrite.replacements) {
+      if (replacement.from === replacement.to || !content.includes(replacement.from)) {
+        throw new AdoptionError(
+          "PCP_ADOPTION_INPUT_INVALID",
+          `External rewrite must replace present text with different text: ${rewrite.path}`
+        );
+      }
+      content = content.split(replacement.from).join(replacement.to);
+    }
+    prepared.push({
+      path: rewrite.path,
+      preimage_digest: rewrite.preimage_digest,
+      content: Buffer.from(content, "utf8")
+    });
+  }
+  return prepared.sort((left, right) => comparePortablePaths(left.path, right.path));
+}
 function stateCRelocations(input) {
   if (input.coverage === void 0) return [];
   return input.coverage.records.map((record, recordIndex) => ({ record, recordIndex })).filter(({ record }) => record.disposition === "relocated").map(({ record, recordIndex }) => ({
@@ -24674,7 +24864,7 @@ function stateCDirectoriesToRemove(inspection, input, consumedFiles, futurePaths
     )
   ).sort((left, right) => pathDepth(right) - pathDepth(left) || comparePortablePaths(left, right));
 }
-function buildStateCOperations(content, inspection, removalPaths, relocations, directoryRemovals) {
+function buildStateCOperations(content, externalRewrites, inspection, removalPaths, relocations, directoryRemovals) {
   const filesByPath = new Map(inspection.inventory.files.map((file) => [file.path, file]));
   const existingDirectories = new Set(inspection.inventory.directories);
   const contentPaths = [...content.keys()];
@@ -24716,6 +24906,12 @@ function buildStateCOperations(content, inspection, removalPaths, relocations, d
       preimage_digest: existing.sha256
     };
   });
+  const externalRewriteOperations = externalRewrites.map((rewrite) => ({
+    action: "replace",
+    path: rewrite.path,
+    content_digest: sha256(rewrite.content),
+    preimage_digest: rewrite.preimage_digest
+  }));
   const earlyRemovalSet = new Set(preWriteRemovalPaths);
   const moveOperations = relocations.map((relocation) => ({
     action: "move",
@@ -24745,6 +24941,7 @@ function buildStateCOperations(content, inspection, removalPaths, relocations, d
     ...preWriteRemovals,
     ...directoryOperations,
     ...contentOperations,
+    ...externalRewriteOperations,
     ...moveOperations,
     ...postWriteRemovals,
     ...directoryRemovalOperations
@@ -24846,6 +25043,17 @@ async function buildStateCTranslationPlan(root, inspection, input) {
   const removalPaths = stateCRemovalPaths(input);
   const relocations = stateCRelocations(input);
   validateStateCRelocations(input, relocations);
+  const externalRewrites = await prepareExternalRewrites(
+    root,
+    inspection,
+    input,
+    /* @__PURE__ */ new Set([
+      ...content.keys(),
+      ...removalPaths,
+      ...relocations.map((relocation) => relocation.source_path),
+      ...relocations.map((relocation) => relocation.target_path)
+    ])
+  );
   const relocationTargets = new Map(
     relocations.map((relocation) => [relocation.target_path, Buffer.alloc(0)])
   );
@@ -24870,6 +25078,7 @@ async function buildStateCTranslationPlan(root, inspection, input) {
     inventory: inspection.inventory,
     operations: buildStateCOperations(
       content,
+      externalRewrites,
       inspection,
       removalPaths,
       relocations,
@@ -24881,6 +25090,7 @@ async function buildStateCTranslationPlan(root, inspection, input) {
       "clean-genesis",
       "coverage",
       "desired-hashes",
+      "external-reference-rewrites",
       "foreign-removals",
       "foreign-relocations",
       "foreign-directory-cleanup",
@@ -24909,7 +25119,15 @@ async function buildStateCTranslationPlan(root, inspection, input) {
     plan,
     mutated: false
   };
-  return { inspection, input, preview, content_by_path: content };
+  return {
+    inspection,
+    input,
+    preview,
+    content_by_path: new Map([
+      ...content,
+      ...externalRewrites.map((rewrite) => [rewrite.path, rewrite.content])
+    ])
+  };
 }
 async function previewScopedStateCCoverage(root, inspection, input) {
   validateDocumentSet(input, inspection);
@@ -25047,6 +25265,7 @@ async function verifyAdoptionSourceStability(root, original, plan, contentByPath
   const expectedFiles = new Map(
     original.files.map((file) => [file.path, { ...file }])
   );
+  const excludedReplacements = /* @__PURE__ */ new Map();
   const hiddenByLocalPersistence = (candidatePath) => persistence === "local" && (candidatePath === ".pcp" || candidatePath.startsWith(".pcp/"));
   for (const operation of plan.operations) {
     if (hiddenByLocalPersistence(operation.path)) continue;
@@ -25054,8 +25273,7 @@ async function verifyAdoptionSourceStability(root, original, plan, contentByPath
       case "mkdir":
         expectedDirectories.add(operation.path);
         break;
-      case "write":
-      case "replace": {
+      case "write": {
         const content = contentByPath.get(operation.path);
         if (content === void 0 || operation.content_digest === void 0) {
           throw new AdoptionError(
@@ -25066,6 +25284,36 @@ async function verifyAdoptionSourceStability(root, original, plan, contentByPath
         }
         expectedFiles.set(operation.path, {
           path: operation.path,
+          size: content.length,
+          sha256: operation.content_digest
+        });
+        break;
+      }
+      case "replace": {
+        const content = contentByPath.get(operation.path);
+        if (content === void 0 || operation.content_digest === void 0) {
+          throw new AdoptionError(
+            "PCP_ADOPTION_PLAN_CONTENT_MISMATCH",
+            `The approved operation is missing expected content: ${operation.path}`,
+            true
+          );
+        }
+        if (expectedFiles.has(operation.path)) {
+          expectedFiles.set(operation.path, {
+            path: operation.path,
+            size: content.length,
+            sha256: operation.content_digest
+          });
+          break;
+        }
+        if (!original.nestedRepositories.some((nested) => operation.path.startsWith(`${nested}/`))) {
+          throw new AdoptionError(
+            "PCP_ADOPTION_PLAN_UNSAFE",
+            `Replacement target is outside the inventoried source and reviewed nested repositories: ${operation.path}`,
+            true
+          );
+        }
+        excludedReplacements.set(operation.path, {
           size: content.length,
           sha256: operation.content_digest
         });
@@ -25114,6 +25362,16 @@ async function verifyAdoptionSourceStability(root, original, plan, contentByPath
       "Candidate-owned source changed while the adoption transaction was running.",
       true
     );
+  }
+  for (const [portablePath2, fingerprint] of excludedReplacements) {
+    const bytes = await readFile11(path13.join(root, ...portablePath2.split("/")));
+    if (bytes.length !== fingerprint.size || sha256(bytes) !== fingerprint.sha256) {
+      throw new AdoptionError(
+        "PCP_SOURCE_CHANGED",
+        `Reviewed nested-repository rewrite changed during adoption: ${portablePath2}`,
+        true
+      );
+    }
   }
 }
 async function adoptProject(candidate = ".", options = {}) {
@@ -25215,7 +25473,7 @@ import {
   lstat as lstat8,
   mkdtemp as mkdtemp4,
   open as open4,
-  readFile as readFile13,
+  readFile as readFile14,
   realpath as realpath3,
   rename as rename3,
   rm as rm4,
@@ -25224,7 +25482,7 @@ import {
   utimes as utimes2
 } from "node:fs/promises";
 import { tmpdir as tmpdir5 } from "node:os";
-import path15 from "node:path";
+import path16 from "node:path";
 
 // src/application/record-event.ts
 import { createHash as createHash9, randomUUID as randomUUID2 } from "node:crypto";
@@ -25232,7 +25490,7 @@ import {
   lstat as lstat7,
   mkdtemp as mkdtemp3,
   open as open3,
-  readFile as readFile12,
+  readFile as readFile13,
   readdir as readdir4,
   realpath as realpath2,
   rename as rename2,
@@ -25241,13 +25499,13 @@ import {
   writeFile as writeFile4
 } from "node:fs/promises";
 import { tmpdir as tmpdir4 } from "node:os";
-import path14 from "node:path";
+import path15 from "node:path";
 
 // src/infrastructure/continuity-lock.ts
 import { createHash as createHash8, randomUUID } from "node:crypto";
-import { mkdir as mkdir3, open as open2, readFile as readFile11, stat as stat3, unlink as unlink2 } from "node:fs/promises";
+import { mkdir as mkdir3, open as open2, readFile as readFile12, stat as stat3, unlink as unlink2 } from "node:fs/promises";
 import { tmpdir as tmpdir3 } from "node:os";
-import path13 from "node:path";
+import path14 from "node:path";
 import { setTimeout as delay } from "node:timers/promises";
 var LOCK_WAIT_MS = 3e4;
 var STALE_LOCK_MS = 5 * 6e4;
@@ -25258,7 +25516,7 @@ var ContinuityLockError = class extends Error {
   }
 };
 function lockDigest(root) {
-  const resolved = path13.resolve(root);
+  const resolved = path14.resolve(root);
   const portableRoot = process.platform === "win32" ? resolved.toLowerCase() : resolved;
   return createHash8("sha256").update(portableRoot).digest("hex");
 }
@@ -25266,7 +25524,7 @@ async function removeStaleLock(lockPath) {
   try {
     const metadata = await stat3(lockPath);
     if (Date.now() - metadata.mtimeMs <= STALE_LOCK_MS) return false;
-    const contents = await readFile11(lockPath, "utf8");
+    const contents = await readFile12(lockPath, "utf8");
     let ownerPid;
     try {
       const value = JSON.parse(contents);
@@ -25292,9 +25550,9 @@ async function removeStaleLock(lockPath) {
   }
 }
 async function withContinuityLock(projectRoot, operation) {
-  const lockRoot = path13.join(tmpdir3(), "pcp-continuity-locks");
+  const lockRoot = path14.join(tmpdir3(), "pcp-continuity-locks");
   await mkdir3(lockRoot, { recursive: true });
-  const lockPath = path13.join(lockRoot, `${lockDigest(projectRoot)}.lock`);
+  const lockPath = path14.join(lockRoot, `${lockDigest(projectRoot)}.lock`);
   const token = randomUUID();
   const lockContents = `${JSON.stringify({ token, pid: process.pid, created_at: (/* @__PURE__ */ new Date()).toISOString() })}
 `;
@@ -25326,7 +25584,7 @@ async function withContinuityLock(projectRoot, operation) {
     return await operation();
   } finally {
     await handle.close();
-    const current = await readFile11(lockPath, "utf8").catch((error2) => {
+    const current = await readFile12(lockPath, "utf8").catch((error2) => {
       if (error2.code === "ENOENT") return void 0;
       throw error2;
     });
@@ -25347,14 +25605,14 @@ var ACTIVE_EVENT_LIMIT = 64;
 var ARCHIVE_BATCH_SIZE = 32;
 var MAXIMUM_EVENT_INPUT_BYTES = 64 * 1024;
 function isInside5(root, candidate) {
-  const relative = path14.relative(root, candidate);
-  return relative === "" || !relative.startsWith(`..${path14.sep}`) && relative !== ".." && !path14.isAbsolute(relative);
+  const relative = path15.relative(root, candidate);
+  return relative === "" || !relative.startsWith(`..${path15.sep}`) && relative !== ".." && !path15.isAbsolute(relative);
 }
 function digest(value) {
   return createHash9("sha256").update(value).digest("hex");
 }
 function rootDigest(root) {
-  const resolved = path14.resolve(root);
+  const resolved = path15.resolve(root);
   return digest(process.platform === "win32" ? resolved.toLowerCase() : resolved);
 }
 function validationSummary(report) {
@@ -25373,7 +25631,7 @@ function inputFailure(message) {
   return new RecordingError("PCP_RECORD_INPUT_INVALID", message);
 }
 async function loadEventInput(inputPath, projectRoot) {
-  const resolvedInput = path14.resolve(inputPath);
+  const resolvedInput = path15.resolve(inputPath);
   if (isInside5(projectRoot, resolvedInput)) {
     throw new RecordingError(
       "PCP_RECORD_INPUT_INSIDE_PROJECT",
@@ -25413,7 +25671,7 @@ async function loadEventInput(inputPath, projectRoot) {
       `Cannot resolve event input safely: ${error2 instanceof Error ? error2.message : String(error2)}`
     );
   }
-  const contents = await readFile12(resolvedInput, "utf8").catch((error2) => {
+  const contents = await readFile13(resolvedInput, "utf8").catch((error2) => {
     throw new RecordingError(
       "PCP_RECORD_INPUT_UNREADABLE",
       `Cannot read event input: ${error2 instanceof Error ? error2.message : String(error2)}`
@@ -25449,12 +25707,12 @@ async function listYamlNames(directory) {
   return entries.filter((entry) => entry.isFile() && entry.name.endsWith(".yaml")).map((entry) => entry.name).sort((left, right) => left.localeCompare(right));
 }
 async function loadActiveEvents(root) {
-  const directory = path14.join(root, ...ACTIVE_EVENT_DIRECTORY.split("/"));
+  const directory = path15.join(root, ...ACTIVE_EVENT_DIRECTORY.split("/"));
   const names = await listYamlNames(directory);
   const events = [];
   for (const name of names) {
-    const absolutePath = path14.join(directory, name);
-    const contents = await readFile12(absolutePath);
+    const absolutePath = path15.join(directory, name);
+    const contents = await readFile13(absolutePath);
     events.push({
       event_id: name.slice(0, -".yaml".length),
       absolute_path: absolutePath,
@@ -25466,23 +25724,23 @@ async function loadActiveEvents(root) {
   return events;
 }
 async function loadArchiveIds(root) {
-  const directory = path14.join(root, ...ARCHIVE_EVENT_DIRECTORY.split("/"));
+  const directory = path15.join(root, ...ARCHIVE_EVENT_DIRECTORY.split("/"));
   return (await listYamlNames(directory)).map((name) => name.slice(0, -".yaml".length));
 }
 async function loadSemanticRecords(root) {
-  const actorRoot = path14.join(root, ...ACTOR_DIRECTORY.split("/"));
+  const actorRoot = path15.join(root, ...ACTOR_DIRECTORY.split("/"));
   const actorNames = await listYamlNames(actorRoot);
   const actors = await Promise.all(
     actorNames.map(async (name) => ({
       path: `continuity/actors/${name}`,
-      value: parse(await readFile12(path14.join(actorRoot, name), "utf8"))
+      value: parse(await readFile13(path15.join(actorRoot, name), "utf8"))
     }))
   );
   return {
     actors,
     workstreams: {
       path: "state/workstreams.yaml",
-      value: parse(await readFile12(path14.join(root, ...WORKSTREAM_PATH.split("/")), "utf8"))
+      value: parse(await readFile13(path15.join(root, ...WORKSTREAM_PATH.split("/")), "utf8"))
     }
   };
 }
@@ -25578,10 +25836,10 @@ async function executeEventTransaction(root, event, activeEvents, archiveIds, op
       `Cannot rotate ${archiveCollision.event_id} because that identity already exists in the archive.`
     );
   }
-  const eventRoot = path14.join(root, ...ACTIVE_EVENT_DIRECTORY.split("/"));
-  const archiveRoot = path14.join(root, ...ARCHIVE_EVENT_DIRECTORY.split("/"));
-  const eventPath = path14.join(eventRoot, `${event.event_id}.yaml`);
-  const temporaryEventPath = path14.join(eventRoot, `.${event.event_id}.${randomUUID2()}.tmp`);
+  const eventRoot = path15.join(root, ...ACTIVE_EVENT_DIRECTORY.split("/"));
+  const archiveRoot = path15.join(root, ...ARCHIVE_EVENT_DIRECTORY.split("/"));
+  const eventPath = path15.join(eventRoot, `${event.event_id}.yaml`);
+  const temporaryEventPath = path15.join(eventRoot, `.${event.event_id}.${randomUUID2()}.tmp`);
   const moved = [];
   let eventInstalled = false;
   let operation = 0;
@@ -25589,15 +25847,15 @@ async function executeEventTransaction(root, event, activeEvents, archiveIds, op
   let walPath;
   try {
     recoveryRoot = await mkdtemp3(
-      path14.join(tmpdir4(), `pcp-event-transaction-${rootDigest(root).slice(0, 12)}-`)
+      path15.join(tmpdir4(), `pcp-event-transaction-${rootDigest(root).slice(0, 12)}-`)
     );
-    walPath = path14.join(recoveryRoot, "operations.jsonl");
+    walPath = path15.join(recoveryRoot, "operations.jsonl");
     await writeFile4(walPath, "", { flag: "wx" });
     await writeDurableFile(temporaryEventPath, stringify3(event));
     for (const source of rotation) {
       operation += 1;
       await appendWal2(walPath, operation, "archive", source.event_id, "prepared");
-      await rename2(source.absolute_path, path14.join(archiveRoot, `${source.event_id}.yaml`));
+      await rename2(source.absolute_path, path15.join(archiveRoot, `${source.event_id}.yaml`));
       moved.push(source);
       await appendWal2(walPath, operation, "archive", source.event_id, "applied");
       injectedFailure(operation, options);
@@ -25664,7 +25922,7 @@ async function executeEventTransaction(root, event, activeEvents, archiveIds, op
     });
     for (const source of [...moved].reverse()) {
       try {
-        await rename2(path14.join(archiveRoot, `${source.event_id}.yaml`), source.absolute_path);
+        await rename2(path15.join(archiveRoot, `${source.event_id}.yaml`), source.absolute_path);
         if (walPath !== void 0) {
           await appendWal2(
             walPath,
@@ -25748,7 +26006,7 @@ async function recordEventUnderLock(root, input, options) {
   return executeEventTransaction(root, event, activeEvents, archiveIds, options);
 }
 async function recordEvent(projectRoot, inputPath, options = {}) {
-  const root = path14.resolve(projectRoot);
+  const root = path15.resolve(projectRoot);
   try {
     const input = await loadEventInput(inputPath, root);
     return await withContinuityLock(root, () => recordEventUnderLock(root, input, options));
@@ -25962,12 +26220,12 @@ function sha2562(value) {
   return createHash10("sha256").update(value).digest("hex");
 }
 function rootDigest2(root) {
-  const resolved = path15.resolve(root);
+  const resolved = path16.resolve(root);
   return sha2562(process.platform === "win32" ? resolved.toLowerCase() : resolved);
 }
 function isInside6(root, candidate) {
-  const relative = path15.relative(root, candidate);
-  return relative === "" || !relative.startsWith(`..${path15.sep}`) && relative !== ".." && !path15.isAbsolute(relative);
+  const relative = path16.relative(root, candidate);
+  return relative === "" || !relative.startsWith(`..${path16.sep}`) && relative !== ".." && !path16.isAbsolute(relative);
 }
 function layerSummary(report) {
   return report.diagnostics.slice(0, 4).map((diagnostic2) => `${diagnostic2.path}: ${diagnostic2.message}`).join("; ");
@@ -25985,7 +26243,7 @@ function inputFailure2(message) {
   return new WorkstreamError("PCP_WORKSTREAM_INPUT_INVALID", message);
 }
 async function loadWorkstreamInput(inputPath, projectRoot, expectedOperation) {
-  const resolvedInput = path15.resolve(inputPath);
+  const resolvedInput = path16.resolve(inputPath);
   if (isInside6(projectRoot, resolvedInput)) {
     throw new WorkstreamError(
       "PCP_WORKSTREAM_INPUT_INSIDE_PROJECT",
@@ -26025,7 +26283,7 @@ async function loadWorkstreamInput(inputPath, projectRoot, expectedOperation) {
       `Cannot resolve workstream input safely: ${error2 instanceof Error ? error2.message : String(error2)}`
     );
   }
-  const contents = await readFile13(resolvedInput, "utf8").catch((error2) => {
+  const contents = await readFile14(resolvedInput, "utf8").catch((error2) => {
     throw new WorkstreamError(
       "PCP_WORKSTREAM_INPUT_UNREADABLE",
       `Cannot read workstream input: ${error2 instanceof Error ? error2.message : String(error2)}`
@@ -26106,11 +26364,11 @@ function parseSource(contents, relativePath) {
   return value;
 }
 async function desiredStatusView(root, workstreamContents, registry) {
-  const layerRoot = path15.join(root, ".pcp");
+  const layerRoot = path16.join(root, ".pcp");
   const contents = await Promise.all(
     STATUS_SOURCES.map(async (relativePath) => ({
       path: relativePath,
-      contents: relativePath === "state/workstreams.yaml" ? workstreamContents : await readFile13(path15.join(layerRoot, ...relativePath.split("/")), "utf8")
+      contents: relativePath === "state/workstreams.yaml" ? workstreamContents : await readFile14(path16.join(layerRoot, ...relativePath.split("/")), "utf8")
     }))
   );
   const values = /* @__PURE__ */ new Map();
@@ -26124,7 +26382,7 @@ async function desiredStatusView(root, workstreamContents, registry) {
   return Buffer.from(renderCanonicalStatusView(values, sourceDigest), "utf8");
 }
 async function loadRegistry(root) {
-  const absolutePath = path15.join(root, ...WORKSTREAM_PATH2.split("/"));
+  const absolutePath = path16.join(root, ...WORKSTREAM_PATH2.split("/"));
   const metadata = await lstat8(absolutePath).catch((error2) => {
     throw new WorkstreamError(
       "PCP_WORKSTREAM_REGISTRY_UNREADABLE",
@@ -26137,7 +26395,7 @@ async function loadRegistry(root) {
       "The canonical workstream registry must be a regular non-symlink file."
     );
   }
-  const bytes = await readFile13(absolutePath);
+  const bytes = await readFile14(absolutePath);
   return {
     absolute_path: absolutePath,
     bytes,
@@ -26196,9 +26454,9 @@ async function replaceWithTemporary(target, temporary) {
   }
 }
 async function installBytes(target, bytes) {
-  const temporary = path15.join(
-    path15.dirname(target),
-    `.${path15.basename(target)}.${randomUUID3()}.tmp`
+  const temporary = path16.join(
+    path16.dirname(target),
+    `.${path16.basename(target)}.${randomUUID3()}.tmp`
   );
   try {
     await writeDurableExclusive(temporary, bytes);
@@ -26240,11 +26498,11 @@ function injectedFailure2(operation, options) {
 async function executeMutation(root, loaded, input, nextRegistry, workstreamId, options) {
   const nextBytes = Buffer.from(stringify3(nextRegistry), "utf8");
   const nextDigest = sha2562(nextBytes);
-  const statusViewPath = path15.join(root, ...STATUS_VIEW_PATH.split("/"));
+  const statusViewPath = path16.join(root, ...STATUS_VIEW_PATH.split("/"));
   const [metadata, viewMetadata, viewBytes, nextViewBytes] = await Promise.all([
     stat4(loaded.absolute_path),
     stat4(statusViewPath),
-    readFile13(statusViewPath),
+    readFile14(statusViewPath),
     desiredStatusView(root, nextBytes.toString("utf8"), nextRegistry)
   ]);
   const registryMetadata = {
@@ -26262,12 +26520,12 @@ async function executeMutation(root, loaded, input, nextRegistry, workstreamId, 
   let statusViewInstalled = false;
   try {
     recoveryRoot = await mkdtemp4(
-      path15.join(tmpdir5(), `pcp-workstream-transaction-${rootDigest2(root).slice(0, 12)}-`)
+      path16.join(tmpdir5(), `pcp-workstream-transaction-${rootDigest2(root).slice(0, 12)}-`)
     );
-    await writeDurableExclusive(path15.join(recoveryRoot, "workstreams.preimage"), loaded.bytes);
-    await writeDurableExclusive(path15.join(recoveryRoot, "status-view.preimage"), viewBytes);
+    await writeDurableExclusive(path16.join(recoveryRoot, "workstreams.preimage"), loaded.bytes);
+    await writeDurableExclusive(path16.join(recoveryRoot, "status-view.preimage"), viewBytes);
     await writeDurableExclusive(
-      path15.join(recoveryRoot, "transaction.json"),
+      path16.join(recoveryRoot, "transaction.json"),
       Buffer.from(
         `${JSON.stringify({
           schema_version: 1,
@@ -26337,7 +26595,7 @@ async function executeMutation(root, loaded, input, nextRegistry, workstreamId, 
       }
     }
     try {
-      const restored = await readFile13(loaded.absolute_path);
+      const restored = await readFile14(loaded.absolute_path);
       if (!restored.equals(loaded.bytes)) {
         rollbackFailures.push("workstream registry bytes differ from the preimage");
       }
@@ -26347,7 +26605,7 @@ async function executeMutation(root, loaded, input, nextRegistry, workstreamId, 
       );
     }
     try {
-      const restoredView = await readFile13(statusViewPath);
+      const restoredView = await readFile14(statusViewPath);
       if (!restoredView.equals(viewBytes)) {
         rollbackFailures.push("generated status view bytes differ from the preimage");
       }
@@ -26404,7 +26662,7 @@ async function underLock(root, operation) {
   }
 }
 async function validateWorkstreamRegistry(projectRoot, workstreamId) {
-  const root = path15.resolve(projectRoot);
+  const root = path16.resolve(projectRoot);
   return underLock(root, async () => {
     await assertValidOperationalLayer2(root);
     const loaded = await loadRegistry(root);
@@ -26431,7 +26689,7 @@ async function validateWorkstreamRegistry(projectRoot, workstreamId) {
   });
 }
 async function mutateWorkstream(projectRoot, operation, inputPath, options = {}) {
-  const root = path15.resolve(projectRoot);
+  const root = path16.resolve(projectRoot);
   const input = await loadWorkstreamInput(inputPath, root, operation);
   return underLock(root, async () => {
     await assertValidOperationalLayer2(root);
@@ -26463,8 +26721,8 @@ async function mutateWorkstream(projectRoot, operation, inputPath, options = {})
 }
 
 // src/application/register-actor.ts
-import { mkdir as mkdir4, open as open5, readFile as readFile14, readdir as readdir5, rm as rm5, unlink as unlink5 } from "node:fs/promises";
-import path16 from "node:path";
+import { mkdir as mkdir4, open as open5, readFile as readFile15, readdir as readdir5, rm as rm5, unlink as unlink5 } from "node:fs/promises";
+import path17 from "node:path";
 
 // src/domain/registration.ts
 var ACTOR_TYPES = ["agent", "human"];
@@ -26573,7 +26831,7 @@ function actorIdentityMatches(profile, identity) {
 var ACTOR_DIRECTORY2 = ".pcp/continuity/actors";
 var CACHE_DIRECTORY = ".pcp/runtime/actors";
 function portablePath(value) {
-  return value.split(path16.sep).join("/");
+  return value.split(path17.sep).join("/");
 }
 function profileRelativePath(actorId) {
   return `${ACTOR_DIRECTORY2}/${actorId}.yaml`;
@@ -26595,7 +26853,7 @@ async function assertValidCanonicalLayer(projectRoot) {
 }
 async function readOptionalText(file) {
   try {
-    return await readFile14(file, "utf8");
+    return await readFile15(file, "utf8");
   } catch (error2) {
     if (error2.code === "ENOENT") return void 0;
     throw error2;
@@ -26612,13 +26870,13 @@ function actorProfile(value, relativePath) {
   return value;
 }
 async function loadActorProfiles(projectRoot) {
-  const actorRoot = path16.join(projectRoot, ...ACTOR_DIRECTORY2.split("/"));
+  const actorRoot = path17.join(projectRoot, ...ACTOR_DIRECTORY2.split("/"));
   const entries = await readdir5(actorRoot, { withFileTypes: true });
   const profiles = [];
   for (const entry of entries.sort((left, right) => left.name.localeCompare(right.name))) {
     if (!entry.isFile() || !entry.name.endsWith(".yaml")) continue;
     const relativePath = `${ACTOR_DIRECTORY2}/${entry.name}`;
-    const contents = await readFile14(path16.join(actorRoot, entry.name), "utf8");
+    const contents = await readFile15(path17.join(actorRoot, entry.name), "utf8");
     let value;
     try {
       value = parse(contents);
@@ -26746,7 +27004,7 @@ async function withActorRegistrationLock(root, operation) {
   }
 }
 async function registerActor(projectRoot, input) {
-  const root = path16.resolve(projectRoot);
+  const root = path17.resolve(projectRoot);
   const identity = normalizeActorIdentity(input);
   const executionId = createExecutionId();
   return withActorRegistrationLock(root, async () => {
@@ -26757,7 +27015,7 @@ async function registerActor(projectRoot, input) {
       await assertValidCanonicalLayer(root);
       const profiles = await loadActorProfiles(root);
       const profilesById = new Map(profiles.map((profile) => [profile.actor_id, profile]));
-      const cachePath = path16.join(root, ...cacheRelativePath(identity).split("/"));
+      const cachePath = path17.join(root, ...cacheRelativePath(identity).split("/"));
       const cachedContents = await readOptionalText(cachePath);
       let selected;
       if (cachedContents !== void 0) {
@@ -26823,7 +27081,7 @@ async function registerActor(projectRoot, input) {
             "The generated actor profile did not satisfy the release schema."
           );
         }
-        const newProfilePath = path16.join(
+        const newProfilePath = path17.join(
           root,
           ...profileRelativePath(selected.actor_id).split("/")
         );
@@ -26835,7 +27093,7 @@ async function registerActor(projectRoot, input) {
       }
       let cacheCreated = false;
       if (cachedContents === void 0) {
-        const cacheDirectory = path16.dirname(cachePath);
+        const cacheDirectory = path17.dirname(cachePath);
         createdRuntimeRoot = await mkdir4(cacheDirectory, { recursive: true });
         await createExclusiveFile(
           cachePath,
@@ -26890,8 +27148,8 @@ async function registerActor(projectRoot, input) {
 
 // src/application/repair-project.ts
 import { timingSafeEqual as timingSafeEqual2 } from "node:crypto";
-import { lstat as lstat9, readFile as readFile15 } from "node:fs/promises";
-import path17 from "node:path";
+import { lstat as lstat9, readFile as readFile16 } from "node:fs/promises";
+import path18 from "node:path";
 
 // src/domain/repair.ts
 var RepairError = class extends Error {
@@ -26913,7 +27171,7 @@ function digestMatches2(expected, supplied) {
   if (!/^[a-f0-9]{64}$/u.test(supplied)) return false;
   return timingSafeEqual2(Buffer.from(expected, "hex"), Buffer.from(supplied, "hex"));
 }
-async function metadataOrUndefined2(target) {
+async function metadataOrUndefined3(target) {
   try {
     return await lstat9(target);
   } catch (error2) {
@@ -26922,15 +27180,15 @@ async function metadataOrUndefined2(target) {
   }
 }
 function portableParent(portablePath2) {
-  const parent = path17.posix.dirname(portablePath2);
+  const parent = path18.posix.dirname(portablePath2);
   return parent === "." ? void 0 : parent;
 }
 async function missingParents(root, portablePath2) {
   const missing = [];
   let parent = portableParent(portablePath2);
   while (parent !== void 0) {
-    const absolute = path17.join(root, ...parent.split("/"));
-    const metadata = await metadataOrUndefined2(absolute);
+    const absolute = path18.join(root, ...parent.split("/"));
+    const metadata = await metadataOrUndefined3(absolute);
     if (metadata === void 0) {
       missing.push(parent);
     } else if (!metadata.isDirectory() || metadata.isSymbolicLink()) {
@@ -27003,8 +27261,8 @@ async function planRepairMaterial(candidate = ".") {
   const plannedDirectories = /* @__PURE__ */ new Set();
   for (const adapter of adapters) {
     const targetPath = adapter.manifest.target_path;
-    const absolute = path17.join(root, ...targetPath.split("/"));
-    const metadata = await metadataOrUndefined2(absolute);
+    const absolute = path18.join(root, ...targetPath.split("/"));
+    const metadata = await metadataOrUndefined3(absolute);
     if (metadata === void 0) {
       for (const directory of await missingParents(root, targetPath)) {
         if (!plannedDirectories.has(directory)) {
@@ -27026,7 +27284,7 @@ async function planRepairMaterial(candidate = ".") {
         `Adapter target is not a regular file: ${targetPath}`
       );
     }
-    const current = await readFile15(absolute);
+    const current = await readFile16(absolute);
     if (sha256(current) === adapter.manifest.content_digest) continue;
     operations.push({
       action: "replace",
@@ -27151,8 +27409,8 @@ async function repairProject(candidate = ".", options = {}) {
 
 // src/application/report-status.ts
 import { randomUUID as randomUUID4 } from "node:crypto";
-import { lstat as lstat10, mkdir as mkdir5, open as open6, readFile as readFile16, readdir as readdir6, rename as rename4, unlink as unlink6 } from "node:fs/promises";
-import path18 from "node:path";
+import { lstat as lstat10, mkdir as mkdir5, open as open6, readFile as readFile17, readdir as readdir6, rename as rename4, unlink as unlink6 } from "node:fs/promises";
+import path19 from "node:path";
 
 // src/domain/reconciliation.ts
 var ReconciliationError = class extends Error {
@@ -27360,7 +27618,7 @@ async function assertNoSymlinkFromLayer(layerRoot, target) {
     const metadata = await lstat10(current);
     if (metadata.isSymbolicLink()) throw new Error("path has a symbolic-link boundary");
     if (current === layerRoot) return;
-    current = path18.dirname(current);
+    current = path19.dirname(current);
   }
 }
 function parseYaml(contents, relativePath) {
@@ -27381,7 +27639,7 @@ function parseYaml(contents, relativePath) {
   }
 }
 async function readSchemaFile(layerRoot, relativePath, schema4) {
-  const absolutePath = path18.join(layerRoot, ...relativePath.split("/"));
+  const absolutePath = path19.join(layerRoot, ...relativePath.split("/"));
   let contents;
   try {
     await assertNoSymlinkFromLayer(layerRoot, absolutePath);
@@ -27389,7 +27647,7 @@ async function readSchemaFile(layerRoot, relativePath, schema4) {
     if (!metadata.isFile() || metadata.isSymbolicLink()) {
       throw new Error("path is not a regular file");
     }
-    contents = await readFile16(absolutePath, "utf8");
+    contents = await readFile17(absolutePath, "utf8");
   } catch (error2) {
     throw statusError(
       "PCP_STATUS_INVALID_LAYER",
@@ -27408,7 +27666,7 @@ async function readSchemaFile(layerRoot, relativePath, schema4) {
   return { path: relativePath, value, contents };
 }
 async function readSchemaDirectory(layerRoot, relativeDirectory, schema4) {
-  const absoluteDirectory = path18.join(layerRoot, ...relativeDirectory.split("/"));
+  const absoluteDirectory = path19.join(layerRoot, ...relativeDirectory.split("/"));
   let entries;
   try {
     await assertNoSymlinkFromLayer(layerRoot, absoluteDirectory);
@@ -27444,7 +27702,7 @@ async function readSchemaDirectory(layerRoot, relativeDirectory, schema4) {
   return records;
 }
 async function listArchiveEventIds(layerRoot) {
-  const absoluteDirectory = path18.join(layerRoot, ...ARCHIVE_EVENT_DIRECTORY2.split("/"));
+  const absoluteDirectory = path19.join(layerRoot, ...ARCHIVE_EVENT_DIRECTORY2.split("/"));
   let entries;
   try {
     await assertNoSymlinkFromLayer(layerRoot, absoluteDirectory);
@@ -27499,7 +27757,7 @@ function semanticFailure(records) {
   throw statusError("PCP_STATUS_INVALID_LAYER", `PCP continuity state is inconsistent: ${detail}`);
 }
 async function loadOperationalContinuityState(root) {
-  const layerRoot = path18.join(root, ".pcp");
+  const layerRoot = path19.join(root, ".pcp");
   const [
     manifest2,
     project,
@@ -27696,7 +27954,7 @@ function previewStatus(state, input) {
 }
 async function fileContentsOrUndefined(file) {
   try {
-    return await readFile16(file, "utf8");
+    return await readFile17(file, "utf8");
   } catch (error2) {
     if (error2.code === "ENOENT") return void 0;
     throw error2;
@@ -27720,8 +27978,8 @@ async function writeCheckpoint(root, checkpoint, existing) {
     );
   }
   const relativePath = `${CHECKPOINT_DIRECTORY}/${checkpoint.checkpoint_id}.yaml`;
-  const directory = path18.join(root, ".pcp", ...CHECKPOINT_DIRECTORY.split("/"));
-  const target = path18.join(root, ".pcp", ...relativePath.split("/"));
+  const directory = path19.join(root, ".pcp", ...CHECKPOINT_DIRECTORY.split("/"));
+  const target = path19.join(root, ".pcp", ...relativePath.split("/"));
   await mkdir5(directory, { recursive: true });
   if (existing !== void 0) {
     const current = await fileContentsOrUndefined(target);
@@ -27738,7 +27996,7 @@ async function writeCheckpoint(root, checkpoint, existing) {
     );
   }
   const contents = stringify3(checkpoint);
-  const temporary = path18.join(directory, `.${checkpoint.checkpoint_id}.${randomUUID4()}.tmp`);
+  const temporary = path19.join(directory, `.${checkpoint.checkpoint_id}.${randomUUID4()}.tmp`);
   const previous = `${temporary}.previous`;
   await writeDurableFile2(temporary, contents);
   let previousHeld = false;
@@ -27837,7 +28095,7 @@ async function reportStatusLocked(root, input) {
   };
 }
 async function reportStatus(projectRoot, input) {
-  const root = path18.resolve(projectRoot);
+  const root = path19.resolve(projectRoot);
   try {
     return await withContinuityLock(root, () => reportStatusLocked(root, input));
   } catch (error2) {
@@ -27854,8 +28112,8 @@ async function reportStatus(projectRoot, input) {
 
 // src/application/upgrade-project.ts
 import { timingSafeEqual as timingSafeEqual3 } from "node:crypto";
-import { lstat as lstat11, readFile as readFile17, readdir as readdir7 } from "node:fs/promises";
-import path19 from "node:path";
+import { lstat as lstat11, readFile as readFile18, readdir as readdir7 } from "node:fs/promises";
+import path20 from "node:path";
 
 // src/domain/release.ts
 var PCP_NAME = "Persistent Context Protocol";
@@ -27921,7 +28179,7 @@ function manifest(value, source) {
 function yamlBuffer2(value) {
   return Buffer.from(stringify3(value, { lineWidth: 0, sortMapEntries: true }), "utf8");
 }
-async function metadataOrUndefined3(target) {
+async function metadataOrUndefined4(target) {
   try {
     return await lstat11(target);
   } catch (error2) {
@@ -27930,14 +28188,14 @@ async function metadataOrUndefined3(target) {
   }
 }
 function portableParent2(portablePath2) {
-  const parent = path19.posix.dirname(portablePath2);
+  const parent = path20.posix.dirname(portablePath2);
   return parent === "." ? void 0 : parent;
 }
 async function missingParents2(root, portablePath2) {
   const missing = [];
   let parent = portableParent2(portablePath2);
   while (parent !== void 0) {
-    const metadata = await metadataOrUndefined3(path19.join(root, ...parent.split("/")));
+    const metadata = await metadataOrUndefined4(path20.join(root, ...parent.split("/")));
     if (metadata === void 0) missing.push(parent);
     else if (!metadata.isDirectory() || metadata.isSymbolicLink()) {
       throw new UpgradeError("PCP_UPGRADE_COLLISION", `Upgrade parent is unsafe: ${parent}`);
@@ -27950,9 +28208,9 @@ async function collectLayerFiles(directory, layerRoot, result) {
   const entries = await readdir7(directory, { withFileTypes: true });
   entries.sort((left, right) => comparePortablePaths(left.name, right.name));
   for (const entry of entries) {
-    const target = path19.join(directory, entry.name);
+    const target = path20.join(directory, entry.name);
     const metadata = await lstat11(target);
-    const relative = path19.relative(layerRoot, target).split(path19.sep).join("/");
+    const relative = path20.relative(layerRoot, target).split(path20.sep).join("/");
     if (metadata.isSymbolicLink()) {
       throw new UpgradeError(
         "PCP_UPGRADE_SYMLINK",
@@ -27961,7 +28219,7 @@ async function collectLayerFiles(directory, layerRoot, result) {
     }
     if (metadata.isDirectory()) await collectLayerFiles(target, layerRoot, result);
     else if (metadata.isFile())
-      result.push({ path: `.pcp/${relative}`, digest: sha256(await readFile17(target)) });
+      result.push({ path: `.pcp/${relative}`, digest: sha256(await readFile18(target)) });
   }
 }
 async function preservationSnapshot(root, inventory, targetedPaths, liveOwnership) {
@@ -27970,7 +28228,7 @@ async function preservationSnapshot(root, inventory, targetedPaths, liveOwnershi
     if (!targetedPaths.has(file.path)) preserved.set(file.path, file.sha256);
   }
   const layerFiles = [];
-  await collectLayerFiles(path19.join(root, ".pcp"), path19.join(root, ".pcp"), layerFiles);
+  await collectLayerFiles(path20.join(root, ".pcp"), path20.join(root, ".pcp"), layerFiles);
   for (const file of layerFiles) {
     const relative = file.path.slice(".pcp/".length);
     const classes = matchingOwnershipClasses(relative, liveOwnership);
@@ -27987,8 +28245,8 @@ function preservationDigest(preserved) {
 }
 async function verifyPreserved(root, preserved) {
   for (const [portablePath2, digest2] of preserved) {
-    const target = path19.join(root, ...portablePath2.split("/"));
-    const metadata = await metadataOrUndefined3(target);
+    const target = path20.join(root, ...portablePath2.split("/"));
+    const metadata = await metadataOrUndefined4(target);
     if (metadata === void 0 || !metadata.isFile() || metadata.isSymbolicLink()) {
       throw new UpgradeError(
         "PCP_UPGRADE_PRESERVATION_FAILED",
@@ -27996,7 +28254,7 @@ async function verifyPreserved(root, preserved) {
         true
       );
     }
-    if (sha256(await readFile17(target)) !== digest2) {
+    if (sha256(await readFile18(target)) !== digest2) {
       throw new UpgradeError(
         "PCP_UPGRADE_PRESERVATION_FAILED",
         `Preserved file changed: ${portablePath2}`,
@@ -28060,7 +28318,7 @@ async function planUpgradeMaterial(candidate = ".") {
     );
   }
   const liveManifest = manifest(
-    parse(await readFile17(path19.join(root, ".pcp", "pcp.yaml"), "utf8")),
+    parse(await readFile18(path20.join(root, ".pcp", "pcp.yaml"), "utf8")),
     "Installed"
   );
   const selectedCapabilities = liveManifest.capabilities;
@@ -28126,8 +28384,8 @@ async function planUpgradeMaterial(candidate = ".") {
   const operations = [];
   const plannedDirectories = /* @__PURE__ */ new Set();
   for (const [portablePath2, content] of desired) {
-    const absolute = path19.join(root, ...portablePath2.split("/"));
-    const metadata = await metadataOrUndefined3(absolute);
+    const absolute = path20.join(root, ...portablePath2.split("/"));
+    const metadata = await metadataOrUndefined4(absolute);
     if (metadata === void 0) {
       for (const directory of await missingParents2(root, portablePath2)) {
         if (!plannedDirectories.has(directory)) {
@@ -28155,7 +28413,7 @@ async function planUpgradeMaterial(candidate = ".") {
         );
       }
     }
-    const current = await readFile17(absolute);
+    const current = await readFile18(absolute);
     if (current.equals(content)) continue;
     operations.push({
       action: "replace",

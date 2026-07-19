@@ -1,6 +1,6 @@
 0513cb36153b9a4d301a50a7286518279fce1f6bf0a61efeeb42100cdb9af044  schemas/v1/actor-profile.schema.json
 caa83ef5b0b966450d7b9f4313a3bef83ccc99b8137acfadc9d4a1b472330749  schemas/v1/adapter.schema.json
-6da9e8eec4d9f11e0a1f1f02547faf5c93a671023991d96a4cee093f6de7f5f9  schemas/v1/adoption-input.schema.json
+03f276927ebb03adc7d4c6631c2c9486193f177b3f4214789e822d1f5f4c4dfb  schemas/v1/adoption-input.schema.json
 70293d89a6fdeb61a0427cbc2331fa9df9cad693e7e3309d97a3920fea564c00  schemas/v1/checkpoint.schema.json
 169958acd1aca243fc76806be9f4ac3425af361fae624ce1a76bf1795f5ce4ba  schemas/v1/common.schema.json
 a44ed6e310d3fea2a374b10245f3af092e126228468ee3546ec1ddb84bd24dbc  schemas/v1/coverage.schema.json
@@ -65,8 +65,8 @@ df646010d23da001e3eb839bf3c371df800ccf5e0757b2ddb9f7b31434fb1410  templates/core
 aa5a834b11a7e6e8f85f11f00fa3677dab92e116aad66cd08bfc3217a8c737be  templates/core/.pcp/templates/10-project-record.md
 78aa5426b208e0caa362834922147d192d458ab38a27bc0cfddb5c03f1df8d85  templates/core/.pcp/templates/20-decision-record.md
 3eb03fc427c7ba44eaf568778b0d52abe09172786fddf0bf05e5806d118bd210  templates/core/.pcp/tools/00-index.md
-df36dfd763a8762f75254dea0d27b5aecb4b82772e42fbbe6936743c9e2a6cf9  templates/core/.pcp/tools/pcp.mjs
-0110df087bd8dea7df0d222ab34ebdb93d7274143741fba1363b671d4d788863  templates/core/.pcp/tools/pcp.sha256
+175c965e3020dcd07d0a612854879ca6ae414c4ffd0f529d337b1e084afa5484  templates/core/.pcp/tools/pcp.mjs
+98e00579e18dc4b349f58ca46599fd00f2b78ccfc0b7586b1c6afca4c157cbd2  templates/core/.pcp/tools/pcp.sha256
 0b988b9acb2676c0462ab0ce4baed703e82a4539218e6a46006d9d8f8e26907c  templates/core/.pcp/views/00-index.md
 192549ec90069cb45cb1d340bff79552699c95bc9d456b7cec22c2bc0274aaae  templates/core/.pcp/views/10-status.generated.md
 1eddd35af245fc1ed16b1a38ddd3bf0a838a348c42dd5bbfc498a005bcaec4ef  templates/README.md

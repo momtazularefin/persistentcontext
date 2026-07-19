@@ -45,6 +45,7 @@ import { inspectRepository } from './inspect-repository.js';
 import { validateCanonicalLayer } from './validate-canonical-layer.js';
 
 const MAXIMUM_ADOPTION_INPUT_BYTES = 4 * 1_048_576;
+const MAXIMUM_EXTERNAL_REWRITE_BYTES = 4 * 1_048_576;
 const PLACEHOLDER_PATTERN = /replace this baseline|pending project|grounded project purpose/iu;
 const WINDOWS_RESERVED_NAME = /^(?:con|prn|aux|nul|com[1-9]|lpt[1-9])(?:\..*)?$/iu;
 const WINDOWS_FORBIDDEN_CHARACTER = /[<>:"|?*]/u;
@@ -485,6 +486,12 @@ function validateProjectInput(input: AdoptionInput, inspection: InspectionResult
       'Foreign-root review belongs only to State C adoption input.',
     );
   }
+  if (inspection.state !== 'C' && (input.external_rewrites?.length ?? 0) > 0) {
+    throw new AdoptionError(
+      'PCP_STATE_C_EXTERNAL_REWRITE_FORBIDDEN',
+      'External reference rewrites belong only to State C adoption input.',
+    );
+  }
   if (inspection.state === 'C' && input.foreign_roots === undefined) {
     throw new AdoptionError(
       'PCP_STATE_C_ROOT_REVIEW_REQUIRED',
@@ -812,6 +819,178 @@ interface StateCRelocation {
   preimage_digest: string;
 }
 
+interface PreparedExternalRewrite {
+  path: string;
+  preimage_digest: string;
+  content: Buffer;
+}
+
+async function metadataOrUndefined(
+  target: string,
+): Promise<Awaited<ReturnType<typeof lstat>> | undefined> {
+  try {
+    return await lstat(target);
+  } catch (error) {
+    if ((error as NodeJS.ErrnoException).code === 'ENOENT') return undefined;
+    throw error;
+  }
+}
+
+async function assertExternalRewritePathHasNoSymlink(root: string, target: string): Promise<void> {
+  let current = target;
+  while (current !== root) {
+    const metadata = await metadataOrUndefined(current);
+    if (metadata?.isSymbolicLink() === true) {
+      throw new AdoptionError(
+        'PCP_ADOPTION_PATH_BOUNDARY',
+        `External rewrite crosses a symbolic-link boundary: ${toPortablePath(path.relative(root, target))}`,
+      );
+    }
+    current = path.dirname(current);
+  }
+}
+
+async function prepareExternalRewrites(
+  root: string,
+  inspection: InspectionResult,
+  input: AdoptionInput,
+  reservedPaths: ReadonlySet<string>,
+): Promise<PreparedExternalRewrite[]> {
+  const rewrites = input.external_rewrites ?? [];
+  const paths = rewrites.map((rewrite) => rewrite.path);
+  if (new Set(paths).size !== paths.length) {
+    throw new AdoptionError('PCP_ADOPTION_INPUT_INVALID', 'External rewrite paths must be unique.');
+  }
+  if (input.coverage === undefined && rewrites.length > 0) {
+    throw new AdoptionError(
+      'PCP_STATE_C_COVERAGE_REQUIRED',
+      'External rewrites require the completed State C coverage matrix.',
+    );
+  }
+
+  const translatedRoots = (input.coverage?.foreign_roots ?? [])
+    .filter((review) => review.disposition === 'translate')
+    .map((review) => review.root)
+    .filter((reviewRoot) => reviewRoot !== '.');
+  const inventoriedFiles = new Set(inspection.inventory.files.map((file) => file.path));
+  const prepared: PreparedExternalRewrite[] = [];
+
+  for (const rewrite of rewrites) {
+    assertPortableMutationPath(rewrite.path);
+    if (
+      rewrite.path === '.pcp' ||
+      rewrite.path.startsWith('.pcp/') ||
+      translatedRoots.some((reviewRoot) => isInsideReviewedRoot(rewrite.path, reviewRoot)) ||
+      reservedPaths.has(rewrite.path)
+    ) {
+      throw new AdoptionError(
+        'PCP_ADOPTION_PATH_BOUNDARY',
+        `External rewrite must target an existing project-owned file outside canonical and translated paths: ${rewrite.path}`,
+      );
+    }
+    const staticExclusion = mutationPathExclusion(rewrite.path);
+    if (staticExclusion !== undefined) {
+      throw new AdoptionError(
+        'PCP_ADOPTION_PATH_BOUNDARY',
+        `External rewrite enters a ${staticExclusion} path: ${rewrite.path}`,
+      );
+    }
+
+    const nestedBoundary = inspection.inventory.nestedRepositories.find((nested) =>
+      rewrite.path.startsWith(`${nested}/`),
+    );
+    if (nestedBoundary === undefined && !inventoriedFiles.has(rewrite.path)) {
+      throw new AdoptionError(
+        'PCP_ADOPTION_EVIDENCE_MISSING',
+        `External rewrite source is not an inventoried file or a reviewed nested-repository file: ${rewrite.path}`,
+      );
+    }
+    const blockedExclusion = inspection.inventory.exclusions.find(
+      (exclusion) =>
+        exclusion.reason !== 'nested-repository' &&
+        (rewrite.path === exclusion.path || rewrite.path.startsWith(`${exclusion.path}/`)),
+    );
+    if (blockedExclusion !== undefined) {
+      throw new AdoptionError(
+        'PCP_ADOPTION_PATH_BOUNDARY',
+        `External rewrite enters an excluded ${blockedExclusion.reason} boundary: ${rewrite.path}`,
+      );
+    }
+    if (nestedBoundary === undefined && (await isMutationPathIgnored(root, rewrite.path))) {
+      throw new AdoptionError(
+        'PCP_ADOPTION_PATH_BOUNDARY',
+        `External rewrite target is ignored by candidate policy: ${rewrite.path}`,
+      );
+    }
+
+    const target = path.resolve(root, ...rewrite.path.split('/'));
+    if (!isInside(root, target) || target === root) {
+      throw new AdoptionError(
+        'PCP_ADOPTION_PATH_UNSAFE',
+        `Unsafe external rewrite path: ${rewrite.path}`,
+      );
+    }
+    await assertExternalRewritePathHasNoSymlink(root, target);
+    const metadata = await metadataOrUndefined(target);
+    if (metadata === undefined) {
+      throw new AdoptionError(
+        'PCP_ADOPTION_EVIDENCE_MISSING',
+        `External rewrite source does not exist: ${rewrite.path}`,
+      );
+    }
+    if (!metadata.isFile() || metadata.isSymbolicLink()) {
+      throw new AdoptionError(
+        'PCP_ADOPTION_PREIMAGE_UNSUPPORTED',
+        `External rewrite source must be a regular file: ${rewrite.path}`,
+      );
+    }
+    if (metadata.size > MAXIMUM_EXTERNAL_REWRITE_BYTES) {
+      throw new AdoptionError(
+        'PCP_ADOPTION_INPUT_TOO_LARGE',
+        `External rewrite source exceeds 4 MiB: ${rewrite.path}`,
+      );
+    }
+    const bytes = await readFile(target);
+    if (sha256(bytes) !== rewrite.preimage_digest) {
+      throw new AdoptionError(
+        'PCP_SOURCE_CHANGED',
+        `External rewrite preimage does not match the reviewed file: ${rewrite.path}`,
+      );
+    }
+    let content: string;
+    try {
+      content = new TextDecoder('utf-8', { fatal: true }).decode(bytes);
+    } catch {
+      throw new AdoptionError(
+        'PCP_ADOPTION_PREIMAGE_UNSUPPORTED',
+        `External rewrite source is not valid UTF-8 text: ${rewrite.path}`,
+      );
+    }
+    const fromValues = rewrite.replacements.map((replacement) => replacement.from);
+    if (new Set(fromValues).size !== fromValues.length) {
+      throw new AdoptionError(
+        'PCP_ADOPTION_INPUT_INVALID',
+        `External rewrite contains duplicate source text: ${rewrite.path}`,
+      );
+    }
+    for (const replacement of rewrite.replacements) {
+      if (replacement.from === replacement.to || !content.includes(replacement.from)) {
+        throw new AdoptionError(
+          'PCP_ADOPTION_INPUT_INVALID',
+          `External rewrite must replace present text with different text: ${rewrite.path}`,
+        );
+      }
+      content = content.split(replacement.from).join(replacement.to);
+    }
+    prepared.push({
+      path: rewrite.path,
+      preimage_digest: rewrite.preimage_digest,
+      content: Buffer.from(content, 'utf8'),
+    });
+  }
+  return prepared.sort((left, right) => comparePortablePaths(left.path, right.path));
+}
+
 function stateCRelocations(input: AdoptionInput): StateCRelocation[] {
   if (input.coverage === undefined) return [];
   return input.coverage.records
@@ -903,6 +1082,7 @@ function stateCDirectoriesToRemove(
 
 function buildStateCOperations(
   content: ReadonlyMap<string, Buffer>,
+  externalRewrites: readonly PreparedExternalRewrite[],
   inspection: InspectionResult,
   removalPaths: ReadonlySet<string>,
   relocations: readonly StateCRelocation[],
@@ -960,6 +1140,12 @@ function buildStateCOperations(
             preimage_digest: existing.sha256,
           };
     });
+  const externalRewriteOperations = externalRewrites.map((rewrite) => ({
+    action: 'replace' as const,
+    path: rewrite.path,
+    content_digest: sha256(rewrite.content),
+    preimage_digest: rewrite.preimage_digest,
+  }));
   const earlyRemovalSet = new Set(preWriteRemovalPaths);
   const moveOperations = relocations.map((relocation) => ({
     action: 'move' as const,
@@ -992,6 +1178,7 @@ function buildStateCOperations(
     ...preWriteRemovals,
     ...directoryOperations,
     ...contentOperations,
+    ...externalRewriteOperations,
     ...moveOperations,
     ...postWriteRemovals,
     ...directoryRemovalOperations,
@@ -1121,6 +1308,17 @@ async function buildStateCTranslationPlan(
   const removalPaths = stateCRemovalPaths(input);
   const relocations = stateCRelocations(input);
   validateStateCRelocations(input, relocations);
+  const externalRewrites = await prepareExternalRewrites(
+    root,
+    inspection,
+    input,
+    new Set([
+      ...content.keys(),
+      ...removalPaths,
+      ...relocations.map((relocation) => relocation.source_path),
+      ...relocations.map((relocation) => relocation.target_path),
+    ]),
+  );
   const relocationTargets = new Map(
     relocations.map((relocation) => [relocation.target_path, Buffer.alloc(0)] as const),
   );
@@ -1145,6 +1343,7 @@ async function buildStateCTranslationPlan(
     inventory: inspection.inventory,
     operations: buildStateCOperations(
       content,
+      externalRewrites,
       inspection,
       removalPaths,
       relocations,
@@ -1156,6 +1355,7 @@ async function buildStateCTranslationPlan(
       'clean-genesis',
       'coverage',
       'desired-hashes',
+      'external-reference-rewrites',
       'foreign-removals',
       'foreign-relocations',
       'foreign-directory-cleanup',
@@ -1185,7 +1385,15 @@ async function buildStateCTranslationPlan(
     plan,
     mutated: false,
   };
-  return { inspection, input, preview, content_by_path: content };
+  return {
+    inspection,
+    input,
+    preview,
+    content_by_path: new Map([
+      ...content,
+      ...externalRewrites.map((rewrite) => [rewrite.path, rewrite.content] as const),
+    ]),
+  };
 }
 
 async function previewScopedStateCCoverage(

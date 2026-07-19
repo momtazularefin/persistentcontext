@@ -69,6 +69,13 @@
     "coverage": {
       "$ref": "urn:pcp:schema:v1:coverage"
     },
+    "external_rewrites": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/externalRewrite"
+      },
+      "maxItems": 256
+    },
     "scaffold_files": {
       "type": "array",
       "items": {
@@ -118,6 +125,38 @@
         "body": {
           "type": "string",
           "minLength": 3
+        }
+      }
+    },
+    "externalRewrite": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["path", "preimage_digest", "replacements", "evidence"],
+      "properties": {
+        "path": {
+          "$ref": "urn:pcp:schema:v1:common#/$defs/relativePath"
+        },
+        "preimage_digest": {
+          "$ref": "urn:pcp:schema:v1:common#/$defs/sha256"
+        },
+        "replacements": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 64,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["from", "to"],
+            "properties": {
+              "from": { "type": "string", "minLength": 1, "maxLength": 16384 },
+              "to": { "type": "string", "minLength": 1, "maxLength": 16384 }
+            }
+          }
+        },
+        "evidence": {
+          "type": "array",
+          "minItems": 1,
+          "items": { "type": "string", "minLength": 1, "maxLength": 2048 }
         }
       }
     },

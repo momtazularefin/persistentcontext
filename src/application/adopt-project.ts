@@ -1,9 +1,12 @@
 import { timingSafeEqual } from 'node:crypto';
+import { readFile } from 'node:fs/promises';
+import path from 'node:path';
 
 import {
   ADOPTION_SCHEMA_VERSION,
   AdoptionError,
   canonicalJson,
+  sha256,
   type AdoptionApplyResult,
   type MutationPlan,
   type AdoptionPreview,
@@ -68,6 +71,7 @@ async function verifyAdoptionSourceStability(
   const expectedFiles = new Map(
     original.files.map((file) => [file.path, { ...file }] satisfies [string, FileFingerprint]),
   );
+  const excludedReplacements = new Map<string, { size: number; sha256: string }>();
   const hiddenByLocalPersistence = (candidatePath: string): boolean =>
     persistence === 'local' && (candidatePath === '.pcp' || candidatePath.startsWith('.pcp/'));
 
@@ -77,8 +81,7 @@ async function verifyAdoptionSourceStability(
       case 'mkdir':
         expectedDirectories.add(operation.path);
         break;
-      case 'write':
-      case 'replace': {
+      case 'write': {
         const content = contentByPath.get(operation.path);
         if (content === undefined || operation.content_digest === undefined) {
           throw new AdoptionError(
@@ -89,6 +92,38 @@ async function verifyAdoptionSourceStability(
         }
         expectedFiles.set(operation.path, {
           path: operation.path,
+          size: content.length,
+          sha256: operation.content_digest,
+        });
+        break;
+      }
+      case 'replace': {
+        const content = contentByPath.get(operation.path);
+        if (content === undefined || operation.content_digest === undefined) {
+          throw new AdoptionError(
+            'PCP_ADOPTION_PLAN_CONTENT_MISMATCH',
+            `The approved operation is missing expected content: ${operation.path}`,
+            true,
+          );
+        }
+        if (expectedFiles.has(operation.path)) {
+          expectedFiles.set(operation.path, {
+            path: operation.path,
+            size: content.length,
+            sha256: operation.content_digest,
+          });
+          break;
+        }
+        if (
+          !original.nestedRepositories.some((nested) => operation.path.startsWith(`${nested}/`))
+        ) {
+          throw new AdoptionError(
+            'PCP_ADOPTION_PLAN_UNSAFE',
+            `Replacement target is outside the inventoried source and reviewed nested repositories: ${operation.path}`,
+            true,
+          );
+        }
+        excludedReplacements.set(operation.path, {
           size: content.length,
           sha256: operation.content_digest,
         });
@@ -138,6 +173,16 @@ async function verifyAdoptionSourceStability(
       'Candidate-owned source changed while the adoption transaction was running.',
       true,
     );
+  }
+  for (const [portablePath, fingerprint] of excludedReplacements) {
+    const bytes = await readFile(path.join(root, ...portablePath.split('/')));
+    if (bytes.length !== fingerprint.size || sha256(bytes) !== fingerprint.sha256) {
+      throw new AdoptionError(
+        'PCP_SOURCE_CHANGED',
+        `Reviewed nested-repository rewrite changed during adoption: ${portablePath}`,
+        true,
+      );
+    }
   }
 }
 
