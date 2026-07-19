@@ -81,7 +81,7 @@
           "$ref": "urn:pcp:schema:v1:common#/$defs/ulid"
         },
         "action": {
-          "enum": ["mkdir", "write", "replace", "remove", "move"]
+          "enum": ["mkdir", "write", "replace", "remove", "move", "rmdir"]
         },
         "path": {
           "$ref": "urn:pcp:schema:v1:common#/$defs/relativePath"

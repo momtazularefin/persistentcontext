@@ -330,6 +330,67 @@ describe('State C foreign coverage', () => {
     expect((await inspectRepository(fixtureRoot)).inventory.digest).toBe(before);
   });
 
+  it('plans reviewed project-owned relocation and deepest-first foreign directory cleanup', async () => {
+    const candidate = await temporaryRoot('pcp-state-c-relocation-');
+    await mkdir(path.join(candidate, 'legacy-context', 'nested'), { recursive: true });
+    await writeFile(
+      path.join(candidate, 'README.md'),
+      '# Existing project\n\nA maintained project with a foreign context layer.\n',
+      'utf8',
+    );
+    await writeFile(
+      path.join(candidate, 'legacy-context', 'continuity.md'),
+      '# Continuity\n\nThis directory is the source of truth for coding agents and their handoffs.\n',
+      'utf8',
+    );
+    await writeFile(
+      path.join(candidate, 'legacy-context', 'nested', 'master-plan.md'),
+      '# Legacy strategy\n\nThis was the source of truth for agents and is now reference material.\n',
+      'utf8',
+    );
+
+    const inspection = await inspectRepository(candidate);
+    expect(inspection.state).toBe('C');
+    const catalog = await discoverForeignCoverage(candidate, inspection);
+    const coverage = reviewedCoverage(catalog.template);
+    const relocation = coverage.records.find(
+      (record) => record.source_path === 'legacy-context/nested/master-plan.md',
+    );
+    if (relocation === undefined) throw new Error('Expected reviewed relocation source.');
+    relocation.disposition = 'relocated';
+    relocation.targets = ['scratch/master-plan.md'];
+    relocation.evidence = [
+      'The strategy is canonicalized while its substantive source is retained.',
+    ];
+
+    const result = await planAdoption(candidate, await writeInput(await stateCInput(coverage)));
+    if (!isPlanMaterial(result)) throw new Error('Expected applicable relocation plan.');
+    const operations = result.preview.plan.operations;
+    expect(operations).toContainEqual(
+      expect.objectContaining({
+        action: 'move',
+        source_path: 'legacy-context/nested/master-plan.md',
+        path: 'scratch/master-plan.md',
+        preimage_digest: relocation.fingerprint,
+      }),
+    );
+    const directoryRemovals = operations
+      .filter((operation) => operation.action === 'rmdir')
+      .map((operation) => operation.path);
+    expect(directoryRemovals).toEqual(['legacy-context/nested', 'legacy-context']);
+    expect(operations.some((operation) => operation.path === 'README.md')).toBe(false);
+
+    const unsafe = structuredClone(coverage);
+    const unsafeRelocation = unsafe.records.find(
+      (record) => record.source_id === relocation.source_id,
+    );
+    if (unsafeRelocation === undefined) throw new Error('Expected cloned relocation source.');
+    unsafeRelocation.targets = ['.pcp/knowledge/10-overview.md'];
+    await expect(
+      planAdoption(candidate, await writeInput(await stateCInput(unsafe))),
+    ).rejects.toMatchObject({ code: 'PCP_STATE_C_COVERAGE_INVALID' });
+  });
+
   it('previews explicit replacements for all five canonical adapter collisions', async () => {
     const candidate = await temporaryRoot('pcp-state-c-platform-collisions-');
     await mkdir(path.join(candidate, '.agents', 'rules'), { recursive: true });

@@ -697,16 +697,115 @@ function stateCRemovalPaths(input: AdoptionInput): Set<string> {
       .filter(
         (record) =>
           (record.source_kind === 'file' || record.source_kind === 'adapter') &&
-          record.disposition !== 'project-owned',
+          record.disposition !== 'project-owned' &&
+          record.disposition !== 'relocated',
       )
       .map((record) => record.source_path),
   );
+}
+
+interface StateCRelocation {
+  record_index: number;
+  source_path: string;
+  target_path: string;
+  preimage_digest: string;
+}
+
+function stateCRelocations(input: AdoptionInput): StateCRelocation[] {
+  if (input.coverage === undefined) return [];
+  return input.coverage.records
+    .map((record, recordIndex) => ({ record, recordIndex }))
+    .filter(({ record }) => record.disposition === 'relocated')
+    .map(({ record, recordIndex }) => ({
+      record_index: recordIndex,
+      source_path: record.source_path,
+      target_path: record.targets[0]!,
+      preimage_digest: record.fingerprint,
+    }))
+    .sort((left, right) => comparePortablePaths(left.source_path, right.source_path));
+}
+
+function isInsideReviewedRoot(candidatePath: string, root: string): boolean {
+  return root === '.' || candidatePath === root || candidatePath.startsWith(`${root}/`);
+}
+
+function validateStateCRelocations(
+  input: AdoptionInput,
+  relocations: readonly StateCRelocation[],
+): void {
+  if (input.coverage === undefined) return;
+  const translatedRoots = input.coverage.foreign_roots
+    .filter((review) => review.disposition === 'translate')
+    .map((review) => review.root)
+    .filter((root) => root !== '.');
+  const targets = new Set<string>();
+  const diagnostics: Array<{ code: string; path: string; message: string }> = [];
+  for (const relocation of relocations) {
+    if (
+      relocation.target_path.startsWith('.pcp/') ||
+      relocation.target_path === '.pcp' ||
+      translatedRoots.some((root) => isInsideReviewedRoot(relocation.target_path, root))
+    ) {
+      diagnostics.push({
+        code: 'coverage-relocation-target-unsafe',
+        path: `/coverage/records/${relocation.record_index}/targets/0`,
+        message: `Relocation target must be project-owned and outside .pcp and every translated root: ${relocation.target_path}`,
+      });
+    }
+    if (relocation.target_path === relocation.source_path) {
+      diagnostics.push({
+        code: 'coverage-relocation-target-unchanged',
+        path: `/coverage/records/${relocation.record_index}/targets/0`,
+        message: `Relocation source and target are identical: ${relocation.source_path}`,
+      });
+    }
+    if (targets.has(relocation.target_path)) {
+      diagnostics.push({
+        code: 'coverage-relocation-target-duplicate',
+        path: `/coverage/records/${relocation.record_index}/targets/0`,
+        message: `Relocation target appears more than once: ${relocation.target_path}`,
+      });
+    }
+    targets.add(relocation.target_path);
+  }
+  if (diagnostics.length > 0) throw stateCCoverageFailure(diagnostics);
+}
+
+function stateCDirectoriesToRemove(
+  inspection: InspectionResult,
+  input: AdoptionInput,
+  consumedFiles: ReadonlySet<string>,
+  futurePaths: readonly string[],
+): string[] {
+  if (input.coverage === undefined) return [];
+  const translatedRoots = input.coverage.foreign_roots
+    .filter((review) => review.disposition === 'translate' && review.root !== '.')
+    .map((review) => review.root);
+  const remainingPaths = [
+    ...inspection.inventory.files
+      .map((file) => file.path)
+      .filter((candidatePath) => !consumedFiles.has(candidatePath)),
+    ...inspection.inventory.symlinks.map((link) => link.path),
+    ...futurePaths,
+  ];
+  return inspection.inventory.directories
+    .filter(
+      (directory) =>
+        translatedRoots.some((root) => isInsideReviewedRoot(directory, root)) &&
+        !remainingPaths.some(
+          (candidatePath) =>
+            candidatePath === directory || candidatePath.startsWith(`${directory}/`),
+        ),
+    )
+    .sort((left, right) => pathDepth(right) - pathDepth(left) || comparePortablePaths(left, right));
 }
 
 function buildStateCOperations(
   content: ReadonlyMap<string, Buffer>,
   inspection: InspectionResult,
   removalPaths: ReadonlySet<string>,
+  relocations: readonly StateCRelocation[],
+  directoryRemovals: readonly string[],
 ): Array<Omit<MutationOperation, 'operation_id'>> {
   const filesByPath = new Map(inspection.inventory.files.map((file) => [file.path, file]));
   const existingDirectories = new Set(inspection.inventory.directories);
@@ -739,6 +838,11 @@ function buildStateCOperations(
       if (!existingDirectories.has(directory)) requiredDirectories.add(directory);
     }
   }
+  for (const relocation of relocations) {
+    for (const directory of parentDirectories(relocation.target_path)) {
+      if (!existingDirectories.has(directory)) requiredDirectories.add(directory);
+    }
+  }
   const directoryOperations = [...requiredDirectories]
     .sort((left, right) => pathDepth(left) - pathDepth(right) || comparePortablePaths(left, right))
     .map((directory) => ({ action: 'mkdir' as const, path: directory }));
@@ -756,6 +860,12 @@ function buildStateCOperations(
           };
     });
   const earlyRemovalSet = new Set(preWriteRemovalPaths);
+  const moveOperations = relocations.map((relocation) => ({
+    action: 'move' as const,
+    path: relocation.target_path,
+    source_path: relocation.source_path,
+    preimage_digest: relocation.preimage_digest,
+  }));
   const postWriteRemovals = [...removalPaths]
     .filter((removalPath) => !content.has(removalPath) && !earlyRemovalSet.has(removalPath))
     .sort(comparePortablePaths)
@@ -773,7 +883,18 @@ function buildStateCOperations(
         preimage_digest: source.sha256,
       };
     });
-  return [...preWriteRemovals, ...directoryOperations, ...contentOperations, ...postWriteRemovals];
+  const directoryRemovalOperations = directoryRemovals.map((directory) => ({
+    action: 'rmdir' as const,
+    path: directory,
+  }));
+  return [
+    ...preWriteRemovals,
+    ...directoryOperations,
+    ...contentOperations,
+    ...moveOperations,
+    ...postWriteRemovals,
+    ...directoryRemovalOperations,
+  ];
 }
 
 function stateCCoverageFailure(
@@ -847,6 +968,7 @@ function validateStateCCoverageTargets(
   const diagnostics: Array<{ code: string; path: string; message: string }> = [];
   for (const [recordIndex, record] of input.coverage.records.entries()) {
     for (const [targetIndex, target] of record.targets.entries()) {
+      if (record.disposition === 'relocated') continue;
       if (!target.startsWith('.pcp/') || !content.has(target)) {
         diagnostics.push({
           code: 'coverage-target-missing',
@@ -896,12 +1018,37 @@ async function buildStateCTranslationPlan(
   const content = await stageCanonicalLayer(input, adapters);
   validateStateCCoverageTargets(input, content);
   const removalPaths = stateCRemovalPaths(input);
-  await assertContentTargetsSafe(root, content, inspection, input.persistence, removalPaths);
+  const relocations = stateCRelocations(input);
+  validateStateCRelocations(input, relocations);
+  const relocationTargets = new Map(
+    relocations.map((relocation) => [relocation.target_path, Buffer.alloc(0)] as const),
+  );
+  await assertContentTargetsSafe(
+    root,
+    new Map([...content, ...relocationTargets]),
+    inspection,
+    input.persistence,
+    removalPaths,
+  );
+  const consumedFiles = new Set([
+    ...removalPaths,
+    ...relocations.map((relocation) => relocation.source_path),
+  ]);
+  const directoryRemovals = stateCDirectoriesToRemove(inspection, input, consumedFiles, [
+    ...content.keys(),
+    ...relocations.map((relocation) => relocation.target_path),
+  ]);
   const plan = createMutationPlan({
     classification: 'C',
     coverageDigest: normalizedCoverageDigest(input.coverage),
     inventory: inspection.inventory,
-    operations: buildStateCOperations(content, inspection, removalPaths),
+    operations: buildStateCOperations(
+      content,
+      inspection,
+      removalPaths,
+      relocations,
+      directoryRemovals,
+    ),
     validations: [
       'candidate-inventory',
       'canonical-layer',
@@ -909,6 +1056,8 @@ async function buildStateCTranslationPlan(
       'coverage',
       'desired-hashes',
       'foreign-removals',
+      'foreign-relocations',
+      'foreign-directory-cleanup',
       'path-boundaries',
       'platform-adapters',
       'preimages',

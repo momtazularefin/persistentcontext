@@ -52,13 +52,13 @@ async function verifyAdoptionSourceStability(
 ): Promise<void> {
   const allowedActions =
     plan.classification === 'C'
-      ? new Set(['mkdir', 'write', 'replace', 'remove'])
+      ? new Set(['mkdir', 'write', 'replace', 'remove', 'move', 'rmdir'])
       : new Set(['mkdir', 'write']);
   if (plan.operations.some((operation) => !allowedActions.has(operation.action))) {
     throw new AdoptionError(
       'PCP_ADOPTION_PLAN_UNSAFE',
       plan.classification === 'C'
-        ? 'State C adoption may contain only directory creation, file creation, approved replacement, and approved removal operations.'
+        ? 'State C adoption may contain only approved directory creation, file creation, replacement, removal, relocation, and empty-directory cleanup operations.'
         : 'State A/B adoption may contain only new-directory and new-file operations.',
       true,
     );
@@ -97,12 +97,29 @@ async function verifyAdoptionSourceStability(
       case 'remove':
         expectedFiles.delete(operation.path);
         break;
-      case 'move':
-        throw new AdoptionError(
-          'PCP_ADOPTION_PLAN_UNSAFE',
-          'Move operations are not enabled for adoption source-stability checks.',
-          true,
-        );
+      case 'move': {
+        if (operation.source_path === undefined) {
+          throw new AdoptionError(
+            'PCP_ADOPTION_PLAN_UNSAFE',
+            `Move operation is missing its reviewed source: ${operation.path}`,
+            true,
+          );
+        }
+        const source = expectedFiles.get(operation.source_path);
+        if (source === undefined || source.sha256 !== operation.preimage_digest) {
+          throw new AdoptionError(
+            'PCP_ADOPTION_PLAN_UNSAFE',
+            `Move operation does not match its reviewed source preimage: ${operation.source_path}`,
+            true,
+          );
+        }
+        expectedFiles.delete(operation.source_path);
+        expectedFiles.set(operation.path, { ...source, path: operation.path });
+        break;
+      }
+      case 'rmdir':
+        expectedDirectories.delete(operation.path);
+        break;
     }
   }
 

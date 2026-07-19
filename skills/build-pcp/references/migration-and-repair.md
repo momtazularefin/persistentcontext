@@ -6,6 +6,7 @@ Assign every foreign file and history entry one transient disposition:
 
 - `represented`: current knowledge already exists in a cited canonical target.
 - `promoted`: useful current knowledge or rationale is added to a cited target.
+- `relocated`: one reviewed regular file is moved byte-for-byte to one new project-owned path outside `.pcp/` and every translated root.
 - `superseded`: stronger current evidence replaces it.
 - `operational-noise`: bookkeeping has no enduring value.
 - `historical-only`: completed activity does not define current state.
@@ -28,7 +29,7 @@ Block deletion while any item is unresolved. Do not use timestamps alone to reso
 
 Abort on source drift, unsafe symlinks, nested-boundary violations, insufficient permissions or space, unreadable material, or unresolved semantic conflict.
 
-State C becomes applicable only after the engine accepts complete reviewed coverage and presents the normalized plan, including the five generated platform adapters and every collision. Apply its approved digest only through the engine; never reproduce its replacement or removal operations manually. The transaction rechecks source fingerprints, validates the live canonical layer and adapters, and restores exact preimages in reverse on failure. If the engine reports an unsupported adapter surface, preserve it and add an explicit implementation rather than treating another platform's adapter as equivalent.
+State C becomes applicable only after the engine accepts complete reviewed coverage and presents the normalized plan, including the five generated platform adapters, every collision, reviewed relocation, and derived empty-directory cleanup. Apply its approved digest only through the engine; never reproduce its replacement or removal operations manually, and never reproduce its `move` or `rmdir` operations separately. The transaction rechecks source fingerprints, validates the live canonical layer and adapters, and restores exact preimages and directory inventory in reverse on failure. If the engine reports an unsupported adapter surface, preserve it and add an explicit implementation rather than treating another platform's adapter as equivalent.
 
 ## Repair and upgrade
 

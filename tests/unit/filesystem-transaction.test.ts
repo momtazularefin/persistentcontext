@@ -1,4 +1,4 @@
-import { mkdtemp, readFile, rm, writeFile } from 'node:fs/promises';
+import { mkdir, mkdtemp, readFile, readdir, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
 
@@ -40,6 +40,7 @@ async function transactionFixture(): Promise<{
   await writeFile(path.join(root, 'replace.txt'), replaceBefore);
   await writeFile(path.join(root, 'remove.txt'), removeBefore);
   await writeFile(path.join(root, 'move.txt'), moveBefore);
+  await mkdir(path.join(root, 'obsolete'));
   const inventory = await inventoryRepository(root);
   const content = new Map<string, Buffer>([
     ['new/new.txt', Buffer.from('created\n')],
@@ -64,6 +65,7 @@ async function transactionFixture(): Promise<{
         source_path: 'move.txt',
         preimage_digest: sha256(moveBefore),
       },
+      { action: 'rmdir', path: 'obsolete' },
     ],
     validations: ['exact-preimages', 'rollback'],
   });
@@ -115,10 +117,11 @@ describe('write-ahead filesystem transaction', () => {
       );
       expect(await readFile(path.join(fixture.root, 'remove.txt'), 'utf8')).toBe('remove-before\n');
       expect(await readFile(path.join(fixture.root, 'move.txt'), 'utf8')).toBe('move-before\n');
+      expect(await readdir(path.join(fixture.root, 'obsolete'))).toEqual([]);
     }
   });
 
-  it('applies mkdir, write, replace, remove, and move then removes recovery state', async () => {
+  it('applies file and directory mutations then removes recovery state', async () => {
     const fixture = await transactionFixture();
     const result = await executeFilesystemTransaction(fixture.root, fixture.plan, fixture.content, {
       validate_live: async () => {
@@ -129,7 +132,7 @@ describe('write-ahead filesystem transaction', () => {
       },
     });
 
-    expect(result).toEqual({ applied_operations: 5, recovery_cleaned: true });
+    expect(result).toEqual({ applied_operations: 6, recovery_cleaned: true });
     await expect(readFile(path.join(fixture.root, 'remove.txt'))).rejects.toMatchObject({
       code: 'ENOENT',
     });
@@ -137,6 +140,9 @@ describe('write-ahead filesystem transaction', () => {
       code: 'ENOENT',
     });
     expect(await readFile(path.join(fixture.root, 'moved.txt'), 'utf8')).toBe('move-before\n');
+    await expect(readdir(path.join(fixture.root, 'obsolete'))).rejects.toMatchObject({
+      code: 'ENOENT',
+    });
   });
 
   it('rolls back when live validation changes an applied file after its first hash check', async () => {
@@ -164,5 +170,33 @@ describe('write-ahead filesystem transaction', () => {
     expect(await readFile(path.join(fixture.root, 'replace.txt'), 'utf8')).toBe('replace-before\n');
     expect(await readFile(path.join(fixture.root, 'remove.txt'), 'utf8')).toBe('remove-before\n');
     expect(await readFile(path.join(fixture.root, 'move.txt'), 'utf8')).toBe('move-before\n');
+    expect(await readdir(path.join(fixture.root, 'obsolete'))).toEqual([]);
+  });
+
+  it('restores the move preimage when live validation changes the relocation target', async () => {
+    const fixture = await transactionFixture();
+    let caught: unknown;
+
+    try {
+      await executeFilesystemTransaction(fixture.root, fixture.plan, fixture.content, {
+        validate_live: async () => {
+          await writeFile(path.join(fixture.root, 'moved.txt'), 'changed-during-validation\n');
+        },
+      });
+    } catch (error) {
+      caught = error;
+    }
+
+    expect(caught).toMatchObject({ code: 'PCP_ADOPTION_LIVE_MISMATCH', mutated: false });
+    const recoveryRoot = (caught as AdoptionError).recoveryRoot;
+    expect(recoveryRoot).toBeTypeOf('string');
+    if (recoveryRoot !== undefined) {
+      await rm(recoveryRoot, { recursive: true, force: true });
+    }
+    expect((await inventoryRepository(fixture.root)).digest).toBe(fixture.inventoryDigest);
+    expect(await readFile(path.join(fixture.root, 'move.txt'), 'utf8')).toBe('move-before\n');
+    await expect(readFile(path.join(fixture.root, 'moved.txt'))).rejects.toMatchObject({
+      code: 'ENOENT',
+    });
   });
 });

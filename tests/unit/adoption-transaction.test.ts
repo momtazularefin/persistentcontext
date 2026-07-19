@@ -113,12 +113,28 @@ function representedCoverage(template: CoverageMatrix): CoverageMatrix {
 async function createStateC(): Promise<{ candidate: string; inputPath: string }> {
   const candidate = await temporaryRoot('pcp-transaction-state-c-');
   await cp(stateCFixture, candidate, { recursive: true });
+  await mkdir(path.join(candidate, 'project-guidance', 'legacy'));
+  await writeFile(
+    path.join(candidate, 'project-guidance', 'legacy', 'master-plan.md'),
+    '# Legacy strategy\n\nPreserve this reviewed project-owned reference.\n',
+    'utf8',
+  );
   const inspection = await inspectRepository(candidate);
   const catalog = await discoverForeignCoverage(candidate, inspection);
   const input = await adoptionFixture();
   input.scaffold_files = [];
   input.foreign_roots = structuredClone(catalog.foreign_roots);
-  input.coverage = reviewedCoverage(catalog.template);
+  const coverage = reviewedCoverage(catalog.template);
+  const relocation = coverage.records.find(
+    (record) => record.source_path === 'project-guidance/legacy/master-plan.md',
+  );
+  if (relocation === undefined) throw new Error('Expected the reviewed legacy strategy source.');
+  relocation.disposition = 'relocated';
+  relocation.targets = ['scratch/master-plan.md'];
+  relocation.evidence = [
+    'The current strategy was absorbed into canonical state, while the substantive source remains project-owned reference material.',
+  ];
+  input.coverage = coverage;
   return { candidate, inputPath: await writeExternalInput(input) };
 }
 
@@ -565,6 +581,14 @@ describe('transactional State C translation', () => {
     for (const [candidatePath, contents] of preserved) {
       expect(await readFile(path.join(candidate, ...candidatePath.split('/')))).toEqual(contents);
     }
+    expect(await readFile(path.join(candidate, 'scratch', 'master-plan.md'), 'utf8')).toBe(
+      '# Legacy strategy\n\nPreserve this reviewed project-owned reference.\n',
+    );
+    await expect(readdir(path.join(candidate, 'project-guidance', 'legacy'))).rejects.toMatchObject(
+      {
+        code: 'ENOENT',
+      },
+    );
     for (const removedPath of [
       '.cursor/rules/legacy.mdc',
       'project-guidance/agent-registry.md',
