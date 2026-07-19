@@ -4,7 +4,7 @@ import { fileURLToPath } from 'node:url';
 
 import { parse } from 'yaml';
 
-import { AdoptionError, normalizeText } from '../domain/adoption.js';
+import { AdoptionError, canonicalJson, normalizeText } from '../domain/adoption.js';
 import {
   SUPPORTED_CAPABILITY_IDS,
   normalizeCapabilityIds,
@@ -169,9 +169,75 @@ export interface LoadedCapabilityTemplates {
   files: ReadonlyMap<string, Buffer>;
 }
 
-export async function loadCapabilityTemplateFiles(
-  selectedValues: readonly string[],
-): Promise<LoadedCapabilityTemplates> {
+const EMBEDDED_CAPABILITY_MANIFESTS: Readonly<Record<SupportedCapabilityId, CapabilityManifest>> = {
+  'concurrent-execution-blocks': {
+    schema_version: 1,
+    capability_id: 'concurrent-execution-blocks',
+    name: 'Concurrent Execution Blocks',
+    description:
+      'Adds dependency-aware parallel work guidance and a human-readable scaffold over the core workstream lifecycle.',
+    dependencies: [],
+    manifest_value: 'concurrent-execution-blocks',
+    overlay_root: 'overlay',
+    index_entries: [
+      {
+        folder: 'protocol',
+        path: '90-concurrent-execution-blocks.md',
+        title: 'Concurrent Execution Blocks',
+      },
+      { folder: 'templates', path: '40-workstream.md', title: 'Workstream scaffold' },
+    ],
+    root_paths: [],
+  },
+  'scratch-space': {
+    schema_version: 1,
+    capability_id: 'scratch-space',
+    name: 'Scratch space',
+    description:
+      'Adds a noncanonical root scratch area for temporary exploration without weakening canonical documentation rules.',
+    dependencies: [],
+    manifest_value: 'scratch-space',
+    overlay_root: 'overlay',
+    index_entries: [{ folder: 'protocol', path: '100-scratch-space.md', title: 'Scratch space' }],
+    root_paths: ['scratch/README.md'],
+  },
+  'spec-driven-projects': {
+    schema_version: 1,
+    capability_id: 'spec-driven-projects',
+    name: 'Spec-driven projects',
+    description:
+      'Adds a bounded spec-to-plan-to-task delivery contract and an inert project specification scaffold.',
+    dependencies: [],
+    manifest_value: 'spec-driven-projects',
+    overlay_root: 'overlay',
+    index_entries: [
+      { folder: 'protocol', path: '80-spec-driven-delivery.md', title: 'Spec-driven delivery' },
+      {
+        folder: 'templates',
+        path: '30-project-spec.md',
+        title: 'Project specification scaffold',
+      },
+    ],
+    root_paths: [],
+  },
+  walkthroughs: {
+    schema_version: 1,
+    capability_id: 'walkthroughs',
+    name: 'Incremental walkthroughs',
+    description:
+      'Adds a living FAQ workflow for building verified user guidance from real questions and answers.',
+    dependencies: [],
+    manifest_value: 'walkthroughs',
+    overlay_root: 'overlay',
+    index_entries: [
+      { folder: 'protocol', path: '110-walkthrough-creation.md', title: 'Walkthrough creation' },
+      { folder: 'templates', path: '50-walkthrough.md', title: 'Walkthrough scaffold' },
+    ],
+    root_paths: [],
+  },
+};
+
+export function loadCapabilityManifests(selectedValues: readonly string[]): CapabilityManifest[] {
   const selected = normalizeCapabilityIds(selectedValues);
   if (selected.length !== new Set(selectedValues).size) {
     throw new AdoptionError(
@@ -179,19 +245,32 @@ export async function loadCapabilityTemplateFiles(
       'Capability selection contains an unknown or duplicate value.',
     );
   }
-  if (selected.length === 0) return { manifests: [], files: new Map() };
+  return selected.map((capability) => structuredClone(EMBEDDED_CAPABILITY_MANIFESTS[capability]));
+}
+
+export async function loadCapabilityTemplateFiles(
+  selectedValues: readonly string[],
+): Promise<LoadedCapabilityTemplates> {
+  const manifests = loadCapabilityManifests(selectedValues);
+  if (manifests.length === 0) return { manifests, files: new Map() };
 
   const root = await resolveCapabilityTemplateRoot();
-  const manifests: CapabilityManifest[] = [];
   const files = new Map<string, Buffer>();
-  for (const capability of selected) {
+  for (const manifest of manifests) {
+    const capability = manifest.capability_id;
     const capabilityRoot = path.join(root, capability);
-    const manifest = capabilityManifest(
+    const assetManifest = capabilityManifest(
       parse(await readFile(path.join(capabilityRoot, 'capability.yaml'), 'utf8')),
       capability,
     );
+    if (canonicalJson(assetManifest) !== canonicalJson(manifest)) {
+      throw new AdoptionError(
+        'PCP_ADOPTION_CAPABILITY_INVALID',
+        `Capability ${capability} asset metadata does not match the bundled release contract.`,
+      );
+    }
     for (const dependency of manifest.dependencies) {
-      if (!selected.includes(dependency)) {
+      if (!manifests.some((selected) => selected.capability_id === dependency)) {
         throw new AdoptionError(
           'PCP_ADOPTION_CAPABILITY_DEPENDENCY',
           `Capability ${capability} requires ${dependency}.`,
@@ -240,7 +319,6 @@ export async function loadCapabilityTemplateFiles(
         );
       }
     }
-    manifests.push(manifest);
   }
   return { manifests, files };
 }
