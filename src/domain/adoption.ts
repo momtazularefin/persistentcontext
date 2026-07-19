@@ -88,7 +88,7 @@ export interface AdoptionInput {
   scaffold_files: AdoptionScaffoldFile[];
 }
 
-export type MutationAction = 'mkdir' | 'write' | 'replace' | 'remove' | 'move';
+export type MutationAction = 'mkdir' | 'write' | 'replace' | 'remove' | 'move' | 'rmdir';
 
 export interface MutationOperation {
   operation_id: string;

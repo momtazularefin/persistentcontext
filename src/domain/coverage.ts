@@ -6,6 +6,7 @@ export type CoverageSourceKind = 'file' | 'history-entry' | 'registry-entry' | '
 export type CoverageDisposition =
   | 'represented'
   | 'promoted'
+  | 'relocated'
   | 'superseded'
   | 'operational-noise'
   | 'historical-only'

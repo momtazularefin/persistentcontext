@@ -339,6 +339,9 @@ async function applyOperation(
     case 'remove':
       await unlink(target);
       break;
+    case 'rmdir':
+      await rmdir(target);
+      break;
     case 'move': {
       if (operation.source_path === undefined)
         throw new Error('Move operation is missing source_path.');
@@ -381,6 +384,9 @@ async function rollbackOperation(root: string, applied: AppliedOperation): Promi
     case 'write':
       await unlink(target);
       break;
+    case 'rmdir':
+      await mkdir(target);
+      break;
     case 'replace':
     case 'remove':
       if (preimage === undefined) throw new Error(`Missing rollback preimage: ${operation.path}`);
@@ -391,7 +397,15 @@ async function rollbackOperation(root: string, applied: AppliedOperation): Promi
         throw new Error('Move operation is missing source_path.');
       const source = resolveApprovedPath(root, operation.source_path);
       if ((await metadataOrUndefined(target)) !== undefined) {
-        await rename(target, source);
+        if (
+          preimage !== undefined &&
+          operation.preimage_digest !== sha256(await readFile(target))
+        ) {
+          await unlink(target);
+          await restoreFilePreimage(source, preimage);
+        } else {
+          await rename(target, source);
+        }
       } else if ((await metadataOrUndefined(source)) === undefined && preimage !== undefined) {
         await restoreFilePreimage(source, preimage);
       }
@@ -421,7 +435,10 @@ async function verifyDesiredContent(root: string, plan: MutationPlan): Promise<v
           true,
         );
       }
-    } else if (operation.action === 'remove' && (await metadataOrUndefined(target)) !== undefined) {
+    } else if (
+      (operation.action === 'remove' || operation.action === 'rmdir') &&
+      (await metadataOrUndefined(target)) !== undefined
+    ) {
       throw new AdoptionError(
         'PCP_ADOPTION_LIVE_MISMATCH',
         `A removed target still exists: ${operation.path}`,
@@ -435,7 +452,8 @@ async function verifyDesiredContent(root: string, plan: MutationPlan): Promise<v
       if (
         source === undefined ||
         (await metadataOrUndefined(source)) !== undefined ||
-        (await metadataOrUndefined(target)) === undefined
+        (await metadataOrUndefined(target)) === undefined ||
+        operation.preimage_digest !== sha256(await readFile(target))
       ) {
         throw new AdoptionError(
           'PCP_ADOPTION_LIVE_MISMATCH',

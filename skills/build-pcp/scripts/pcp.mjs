@@ -12340,6 +12340,9 @@ async function applyOperation(root, operation, stagedContent, preimageRoot) {
     case "remove":
       await unlink(target);
       break;
+    case "rmdir":
+      await rmdir(target);
+      break;
     case "move": {
       if (operation.source_path === void 0)
         throw new Error("Move operation is missing source_path.");
@@ -12380,6 +12383,9 @@ async function rollbackOperation(root, applied) {
     case "write":
       await unlink(target);
       break;
+    case "rmdir":
+      await mkdir(target);
+      break;
     case "replace":
     case "remove":
       if (preimage === void 0) throw new Error(`Missing rollback preimage: ${operation.path}`);
@@ -12390,7 +12396,12 @@ async function rollbackOperation(root, applied) {
         throw new Error("Move operation is missing source_path.");
       const source = resolveApprovedPath(root, operation.source_path);
       if (await metadataOrUndefined(target) !== void 0) {
-        await rename(target, source);
+        if (preimage !== void 0 && operation.preimage_digest !== sha256(await readFile2(target))) {
+          await unlink(target);
+          await restoreFilePreimage(source, preimage);
+        } else {
+          await rename(target, source);
+        }
       } else if (await metadataOrUndefined(source) === void 0 && preimage !== void 0) {
         await restoreFilePreimage(source, preimage);
       }
@@ -12419,7 +12430,7 @@ async function verifyDesiredContent(root, plan) {
           true
         );
       }
-    } else if (operation.action === "remove" && await metadataOrUndefined(target) !== void 0) {
+    } else if ((operation.action === "remove" || operation.action === "rmdir") && await metadataOrUndefined(target) !== void 0) {
       throw new AdoptionError(
         "PCP_ADOPTION_LIVE_MISMATCH",
         `A removed target still exists: ${operation.path}`,
@@ -12427,7 +12438,7 @@ async function verifyDesiredContent(root, plan) {
       );
     } else if (operation.action === "move") {
       const source = operation.source_path === void 0 ? void 0 : resolveApprovedPath(root, operation.source_path);
-      if (source === void 0 || await metadataOrUndefined(source) !== void 0 || await metadataOrUndefined(target) === void 0) {
+      if (source === void 0 || await metadataOrUndefined(source) !== void 0 || await metadataOrUndefined(target) === void 0 || operation.preimage_digest !== sha256(await readFile2(target))) {
         throw new AdoptionError(
           "PCP_ADOPTION_LIVE_MISMATCH",
           `A move does not match the approved source and target state: ${operation.path}`,
@@ -20306,6 +20317,7 @@ var coverage_schema_default = {
           enum: [
             "represented",
             "promoted",
+            "relocated",
             "superseded",
             "operational-noise",
             "historical-only",
@@ -20327,6 +20339,22 @@ var coverage_schema_default = {
         }
       },
       allOf: [
+        {
+          if: {
+            properties: {
+              disposition: {
+                const: "relocated"
+              }
+            },
+            required: ["disposition"]
+          },
+          then: {
+            properties: {
+              source_kind: { const: "file" },
+              targets: { type: "array", minItems: 1, maxItems: 1 }
+            }
+          }
+        },
         {
           if: {
             properties: {
@@ -20723,7 +20751,7 @@ var mutation_plan_schema_default = {
           $ref: "urn:pcp:schema:v1:common#/$defs/ulid"
         },
         action: {
-          enum: ["mkdir", "write", "replace", "remove", "move"]
+          enum: ["mkdir", "write", "replace", "remove", "move", "rmdir"]
         },
         path: {
           $ref: "urn:pcp:schema:v1:common#/$defs/relativePath"
@@ -24486,11 +24514,68 @@ function stateCRemovalPaths(input) {
   if (input.coverage === void 0) return /* @__PURE__ */ new Set();
   return new Set(
     input.coverage.records.filter(
-      (record) => (record.source_kind === "file" || record.source_kind === "adapter") && record.disposition !== "project-owned"
+      (record) => (record.source_kind === "file" || record.source_kind === "adapter") && record.disposition !== "project-owned" && record.disposition !== "relocated"
     ).map((record) => record.source_path)
   );
 }
-function buildStateCOperations(content, inspection, removalPaths) {
+function stateCRelocations(input) {
+  if (input.coverage === void 0) return [];
+  return input.coverage.records.map((record, recordIndex) => ({ record, recordIndex })).filter(({ record }) => record.disposition === "relocated").map(({ record, recordIndex }) => ({
+    record_index: recordIndex,
+    source_path: record.source_path,
+    target_path: record.targets[0],
+    preimage_digest: record.fingerprint
+  })).sort((left, right) => comparePortablePaths(left.source_path, right.source_path));
+}
+function isInsideReviewedRoot(candidatePath, root) {
+  return root === "." || candidatePath === root || candidatePath.startsWith(`${root}/`);
+}
+function validateStateCRelocations(input, relocations) {
+  if (input.coverage === void 0) return;
+  const translatedRoots = input.coverage.foreign_roots.filter((review) => review.disposition === "translate").map((review) => review.root).filter((root) => root !== ".");
+  const targets = /* @__PURE__ */ new Set();
+  const diagnostics = [];
+  for (const relocation of relocations) {
+    if (relocation.target_path.startsWith(".pcp/") || relocation.target_path === ".pcp" || translatedRoots.some((root) => isInsideReviewedRoot(relocation.target_path, root))) {
+      diagnostics.push({
+        code: "coverage-relocation-target-unsafe",
+        path: `/coverage/records/${relocation.record_index}/targets/0`,
+        message: `Relocation target must be project-owned and outside .pcp and every translated root: ${relocation.target_path}`
+      });
+    }
+    if (relocation.target_path === relocation.source_path) {
+      diagnostics.push({
+        code: "coverage-relocation-target-unchanged",
+        path: `/coverage/records/${relocation.record_index}/targets/0`,
+        message: `Relocation source and target are identical: ${relocation.source_path}`
+      });
+    }
+    if (targets.has(relocation.target_path)) {
+      diagnostics.push({
+        code: "coverage-relocation-target-duplicate",
+        path: `/coverage/records/${relocation.record_index}/targets/0`,
+        message: `Relocation target appears more than once: ${relocation.target_path}`
+      });
+    }
+    targets.add(relocation.target_path);
+  }
+  if (diagnostics.length > 0) throw stateCCoverageFailure(diagnostics);
+}
+function stateCDirectoriesToRemove(inspection, input, consumedFiles, futurePaths) {
+  if (input.coverage === void 0) return [];
+  const translatedRoots = input.coverage.foreign_roots.filter((review) => review.disposition === "translate" && review.root !== ".").map((review) => review.root);
+  const remainingPaths = [
+    ...inspection.inventory.files.map((file) => file.path).filter((candidatePath) => !consumedFiles.has(candidatePath)),
+    ...inspection.inventory.symlinks.map((link) => link.path),
+    ...futurePaths
+  ];
+  return inspection.inventory.directories.filter(
+    (directory) => translatedRoots.some((root) => isInsideReviewedRoot(directory, root)) && !remainingPaths.some(
+      (candidatePath) => candidatePath === directory || candidatePath.startsWith(`${directory}/`)
+    )
+  ).sort((left, right) => pathDepth(right) - pathDepth(left) || comparePortablePaths(left, right));
+}
+function buildStateCOperations(content, inspection, removalPaths, relocations, directoryRemovals) {
   const filesByPath = new Map(inspection.inventory.files.map((file) => [file.path, file]));
   const existingDirectories = new Set(inspection.inventory.directories);
   const contentPaths = [...content.keys()];
@@ -24517,6 +24602,11 @@ function buildStateCOperations(content, inspection, removalPaths) {
       if (!existingDirectories.has(directory)) requiredDirectories.add(directory);
     }
   }
+  for (const relocation of relocations) {
+    for (const directory of parentDirectories(relocation.target_path)) {
+      if (!existingDirectories.has(directory)) requiredDirectories.add(directory);
+    }
+  }
   const directoryOperations = [...requiredDirectories].sort((left, right) => pathDepth(left) - pathDepth(right) || comparePortablePaths(left, right)).map((directory) => ({ action: "mkdir", path: directory }));
   const contentOperations = [...content.entries()].sort(([left], [right]) => comparePortablePaths(left, right)).map(([target, bytes]) => {
     const existing = filesByPath.get(target);
@@ -24528,6 +24618,12 @@ function buildStateCOperations(content, inspection, removalPaths) {
     };
   });
   const earlyRemovalSet = new Set(preWriteRemovalPaths);
+  const moveOperations = relocations.map((relocation) => ({
+    action: "move",
+    path: relocation.target_path,
+    source_path: relocation.source_path,
+    preimage_digest: relocation.preimage_digest
+  }));
   const postWriteRemovals = [...removalPaths].filter((removalPath) => !content.has(removalPath) && !earlyRemovalSet.has(removalPath)).sort(comparePortablePaths).map((removalPath) => {
     const source = filesByPath.get(removalPath);
     if (source === void 0) {
@@ -24542,7 +24638,18 @@ function buildStateCOperations(content, inspection, removalPaths) {
       preimage_digest: source.sha256
     };
   });
-  return [...preWriteRemovals, ...directoryOperations, ...contentOperations, ...postWriteRemovals];
+  const directoryRemovalOperations = directoryRemovals.map((directory) => ({
+    action: "rmdir",
+    path: directory
+  }));
+  return [
+    ...preWriteRemovals,
+    ...directoryOperations,
+    ...contentOperations,
+    ...moveOperations,
+    ...postWriteRemovals,
+    ...directoryRemovalOperations
+  ];
 }
 function stateCCoverageFailure(diagnostics) {
   const details = diagnostics.slice(0, 8).map((diagnostic2) => `${diagnostic2.code} ${diagnostic2.path}: ${diagnostic2.message}`).join("; ");
@@ -24596,6 +24703,7 @@ function validateStateCCoverageTargets(input, content) {
   const diagnostics = [];
   for (const [recordIndex, record] of input.coverage.records.entries()) {
     for (const [targetIndex, target] of record.targets.entries()) {
+      if (record.disposition === "relocated") continue;
       if (!target.startsWith(".pcp/") || !content.has(target)) {
         diagnostics.push({
           code: "coverage-target-missing",
@@ -24637,12 +24745,37 @@ async function buildStateCTranslationPlan(root, inspection, input) {
   const content = await stageCanonicalLayer(input, adapters);
   validateStateCCoverageTargets(input, content);
   const removalPaths = stateCRemovalPaths(input);
-  await assertContentTargetsSafe(root, content, inspection, input.persistence, removalPaths);
+  const relocations = stateCRelocations(input);
+  validateStateCRelocations(input, relocations);
+  const relocationTargets = new Map(
+    relocations.map((relocation) => [relocation.target_path, Buffer.alloc(0)])
+  );
+  await assertContentTargetsSafe(
+    root,
+    new Map([...content, ...relocationTargets]),
+    inspection,
+    input.persistence,
+    removalPaths
+  );
+  const consumedFiles = /* @__PURE__ */ new Set([
+    ...removalPaths,
+    ...relocations.map((relocation) => relocation.source_path)
+  ]);
+  const directoryRemovals = stateCDirectoriesToRemove(inspection, input, consumedFiles, [
+    ...content.keys(),
+    ...relocations.map((relocation) => relocation.target_path)
+  ]);
   const plan = createMutationPlan({
     classification: "C",
     coverageDigest: normalizedCoverageDigest(input.coverage),
     inventory: inspection.inventory,
-    operations: buildStateCOperations(content, inspection, removalPaths),
+    operations: buildStateCOperations(
+      content,
+      inspection,
+      removalPaths,
+      relocations,
+      directoryRemovals
+    ),
     validations: [
       "candidate-inventory",
       "canonical-layer",
@@ -24650,6 +24783,8 @@ async function buildStateCTranslationPlan(root, inspection, input) {
       "coverage",
       "desired-hashes",
       "foreign-removals",
+      "foreign-relocations",
+      "foreign-directory-cleanup",
       "path-boundaries",
       "platform-adapters",
       "preimages",
@@ -24801,11 +24936,11 @@ function comparableInventory(inventory) {
   };
 }
 async function verifyAdoptionSourceStability(root, original, plan, contentByPath, persistence) {
-  const allowedActions = plan.classification === "C" ? /* @__PURE__ */ new Set(["mkdir", "write", "replace", "remove"]) : /* @__PURE__ */ new Set(["mkdir", "write"]);
+  const allowedActions = plan.classification === "C" ? /* @__PURE__ */ new Set(["mkdir", "write", "replace", "remove", "move", "rmdir"]) : /* @__PURE__ */ new Set(["mkdir", "write"]);
   if (plan.operations.some((operation) => !allowedActions.has(operation.action))) {
     throw new AdoptionError(
       "PCP_ADOPTION_PLAN_UNSAFE",
-      plan.classification === "C" ? "State C adoption may contain only directory creation, file creation, approved replacement, and approved removal operations." : "State A/B adoption may contain only new-directory and new-file operations.",
+      plan.classification === "C" ? "State C adoption may contain only approved directory creation, file creation, replacement, removal, relocation, and empty-directory cleanup operations." : "State A/B adoption may contain only new-directory and new-file operations.",
       true
     );
   }
@@ -24840,12 +24975,29 @@ async function verifyAdoptionSourceStability(root, original, plan, contentByPath
       case "remove":
         expectedFiles.delete(operation.path);
         break;
-      case "move":
-        throw new AdoptionError(
-          "PCP_ADOPTION_PLAN_UNSAFE",
-          "Move operations are not enabled for adoption source-stability checks.",
-          true
-        );
+      case "move": {
+        if (operation.source_path === void 0) {
+          throw new AdoptionError(
+            "PCP_ADOPTION_PLAN_UNSAFE",
+            `Move operation is missing its reviewed source: ${operation.path}`,
+            true
+          );
+        }
+        const source = expectedFiles.get(operation.source_path);
+        if (source === void 0 || source.sha256 !== operation.preimage_digest) {
+          throw new AdoptionError(
+            "PCP_ADOPTION_PLAN_UNSAFE",
+            `Move operation does not match its reviewed source preimage: ${operation.source_path}`,
+            true
+          );
+        }
+        expectedFiles.delete(operation.source_path);
+        expectedFiles.set(operation.path, { ...source, path: operation.path });
+        break;
+      }
+      case "rmdir":
+        expectedDirectories.delete(operation.path);
+        break;
     }
   }
   const expected = {

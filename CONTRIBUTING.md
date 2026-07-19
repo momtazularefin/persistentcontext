@@ -40,17 +40,17 @@ Do not hand-edit synchronized engine files, checksum manifests, or `skills/build
 
 ## Choose the right test level
 
-| Change                    | Minimum direct evidence                                                                                                        |
-| ------------------------- | ------------------------------------------------------------------------------------------------------------------------------ |
-| Pure domain rule          | Focused unit tests for accepted and rejected values.                                                                           |
-| Filesystem mutation       | Transaction tests, source/preimage drift, live validation, and rollback at every new operation boundary.                       |
-| Schema                    | Valid fixture plus at least two meaningful invalid cases with path diagnostics.                                                |
-| State A/B/C adoption      | Classification, preview immutability, applied result, project-file preservation, and clean genesis.                            |
-| State C translation       | Complete file/entry dispositions, unsupported-surface refusal, staged target validation, removal ordering, and exact rollback. |
-| Continuity or workstreams | Attribution, locking, digest staleness, atomic state/event updates, and rollback.                                              |
-| Platform adapter          | Product convention, manifest/source/content digest, collision behavior, repair, and canonical reconstruction.                  |
-| Packaging                 | Source/asset equality, checksums, installed-engine execution, and private-data scan.                                           |
-| Documentation             | Claim-specific contract assertions and local-link reachability.                                                                |
+| Change                    | Minimum direct evidence                                                                                                                                       |
+| ------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Pure domain rule          | Focused unit tests for accepted and rejected values.                                                                                                          |
+| Filesystem mutation       | Transaction tests, source/preimage drift, live validation, and rollback at every new operation boundary.                                                      |
+| Schema                    | Valid fixture plus at least two meaningful invalid cases with path diagnostics.                                                                               |
+| State A/B/C adoption      | Classification, preview immutability, applied result, project-file preservation, and clean genesis.                                                           |
+| State C translation       | Complete file/entry dispositions, unsupported-surface refusal, staged target and relocation validation, removal/empty-directory ordering, and exact rollback. |
+| Continuity or workstreams | Attribution, locking, digest staleness, atomic state/event updates, and rollback.                                                                             |
+| Platform adapter          | Product convention, manifest/source/content digest, collision behavior, repair, and canonical reconstruction.                                                 |
+| Packaging                 | Source/asset equality, checksums, installed-engine execution, and private-data scan.                                                                          |
+| Documentation             | Claim-specific contract assertions and local-link reachability.                                                                                               |
 
 Tests should exercise the public invariant, not implementation trivia. Keep fault-injection and safe-refusal coverage exhaustive when adding a mutation boundary. Never raise timeouts, weaken assertions, reduce concurrency, or disable a platform merely to hide a deterministic failure; document and justify a platform-specific timing budget when the behavior itself remains unchanged.
 

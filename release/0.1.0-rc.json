@@ -5,7 +5,7 @@
   "identity": {
     "algorithm": "sha256",
     "scope": "Git-known working-tree files excluding release/0.1.0-rc.json and ignored build, coverage, dependency, and runtime output.",
-    "source_tree_digest": "616e3df690606227c72cb78970947189f71cb8661fa23dc4189e835f73f81e87",
+    "source_tree_digest": "6e85342afbe4cfd6fc0e87a35e18b43b6648e6e4e23da039e19e54340cf9d1a6",
     "file_count": 355,
     "files": [
       {
@@ -40,13 +40,13 @@
       },
       {
         "path": "CHANGELOG.md",
-        "bytes": 6069,
-        "sha256": "ded3824a12420de169129e7cff79f08ae114a6d876193b87a5a6a03cfd0b0b86"
+        "bytes": 6255,
+        "sha256": "627f8d514f00a81e844114fc790267b14d6f7cb6f9879408d60db8b8b14ba165"
       },
       {
         "path": "CONTRIBUTING.md",
-        "bytes": 8451,
-        "sha256": "78a15a5285c0c51a6c4cc86cd7030d834a2e189cefaf4b339db98fa635bcd40b"
+        "bytes": 8792,
+        "sha256": "7334813a953a3b3e5e077374bd7305acb6b06b073acb3db9faa683f10132b8a6"
       },
       {
         "path": "docs/architecture.md",
@@ -65,13 +65,13 @@
       },
       {
         "path": "docs/compatibility.md",
-        "bytes": 8260,
-        "sha256": "ea2870139abf4d128de9e6aca9bc0718869f2ce3684931781d4ba0da5d7c5417"
+        "bytes": 8576,
+        "sha256": "ef138ace6ed88bcf509bff4eaadd4aa257fe8644e8ebdd191a9d44ccfbe48c02"
       },
       {
         "path": "docs/lifecycle.md",
-        "bytes": 9921,
-        "sha256": "895881bcf001cc8ffd65ceb301bd818a28ab24858057b7142b3ea15a9cd855a8"
+        "bytes": 10461,
+        "sha256": "fe00b85dca02f5098d45dbc9e96ac713c150a4e396c5ce0da95a94ce62d3619b"
       },
       {
         "path": "docs/README.md",
@@ -80,18 +80,18 @@
       },
       {
         "path": "docs/release-candidate.md",
-        "bytes": 4618,
-        "sha256": "c4ff20c6192112d236eff0a4767842bf033cc1b0750b17b0365dee1341857180"
+        "bytes": 5647,
+        "sha256": "8f9c633abe01823a27714422bbf0dd0f3f8d7be7f80960c105413d7403d024dc"
       },
       {
         "path": "docs/safety.md",
-        "bytes": 8948,
-        "sha256": "303963b4e9a80893b75e2bdf36d03fed0c2dc34916bdc3b49b461f4f89f85c08"
+        "bytes": 9720,
+        "sha256": "7ec8b00a54b697f5117e90bd8946b95f344dd533f02387dc8fa71ffb4a0be464"
       },
       {
         "path": "docs/troubleshooting.md",
-        "bytes": 19524,
-        "sha256": "6fd906dbdf3dd678fe382676da2d54c62ee96761e193064fe7ac1a5d3a353ce8"
+        "bytes": 20256,
+        "sha256": "1a608669f44daf5d820fea97eb659030eaedf42fb151b56699db0e13bd38832a"
       },
       {
         "path": "eslint.config.mjs",
@@ -280,8 +280,8 @@
       },
       {
         "path": "README.md",
-        "bytes": 15909,
-        "sha256": "9336d234e14f87d404d303f7e25a005f63723f88fd71818a2465283a42c7fbb6"
+        "bytes": 16259,
+        "sha256": "9ebebb2c12c5a34df56928c852fa4691a25b4f5bb8a057b6da9f7253a5aaad66"
       },
       {
         "path": "schemas/v1/actor-profile.schema.json",
@@ -310,8 +310,8 @@
       },
       {
         "path": "schemas/v1/coverage.schema.json",
-        "bytes": 3785,
-        "sha256": "1456537a052d8c998b2ffe24840771fcd9ce07919d615869f67adc56235d78f1"
+        "bytes": 4228,
+        "sha256": "a44ed6e310d3fea2a374b10245f3af092e126228468ee3546ec1ddb84bd24dbc"
       },
       {
         "path": "schemas/v1/event-input.schema.json",
@@ -330,8 +330,8 @@
       },
       {
         "path": "schemas/v1/mutation-plan.schema.json",
-        "bytes": 3666,
-        "sha256": "423ddc92e70d01b83327943ff740a1575fe3d76d4c2d11bc79363667487e6fc4"
+        "bytes": 3675,
+        "sha256": "c078e405203165e4a39f51c690b49856e2613e931296d1b4ab93dc4663f89321"
       },
       {
         "path": "schemas/v1/pcp-manifest.schema.json",
@@ -410,8 +410,8 @@
       },
       {
         "path": "SECURITY.md",
-        "bytes": 2874,
-        "sha256": "21db47fd297904711f248e473133d278f79683cd26b44e7a1fbd4d437aaea8f3"
+        "bytes": 2932,
+        "sha256": "0576e6ffe58ac3dd67a9a48e15a26824b1fa676c2f126d5ab901f27aeb394fee"
       },
       {
         "path": "skills/build-pcp/agents/openai.yaml",
@@ -421,7 +421,7 @@
       {
         "path": "skills/build-pcp/assets/pcp-assets.sha256",
         "bytes": 8199,
-        "sha256": "f3a3ab9fd7371ea2f3bc0d5629df887ca185282d813f6894c7c355880933967d"
+        "sha256": "e420650b432af24b28c54b1e80d38863b997f054e263a5366eb3627e11672595"
       },
       {
         "path": "skills/build-pcp/assets/schemas/v1/actor-profile.schema.json",
@@ -450,8 +450,8 @@
       },
       {
         "path": "skills/build-pcp/assets/schemas/v1/coverage.schema.json",
-        "bytes": 3785,
-        "sha256": "1456537a052d8c998b2ffe24840771fcd9ce07919d615869f67adc56235d78f1"
+        "bytes": 4228,
+        "sha256": "a44ed6e310d3fea2a374b10245f3af092e126228468ee3546ec1ddb84bd24dbc"
       },
       {
         "path": "skills/build-pcp/assets/schemas/v1/event-input.schema.json",
@@ -470,8 +470,8 @@
       },
       {
         "path": "skills/build-pcp/assets/schemas/v1/mutation-plan.schema.json",
-        "bytes": 3666,
-        "sha256": "423ddc92e70d01b83327943ff740a1575fe3d76d4c2d11bc79363667487e6fc4"
+        "bytes": 3675,
+        "sha256": "c078e405203165e4a39f51c690b49856e2613e931296d1b4ab93dc4663f89321"
       },
       {
         "path": "skills/build-pcp/assets/schemas/v1/pcp-manifest.schema.json",
@@ -760,13 +760,13 @@
       },
       {
         "path": "skills/build-pcp/assets/templates/core/.pcp/tools/pcp.mjs",
-        "bytes": 1002311,
-        "sha256": "538c531796c1d35984d1afc221863b17676bb1241311c8dd972708d242e7cf1c"
+        "bytes": 1008486,
+        "sha256": "a7d73e015188a1e21796a1901a3c85bc2fd68b43d8f24e3e490141672b0a9942"
       },
       {
         "path": "skills/build-pcp/assets/templates/core/.pcp/tools/pcp.sha256",
         "bytes": 74,
-        "sha256": "cf1bd0734b7283b7fce90fd6efb70d3207c744349b170e87cc0f439246c19656"
+        "sha256": "36ab854267fa76b4d6a39650c921c33ffa61c260a8abd82a0350948ebad838db"
       },
       {
         "path": "skills/build-pcp/assets/templates/core/.pcp/views/00-index.md",
@@ -785,8 +785,8 @@
       },
       {
         "path": "skills/build-pcp/references/adoption.md",
-        "bytes": 7229,
-        "sha256": "4e42b731ee8547c08cd9a9590bb41457ec52f361873dcddece94f51cc0c2a86b"
+        "bytes": 7606,
+        "sha256": "a6229eb3c8226363ffb93a72051a816437e6c94f77c35e716b56f078ca9be5e1"
       },
       {
         "path": "skills/build-pcp/references/capabilities.md",
@@ -795,8 +795,8 @@
       },
       {
         "path": "skills/build-pcp/references/migration-and-repair.md",
-        "bytes": 4346,
-        "sha256": "14391bd25e140fdfe00a80e47fcfbfc7c1d96bbcecf10510709d963aca2e8d11"
+        "bytes": 4627,
+        "sha256": "d3826cb98ef0a21ec46c3677afecb5e3a33361e42c936cdcfe271423f1bd9b41"
       },
       {
         "path": "skills/build-pcp/references/operation.md",
@@ -805,13 +805,13 @@
       },
       {
         "path": "skills/build-pcp/scripts/pcp.mjs",
-        "bytes": 1002311,
-        "sha256": "538c531796c1d35984d1afc221863b17676bb1241311c8dd972708d242e7cf1c"
+        "bytes": 1008486,
+        "sha256": "a7d73e015188a1e21796a1901a3c85bc2fd68b43d8f24e3e490141672b0a9942"
       },
       {
         "path": "skills/build-pcp/scripts/pcp.sha256",
         "bytes": 74,
-        "sha256": "cf1bd0734b7283b7fce90fd6efb70d3207c744349b170e87cc0f439246c19656"
+        "sha256": "36ab854267fa76b4d6a39650c921c33ffa61c260a8abd82a0350948ebad838db"
       },
       {
         "path": "skills/build-pcp/SKILL.md",
@@ -820,8 +820,8 @@
       },
       {
         "path": "src/application/adopt-project.ts",
-        "bytes": 8065,
-        "sha256": "9684b2050041f9f3220ff88d7500ec5bc885a4f24bf7a1d4cf4fc2ad3be584bc"
+        "bytes": 8785,
+        "sha256": "18851c58b7d3972fbd74027cfff8a89547b685b327cca5b14e93e7a338925ae1"
       },
       {
         "path": "src/application/foreign-coverage.ts",
@@ -840,8 +840,8 @@
       },
       {
         "path": "src/application/plan-adoption.ts",
-        "bytes": 39870,
-        "sha256": "83fe6bbf73d2bc772e75adfda825bd4f10db5e7be96fe98baf46a165b8cfddff"
+        "bytes": 45108,
+        "sha256": "6f50da5fd0ddf8c4a0e488141fa491d4ca7ac2fb509d2c80a44a6ca9159bbbf4"
       },
       {
         "path": "src/application/record-event.ts",
@@ -900,8 +900,8 @@
       },
       {
         "path": "src/domain/adoption.ts",
-        "bytes": 7714,
-        "sha256": "2aad084f96d8ac0a95272b4f007d93f2eca09667a84cd1b993ab365b8204f7c7"
+        "bytes": 7724,
+        "sha256": "b36e59d5b4b41ff98588e4d83892c76803d9dc9d50ef7eadfa09ec27f183ac47"
       },
       {
         "path": "src/domain/canonical-rendering.ts",
@@ -930,8 +930,8 @@
       },
       {
         "path": "src/domain/coverage.ts",
-        "bytes": 2114,
-        "sha256": "995b7d8b622fe3a1e57a1419749f5f0f8cb3c70406d08f1142e66439ea439560"
+        "bytes": 2130,
+        "sha256": "7d33eb68d197868c872db7bef52da0656d5aeb73f94d29485f1c032b5c9c8c0b"
       },
       {
         "path": "src/domain/inspection.ts",
@@ -1010,8 +1010,8 @@
       },
       {
         "path": "src/infrastructure/filesystem-transaction.ts",
-        "bytes": 19911,
-        "sha256": "3d64e82760787baed28603e3ddfa50912d6862721c43ef1c1b859e92455911e1"
+        "bytes": 20399,
+        "sha256": "edc38fc7c8e48cd73dcf372cf29d93093cf9c60467e67b75214f0eff7839e0c6"
       },
       {
         "path": "src/infrastructure/schema-validator.ts",
@@ -1325,13 +1325,13 @@
       },
       {
         "path": "templates/core/.pcp/tools/pcp.mjs",
-        "bytes": 1002311,
-        "sha256": "538c531796c1d35984d1afc221863b17676bb1241311c8dd972708d242e7cf1c"
+        "bytes": 1008486,
+        "sha256": "a7d73e015188a1e21796a1901a3c85bc2fd68b43d8f24e3e490141672b0a9942"
       },
       {
         "path": "templates/core/.pcp/tools/pcp.sha256",
         "bytes": 74,
-        "sha256": "cf1bd0734b7283b7fce90fd6efb70d3207c744349b170e87cc0f439246c19656"
+        "sha256": "36ab854267fa76b4d6a39650c921c33ffa61c260a8abd82a0350948ebad838db"
       },
       {
         "path": "templates/core/.pcp/views/00-index.md",
@@ -1660,8 +1660,8 @@
       },
       {
         "path": "tests/unit/adoption-transaction.test.ts",
-        "bytes": 27749,
-        "sha256": "88b0e3a15e0c90cb1002f3f63ead84cc710809da43bce25760a990aec82a80ec"
+        "bytes": 28845,
+        "sha256": "5b8f4a8ac91791acaf2df86a7de5656f20aef4661a71538de78c0fcb6c9c39fc"
       },
       {
         "path": "tests/unit/canonical-renderer.test.ts",
@@ -1680,13 +1680,13 @@
       },
       {
         "path": "tests/unit/filesystem-transaction.test.ts",
-        "bytes": 6468,
-        "sha256": "095ba4f39614c790b9ccc9bbed00c968ec48e0e9f7e58a9bbb96feeac3c96eb3"
+        "bytes": 7933,
+        "sha256": "3f5f5dbd4c119476df7183dbcfb5aa4c96d0c401468c6b3ab6e3fd5e0c63dfc9"
       },
       {
         "path": "tests/unit/foreign-coverage.test.ts",
-        "bytes": 33054,
-        "sha256": "9140ff1add7910f1f6dd77a63c380bd1bfbba1d092141bdbf9198866348736bb"
+        "bytes": 35897,
+        "sha256": "a6ea5f160996d57c9e2e55dbd7f8744021c75871a5b789fed78cb2218a1391b2"
       },
       {
         "path": "tests/unit/format-canonical.test.ts",
@@ -1787,7 +1787,7 @@
   },
   "artifacts": {
     "engine": {
-      "sha256": "538c531796c1d35984d1afc221863b17676bb1241311c8dd972708d242e7cf1c",
+      "sha256": "a7d73e015188a1e21796a1901a3c85bc2fd68b43d8f24e3e490141672b0a9942",
       "copies": [
         "skills/build-pcp/scripts/pcp.mjs",
         "skills/build-pcp/assets/templates/core/.pcp/tools/pcp.mjs",
@@ -1796,12 +1796,12 @@
     },
     "skill_assets_manifest": {
       "path": "skills/build-pcp/assets/pcp-assets.sha256",
-      "sha256": "f3a3ab9fd7371ea2f3bc0d5629df887ca185282d813f6894c7c355880933967d"
+      "sha256": "e420650b432af24b28c54b1e80d38863b997f054e263a5366eb3627e11672595"
     },
     "skill_package": {
       "path": "skills/build-pcp",
       "file_count": 81,
-      "bytes": 2135623
+      "bytes": 2149083
     }
   },
   "verification": {

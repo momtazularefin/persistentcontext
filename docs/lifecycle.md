@@ -32,7 +32,7 @@ The `build-pcp` skill guides the judgment-heavy phase. It explores progressively
 - State A scaffold files when appropriate; or
 - a reviewed disposition for every detected State C foreign root, followed by a complete source/history coverage matrix for roots selected for translation.
 
-State B cannot use adoption to add arbitrary project scaffold files. State C first returns `requires-root-review`; the reviewed input then returns scoped coverage. It cannot remove a source until every translated file and structured history entry has a non-unresolved disposition with required targets and evidence. Roots reviewed as `project-owned` remain untouched.
+State B cannot use adoption to add arbitrary project scaffold files. State C first returns `requires-root-review`; the reviewed input then returns scoped coverage. It cannot remove a source until every translated file and structured history entry has a non-unresolved disposition with required targets and evidence. Roots reviewed as `project-owned` remain untouched. A `relocated` disposition is limited to one reviewed regular file and one new project-owned destination outside `.pcp/` and all translated roots; it preserves the exact bytes with a preimage-bound move rather than treating the destination as canonical context.
 
 ## 3. Preview the exact plan
 
@@ -61,7 +61,7 @@ Apply recomputes the plan before acquiring mutation authority. It then:
 7. restores exact preimages in reverse order after any caught failure; and
 8. removes recovery material only after successful live acceptance.
 
-State C adds explicit root-scope review, coverage-bound removal checks, replacement-first adapter ordering, preservation of `project-owned` roots and files, and a fail-closed boundary for unknown or unsupported adapter surfaces.
+State C adds explicit root-scope review, coverage-bound relocation and removal checks, replacement-first adapter ordering, preservation of `project-owned` roots and files, and a fail-closed boundary for unknown or unsupported adapter surfaces. After its reviewed files are replaced, moved, or removed, the plan deletes only translated directories proven empty in the projected inventory, deepest first. Directory cleanup is part of the approved plan and exact rollback, not a post-transaction shell cleanup.
 
 Every successful adoption starts with clean genesis: zero actor profiles, zero active events, and zero archived events. Grounded current context is imported; foreign identities and history are not.
 
