@@ -268,6 +268,36 @@ describe('transactional State A adoption', () => {
     });
   });
 
+  it('preserves an existing project-owned capability root file during adoption', async () => {
+    const candidate = await temporaryRoot('pcp-existing-scratch-seed-');
+    await writeFile(
+      path.join(candidate, 'README.md'),
+      '# Existing scratch project\n\nExplicit seed.\n',
+    );
+    await mkdir(path.join(candidate, 'scratch'));
+    const existingGuide = '# Project scratch space\n\nKeep these working artifacts unchanged.\n';
+    await writeFile(path.join(candidate, 'scratch', 'README.md'), existingGuide);
+    const input = await adoptionFixture();
+    input.capabilities = ['scratch-space'];
+    const inputPath = await writeExternalInput(input);
+    const preview = await adoptProject(candidate, { input: inputPath });
+    if (!('plan' in preview) || preview.plan === undefined) {
+      throw new Error('Expected an applicable adoption preview.');
+    }
+
+    expect(
+      preview.plan.operations.some((operation) => operation.path === 'scratch/README.md'),
+    ).toBe(false);
+    await adoptProject(candidate, { input: inputPath, apply: preview.plan.plan_digest });
+
+    expect(await readFile(path.join(candidate, 'scratch', 'README.md'), 'utf8')).toBe(
+      existingGuide,
+    );
+    expect(await validateCanonicalLayer(candidate, { clean_genesis: true })).toMatchObject({
+      valid: true,
+    });
+  });
+
   it('adopts an empty non-software State A project from an explicit scaffold', async () => {
     const candidate = await temporaryRoot('pcp-empty-research-');
     const input = await adoptionFixture();

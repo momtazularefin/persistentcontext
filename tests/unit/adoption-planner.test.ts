@@ -213,6 +213,25 @@ describe('State A and State B adoption planning', () => {
     expect((await inspectRepository(candidate)).inventory.digest).toBe(before.inventory.digest);
   });
 
+  it('distinguishes ordinary planning language from standalone template placeholders', async () => {
+    const candidate = path.join(fixtureRoot, 'conventional');
+    const grounded = adoptionInput({ projectType: 'software', evidencePath: 'package.json' });
+    grounded.documents[6] = {
+      ...grounded.documents[6]!,
+      body: '# Project plan\n\nInitiate other pending project and preparation tracks as capacity permits.',
+    };
+    expect(isPlanMaterial(await planAdoption(candidate, await writeInput(grounded)))).toBe(true);
+
+    const placeholder = structuredClone(grounded);
+    placeholder.documents[6] = {
+      ...placeholder.documents[6]!,
+      body: '# Project plan\n\nPending project state',
+    };
+    await expect(planAdoption(candidate, await writeInput(placeholder))).rejects.toMatchObject({
+      code: 'PCP_ADOPTION_INPUT_INVALID',
+    });
+  });
+
   it('installs explicitly selected capabilities in canonical order', async () => {
     const candidate = path.join(fixtureRoot, 'conventional');
     const value = adoptionInput({ projectType: 'software', evidencePath: 'package.json' });

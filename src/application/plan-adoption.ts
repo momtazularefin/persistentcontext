@@ -46,7 +46,8 @@ import { validateCanonicalLayer } from './validate-canonical-layer.js';
 
 const MAXIMUM_ADOPTION_INPUT_BYTES = 4 * 1_048_576;
 const MAXIMUM_EXTERNAL_REWRITE_BYTES = 4 * 1_048_576;
-const PLACEHOLDER_PATTERN = /replace this baseline|pending project|grounded project purpose/iu;
+const PLACEHOLDER_PATTERN =
+  /^[ \t]*(?:replace this baseline|pending project(?: state)?|grounded project purpose)[ \t]*$/imu;
 const WINDOWS_RESERVED_NAME = /^(?:con|prn|aux|nul|com[1-9]|lpt[1-9])(?:\..*)?$/iu;
 const WINDOWS_FORBIDDEN_CHARACTER = /[<>:"|?*]/u;
 const SCAFFOLD_SECRET_PATTERNS = [
@@ -594,6 +595,8 @@ function yamlBuffer(value: unknown): Buffer {
 }
 
 async function stageCanonicalLayer(
+  root: string,
+  inspection: InspectionResult,
   input: AdoptionInput,
   adapters: readonly GeneratedPlatformAdapter[] = [],
 ): Promise<ReadonlyMap<string, Buffer>> {
@@ -601,6 +604,24 @@ async function stageCanonicalLayer(
   try {
     const release = await loadReleaseTemplateFiles(input.capabilities);
     const template = new Map(release.files);
+    const preservedCapabilityRoots = new Set<string>();
+    for (const rootPath of release.manifests.flatMap((manifest) => manifest.root_paths)) {
+      const inventoried = inspection.inventory.files.find((file) => file.path === rootPath);
+      if (inventoried === undefined) continue;
+      const coverageRecord = input.coverage?.records.find(
+        (record) => record.source_path === rootPath && record.source_kind === 'file',
+      );
+      if (coverageRecord !== undefined && coverageRecord.disposition !== 'project-owned') continue;
+      const existing = await readFile(path.join(root, ...rootPath.split('/')));
+      if (sha256(existing) !== inventoried.sha256) {
+        throw new AdoptionError(
+          'PCP_SOURCE_CHANGED',
+          `Capability root changed after inventory: ${rootPath}`,
+        );
+      }
+      template.set(rootPath, existing);
+      preservedCapabilityRoots.add(rootPath);
+    }
     const manifestPath = '.pcp/pcp.yaml';
     const manifestBytes = template.get(manifestPath);
     if (manifestBytes === undefined) {
@@ -652,6 +673,7 @@ async function stageCanonicalLayer(
 
     const result = new Map<string, Buffer>();
     await collectStageFiles(stageRoot, stageRoot, result);
+    for (const preserved of preservedCapabilityRoots) result.delete(preserved);
     return result;
   } finally {
     await rm(stageRoot, { recursive: true, force: true });
@@ -1303,7 +1325,7 @@ async function buildStateCTranslationPlan(
 
   const adapters = renderPlatformAdapters();
   assertGeneratedPlatformAdapters(adapters);
-  const content = await stageCanonicalLayer(input, adapters);
+  const content = await stageCanonicalLayer(root, inspection, input, adapters);
   validateStateCCoverageTargets(input, content);
   const removalPaths = stateCRemovalPaths(input);
   const relocations = stateCRelocations(input);
@@ -1443,7 +1465,7 @@ async function buildPlanMaterial(
 
   const adapters = renderPlatformAdapters();
   assertGeneratedPlatformAdapters(adapters);
-  const content = new Map(await stageCanonicalLayer(input, adapters));
+  const content = new Map(await stageCanonicalLayer(root, inspection, input, adapters));
   for (const scaffold of input.scaffold_files) {
     if (content.has(scaffold.path)) {
       throw new AdoptionError(
