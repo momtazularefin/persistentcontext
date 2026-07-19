@@ -3,7 +3,7 @@ import { tmpdir } from 'node:os';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, describe, expect, it } from 'vitest';
 import { parse, stringify } from 'yaml';
 
 import { renderPlatformAdapters } from '../../src/application/render-platform-adapters.js';
@@ -15,8 +15,6 @@ import { inventoryRepository } from '../../src/infrastructure/filesystem-invento
 
 const coreTemplate = fileURLToPath(new URL('../../templates/core/.pcp/', import.meta.url));
 const temporaryRoots: string[] = [];
-
-vi.setConfig({ testTimeout: 30_000 });
 
 async function olderManagedProject(
   version = '0.0.9',
@@ -229,5 +227,5 @@ describe('ownership-aware upgrade', () => {
       );
       await expectPreserved(fixture.root, fixture.preserved);
     }
-  }, 120_000);
+  });
 });

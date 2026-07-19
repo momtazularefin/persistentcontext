@@ -5,7 +5,7 @@
   "identity": {
     "algorithm": "sha256",
     "scope": "Git-known working-tree files excluding release/0.1.0-rc.json and ignored build, coverage, dependency, and runtime output.",
-    "source_tree_digest": "5a1b9e9244e1892e8a03fe01ce14eeb36d740fdb9d0e590bec4169a53dbb3c66",
+    "source_tree_digest": "616e3df690606227c72cb78970947189f71cb8661fa23dc4189e835f73f81e87",
     "file_count": 355,
     "files": [
       {
@@ -15,8 +15,8 @@
       },
       {
         "path": ".github/workflows/ci.yml",
-        "bytes": 1929,
-        "sha256": "91401b188b937e5020fa336b63e6e6a3187a030d485e18d6d1be4bd06bfe3c2c"
+        "bytes": 1977,
+        "sha256": "722cc02df7acb01ee38440931ac9e920e104bcd1987f73f7f524961655ecb7a9"
       },
       {
         "path": ".gitignore",
@@ -1640,28 +1640,28 @@
       },
       {
         "path": "tests/integration/flowforge-adoption.test.ts",
-        "bytes": 7244,
-        "sha256": "d58f3c7fabbdd9052a79455566f9536944229fa631b92b7c98284b0e31cf67b6"
+        "bytes": 7200,
+        "sha256": "25db682378dc53f3fbc5ebce97b4d23672d7df5ad1f82fa16e6c0d779e11c4dd"
       },
       {
         "path": "tests/integration/platform-reconstruction.test.ts",
-        "bytes": 9374,
-        "sha256": "23643e312f3c00486ba299bae16491744638c9041f5b7f6fbb200e0a7b7ec78e"
+        "bytes": 9330,
+        "sha256": "86985ae4fa3914619ea1a5ac770135dd6e77677a2adda0eb72559bad57fcd77b"
       },
       {
         "path": "tests/unit/actor-registration.test.ts",
-        "bytes": 13381,
-        "sha256": "b1df9b2795b62e86b155593a223f582e332daf7cdea33daff3d8b40b54d7d4e7"
+        "bytes": 13337,
+        "sha256": "67433822657e8e9d1f08e1e2917973f873a0c63c5727e295d14aec93f95d6f17"
       },
       {
         "path": "tests/unit/adoption-planner.test.ts",
-        "bytes": 16351,
-        "sha256": "7f52cfcc7925688bc245b491841dec83ed3068ae6b94fb029dc99a089a5bf334"
+        "bytes": 16307,
+        "sha256": "4d25d5410f1c418b4d9f222209065bf19d7c044720e22aef7cda4b888e6ab4fc"
       },
       {
         "path": "tests/unit/adoption-transaction.test.ts",
-        "bytes": 27815,
-        "sha256": "ca2bb0211f3262a53915ecd2e93f27caade4fa4f662de661b3834d786fe69105"
+        "bytes": 27749,
+        "sha256": "88b0e3a15e0c90cb1002f3f63ead84cc710809da43bce25760a990aec82a80ec"
       },
       {
         "path": "tests/unit/canonical-renderer.test.ts",
@@ -1675,8 +1675,8 @@
       },
       {
         "path": "tests/unit/event-recording.test.ts",
-        "bytes": 17792,
-        "sha256": "aced11fd3d6ef89ede41c9b997515689c15ec5056762c4a75be55e26cefa166c"
+        "bytes": 17744,
+        "sha256": "e9e3b3c216fb4d4c053514955c8d9be85ead547744bb0263bf625555130a52af"
       },
       {
         "path": "tests/unit/filesystem-transaction.test.ts",
@@ -1685,8 +1685,8 @@
       },
       {
         "path": "tests/unit/foreign-coverage.test.ts",
-        "bytes": 33098,
-        "sha256": "f1f3aa250af6cbf792a368c865dbd5a15e1b7a6955260e7d1416036d7f004a56"
+        "bytes": 33054,
+        "sha256": "9140ff1add7910f1f6dd77a63c380bd1bfbba1d092141bdbf9198866348736bb"
       },
       {
         "path": "tests/unit/format-canonical.test.ts",
@@ -1730,8 +1730,8 @@
       },
       {
         "path": "tests/unit/program.test.ts",
-        "bytes": 8328,
-        "sha256": "1fb30341df37f582a71a84758029868759732954fcbe1daa0cd08a61c8457291"
+        "bytes": 8288,
+        "sha256": "f79f2f5762d62e697f27d81449a03cf2bbdace8b05e356ed99b912f1ab3cc715"
       },
       {
         "path": "tests/unit/reconciliation.test.ts",
@@ -1745,8 +1745,8 @@
       },
       {
         "path": "tests/unit/repair-project.test.ts",
-        "bytes": 6517,
-        "sha256": "bcdcb5916d48dcfdba7f33591ff8cecf3ebe1b529d0c2dba2a0170065c2c49b8"
+        "bytes": 6465,
+        "sha256": "3b01d90bb7b3039f6b59aea86989911ba07da0701a90720f40bc6beefd65f56d"
       },
       {
         "path": "tests/unit/schema-validator.test.ts",
@@ -1760,13 +1760,13 @@
       },
       {
         "path": "tests/unit/upgrade-project.test.ts",
-        "bytes": 9421,
-        "sha256": "34f31df2c173f6154322421d59a574e1f1d58b25ebbaa2ad4eec3a3384f57648"
+        "bytes": 9368,
+        "sha256": "81e399d267eff6ec03288d3c7941a38831af387409f7f9c2973b74be78a16324"
       },
       {
         "path": "tests/unit/workstream-management.test.ts",
-        "bytes": 23183,
-        "sha256": "f0e6ebc714368e12b19fab525da2fcea2709e0a1e96de1465a0939525b194648"
+        "bytes": 23119,
+        "sha256": "26d227394c6e1005795b9aeffaee0da54f3a783e0457172976b71d0aed041da0"
       },
       {
         "path": "tsconfig.build.json",
@@ -1780,8 +1780,8 @@
       },
       {
         "path": "vitest.config.ts",
-        "bytes": 215,
-        "sha256": "053d78f79cad561a0ddfe97804b5e7387f9f3cffa897da781cacd6faf6f300d2"
+        "bytes": 241,
+        "sha256": "1b437eb81a8916f7cea2b098afb0afb9a51963a9392fdd0b6633f07c565a0d07"
       }
     ]
   },

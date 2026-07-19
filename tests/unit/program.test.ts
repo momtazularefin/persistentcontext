@@ -9,8 +9,6 @@ import { registerActor } from '../../src/application/register-actor.js';
 import { createProgram, runCli } from '../../src/cli/main.js';
 import { PCP_COMMANDS } from '../../src/domain/release.js';
 
-vi.setConfig({ testTimeout: 15_000 });
-
 describe('pcp command surface', () => {
   it('exposes every planned lifecycle command', () => {
     const names = createProgram().commands.map((command) => command.name());

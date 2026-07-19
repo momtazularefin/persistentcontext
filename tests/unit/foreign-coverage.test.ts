@@ -3,7 +3,7 @@ import { tmpdir } from 'node:os';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, describe, expect, it } from 'vitest';
 import { parse } from 'yaml';
 
 import {
@@ -24,8 +24,6 @@ const adoptionInputFixture = fileURLToPath(
   new URL('../fixtures/schemas/adoption-input.yaml', import.meta.url),
 );
 const temporaryRoots: string[] = [];
-
-vi.setConfig({ testTimeout: 15_000 });
 
 async function temporaryRoot(prefix: string): Promise<string> {
   const root = await mkdtemp(path.join(tmpdir(), prefix));

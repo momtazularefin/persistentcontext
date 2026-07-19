@@ -4,7 +4,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 import { parse } from 'yaml';
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, describe, expect, it } from 'vitest';
 
 import { adoptProject } from '../../src/application/adopt-project.js';
 import { inspectRepository } from '../../src/application/inspect-repository.js';
@@ -17,8 +17,6 @@ const beforeRoot = path.join(exampleRoot, 'before');
 const inputPath = path.join(exampleRoot, 'adoption-input.yaml');
 const expectedPath = path.join(exampleRoot, 'expected.yaml');
 const temporaryRoots: string[] = [];
-
-vi.setConfig({ testTimeout: 30_000 });
 
 type ExpectedResult = {
   classification: 'B';
