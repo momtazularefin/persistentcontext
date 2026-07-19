@@ -4,7 +4,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 import { parse, stringify } from 'yaml';
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, describe, expect, it } from 'vitest';
 
 import { registerActor } from '../../src/application/register-actor.js';
 import { validateCanonicalLayer } from '../../src/application/validate-canonical-layer.js';
@@ -14,8 +14,6 @@ import {
   type RegisterActorInput,
 } from '../../src/domain/registration.js';
 import { formatRegistration } from '../../src/presentation/format-registration.js';
-
-vi.setConfig({ testTimeout: 15_000 });
 
 const coreTemplate = fileURLToPath(new URL('../../templates/core/.pcp/', import.meta.url));
 const temporaryRoots: string[] = [];

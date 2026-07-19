@@ -117,6 +117,7 @@ async function createStateC(): Promise<{ candidate: string; inputPath: string }>
   const catalog = await discoverForeignCoverage(candidate, inspection);
   const input = await adoptionFixture();
   input.scaffold_files = [];
+  input.foreign_roots = structuredClone(catalog.foreign_roots);
   input.coverage = reviewedCoverage(catalog.template);
   return { candidate, inputPath: await writeExternalInput(input) };
 }
@@ -132,6 +133,7 @@ async function createEquivalentStateC(
   if (catalog.issues.length > 0) throw new Error(`${layout} contains blocked foreign coverage.`);
   const input = await adoptionFixture();
   input.scaffold_files = [];
+  input.foreign_roots = structuredClone(catalog.foreign_roots);
   input.coverage = representedCoverage(catalog.template);
   return { candidate, inputPath: await writeExternalInput(input) };
 }
@@ -192,7 +194,7 @@ describe('transactional State A adoption', () => {
       '00-index.md',
     ]);
     expect(before.inventory.files.map((file) => file.path)).toEqual(['README.md']);
-  }, 30_000);
+  });
 
   it('rejects an unapproved digest without changing the candidate', async () => {
     const { candidate, inputPath } = await createSeed();
@@ -230,7 +232,7 @@ describe('transactional State A adoption', () => {
     expect(await validateCanonicalLayer(candidate, { clean_genesis: true })).toMatchObject({
       valid: true,
     });
-  }, 15_000);
+  });
 
   it('adopts an empty non-software State A project from an explicit scaffold', async () => {
     const candidate = await temporaryRoot('pcp-empty-research-');
@@ -255,7 +257,7 @@ describe('transactional State A adoption', () => {
     expect(await validateCanonicalLayer(candidate, { clean_genesis: true })).toMatchObject({
       valid: true,
     });
-  }, 15_000);
+  });
 
   it('adopts grounded software, documentation, research/data, monorepo, and nested-repository State B fixtures without changing owned assets', async () => {
     const cases = [
@@ -420,7 +422,7 @@ describe('transactional State A adoption', () => {
     expect(await validateCanonicalLayer(researchCandidate, { clean_genesis: true })).toMatchObject({
       valid: true,
     });
-  }, 60_000);
+  });
 
   it('invalidates approval after source drift before acquiring mutation authority', async () => {
     const { candidate, inputPath } = await createSeed();
@@ -471,7 +473,7 @@ describe('transactional State A adoption', () => {
       );
       expect(await readFile(path.join(candidate, 'README.md'), 'utf8')).toBe(seed);
     }
-  }, 180_000);
+  });
 });
 
 describe('transactional State C translation', () => {
@@ -516,7 +518,7 @@ describe('transactional State C translation', () => {
     await expect(
       readFile(path.join(second.candidate, 'team-memory', 'handoff.md')),
     ).rejects.toMatchObject({ code: 'ENOENT' });
-  }, 60_000);
+  });
 
   it('translates reviewed foreign context into a valid clean PCP layer while preserving project assets', async () => {
     const { candidate, inputPath } = await createStateC();
@@ -589,7 +591,7 @@ describe('transactional State C translation', () => {
         generatedAdapters.map((adapter) => adapter.manifest),
       ),
     ).toEqual({ valid: true, checked_adapters: 5, diagnostics: [] });
-  }, 60_000);
+  });
 
   it('rejects source drift after preview without starting translation', async () => {
     const { candidate, inputPath } = await createStateC();
@@ -654,5 +656,5 @@ describe('transactional State C translation', () => {
         originalChangelog,
       );
     }
-  }, 240_000);
+  });
 });

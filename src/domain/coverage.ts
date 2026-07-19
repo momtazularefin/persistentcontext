@@ -13,6 +13,14 @@ export type CoverageDisposition =
   | 'project-owned'
   | 'unresolved';
 
+export type ForeignRootDisposition = 'translate' | 'project-owned' | 'unresolved';
+
+export interface ForeignRootReview {
+  root: string;
+  disposition: ForeignRootDisposition;
+  evidence: string[];
+}
+
 export interface CoverageRecord {
   source_id: string;
   source_path: string;
@@ -27,6 +35,7 @@ export interface CoverageMatrix {
   schema_version: typeof COVERAGE_SCHEMA_VERSION;
   coverage_id: string;
   source_inventory_digest: string;
+  foreign_roots: ForeignRootReview[];
   records: CoverageRecord[];
   unresolved_count: number;
 }
@@ -58,6 +67,7 @@ export interface ForeignCoverageIssue {
 
 export interface ForeignCoverageCatalog {
   source_inventory_digest: string;
+  foreign_roots: ForeignRootReview[];
   sources: ForeignCoverageSource[];
   issues: ForeignCoverageIssue[];
   template: CoverageMatrix;

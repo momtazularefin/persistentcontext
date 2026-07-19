@@ -30,9 +30,9 @@ The `build-pcp` skill guides the judgment-heavy phase. It explores progressively
 - an explicit VCS policy and capability selection;
 - eight canonical knowledge and operations documents with evidence basis;
 - State A scaffold files when appropriate; or
-- a complete State C source/history coverage matrix when foreign context exists.
+- a reviewed disposition for every detected State C foreign root, followed by a complete source/history coverage matrix for roots selected for translation.
 
-State B cannot use adoption to add arbitrary project scaffold files. State C cannot remove a source until every file and structured history entry has a non-unresolved disposition with required targets and evidence.
+State B cannot use adoption to add arbitrary project scaffold files. State C first returns `requires-root-review`; the reviewed input then returns scoped coverage. It cannot remove a source until every translated file and structured history entry has a non-unresolved disposition with required targets and evidence. Roots reviewed as `project-owned` remain untouched.
 
 ## 3. Preview the exact plan
 
@@ -61,7 +61,7 @@ Apply recomputes the plan before acquiring mutation authority. It then:
 7. restores exact preimages in reverse order after any caught failure; and
 8. removes recovery material only after successful live acceptance.
 
-State C adds coverage-bound removal checks, replacement-first adapter ordering, preservation of `project-owned` files, and a fail-closed boundary for unknown or unsupported adapter surfaces.
+State C adds explicit root-scope review, coverage-bound removal checks, replacement-first adapter ordering, preservation of `project-owned` roots and files, and a fail-closed boundary for unknown or unsupported adapter surfaces.
 
 Every successful adoption starts with clean genesis: zero actor profiles, zero active events, and zero archived events. Grounded current context is imported; foreign identities and history are not.
 

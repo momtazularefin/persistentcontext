@@ -12,6 +12,7 @@ permissions:
 jobs:
   verify:
     name: verify (${{ matrix.os }})
+    timeout-minutes: 30
     strategy:
       fail-fast: false
       matrix:
@@ -44,6 +45,7 @@ jobs:
 
   golden:
     name: golden (${{ matrix.os }})
+    timeout-minutes: 30
     needs: verify
     strategy:
       fail-fast: false

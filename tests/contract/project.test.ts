@@ -29,8 +29,11 @@ describe('public project contract', () => {
     expect(readme).toContain('node dist/pcp.mjs upgrade path/to/managed-project --json');
     expect(readme).toContain('All adoption is preview-first');
     expect(readme).toContain('Every applicable State A, B, or C plan installs the same five');
-    expect(readme).toContain('State C intake additionally discovers complete foreign directories');
-    expect(readme).toContain('can be marked `project-owned` and preserved unchanged');
+    expect(readme).toContain(
+      'State C intake first requires an evidence-backed disposition for every detected foreign root',
+    );
+    expect(readme).toContain('fingerprinted file/adapter/history/registry records');
+    expect(readme).toContain('can still be marked `project-owned` and preserved unchanged');
     expect(readme).toContain('five generated platform delegations');
     expect(readme).toContain('outside the five-product contract fails closed');
     expect(readme).toContain('that digest also binds the reviewed coverage');

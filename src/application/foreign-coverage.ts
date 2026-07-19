@@ -21,24 +21,16 @@ import {
   type ForeignCoverageCatalog,
   type ForeignCoverageIssue,
   type ForeignCoverageSource,
+  type ForeignRootReview,
 } from '../domain/coverage.js';
 import {
   comparePortablePaths,
   type FileFingerprint,
   type InspectionResult,
-  type SignalCategory,
 } from '../domain/inspection.js';
 import { SchemaRegistry } from '../infrastructure/schema-validator.js';
 
 const MAXIMUM_STRUCTURED_SOURCE_BYTES = 4 * 1_048_576;
-const FOREIGN_CATEGORIES = new Set<SignalCategory>([
-  'agent-instructions',
-  'persistent-memory',
-  'agent-identity',
-  'change-journal',
-  'workflow',
-  'orchestration',
-]);
 const ENCRYPTED_EXTENSION = /\.(?:age|asc|enc|gpg|p12|pfx|pgp)$/iu;
 const ENCRYPTED_CONTENT =
   /-----BEGIN (?:PGP MESSAGE|ENCRYPTED PRIVATE KEY)-----|age-encryption\.org\/v1/iu;
@@ -191,16 +183,93 @@ function entrySources(
   });
 }
 
-function selectedForeignFiles(inspection: InspectionResult): FileFingerprint[] {
-  const directPaths = new Set(
-    inspection.signals
-      .filter((signal) => FOREIGN_CATEGORIES.has(signal.category))
-      .map((signal) => signal.path),
+export function foreignRootReviewTemplate(inspection: InspectionResult): ForeignRootReview[] {
+  return inspection.foreignCandidates.map((candidate) => ({
+    root: candidate.root,
+    disposition: 'unresolved',
+    evidence: [PENDING_COVERAGE_EVIDENCE],
+  }));
+}
+
+function defaultForeignRootReviews(inspection: InspectionResult): ForeignRootReview[] {
+  return inspection.foreignCandidates.map((candidate) => ({
+    root: candidate.root,
+    disposition: 'translate',
+    evidence: ['Included by direct foreign-coverage discovery.'],
+  }));
+}
+
+function normalizedForeignRoots(reviews: readonly ForeignRootReview[]): ForeignRootReview[] {
+  return reviews
+    .map((review) => ({ ...review, evidence: [...review.evidence].sort(comparePortablePaths) }))
+    .sort((left, right) => comparePortablePaths(left.root, right.root));
+}
+
+export function validateForeignRootReviews(
+  inspection: InspectionResult,
+  reviews: readonly ForeignRootReview[],
+): CoverageDiagnostic[] {
+  const diagnostics: CoverageDiagnostic[] = [];
+  const expected = inspection.foreignCandidates.map((candidate) => candidate.root);
+  const expectedSet = new Set(expected);
+  const seen = new Set<string>();
+  for (const [index, review] of reviews.entries()) {
+    if (seen.has(review.root)) {
+      diagnostics.push({
+        code: 'foreign-root-duplicate',
+        path: `/foreign_roots/${index}/root`,
+        message: `Foreign root appears more than once: ${review.root}`,
+      });
+    }
+    seen.add(review.root);
+    if (!expectedSet.has(review.root)) {
+      diagnostics.push({
+        code: 'foreign-root-unexpected',
+        path: `/foreign_roots/${index}/root`,
+        message: `Foreign root was not detected in the current inventory: ${review.root}`,
+      });
+    }
+    if (review.disposition === 'unresolved') {
+      diagnostics.push({
+        code: 'foreign-root-unresolved',
+        path: `/foreign_roots/${index}/disposition`,
+        message: `Foreign root remains unresolved: ${review.root}`,
+      });
+    }
+    if (review.evidence.includes(PENDING_COVERAGE_EVIDENCE)) {
+      diagnostics.push({
+        code: 'foreign-root-evidence-pending',
+        path: `/foreign_roots/${index}/evidence`,
+        message: `Resolved foreign root requires concrete evidence: ${review.root}`,
+      });
+    }
+  }
+  for (const root of expected) {
+    if (!seen.has(root)) {
+      diagnostics.push({
+        code: 'foreign-root-missing',
+        path: '/foreign_roots',
+        message: `Detected foreign root has no review: ${root}`,
+      });
+    }
+  }
+  return diagnostics;
+}
+
+function selectedForeignFiles(
+  inspection: InspectionResult,
+  reviews: readonly ForeignRootReview[],
+): FileFingerprint[] {
+  const translatedRoots = new Set(
+    reviews.filter((review) => review.disposition === 'translate').map((review) => review.root),
   );
+  const directPaths = new Set<string>();
   for (const candidate of inspection.foreignCandidates) {
+    if (!translatedRoots.has(candidate.root)) continue;
     for (const candidatePath of candidate.paths) directPaths.add(candidatePath);
   }
   const roots = inspection.foreignCandidates
+    .filter((candidate) => translatedRoots.has(candidate.root))
     .map((candidate) => candidate.root)
     .filter((root) => root !== '.');
 
@@ -210,8 +279,15 @@ function selectedForeignFiles(inspection: InspectionResult): FileFingerprint[] {
   );
 }
 
-function boundaryIssues(inspection: InspectionResult): ForeignCoverageIssue[] {
+function boundaryIssues(
+  inspection: InspectionResult,
+  reviews: readonly ForeignRootReview[],
+): ForeignCoverageIssue[] {
+  const translatedRoots = new Set(
+    reviews.filter((review) => review.disposition === 'translate').map((review) => review.root),
+  );
   const roots = inspection.foreignCandidates
+    .filter((candidate) => translatedRoots.has(candidate.root))
     .map((candidate) => candidate.root)
     .filter((root) => root !== '.');
   const issues: ForeignCoverageIssue[] = [];
@@ -250,6 +326,7 @@ function compareSources(left: ForeignCoverageSource, right: ForeignCoverageSourc
 
 function createCoverageTemplate(
   inventoryDigest: string,
+  foreignRoots: readonly ForeignRootReview[],
   sources: readonly ForeignCoverageSource[],
 ): CoverageMatrix {
   const records: CoverageRecord[] = sources.map((source) => ({
@@ -260,8 +337,12 @@ function createCoverageTemplate(
   }));
   return {
     schema_version: COVERAGE_SCHEMA_VERSION,
-    coverage_id: deterministicUlid(canonicalJson([inventoryDigest, sources])),
+    coverage_id: deterministicUlid(canonicalJson([inventoryDigest, foreignRoots, sources])),
     source_inventory_digest: inventoryDigest,
+    foreign_roots: foreignRoots.map((review) => ({
+      ...review,
+      evidence: [...review.evidence],
+    })),
     records,
     unresolved_count: records.length,
   };
@@ -270,6 +351,7 @@ function createCoverageTemplate(
 export async function discoverForeignCoverage(
   root: string,
   inspection: InspectionResult,
+  foreignRoots: readonly ForeignRootReview[] = defaultForeignRootReviews(inspection),
 ): Promise<ForeignCoverageCatalog> {
   if (inspection.state !== 'C') {
     throw new AdoptionError(
@@ -278,9 +360,21 @@ export async function discoverForeignCoverage(
     );
   }
 
+  const rootDiagnostics = validateForeignRootReviews(inspection, foreignRoots);
+  if (rootDiagnostics.length > 0) {
+    throw new AdoptionError(
+      'PCP_STATE_C_ROOT_REVIEW_INVALID',
+      `State C foreign-root review is not ready: ${rootDiagnostics
+        .slice(0, 8)
+        .map((diagnostic) => `${diagnostic.code} ${diagnostic.path}: ${diagnostic.message}`)
+        .join('; ')}`,
+    );
+  }
+  const normalizedRoots = normalizedForeignRoots(foreignRoots);
+
   const sources: ForeignCoverageSource[] = [];
-  const issues = boundaryIssues(inspection);
-  for (const file of selectedForeignFiles(inspection)) {
+  const issues = boundaryIssues(inspection, normalizedRoots);
+  for (const file of selectedForeignFiles(inspection, normalizedRoots)) {
     sources.push({
       source_id: `${isForeignAdapterSourcePath(file.path) ? 'adapter' : 'file'}:${file.path}`,
       source_path: file.path,
@@ -363,9 +457,10 @@ export async function discoverForeignCoverage(
   );
   return {
     source_inventory_digest: inspection.inventory.digest,
+    foreign_roots: normalizedRoots,
     sources,
     issues: uniqueIssues,
-    template: createCoverageTemplate(inspection.inventory.digest, sources),
+    template: createCoverageTemplate(inspection.inventory.digest, normalizedRoots, sources),
   };
 }
 
@@ -403,6 +498,16 @@ export function validateForeignCoverage(
       code: 'coverage-inventory-mismatch',
       path: '/source_inventory_digest',
       message: 'Coverage was prepared against a different candidate inventory.',
+    });
+  }
+  if (
+    canonicalJson(normalizedForeignRoots(coverage.foreign_roots)) !==
+    canonicalJson(normalizedForeignRoots(catalog.foreign_roots))
+  ) {
+    diagnostics.push({
+      code: 'coverage-foreign-roots-mismatch',
+      path: '/foreign_roots',
+      message: 'Coverage foreign-root review does not match the scoped matrix for this candidate.',
     });
   }
 

@@ -3,6 +3,10 @@ valid:
   schema_version: 1
   coverage_id: 01ARZ3NDEKTSV4RRFFQ69G5FAV
   source_inventory_digest: aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
+  foreign_roots:
+    - root: legacy/context
+      disposition: translate
+      evidence: [This is the live foreign context layer.]
   records:
     - source_id: legacy-policy
       source_path: legacy/context/policy.md

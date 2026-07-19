@@ -25,8 +25,6 @@ import type {
 } from '../../src/domain/workstreams.js';
 import { formatWorkstream } from '../../src/presentation/format-workstream.js';
 
-vi.setConfig({ testTimeout: 15_000 });
-
 const coreTemplate = fileURLToPath(new URL('../../templates/core/.pcp/', import.meta.url));
 const temporaryRoots: string[] = [];
 
@@ -258,7 +256,7 @@ describe('workstream management', () => {
     );
     expect(formatWorkstream(result)).toContain('Created workstream implementation.');
     expect((await validateCanonicalLayer(root)).valid).toBe(true);
-  }, 15_000);
+  });
 
   it('enforces update transitions, immutable kind, and the completion boundary', async () => {
     const root = await createProject();
@@ -443,7 +441,7 @@ describe('workstream management', () => {
       'Announcement: Delivery CEB is complete; dependent work may begin.',
     );
     expect((await validateCanonicalLayer(root)).valid).toBe(true);
-  }, 15_000);
+  });
 
   it('rejects stale input and unsafe project-local input without mutation', async () => {
     const root = await createProject();
@@ -571,7 +569,7 @@ describe('workstream management', () => {
       expect(await recoveryDirectories(root)).toEqual([]);
     }
     expect((await validateCanonicalLayer(root)).valid).toBe(true);
-  }, 90_000);
+  });
 
   it('uses archive filenames without reading archived contents during ordinary operation', async () => {
     const root = await createProject();

@@ -3,7 +3,7 @@ import { tmpdir } from 'node:os';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, describe, expect, it } from 'vitest';
 import { parse, stringify } from 'yaml';
 
 import { renderPlatformAdapters } from '../../src/application/render-platform-adapters.js';
@@ -15,8 +15,6 @@ import { inventoryRepository } from '../../src/infrastructure/filesystem-invento
 
 const coreTemplate = fileURLToPath(new URL('../../templates/core/.pcp/', import.meta.url));
 const temporaryRoots: string[] = [];
-
-vi.setConfig({ testTimeout: 15_000 });
 
 async function managedProject(): Promise<string> {
   const root = await mkdtemp(path.join(tmpdir(), 'pcp-repair-project-'));
@@ -155,5 +153,5 @@ describe('managed adapter repair', () => {
       ).rejects.toMatchObject({ code: 'PCP_FAULT_INJECTED', mutated: false });
       expect((await inventoryRepository(root)).digest, `boundary ${boundary}`).toBe(before.digest);
     }
-  }, 60_000);
+  });
 });

@@ -3,7 +3,7 @@ import { tmpdir } from 'node:os';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, describe, expect, it } from 'vitest';
 import { parse } from 'yaml';
 
 import { isPlanMaterial, planAdoption } from '../../src/application/plan-adoption.js';
@@ -12,8 +12,6 @@ import type { AdoptionDocumentInput, AdoptionInput } from '../../src/domain/adop
 
 const fixtureRoot = fileURLToPath(new URL('../fixtures/inspection/', import.meta.url));
 const temporaryRoots: string[] = [];
-
-vi.setConfig({ testTimeout: 15_000 });
 
 async function temporaryRoot(prefix: string): Promise<string> {
   const root = await mkdtemp(path.join(tmpdir(), prefix));
@@ -322,6 +320,9 @@ describe('State A and State B adoption planning', () => {
       schema_version: 1,
       coverage_id: '01ARZ3NDEKTSV4RRFFQ69G5FAV',
       source_inventory_digest: 'a'.repeat(64),
+      foreign_roots: [
+        { root: '.', disposition: 'translate', evidence: ['Reviewed test fixture.'] },
+      ],
       records: [],
       unresolved_count: 0,
     };
@@ -340,6 +341,9 @@ describe('State A and State B adoption planning', () => {
       schema_version: 1,
       coverage_id: '01ARZ3NDEKTSV4RRFFQ69G5FAV',
       source_inventory_digest: 'a'.repeat(64),
+      foreign_roots: [
+        { root: '.', disposition: 'translate', evidence: ['Reviewed test fixture.'] },
+      ],
       records: [],
       unresolved_count: 0,
     };

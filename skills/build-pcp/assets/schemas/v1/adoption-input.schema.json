@@ -58,6 +58,14 @@
       "minItems": 8,
       "maxItems": 8
     },
+    "foreign_roots": {
+      "type": "array",
+      "items": {
+        "$ref": "urn:pcp:schema:v1:coverage#/$defs/foreignRoot"
+      },
+      "minItems": 1,
+      "uniqueItems": true
+    },
     "coverage": {
       "$ref": "urn:pcp:schema:v1:coverage"
     },

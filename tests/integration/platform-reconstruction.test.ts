@@ -4,7 +4,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 import { parse } from 'yaml';
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, describe, expect, it } from 'vitest';
 
 import { adoptProject } from '../../src/application/adopt-project.js';
 import { renderPlatformAdapters } from '../../src/application/render-platform-adapters.js';
@@ -15,8 +15,6 @@ const schemaFixture = fileURLToPath(
   new URL('../fixtures/schemas/adoption-input.yaml', import.meta.url),
 );
 const temporaryRoots: string[] = [];
-
-vi.setConfig({ testTimeout: 30_000 });
 
 const startupPaths: Record<SupportedAdapterId, string[]> = {
   codex: ['AGENTS.md'],
