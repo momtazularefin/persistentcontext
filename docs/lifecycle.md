@@ -121,6 +121,8 @@ node dist/pcp.mjs render path/to/project --json
 
 Validation covers release schemas, required structure, numbered and indexed Markdown, links, portability, secret patterns, ownership, generated views and adapters, identities, event integrity, checkpoints, workstream dependencies, VCS authority, and optional clean genesis.
 
+The installed project-local engine is self-contained for validation. Enabled capability metadata is embedded in the release executable, so validation does not require the public source templates or skill package beside a managed project. Adoption and upgrade use the incoming release's checked template assets because those operations create or refresh files.
+
 Normal operations may validate archive filenames without reading historical content. Full validation is the explicit archive-content audit. `render --check` is non-mutating; write mode replaces only the declared generated status view.
 
 ## 10. Repair or upgrade with preservation proof

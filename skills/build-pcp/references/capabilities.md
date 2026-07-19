@@ -22,6 +22,8 @@ The recommended human-commit flow lets the agent prepare and verify each coheren
 
 During adoption, put the exact desired capability IDs in the external input's `capabilities` array. Use `[]` for core only. The engine rejects unknown and duplicate IDs, resolves dependencies, installs overlays in canonical order regardless of input order, updates each affected numbered index, and records the normalized selection in `.pcp/pcp.yaml`. Capability files participate in the same preview digest, collision checks, transaction, rollback, clean-genesis validation, and State A/B/C rules as core files. An existing safe regular capability-root file is preserved as project-owned material and validated in place; unsafe collisions still block the plan. Do not overwrite project material to force a module.
 
+The release bundles the small immutable capability-manifest contract into the executable. A project's installed `.pcp/tools/pcp.mjs` therefore validates enabled capability documents and project-owned root paths without depending on the public source checkout or skill asset directory. Adoption and upgrade still require the incoming release's checked overlay files; validation does not.
+
 Enable only modules that fit the project. Installing PCP must not force a software topology or Git workflow on non-software and existing projects. Capability selection is part of adoption rather than an informal copy operation. Upgrade preserves the installed selection, refreshes release-owned capability protocol files, and leaves project-owned capability scaffolds and working material unchanged. If a later capability change is needed, treat it as a separately designed preview/apply lifecycle; do not edit the manifest or copy overlays manually.
 
 ## Compatibility

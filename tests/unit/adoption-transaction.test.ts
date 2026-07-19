@@ -1,6 +1,8 @@
+import { execFile } from 'node:child_process';
 import { cp, mkdir, mkdtemp, readFile, readdir, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
+import { promisify } from 'node:util';
 import { fileURLToPath } from 'node:url';
 
 import { parse } from 'yaml';
@@ -24,6 +26,7 @@ const equivalentStateCFixture = fileURLToPath(
   new URL('../fixtures/adoption/state-c-equivalent-layouts/', import.meta.url),
 );
 const temporaryRoots: string[] = [];
+const exec = promisify(execFile);
 
 async function temporaryRoot(prefix: string): Promise<string> {
   const root = await mkdtemp(path.join(tmpdir(), prefix));
@@ -265,6 +268,16 @@ describe('transactional State A adoption', () => {
     );
     expect(await validateCanonicalLayer(candidate, { clean_genesis: true })).toMatchObject({
       valid: true,
+    });
+    const installedValidation = await exec(
+      process.execPath,
+      [path.join(candidate, '.pcp', 'tools', 'pcp.mjs'), 'validate', candidate, '--json'],
+      { cwd: candidate },
+    );
+    expect(JSON.parse(installedValidation.stdout)).toMatchObject({
+      valid: true,
+      command: 'validate',
+      mutated: false,
     });
   });
 

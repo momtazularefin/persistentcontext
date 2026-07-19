@@ -25,7 +25,7 @@ import {
   type OwnershipPatterns,
 } from '../infrastructure/canonical-ownership.js';
 import { canonicalSourceDigest } from '../infrastructure/canonical-source-digest.js';
-import { loadCapabilityTemplateFiles } from '../infrastructure/adoption-assets.js';
+import { loadCapabilityManifests } from '../infrastructure/adoption-assets.js';
 import { SchemaRegistry } from '../infrastructure/schema-validator.js';
 import { renderPlatformAdapters } from './render-platform-adapters.js';
 import { validatePlatformAdapters } from './validate-platform-adapters.js';
@@ -714,8 +714,8 @@ export async function validateCanonicalLayer(
   const capabilityIds = stringArray(objectValue(manifest)?.capabilities);
   if (capabilityIds !== undefined) {
     try {
-      const capabilities = await loadCapabilityTemplateFiles(capabilityIds);
-      for (const capability of capabilities.manifests) {
+      const capabilities = loadCapabilityManifests(capabilityIds);
+      for (const capability of capabilities) {
         for (const entry of capability.index_entries) {
           const requiredPath = `${entry.folder}/${entry.path}`;
           if (!presentPaths.has(requiredPath)) {
