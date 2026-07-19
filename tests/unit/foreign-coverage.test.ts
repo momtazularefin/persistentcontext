@@ -10,6 +10,7 @@ import {
   discoverForeignCoverage,
   validateForeignCoverage,
 } from '../../src/application/foreign-coverage.js';
+import { adoptProject } from '../../src/application/adopt-project.js';
 import { inspectRepository } from '../../src/application/inspect-repository.js';
 import { isPlanMaterial, planAdoption } from '../../src/application/plan-adoption.js';
 import { sha256, type AdoptionInput } from '../../src/domain/adoption.js';
@@ -389,6 +390,121 @@ describe('State C foreign coverage', () => {
     await expect(
       planAdoption(candidate, await writeInput(await stateCInput(unsafe))),
     ).rejects.toMatchObject({ code: 'PCP_STATE_C_COVERAGE_INVALID' });
+  });
+
+  it('rewrites reviewed inbound references inside a nested repository transactionally', async () => {
+    const candidate = await temporaryRoot('pcp-state-c-external-rewrite-');
+    await mkdir(path.join(candidate, 'legacy-context'), { recursive: true });
+    await mkdir(path.join(candidate, 'nested-project', '.git'), { recursive: true });
+    await mkdir(path.join(candidate, 'nested-project', 'docs'), { recursive: true });
+    await writeFile(
+      path.join(candidate, 'README.md'),
+      '# Existing project\n\nA maintained project with a foreign context layer.\n',
+      'utf8',
+    );
+    await writeFile(
+      path.join(candidate, 'legacy-context', 'continuity.md'),
+      '# Continuity\n\nThis directory is the source of truth for coding agents.\n',
+      'utf8',
+    );
+    const guidePath = path.join(candidate, 'nested-project', 'docs', 'guide.md');
+    const originalGuide =
+      '# Guide\n\nSee [the live policy](../../legacy-context/continuity.md) before editing.\n';
+    await writeFile(guidePath, originalGuide, 'utf8');
+
+    const inspection = await inspectRepository(candidate);
+    expect(inspection.inventory.nestedRepositories).toEqual(['nested-project']);
+    const catalog = await discoverForeignCoverage(candidate, inspection);
+    const coverage = reviewedCoverage(catalog.template);
+    const input = await stateCInput(coverage);
+    input.external_rewrites = [
+      {
+        path: 'nested-project/docs/guide.md',
+        preimage_digest: sha256(originalGuide),
+        replacements: [
+          {
+            from: '../../legacy-context/continuity.md',
+            to: '../../.pcp/operations/10-working-agreement.md',
+          },
+        ],
+        evidence: ['The nested guide links to a translated source that disappears at cutover.'],
+      },
+    ];
+    const inputPath = await writeInput(input);
+    const planned = await planAdoption(candidate, inputPath);
+    if (!isPlanMaterial(planned)) throw new Error('Expected an applicable external rewrite plan.');
+    expect(planned.preview.plan.operations).toContainEqual(
+      expect.objectContaining({
+        action: 'replace',
+        path: 'nested-project/docs/guide.md',
+        preimage_digest: sha256(originalGuide),
+      }),
+    );
+    expect(await readFile(guidePath, 'utf8')).toBe(originalGuide);
+
+    const applied = await adoptProject(candidate, {
+      input: inputPath,
+      apply: planned.preview.plan.plan_digest,
+    });
+    expect(applied).toMatchObject({ mutated: true, recovery_cleaned: true });
+    expect(await readFile(guidePath, 'utf8')).toContain(
+      '../../.pcp/operations/10-working-agreement.md',
+    );
+  });
+
+  it('rejects unreviewed, stale, absent, or translated external rewrite sources', async () => {
+    const candidate = await temporaryRoot('pcp-state-c-external-rewrite-invalid-');
+    await mkdir(path.join(candidate, 'legacy-context'), { recursive: true });
+    await writeFile(
+      path.join(candidate, 'README.md'),
+      '# Existing project\n\nA maintained project with a foreign context layer.\n',
+      'utf8',
+    );
+    const legacyPath = path.join(candidate, 'legacy-context', 'continuity.md');
+    const legacy = '# Continuity\n\nThis is the source of truth for coding agents.\n';
+    await writeFile(legacyPath, legacy, 'utf8');
+    const inspection = await inspectRepository(candidate);
+    const catalog = await discoverForeignCoverage(candidate, inspection);
+    const coverage = reviewedCoverage(catalog.template);
+
+    const stale = await stateCInput(coverage);
+    stale.external_rewrites = [
+      {
+        path: 'README.md',
+        preimage_digest: 'a'.repeat(64),
+        replacements: [{ from: 'Existing project', to: 'Managed project' }],
+        evidence: ['The project-owned README contains an inbound context reference.'],
+      },
+    ];
+    await expect(planAdoption(candidate, await writeInput(stale))).rejects.toMatchObject({
+      code: 'PCP_SOURCE_CHANGED',
+    });
+
+    const absent = await stateCInput(coverage);
+    absent.external_rewrites = [
+      {
+        path: 'missing.md',
+        preimage_digest: sha256('missing'),
+        replacements: [{ from: 'old', to: 'new' }],
+        evidence: ['The claimed source is intentionally absent.'],
+      },
+    ];
+    await expect(planAdoption(candidate, await writeInput(absent))).rejects.toMatchObject({
+      code: 'PCP_ADOPTION_EVIDENCE_MISSING',
+    });
+
+    const translated = await stateCInput(coverage);
+    translated.external_rewrites = [
+      {
+        path: 'legacy-context/continuity.md',
+        preimage_digest: sha256(legacy),
+        replacements: [{ from: 'source of truth', to: 'historical source' }],
+        evidence: ['Translated sources cannot also be external rewrite targets.'],
+      },
+    ];
+    await expect(planAdoption(candidate, await writeInput(translated))).rejects.toMatchObject({
+      code: 'PCP_ADOPTION_PATH_BOUNDARY',
+    });
   });
 
   it('previews explicit replacements for all five canonical adapter collisions', async () => {

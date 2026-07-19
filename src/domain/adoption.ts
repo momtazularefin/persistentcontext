@@ -26,13 +26,13 @@ export const REQUIRED_ADOPTION_DOCUMENTS = [
 ] as const;
 
 export type RequiredAdoptionDocumentPath = (typeof REQUIRED_ADOPTION_DOCUMENTS)[number];
-export type AdoptionDocumentType = 'knowledge' | 'policy' | 'plan';
+export type AdoptionDocumentType = 'knowledge' | 'policy' | 'plan' | 'project';
 export type AdoptionDocumentStatus = 'static' | 'living';
 export type AdoptionEvidenceBasis =
   'repository' | 'user' | 'repository-and-user' | 'not-applicable';
 
 export interface AdoptionDocumentInput {
-  path: RequiredAdoptionDocumentPath;
+  path: string;
   type: AdoptionDocumentType;
   status: AdoptionDocumentStatus;
   basis: AdoptionEvidenceBasis;
@@ -43,6 +43,13 @@ export interface AdoptionDocumentInput {
 export interface AdoptionScaffoldFile {
   path: string;
   content: string;
+}
+
+export interface AdoptionExternalRewrite {
+  path: string;
+  preimage_digest: string;
+  replacements: Array<{ from: string; to: string }>;
+  evidence: string[];
 }
 
 export interface AdoptionProjectState {
@@ -75,7 +82,7 @@ export interface AdoptionInput {
   project: AdoptionProjectState;
   projects: {
     schema_version: 1;
-    projects: Array<Record<string, unknown>>;
+    projects: AdoptionProjectState[];
   };
   workstreams: {
     schema_version: 1;
@@ -85,6 +92,7 @@ export interface AdoptionInput {
   documents: AdoptionDocumentInput[];
   foreign_roots?: ForeignRootReview[];
   coverage?: CoverageMatrix;
+  external_rewrites?: AdoptionExternalRewrite[];
   scaffold_files: AdoptionScaffoldFile[];
 }
 

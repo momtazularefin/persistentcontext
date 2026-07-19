@@ -45,7 +45,9 @@ import { inspectRepository } from './inspect-repository.js';
 import { validateCanonicalLayer } from './validate-canonical-layer.js';
 
 const MAXIMUM_ADOPTION_INPUT_BYTES = 4 * 1_048_576;
-const PLACEHOLDER_PATTERN = /replace this baseline|pending project|grounded project purpose/iu;
+const MAXIMUM_EXTERNAL_REWRITE_BYTES = 4 * 1_048_576;
+const PLACEHOLDER_PATTERN =
+  /^[ \t]*(?:replace this baseline|pending project(?: state)?|grounded project purpose)[ \t]*$/imu;
 const WINDOWS_RESERVED_NAME = /^(?:con|prn|aux|nul|com[1-9]|lpt[1-9])(?:\..*)?$/iu;
 const WINDOWS_FORBIDDEN_CHARACTER = /[<>:"|?*]/u;
 const SCAFFOLD_SECRET_PATTERNS = [
@@ -66,6 +68,8 @@ const expectedDocuments = new Map<string, Pick<AdoptionDocumentInput, 'type' | '
   ['operations/20-plan.md', { type: 'plan', status: 'living' }],
   ['operations/30-decisions.md', { type: 'policy', status: 'living' }],
 ]);
+const PROJECT_DOCUMENT_PATH =
+  /^projects\/([a-z0-9]+(?:-[a-z0-9]+)*)\/([1-9][0-9])-[a-z0-9]+(?:-[a-z0-9]+)*\.md$/u;
 
 function isInside(root: string, candidate: string): boolean {
   const relative = path.relative(root, candidate);
@@ -276,10 +280,10 @@ async function loadAdoptionInput(inputPath: string, candidateRoot: string): Prom
 
 function validateDocumentSet(input: AdoptionInput, inspection: InspectionResult): void {
   const paths = input.documents.map((document) => document.path);
-  if (new Set(paths).size !== REQUIRED_ADOPTION_DOCUMENTS.length) {
+  if (new Set(paths).size !== paths.length) {
     throw new AdoptionError(
       'PCP_ADOPTION_INPUT_INVALID',
-      'Each required canonical adoption document must appear exactly once.',
+      'Each canonical adoption document path must appear exactly once.',
     );
   }
   for (const requiredPath of REQUIRED_ADOPTION_DOCUMENTS) {
@@ -296,17 +300,37 @@ function validateDocumentSet(input: AdoptionInput, inspection: InspectionResult)
     ...inspection.inventory.files.map((file) => file.path),
     ...inspection.inventory.nestedRepositories,
   ]);
+  const projectIds = new Set([
+    input.project.project_id,
+    ...input.projects.projects.map((project) => project.project_id),
+  ]);
   for (const document of input.documents) {
     const expected = expectedDocuments.get(document.path);
+    const projectMatch = PROJECT_DOCUMENT_PATH.exec(document.path);
     if (
-      expected === undefined ||
-      expected.type !== document.type ||
-      expected.status !== document.status
+      expected !== undefined &&
+      (expected.type !== document.type || expected.status !== document.status)
     ) {
       throw new AdoptionError(
         'PCP_ADOPTION_INPUT_INVALID',
         `Document metadata does not match its canonical role: ${document.path}`,
       );
+    }
+    if (expected === undefined) {
+      const projectId = projectMatch?.[1];
+      const order = Number(projectMatch?.[2]);
+      if (
+        projectId === undefined ||
+        !projectIds.has(projectId) ||
+        order % 10 !== 0 ||
+        document.type !== 'project' ||
+        !input.capabilities.includes('spec-driven-projects')
+      ) {
+        throw new AdoptionError(
+          'PCP_ADOPTION_INPUT_INVALID',
+          `Unsupported canonical project document: ${document.path}`,
+        );
+      }
     }
     const body = normalizeText(document.body).trim();
     if (!body.startsWith('# ') || body.startsWith('---') || PLACEHOLDER_PATTERN.test(body)) {
@@ -326,7 +350,7 @@ function validateDocumentSet(input: AdoptionInput, inspection: InspectionResult)
     }
     if (
       (inspection.state === 'B' || inspection.state === 'C') &&
-      document.type === 'knowledge' &&
+      (document.type === 'knowledge' || document.type === 'project') &&
       document.basis !== 'repository' &&
       document.basis !== 'repository-and-user'
     ) {
@@ -344,6 +368,82 @@ function validateDocumentSet(input: AdoptionInput, inspection: InspectionResult)
       }
     }
   }
+}
+
+function documentTitle(document: AdoptionDocumentInput): string {
+  const heading = normalizeText(document.body)
+    .split('\n')
+    .find((line) => line.startsWith('# '));
+  return (heading?.slice(2).trim() || path.posix.basename(document.path, '.md'))
+    .replaceAll('[', '')
+    .replaceAll(']', '');
+}
+
+function renderIndex(
+  documentPath: string,
+  title: string,
+  baselineAt: string,
+  links: readonly { path: string; title: string }[],
+): Buffer {
+  const frontmatter = stringify(
+    {
+      doc: documentPath,
+      type: 'index',
+      status: 'living',
+      version: '1.0.0',
+      last_updated: baselineAt,
+      ownership: 'project',
+    },
+    { lineWidth: 0 },
+  ).trimEnd();
+  const readingOrder = links.map((link) => `- [${link.title}](${link.path})`).join('\n');
+  return Buffer.from(
+    `---\n${frontmatter}\n---\n\n# ${title}\n\n## Reading order\n\n${readingOrder}\n`,
+    'utf8',
+  );
+}
+
+function renderProjectDocumentIndexes(input: AdoptionInput): Map<string, Buffer> {
+  const projects = new Map(
+    [input.project, ...input.projects.projects].map((project) => [project.project_id, project]),
+  );
+  const grouped = new Map<string, AdoptionDocumentInput[]>();
+  for (const document of input.documents) {
+    const projectId = PROJECT_DOCUMENT_PATH.exec(document.path)?.[1];
+    if (projectId === undefined) continue;
+    const documents = grouped.get(projectId) ?? [];
+    documents.push(document);
+    grouped.set(projectId, documents);
+  }
+
+  const rendered = new Map<string, Buffer>();
+  const rootLinks: { path: string; title: string }[] = [];
+  for (const projectId of [...grouped.keys()].sort(comparePortablePaths)) {
+    const project = projects.get(projectId);
+    if (project === undefined) continue;
+    const documents = grouped.get(projectId) ?? [];
+    documents.sort((left, right) => comparePortablePaths(left.path, right.path));
+    rendered.set(
+      `.pcp/projects/${projectId}/00-index.md`,
+      renderIndex(
+        `projects/${projectId}/00-index.md`,
+        project.name,
+        input.baseline_at,
+        documents.map((document) => ({
+          path: path.posix.basename(document.path),
+          title: documentTitle(document),
+        })),
+      ),
+    );
+    rootLinks.push({ path: `${projectId}/00-index.md`, title: project.name });
+  }
+  if (rootLinks.length > 0) {
+    rendered.set(
+      '.pcp/projects/00-index.md',
+      renderIndex('projects/00-index.md', 'Managed projects', input.baseline_at, rootLinks),
+    );
+  }
+  return rendered;
 }
 
 function portableCollisionKey(value: string): string {
@@ -385,6 +485,12 @@ function validateProjectInput(input: AdoptionInput, inspection: InspectionResult
     throw new AdoptionError(
       'PCP_STATE_C_ROOT_REVIEW_FORBIDDEN',
       'Foreign-root review belongs only to State C adoption input.',
+    );
+  }
+  if (inspection.state !== 'C' && (input.external_rewrites?.length ?? 0) > 0) {
+    throw new AdoptionError(
+      'PCP_STATE_C_EXTERNAL_REWRITE_FORBIDDEN',
+      'External reference rewrites belong only to State C adoption input.',
     );
   }
   if (inspection.state === 'C' && input.foreign_roots === undefined) {
@@ -489,6 +595,8 @@ function yamlBuffer(value: unknown): Buffer {
 }
 
 async function stageCanonicalLayer(
+  root: string,
+  inspection: InspectionResult,
   input: AdoptionInput,
   adapters: readonly GeneratedPlatformAdapter[] = [],
 ): Promise<ReadonlyMap<string, Buffer>> {
@@ -496,6 +604,24 @@ async function stageCanonicalLayer(
   try {
     const release = await loadReleaseTemplateFiles(input.capabilities);
     const template = new Map(release.files);
+    const preservedCapabilityRoots = new Set<string>();
+    for (const rootPath of release.manifests.flatMap((manifest) => manifest.root_paths)) {
+      const inventoried = inspection.inventory.files.find((file) => file.path === rootPath);
+      if (inventoried === undefined) continue;
+      const coverageRecord = input.coverage?.records.find(
+        (record) => record.source_path === rootPath && record.source_kind === 'file',
+      );
+      if (coverageRecord !== undefined && coverageRecord.disposition !== 'project-owned') continue;
+      const existing = await readFile(path.join(root, ...rootPath.split('/')));
+      if (sha256(existing) !== inventoried.sha256) {
+        throw new AdoptionError(
+          'PCP_SOURCE_CHANGED',
+          `Capability root changed after inventory: ${rootPath}`,
+        );
+      }
+      template.set(rootPath, existing);
+      preservedCapabilityRoots.add(rootPath);
+    }
     const manifestPath = '.pcp/pcp.yaml';
     const manifestBytes = template.get(manifestPath);
     if (manifestBytes === undefined) {
@@ -512,6 +638,9 @@ async function stageCanonicalLayer(
     template.set('.pcp/state/vcs-policy.yaml', yamlBuffer(input.vcs_policy));
     for (const document of input.documents) {
       template.set(`.pcp/${document.path}`, renderDocument(document, input.baseline_at));
+    }
+    for (const [indexPath, content] of renderProjectDocumentIndexes(input)) {
+      template.set(indexPath, content);
     }
     for (const adapter of adapters) {
       if (template.has(adapter.manifest.target_path)) {
@@ -544,6 +673,7 @@ async function stageCanonicalLayer(
 
     const result = new Map<string, Buffer>();
     await collectStageFiles(stageRoot, stageRoot, result);
+    for (const preserved of preservedCapabilityRoots) result.delete(preserved);
     return result;
   } finally {
     await rm(stageRoot, { recursive: true, force: true });
@@ -711,6 +841,178 @@ interface StateCRelocation {
   preimage_digest: string;
 }
 
+interface PreparedExternalRewrite {
+  path: string;
+  preimage_digest: string;
+  content: Buffer;
+}
+
+async function metadataOrUndefined(
+  target: string,
+): Promise<Awaited<ReturnType<typeof lstat>> | undefined> {
+  try {
+    return await lstat(target);
+  } catch (error) {
+    if ((error as NodeJS.ErrnoException).code === 'ENOENT') return undefined;
+    throw error;
+  }
+}
+
+async function assertExternalRewritePathHasNoSymlink(root: string, target: string): Promise<void> {
+  let current = target;
+  while (current !== root) {
+    const metadata = await metadataOrUndefined(current);
+    if (metadata?.isSymbolicLink() === true) {
+      throw new AdoptionError(
+        'PCP_ADOPTION_PATH_BOUNDARY',
+        `External rewrite crosses a symbolic-link boundary: ${toPortablePath(path.relative(root, target))}`,
+      );
+    }
+    current = path.dirname(current);
+  }
+}
+
+async function prepareExternalRewrites(
+  root: string,
+  inspection: InspectionResult,
+  input: AdoptionInput,
+  reservedPaths: ReadonlySet<string>,
+): Promise<PreparedExternalRewrite[]> {
+  const rewrites = input.external_rewrites ?? [];
+  const paths = rewrites.map((rewrite) => rewrite.path);
+  if (new Set(paths).size !== paths.length) {
+    throw new AdoptionError('PCP_ADOPTION_INPUT_INVALID', 'External rewrite paths must be unique.');
+  }
+  if (input.coverage === undefined && rewrites.length > 0) {
+    throw new AdoptionError(
+      'PCP_STATE_C_COVERAGE_REQUIRED',
+      'External rewrites require the completed State C coverage matrix.',
+    );
+  }
+
+  const translatedRoots = (input.coverage?.foreign_roots ?? [])
+    .filter((review) => review.disposition === 'translate')
+    .map((review) => review.root)
+    .filter((reviewRoot) => reviewRoot !== '.');
+  const inventoriedFiles = new Set(inspection.inventory.files.map((file) => file.path));
+  const prepared: PreparedExternalRewrite[] = [];
+
+  for (const rewrite of rewrites) {
+    assertPortableMutationPath(rewrite.path);
+    if (
+      rewrite.path === '.pcp' ||
+      rewrite.path.startsWith('.pcp/') ||
+      translatedRoots.some((reviewRoot) => isInsideReviewedRoot(rewrite.path, reviewRoot)) ||
+      reservedPaths.has(rewrite.path)
+    ) {
+      throw new AdoptionError(
+        'PCP_ADOPTION_PATH_BOUNDARY',
+        `External rewrite must target an existing project-owned file outside canonical and translated paths: ${rewrite.path}`,
+      );
+    }
+    const staticExclusion = mutationPathExclusion(rewrite.path);
+    if (staticExclusion !== undefined) {
+      throw new AdoptionError(
+        'PCP_ADOPTION_PATH_BOUNDARY',
+        `External rewrite enters a ${staticExclusion} path: ${rewrite.path}`,
+      );
+    }
+
+    const nestedBoundary = inspection.inventory.nestedRepositories.find((nested) =>
+      rewrite.path.startsWith(`${nested}/`),
+    );
+    if (nestedBoundary === undefined && !inventoriedFiles.has(rewrite.path)) {
+      throw new AdoptionError(
+        'PCP_ADOPTION_EVIDENCE_MISSING',
+        `External rewrite source is not an inventoried file or a reviewed nested-repository file: ${rewrite.path}`,
+      );
+    }
+    const blockedExclusion = inspection.inventory.exclusions.find(
+      (exclusion) =>
+        exclusion.reason !== 'nested-repository' &&
+        (rewrite.path === exclusion.path || rewrite.path.startsWith(`${exclusion.path}/`)),
+    );
+    if (blockedExclusion !== undefined) {
+      throw new AdoptionError(
+        'PCP_ADOPTION_PATH_BOUNDARY',
+        `External rewrite enters an excluded ${blockedExclusion.reason} boundary: ${rewrite.path}`,
+      );
+    }
+    if (nestedBoundary === undefined && (await isMutationPathIgnored(root, rewrite.path))) {
+      throw new AdoptionError(
+        'PCP_ADOPTION_PATH_BOUNDARY',
+        `External rewrite target is ignored by candidate policy: ${rewrite.path}`,
+      );
+    }
+
+    const target = path.resolve(root, ...rewrite.path.split('/'));
+    if (!isInside(root, target) || target === root) {
+      throw new AdoptionError(
+        'PCP_ADOPTION_PATH_UNSAFE',
+        `Unsafe external rewrite path: ${rewrite.path}`,
+      );
+    }
+    await assertExternalRewritePathHasNoSymlink(root, target);
+    const metadata = await metadataOrUndefined(target);
+    if (metadata === undefined) {
+      throw new AdoptionError(
+        'PCP_ADOPTION_EVIDENCE_MISSING',
+        `External rewrite source does not exist: ${rewrite.path}`,
+      );
+    }
+    if (!metadata.isFile() || metadata.isSymbolicLink()) {
+      throw new AdoptionError(
+        'PCP_ADOPTION_PREIMAGE_UNSUPPORTED',
+        `External rewrite source must be a regular file: ${rewrite.path}`,
+      );
+    }
+    if (metadata.size > MAXIMUM_EXTERNAL_REWRITE_BYTES) {
+      throw new AdoptionError(
+        'PCP_ADOPTION_INPUT_TOO_LARGE',
+        `External rewrite source exceeds 4 MiB: ${rewrite.path}`,
+      );
+    }
+    const bytes = await readFile(target);
+    if (sha256(bytes) !== rewrite.preimage_digest) {
+      throw new AdoptionError(
+        'PCP_SOURCE_CHANGED',
+        `External rewrite preimage does not match the reviewed file: ${rewrite.path}`,
+      );
+    }
+    let content: string;
+    try {
+      content = new TextDecoder('utf-8', { fatal: true }).decode(bytes);
+    } catch {
+      throw new AdoptionError(
+        'PCP_ADOPTION_PREIMAGE_UNSUPPORTED',
+        `External rewrite source is not valid UTF-8 text: ${rewrite.path}`,
+      );
+    }
+    const fromValues = rewrite.replacements.map((replacement) => replacement.from);
+    if (new Set(fromValues).size !== fromValues.length) {
+      throw new AdoptionError(
+        'PCP_ADOPTION_INPUT_INVALID',
+        `External rewrite contains duplicate source text: ${rewrite.path}`,
+      );
+    }
+    for (const replacement of rewrite.replacements) {
+      if (replacement.from === replacement.to || !content.includes(replacement.from)) {
+        throw new AdoptionError(
+          'PCP_ADOPTION_INPUT_INVALID',
+          `External rewrite must replace present text with different text: ${rewrite.path}`,
+        );
+      }
+      content = content.split(replacement.from).join(replacement.to);
+    }
+    prepared.push({
+      path: rewrite.path,
+      preimage_digest: rewrite.preimage_digest,
+      content: Buffer.from(content, 'utf8'),
+    });
+  }
+  return prepared.sort((left, right) => comparePortablePaths(left.path, right.path));
+}
+
 function stateCRelocations(input: AdoptionInput): StateCRelocation[] {
   if (input.coverage === undefined) return [];
   return input.coverage.records
@@ -802,6 +1104,7 @@ function stateCDirectoriesToRemove(
 
 function buildStateCOperations(
   content: ReadonlyMap<string, Buffer>,
+  externalRewrites: readonly PreparedExternalRewrite[],
   inspection: InspectionResult,
   removalPaths: ReadonlySet<string>,
   relocations: readonly StateCRelocation[],
@@ -859,6 +1162,12 @@ function buildStateCOperations(
             preimage_digest: existing.sha256,
           };
     });
+  const externalRewriteOperations = externalRewrites.map((rewrite) => ({
+    action: 'replace' as const,
+    path: rewrite.path,
+    content_digest: sha256(rewrite.content),
+    preimage_digest: rewrite.preimage_digest,
+  }));
   const earlyRemovalSet = new Set(preWriteRemovalPaths);
   const moveOperations = relocations.map((relocation) => ({
     action: 'move' as const,
@@ -891,6 +1200,7 @@ function buildStateCOperations(
     ...preWriteRemovals,
     ...directoryOperations,
     ...contentOperations,
+    ...externalRewriteOperations,
     ...moveOperations,
     ...postWriteRemovals,
     ...directoryRemovalOperations,
@@ -1015,11 +1325,22 @@ async function buildStateCTranslationPlan(
 
   const adapters = renderPlatformAdapters();
   assertGeneratedPlatformAdapters(adapters);
-  const content = await stageCanonicalLayer(input, adapters);
+  const content = await stageCanonicalLayer(root, inspection, input, adapters);
   validateStateCCoverageTargets(input, content);
   const removalPaths = stateCRemovalPaths(input);
   const relocations = stateCRelocations(input);
   validateStateCRelocations(input, relocations);
+  const externalRewrites = await prepareExternalRewrites(
+    root,
+    inspection,
+    input,
+    new Set([
+      ...content.keys(),
+      ...removalPaths,
+      ...relocations.map((relocation) => relocation.source_path),
+      ...relocations.map((relocation) => relocation.target_path),
+    ]),
+  );
   const relocationTargets = new Map(
     relocations.map((relocation) => [relocation.target_path, Buffer.alloc(0)] as const),
   );
@@ -1044,6 +1365,7 @@ async function buildStateCTranslationPlan(
     inventory: inspection.inventory,
     operations: buildStateCOperations(
       content,
+      externalRewrites,
       inspection,
       removalPaths,
       relocations,
@@ -1055,6 +1377,7 @@ async function buildStateCTranslationPlan(
       'clean-genesis',
       'coverage',
       'desired-hashes',
+      'external-reference-rewrites',
       'foreign-removals',
       'foreign-relocations',
       'foreign-directory-cleanup',
@@ -1084,7 +1407,15 @@ async function buildStateCTranslationPlan(
     plan,
     mutated: false,
   };
-  return { inspection, input, preview, content_by_path: content };
+  return {
+    inspection,
+    input,
+    preview,
+    content_by_path: new Map([
+      ...content,
+      ...externalRewrites.map((rewrite) => [rewrite.path, rewrite.content] as const),
+    ]),
+  };
 }
 
 async function previewScopedStateCCoverage(
@@ -1134,7 +1465,7 @@ async function buildPlanMaterial(
 
   const adapters = renderPlatformAdapters();
   assertGeneratedPlatformAdapters(adapters);
-  const content = new Map(await stageCanonicalLayer(input, adapters));
+  const content = new Map(await stageCanonicalLayer(root, inspection, input, adapters));
   for (const scaffold of input.scaffold_files) {
     if (content.has(scaffold.path)) {
       throw new AdoptionError(

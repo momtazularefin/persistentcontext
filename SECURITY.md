@@ -34,6 +34,7 @@ High-priority PCP issues include:
 
 - mutation outside the reviewed project or approved plan;
 - following a symlink or crossing a nested-repository boundary unexpectedly;
+- rewriting any nested-repository file other than an explicitly reviewed existing UTF-8 source with a matching preimage and literal replacement set;
 - relocation or removal of uncovered State C source, or cleanup of a directory not proven empty;
 - incomplete or misleading rollback acceptance;
 - bypass of plan, preimage, source-drift, ownership, or lock validation;

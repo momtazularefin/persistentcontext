@@ -119,6 +119,11 @@ async function createStateC(): Promise<{ candidate: string; inputPath: string }>
     '# Legacy strategy\n\nPreserve this reviewed project-owned reference.\n',
     'utf8',
   );
+  await mkdir(path.join(candidate, 'nested-project', '.git'), { recursive: true });
+  await mkdir(path.join(candidate, 'nested-project', 'docs'), { recursive: true });
+  const nestedGuide =
+    '# Nested guide\n\nSee ../../project-guidance/policy.md before changing the project.\n';
+  await writeFile(path.join(candidate, 'nested-project', 'docs', 'guide.md'), nestedGuide, 'utf8');
   const inspection = await inspectRepository(candidate);
   const catalog = await discoverForeignCoverage(candidate, inspection);
   const input = await adoptionFixture();
@@ -135,6 +140,19 @@ async function createStateC(): Promise<{ candidate: string; inputPath: string }>
     'The current strategy was absorbed into canonical state, while the substantive source remains project-owned reference material.',
   ];
   input.coverage = coverage;
+  input.external_rewrites = [
+    {
+      path: 'nested-project/docs/guide.md',
+      preimage_digest: sha256(nestedGuide),
+      replacements: [
+        {
+          from: '../../project-guidance/policy.md',
+          to: '../../.pcp/operations/10-working-agreement.md',
+        },
+      ],
+      evidence: ['The reviewed nested guide links to a translated policy source.'],
+    },
+  ];
   return { candidate, inputPath: await writeExternalInput(input) };
 }
 
@@ -244,6 +262,36 @@ describe('transactional State A adoption', () => {
     ).resolves.toContain('# Project specification');
     await expect(readFile(path.join(candidate, 'scratch', 'README.md'), 'utf8')).resolves.toContain(
       'noncanonical workspace',
+    );
+    expect(await validateCanonicalLayer(candidate, { clean_genesis: true })).toMatchObject({
+      valid: true,
+    });
+  });
+
+  it('preserves an existing project-owned capability root file during adoption', async () => {
+    const candidate = await temporaryRoot('pcp-existing-scratch-seed-');
+    await writeFile(
+      path.join(candidate, 'README.md'),
+      '# Existing scratch project\n\nExplicit seed.\n',
+    );
+    await mkdir(path.join(candidate, 'scratch'));
+    const existingGuide = '# Project scratch space\n\nKeep these working artifacts unchanged.\n';
+    await writeFile(path.join(candidate, 'scratch', 'README.md'), existingGuide);
+    const input = await adoptionFixture();
+    input.capabilities = ['scratch-space'];
+    const inputPath = await writeExternalInput(input);
+    const preview = await adoptProject(candidate, { input: inputPath });
+    if (!('plan' in preview) || preview.plan === undefined) {
+      throw new Error('Expected an applicable adoption preview.');
+    }
+
+    expect(
+      preview.plan.operations.some((operation) => operation.path === 'scratch/README.md'),
+    ).toBe(false);
+    await adoptProject(candidate, { input: inputPath, apply: preview.plan.plan_digest });
+
+    expect(await readFile(path.join(candidate, 'scratch', 'README.md'), 'utf8')).toBe(
+      existingGuide,
     );
     expect(await validateCanonicalLayer(candidate, { clean_genesis: true })).toMatchObject({
       valid: true,
@@ -584,6 +632,9 @@ describe('transactional State C translation', () => {
     expect(await readFile(path.join(candidate, 'scratch', 'master-plan.md'), 'utf8')).toBe(
       '# Legacy strategy\n\nPreserve this reviewed project-owned reference.\n',
     );
+    expect(
+      await readFile(path.join(candidate, 'nested-project', 'docs', 'guide.md'), 'utf8'),
+    ).toContain('../../.pcp/operations/10-working-agreement.md');
     await expect(readdir(path.join(candidate, 'project-guidance', 'legacy'))).rejects.toMatchObject(
       {
         code: 'ENOENT',
@@ -636,6 +687,20 @@ describe('transactional State C translation', () => {
     await expect(readdir(path.join(candidate, '.pcp'))).rejects.toMatchObject({ code: 'ENOENT' });
   });
 
+  it('rejects reviewed nested-file drift after preview without starting translation', async () => {
+    const { candidate, inputPath } = await createStateC();
+    const { digest } = await previewDigest(candidate, inputPath);
+    const nestedGuidePath = path.join(candidate, 'nested-project', 'docs', 'guide.md');
+    const changedGuide = '# Nested guide\n\nA concurrent nested-repository edit.\n';
+    await writeFile(nestedGuidePath, changedGuide, 'utf8');
+
+    await expect(
+      adoptProject(candidate, { input: inputPath, apply: digest }),
+    ).rejects.toMatchObject({ code: 'PCP_SOURCE_CHANGED', mutated: false });
+    expect(await readFile(nestedGuidePath, 'utf8')).toBe(changedGuide);
+    await expect(readdir(path.join(candidate, '.pcp'))).rejects.toMatchObject({ code: 'ENOENT' });
+  });
+
   it('restores the exact foreign layer after failure at every operation and validation boundary', async () => {
     const { candidate, inputPath } = await createStateC();
     const before = await inspectRepository(candidate);
@@ -644,6 +709,9 @@ describe('transactional State C translation', () => {
     );
     const originalChangelog = await readFile(
       path.join(candidate, 'project-guidance', 'changelog.yaml'),
+    );
+    const originalNestedGuide = await readFile(
+      path.join(candidate, 'nested-project', 'docs', 'guide.md'),
     );
     const { digest, steps } = await previewDigest(candidate, inputPath);
 
@@ -678,6 +746,9 @@ describe('transactional State C translation', () => {
       );
       expect(await readFile(path.join(candidate, 'project-guidance', 'changelog.yaml'))).toEqual(
         originalChangelog,
+      );
+      expect(await readFile(path.join(candidate, 'nested-project', 'docs', 'guide.md'))).toEqual(
+        originalNestedGuide,
       );
     }
   });

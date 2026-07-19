@@ -213,6 +213,25 @@ describe('State A and State B adoption planning', () => {
     expect((await inspectRepository(candidate)).inventory.digest).toBe(before.inventory.digest);
   });
 
+  it('distinguishes ordinary planning language from standalone template placeholders', async () => {
+    const candidate = path.join(fixtureRoot, 'conventional');
+    const grounded = adoptionInput({ projectType: 'software', evidencePath: 'package.json' });
+    grounded.documents[6] = {
+      ...grounded.documents[6]!,
+      body: '# Project plan\n\nInitiate other pending project and preparation tracks as capacity permits.',
+    };
+    expect(isPlanMaterial(await planAdoption(candidate, await writeInput(grounded)))).toBe(true);
+
+    const placeholder = structuredClone(grounded);
+    placeholder.documents[6] = {
+      ...placeholder.documents[6]!,
+      body: '# Project plan\n\nPending project state',
+    };
+    await expect(planAdoption(candidate, await writeInput(placeholder))).rejects.toMatchObject({
+      code: 'PCP_ADOPTION_INPUT_INVALID',
+    });
+  });
+
   it('installs explicitly selected capabilities in canonical order', async () => {
     const candidate = path.join(fixtureRoot, 'conventional');
     const value = adoptionInput({ projectType: 'software', evidencePath: 'package.json' });
@@ -254,6 +273,75 @@ describe('State A and State B adoption planning', () => {
     );
     expect(protocolIndex).toContain('[100-scratch-space.md](100-scratch-space.md)');
     expect(protocolIndex).toContain('[110-walkthrough-creation.md](110-walkthrough-creation.md)');
+  });
+
+  it('stages grounded project documents with generated reading-order indexes', async () => {
+    const candidate = path.join(fixtureRoot, 'conventional');
+    const value = adoptionInput({ projectType: 'software', evidencePath: 'package.json' });
+    value.capabilities = ['spec-driven-projects'];
+    value.documents.push(
+      {
+        path: 'projects/fixture-project/10-specification.md',
+        type: 'project',
+        status: 'living',
+        basis: 'repository',
+        evidence_paths: ['package.json'],
+        body: '# Fixture specification\n\nThe accepted outcome remains intentionally incomplete.',
+      },
+      {
+        path: 'projects/fixture-project/20-tasks.md',
+        type: 'project',
+        status: 'living',
+        basis: 'repository',
+        evidence_paths: ['package.json'],
+        body: '# Fixture tasks\n\n- [ ] Preserve the unfinished delivery state.',
+      },
+    );
+
+    const result = await planAdoption(candidate, await writeInput(value));
+    if (!isPlanMaterial(result)) throw new Error('Expected an applicable project-document plan.');
+
+    expect(
+      result.content_by_path
+        .get('.pcp/projects/fixture-project/10-specification.md')
+        ?.toString('utf8'),
+    ).toContain('type: project');
+    expect(result.content_by_path.get('.pcp/projects/00-index.md')?.toString('utf8')).toContain(
+      '[Fixture project](fixture-project/00-index.md)',
+    );
+    const projectIndex = result.content_by_path
+      .get('.pcp/projects/fixture-project/00-index.md')
+      ?.toString('utf8');
+    expect(projectIndex).toContain('[Fixture specification](10-specification.md)');
+    expect(projectIndex).toContain('[Fixture tasks](20-tasks.md)');
+  });
+
+  it('rejects project documents without the capability, project identity, or numbered order', async () => {
+    const candidate = path.join(fixtureRoot, 'conventional');
+    const value = adoptionInput({ projectType: 'software', evidencePath: 'package.json' });
+    const projectDocument: AdoptionDocumentInput = {
+      path: 'projects/fixture-project/10-specification.md',
+      type: 'project',
+      status: 'living',
+      basis: 'repository',
+      evidence_paths: ['package.json'],
+      body: '# Fixture specification\n\nGrounded project detail.',
+    };
+    value.documents.push(projectDocument);
+    await expect(planAdoption(candidate, await writeInput(value))).rejects.toMatchObject({
+      code: 'PCP_ADOPTION_INPUT_INVALID',
+    });
+
+    value.capabilities = ['spec-driven-projects'];
+    projectDocument.path = 'projects/unknown-project/10-specification.md';
+    await expect(planAdoption(candidate, await writeInput(value))).rejects.toMatchObject({
+      code: 'PCP_ADOPTION_INPUT_INVALID',
+    });
+
+    projectDocument.path = 'projects/fixture-project/11-specification.md';
+    await expect(planAdoption(candidate, await writeInput(value))).rejects.toMatchObject({
+      code: 'PCP_ADOPTION_INPUT_INVALID',
+    });
   });
 
   it('plans an explicit non-software State A scaffold while preserving the seed boundary', async () => {
