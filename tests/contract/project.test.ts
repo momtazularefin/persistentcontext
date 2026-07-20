@@ -62,19 +62,25 @@ describe('public project contract', () => {
     expect(workflow).toContain('needs: [verify, golden]');
   });
 
-  it('publishes a reproducible release-candidate contract without claiming dogfood', async () => {
-    const [readme, documentation, manifestText] = await Promise.all([
+  it('publishes a reproducible release contract with sanitized dogfood evidence', async () => {
+    const [readme, documentation, releaseNotes, manifestText] = await Promise.all([
       readFile(new URL('README.md', projectRoot), 'utf8'),
       readFile(new URL('docs/release-candidate.md', projectRoot), 'utf8'),
+      readFile(new URL('docs/release-notes.md', projectRoot), 'utf8'),
       readFile(new URL('release/0.1.0-rc.json', projectRoot), 'utf8'),
     ]);
     const manifest = JSON.parse(manifestText) as unknown;
 
-    expect(readme).toContain('is a release candidate');
-    expect(documentation).toContain(
-      'The private `rise` conversion criteria are intentionally not claimed',
+    expect(readme).toContain('is implementation-complete');
+    expect(readme).toContain('awaiting the final signed release PR, tag, and GitHub publication');
+    expect(documentation).toContain('## State C dogfood acceptance');
+    expect(documentation).toContain('The private conversion is complete');
+    expect(documentation).toContain('Dogfood repeatedly exercised the unfreeze rule');
+    expect(releaseNotes).toContain('## State C proof');
+    expect(releaseNotes).toContain('The final review resolved 365 legacy records');
+    expect(releaseNotes).toContain(
+      'All five adapters reconstructed the same current project registry',
     );
-    expect(documentation).toContain('explicitly unfreeze this candidate');
     expect(manifest).toMatchObject({
       schema_version: 1,
       release: '0.1.0',
