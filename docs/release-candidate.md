@@ -27,9 +27,15 @@ The merge commit supplies the VCS identity after review. The manifest supplies a
 | FlowForge            | `examples/flowforge/` and its integration contract prove source-only State B adoption without copied history, identities, build output, or private data.                                                                                        |
 | Publication privacy  | The repository scan, allowlisted package audit, synthetic fixtures, CI matrix, and private-data contract cover the public source and generated package boundary.                                                                                |
 
-The private `rise` conversion criteria are intentionally not claimed here. File-and-entry coverage, master-plan absorption, live foreign-layer removal, empty post-cutover continuity, and independent reconstruction belong to the later dogfood staging and cutover milestones. A defect found there is a PCP defect: stop, explicitly unfreeze this candidate, fix the public source, regenerate the manifest, and repeat every gate before resuming conversion.
+## State C dogfood acceptance
 
-The first private root-scoped intake exercised that rule: it proved that reviewed master-plan preservation required a transaction-bound project-owned relocation and that file removal alone would leave empty foreign directories. This candidate adds those generic State C capabilities publicly rather than patching the private project. The complete local quality gate passes 31 test files and 242 active tests with two intentional skips, including injected failure after every move and directory-cleanup boundary.
+The private conversion is complete; only sanitized structural evidence is published here. The adopted target was an established multi-repository workspace with a working foreign agent-context layer, detailed project records, bounded and malformed historical cases, nested-repository inbound references, and project-owned material that could not enter the translation boundary.
+
+Dogfood repeatedly exercised the unfreeze rule. Each generic defect was corrected in the public engine, passed the complete local and protected Ubuntu/Windows matrix, and was re-frozen before private staging resumed. Those corrections added reviewed root scoping, transaction-bound relocation and empty-directory cleanup, indexed per-project document preservation, exact rewrites for named files inside otherwise excluded nested repositories, safe project-owned capability collisions, and self-contained installed validation.
+
+The final source review resolved 365 legacy records. An exact isolated clone then applied the same 166-operation plan used for cutover. A post-apply injected failure restored the complete root inventory and all explicitly rewritten nested-file preimages before the live transaction was allowed. Live adoption validated 77 canonical files, removed the foreign layer, began with empty actor and event history, retained no recovery material, and preserved the reviewed reference file byte-for-byte. The installed project-local engine validated independently without source or skill assets.
+
+All five generated adapters reconstructed the same six-project, 13-workstream current state and its dependency and VCS boundaries. This is repository-level adapter evidence; it does not expand the interactive-product claims in [compatibility.md](compatibility.md).
 
 ## Reproduce or invalidate the identity
 

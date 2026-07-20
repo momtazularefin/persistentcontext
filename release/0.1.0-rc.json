@@ -5,8 +5,8 @@
   "identity": {
     "algorithm": "sha256",
     "scope": "Git-known working-tree files excluding release/0.1.0-rc.json and ignored build, coverage, dependency, and runtime output.",
-    "source_tree_digest": "5ca20856c45d297adc00ddf8bf2c87b49722480f7fd7189004b3fb7e86b70408",
-    "file_count": 355,
+    "source_tree_digest": "86974275b38c7d73af507af7b640d6a1675454a432f3c972499fd568e09a8a95",
+    "file_count": 356,
     "files": [
       {
         "path": ".gitattributes",
@@ -75,13 +75,18 @@
       },
       {
         "path": "docs/README.md",
-        "bytes": 1612,
-        "sha256": "b6a905abf7fbae560e20f38ee08cd8132f8a9cdd9e8edd961075a49738bfbb48"
+        "bytes": 1742,
+        "sha256": "9efb57620f53d0116e8c1c6f1f27115ef42031dd656ea0329254d80bda8acfc6"
       },
       {
         "path": "docs/release-candidate.md",
-        "bytes": 5647,
-        "sha256": "8f9c633abe01823a27714422bbf0dd0f3f8d7be7f80960c105413d7403d024dc"
+        "bytes": 6471,
+        "sha256": "9579d40da9b0b17eeed3b388d80d8144c63e68e2a9c8f7826e93af22a4038666"
+      },
+      {
+        "path": "docs/release-notes.md",
+        "bytes": 3666,
+        "sha256": "256e80965c7ff8ec3b68a17dda17acd1b7852b7d9e38ee74cf2ec400a2e5f2bd"
       },
       {
         "path": "docs/safety.md",
@@ -280,8 +285,8 @@
       },
       {
         "path": "README.md",
-        "bytes": 16588,
-        "sha256": "774b597a261431c7d46dfcdb1876e485b1d3d0f63d17043a980dfed25071b47d"
+        "bytes": 16823,
+        "sha256": "b480d8b8e12d5e9433b2469b7be78c621850408d30d1a1e6d2afc73f7f1735ae"
       },
       {
         "path": "schemas/v1/actor-profile.schema.json",
@@ -1355,8 +1360,8 @@
       },
       {
         "path": "tests/contract/project.test.ts",
-        "bytes": 4611,
-        "sha256": "f6469aab657e2229063e0a3e3e6e68b5c89299f68f50835ce11030adafa8380c"
+        "bytes": 5089,
+        "sha256": "3aa27d4ab84d2d9fba857d04bca0f16969a8ca092fdb5aaf667efae75fbbdde0"
       },
       {
         "path": "tests/contract/public-docs.test.ts",
