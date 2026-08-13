@@ -196,7 +196,7 @@ describe('installed canonical layer validation', () => {
     );
   });
 
-  it('rejects dependency cycles and unsupported completion claims', async () => {
+  it('rejects unsupported completion claims without dependency metadata', async () => {
     const root = await createProject();
     const file = path.join(root, '.pcp', 'state', 'workstreams.yaml');
     await writeYamlObject(file, {
@@ -209,7 +209,6 @@ describe('installed canonical layer validation', () => {
           status: 'complete',
           paths: [],
           areas: [],
-          dependencies: ['beta'],
           completion: { criteria: ['Validated.'], evidence: [] },
         },
         {
@@ -219,14 +218,12 @@ describe('installed canonical layer validation', () => {
           status: 'active',
           paths: [],
           areas: [],
-          dependencies: ['alpha'],
           completion: { criteria: ['Validated.'], evidence: [] },
         },
       ],
     });
 
     const codes = diagnosticCodes(await validateCanonicalLayer(root));
-    expect(codes).toContain('workstream.dependency-cycle');
     expect(codes).toContain('workstream.completion-without-evidence');
   });
 
@@ -482,12 +479,9 @@ source_digest: aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
       schema_version: 1,
       checkpoint_id: checkpointId,
       actor_id: agentId,
-      workstream_id: 'missing-workstream',
+      execution_id: checkpointId,
       last_event_id: eventId,
       reconciled_at: '2026-07-12T13:10:00Z',
-      scopes: [],
-      paths: [],
-      dependencies: ['missing-dependency'],
     };
     await writeFile(path.join(directory, `${checkpointId}.yaml`), stringify(checkpoint), 'utf8');
     await writeFile(
@@ -498,10 +492,9 @@ source_digest: aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
 
     const codes = diagnosticCodes(await validateCanonicalLayer(root));
     expect(codes).toContain('checkpoint.unknown-actor');
-    expect(codes).toContain('checkpoint.unknown-workstream');
     expect(codes).toContain('checkpoint.unknown-event');
-    expect(codes).toContain('checkpoint.unknown-dependency');
-    expect(codes).toContain('checkpoint.duplicate-scope');
+    expect(codes).toContain('checkpoint.execution-identity-mismatch');
+    expect(codes).toContain('checkpoint.duplicate-execution');
   });
 
   it('fails closed when a policy assigns credential management to an agent', async () => {

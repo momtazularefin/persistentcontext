@@ -27,20 +27,30 @@ function sharedBody(): string[] {
     '',
     '# Persistent Context Protocol',
     '',
-    'Canonical project context lives in `.pcp/`; this file is only a platform adapter.',
+    'Canonical project context lives in `.pcp/`; this generated file is the mandatory platform adapter.',
     '',
-    `1. Start at \`${CANONICAL_ENTRY}\`.`,
-    '2. Follow its first-task or returning-task path.',
-    '3. Read only the state, knowledge, operations, project, and continuity records relevant to the active scope.',
-    '4. Update canonical PCP sources when project context changes; do not create independent authority in this adapter.',
+    'For every user request in this project, before answering or using project tools:',
+    '',
+    '1. Keep one project-lifetime actor ID and one execution ID for this conversation. If either is unavailable, run `node .pcp/tools/pcp.mjs register . --client <adapter-client> --json` once and retain both returned IDs.',
+    '2. Run `node .pcp/tools/pcp.mjs sync . --actor-id <actor-id> --execution-id <execution-id>`.',
+    '3. If sync reports no project updates, continue immediately.',
+    `4. If sync reports changes or a baseline, read every returned current path, beginning with \`${CANONICAL_ENTRY}\` when named; then acknowledge the exact digest with the same sync command plus \`--acknowledge <sync-digest>\`.`,
+    '5. If the local engine is missing, fails, or reports invalid context, stop project work and tell the user; do not bypass synchronization.',
+    '',
+    'After a meaningful durable change, update canonical PCP sources and record one continuity event. Do not record routine reads, syncs, acknowledgements, or no-op checks. Never create independent authority in this adapter.',
     '',
   ];
 }
 
 function adapterText(adapterId: SupportedAdapterId): string {
   const body = sharedBody();
+  const clientLine = body.findIndex((line) => line.includes('<adapter-client>'));
+  if (clientLine >= 0)
+    body[clientLine] = body[clientLine]?.replace('<adapter-client>', adapterId) ?? '';
   if (adapterId === 'claude-code-desktop') {
-    body.splice(6, 1, `1. Read @${CANONICAL_ENTRY} before work.`);
+    body.push(
+      `Claude Code loads this adapter at session start; @${CANONICAL_ENTRY} is the canonical entry.`,
+    );
   }
   if (adapterId === 'cursor') {
     return [

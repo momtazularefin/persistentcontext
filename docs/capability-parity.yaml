@@ -48,16 +48,17 @@ capabilities:
     evidence:
       {
         path: templates/core/.pcp/protocol/20-actor-continuity.md,
-        contains: ['do not reconstruct current state from event prose alone', 'current documents'],
+        contains:
+          ['event prose is not replayed as state', 'Current documents remain authoritative'],
       }
   - id: mandatory-full-startup-reread
     source: portable-reference-layer
     outcome: superseded
-    pcp: Digest-bound, workstream-scoped status identifies only relevant current files and events.
+    pcp: Mandatory per-request global sync returns every newer event while the no-change fast path avoids rereading canonical state.
     evidence:
       {
         path: templates/core/.pcp/protocol/20-actor-continuity.md,
-        contains: ['returning agent runs `pcp status`', 'full reread'],
+        contains: ['start of every user request', 'Continue without rereading PCP state'],
       }
   - id: agent-only-registration
     source: portable-reference-layer
@@ -135,21 +136,22 @@ capabilities:
       }
   - id: concurrent-execution-blocks
     source: advanced-command-center
-    outcome: preserved
-    pcp: Optional Concurrent Execution Blocks specialize the generic workstream lifecycle for safe parallel work.
-    evidence:
-      {
-        path: templates/capabilities/concurrent-execution-blocks/capability.yaml,
-        contains: ['Concurrent Execution Blocks', 'parallel work'],
-      }
-  - id: dependency-and-completion-evidence
-    source: advanced-command-center
-    outcome: preserved
-    pcp: Workstreams declare dependencies and require criterion-bound evidence before completion.
+    outcome: superseded
+    pcp: Flat descriptive work labels retain useful lifecycle communication without claiming dependency or parallel-execution orchestration.
     evidence:
       {
         path: templates/core/.pcp/protocol/70-workstreams.md,
-        contains: ['dependencies', 'evidence'],
+        contains:
+          ['not a scheduler, dependency graph', 'sequential` or `concurrent` as descriptive kinds'],
+      }
+  - id: dependency-and-completion-evidence
+    source: advanced-command-center
+    outcome: superseded
+    pcp: PCP keeps criterion-bound completion evidence but removes dependency declaration, monitoring, and completion gates as unreliable scope expansion.
+    evidence:
+      {
+        path: templates/core/.pcp/protocol/70-workstreams.md,
+        contains: ['exactly one proof per declared criterion', 'not a scheduler, dependency graph'],
       }
   - id: human-and-agent-attribution
     source: advanced-command-center
@@ -162,12 +164,12 @@ capabilities:
       }
   - id: scoped-reconciliation
     source: advanced-command-center
-    outcome: preserved
-    pcp: Checkpoints are scoped to workstreams, dependencies, semantic scopes, and paths.
+    outcome: superseded
+    pcp: Per-conversation checkpoints now receive every newer event globally so incorrect workstream, dependency, scope, or path guesses cannot hide updates.
     evidence:
       {
         path: templates/core/.pcp/continuity/checkpoints/00-index.md,
-        contains: ['workstream', 'dependency'],
+        contains: ['Per-conversation checkpoints', 'actor/execution identities'],
       }
   - id: configurable-vcs-ownership
     source: advanced-command-center
@@ -188,7 +190,7 @@ capabilities:
     source: advanced-command-center
     outcome: preserved
     pcp: Adoption starts canonical continuity with no imported actors or event history.
-    evidence: { path: README.md, contains: ['clean genesis', 'no actor profiles'] }
+    evidence: { path: README.md, contains: ['clean genesis', 'zero actor profiles'] }
   - id: canonical-platform-adapters
     source: advanced-command-center
     outcome: preserved
@@ -202,9 +204,14 @@ capabilities:
     source: advanced-command-center
     outcome: preserved
     pcp: Repair and upgrade replace only approved PCP-owned targets and prove other files remain unchanged.
-    evidence: { path: README.md, contains: ['ownership-aware release upgrades', 'byte-identical'] }
+    evidence:
+      {
+        path: README.md,
+        contains: ['replaces approved protocol/generated targets', 'bytes remain unchanged'],
+      }
   - id: optional-capability-overlays
     source: advanced-command-center
     outcome: preserved
     pcp: Projects opt into specialized capabilities without forcing one repository topology on everyone.
-    evidence: { path: README.md, contains: ['explicit capability selection', 'Core-only projects'] }
+    evidence:
+      { path: README.md, contains: ['Core-only projects select', 'Three optional overlays'] }

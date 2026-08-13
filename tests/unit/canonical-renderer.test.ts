@@ -148,7 +148,6 @@ describe('canonical view rendering', () => {
         status: 'active',
         paths: ['src'],
         areas: ['implementation'],
-        dependencies: [],
         completion: { criteria: ['Tests pass.'], evidence: [] },
       },
     ];
@@ -158,7 +157,7 @@ describe('canonical view rendering', () => {
     const view = await readFile(path.join(root, '.pcp', 'views', '10-status.generated.md'), 'utf8');
     expect(view).toContain('Example \\| Project');
     expect(view).toContain(
-      '| `example-work` | Example work | `sequential` | `active` | None. | 0 item(s) |',
+      '| `example-work` | Example work | `sequential` | `active` | 0 item(s) |',
     );
     expect((await validateCanonicalLayer(root)).valid).toBe(true);
   });

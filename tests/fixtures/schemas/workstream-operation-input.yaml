@@ -18,7 +18,6 @@ valid:
     status: planned
     paths: [src]
     areas: [implementation]
-    dependencies: []
     completion:
       criteria: [All implementation checks pass.]
       evidence: []

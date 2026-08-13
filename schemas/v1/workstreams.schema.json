@@ -21,16 +21,7 @@
     "workstream": {
       "type": "object",
       "additionalProperties": false,
-      "required": [
-        "workstream_id",
-        "name",
-        "kind",
-        "status",
-        "paths",
-        "areas",
-        "dependencies",
-        "completion"
-      ],
+      "required": ["workstream_id", "name", "kind", "status", "paths", "areas", "completion"],
       "properties": {
         "workstream_id": {
           "$ref": "urn:pcp:schema:v1:common#/$defs/slug"
@@ -39,7 +30,7 @@
           "$ref": "urn:pcp:schema:v1:common#/$defs/nonEmptyString"
         },
         "kind": {
-          "enum": ["sequential", "concurrent", "ceb"]
+          "enum": ["sequential", "concurrent"]
         },
         "status": {
           "enum": ["planned", "active", "blocked", "complete", "cancelled"]
@@ -48,9 +39,6 @@
           "$ref": "urn:pcp:schema:v1:common#/$defs/pathArray"
         },
         "areas": {
-          "$ref": "urn:pcp:schema:v1:common#/$defs/slugArray"
-        },
-        "dependencies": {
           "$ref": "urn:pcp:schema:v1:common#/$defs/slugArray"
         },
         "completion": {

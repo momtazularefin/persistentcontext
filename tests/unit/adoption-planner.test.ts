@@ -235,32 +235,20 @@ describe('State A and State B adoption planning', () => {
   it('installs explicitly selected capabilities in canonical order', async () => {
     const candidate = path.join(fixtureRoot, 'conventional');
     const value = adoptionInput({ projectType: 'software', evidencePath: 'package.json' });
-    value.capabilities = [
-      'walkthroughs',
-      'spec-driven-projects',
-      'concurrent-execution-blocks',
-      'scratch-space',
-    ];
+    value.capabilities = ['walkthroughs', 'spec-driven-projects', 'scratch-space'];
     const result = await planAdoption(candidate, await writeInput(value));
     if (!isPlanMaterial(result)) throw new Error('Expected an applicable capability plan.');
 
     expect(
       parse(result.content_by_path.get('.pcp/pcp.yaml')?.toString('utf8') ?? ''),
     ).toMatchObject({
-      capabilities: [
-        'concurrent-execution-blocks',
-        'scratch-space',
-        'spec-driven-projects',
-        'walkthroughs',
-      ],
+      capabilities: ['scratch-space', 'spec-driven-projects', 'walkthroughs'],
     });
     for (const installedPath of [
       '.pcp/protocol/80-spec-driven-delivery.md',
-      '.pcp/protocol/90-concurrent-execution-blocks.md',
       '.pcp/protocol/100-scratch-space.md',
       '.pcp/protocol/110-walkthrough-creation.md',
       '.pcp/templates/30-project-spec.md',
-      '.pcp/templates/40-workstream.md',
       '.pcp/templates/50-walkthrough.md',
       'scratch/README.md',
     ]) {
@@ -268,9 +256,6 @@ describe('State A and State B adoption planning', () => {
     }
     const protocolIndex = result.content_by_path.get('.pcp/protocol/00-index.md')?.toString('utf8');
     expect(protocolIndex).toContain('[80-spec-driven-delivery.md](80-spec-driven-delivery.md)');
-    expect(protocolIndex).toContain(
-      '[90-concurrent-execution-blocks.md](90-concurrent-execution-blocks.md)',
-    );
     expect(protocolIndex).toContain('[100-scratch-space.md](100-scratch-space.md)');
     expect(protocolIndex).toContain('[110-walkthrough-creation.md](110-walkthrough-creation.md)');
   });

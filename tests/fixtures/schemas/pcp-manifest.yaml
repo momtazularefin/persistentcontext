@@ -3,9 +3,9 @@ valid:
   schema_version: 1
   protocol:
     name: persistent-context-protocol
-    version: 0.1.0
+    version: 0.2.0
   persistence: tracked
-  capabilities: [concurrent-execution-blocks, spec-driven-projects]
+  capabilities: [scratch-space, spec-driven-projects]
   continuity:
     active_event_limit: 64
     archive_batch_size: 32

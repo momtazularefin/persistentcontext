@@ -9,7 +9,7 @@ import { afterEach, describe, expect, it } from 'vitest';
 import { adoptProject } from '../../src/application/adopt-project.js';
 import { inspectRepository } from '../../src/application/inspect-repository.js';
 import { registerActor } from '../../src/application/register-actor.js';
-import { reportStatus } from '../../src/application/report-status.js';
+import { synchronizeProject } from '../../src/application/synchronize-project.js';
 import { validateCanonicalLayer } from '../../src/application/validate-canonical-layer.js';
 
 const exampleRoot = fileURLToPath(new URL('../../examples/flowforge/', import.meta.url));
@@ -174,14 +174,17 @@ describe('FlowForge State B reference', () => {
     );
 
     const actor = await registerActor(root, expected.fresh_agent);
-    const status = await reportStatus(root, { actor_id: actor.actor_id });
-    expect(status).toMatchObject({
-      baseline: { required: true, reason: 'first-scope-baseline' },
+    const sync = await synchronizeProject(root, {
+      actor_id: actor.actor_id,
+      execution_id: actor.execution_id,
+    });
+    expect(sync).toMatchObject({
+      baseline: { required: true, reason: 'first-execution-baseline' },
       acknowledgement: { required: true, accepted: false },
       event_created: false,
       mutated: false,
     });
-    expect(status.required_context_paths).toEqual(expected.fresh_agent.required_paths);
+    expect(sync.required_context_paths).toEqual(['.pcp/00-index.md']);
     expect(await yamlCount(root, '.pcp/continuity/actors')).toBe(1);
     expect(await yamlCount(root, '.pcp/continuity/events')).toBe(0);
   });

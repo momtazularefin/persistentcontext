@@ -2,8 +2,8 @@
 doc: operations/10-working-agreement.md
 type: policy
 status: living
-version: 1.0.0
-last_updated: 2026-07-12T13:10:00Z
+version: 1.1.0
+last_updated: 2026-08-13T22:20:00+06:00
 ownership: project
 ---
 
@@ -22,6 +22,7 @@ ownership: project
 
 ## Coordination
 
-- Declare concurrent work in structured workstreams with paths, dependencies, and completion criteria.
+- Use structured workstreams as optional flat labels with paths, areas, and completion criteria.
 - Escalate conflicts in shared policy, protocol, registry, or overlapping paths.
+- Do not infer dependency graphs or use work labels to filter mandatory synchronization.
 - Keep durable project truth here even when private memory or a conversation provides convenience.

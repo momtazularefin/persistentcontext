@@ -2,32 +2,22 @@
 doc: protocol/70-workstreams.md
 type: protocol
 status: static
-version: 1.0.0
-last_updated: 2026-07-15T11:20:00Z
+version: 2.0.0
+last_updated: 2026-08-13T21:20:38+06:00
 ownership: protocol
 ---
 
-# Workstreams
+# Work labels
 
-`state/workstreams.yaml` is the canonical registry for bounded work, dependencies, lifecycle state, and completion evidence. Generated views describe this state but never replace it.
+`state/workstreams.yaml` is an optional registry of descriptive work labels. It can communicate current lifecycle state, relevant areas and paths, and observable completion evidence. It is not a scheduler, dependency graph, ownership lock, or synchronization filter.
 
 ## Safe operation
 
-1. Run `pcp workstream validate` and bind each proposed mutation to the returned registry digest.
+1. Run `pcp workstream validate` and bind a proposed mutation to the returned registry digest.
 2. Keep transient mutation input outside the managed project.
-3. Use `create` or `update` with a complete workstream record. Do not patch fields implicitly.
-4. Use `complete` only with exactly one proof for every declared criterion and a human-readable completion announcement.
-5. Let the engine replace the registry, regenerate its status view, and append the attributed workstream event under one continuity lock.
+3. Use `create` or `update` with one complete record. Use `complete` only with exactly one proof per declared criterion and a human-readable announcement.
+4. Let the engine replace the registry, regenerate its status view, and append the attributed event under one continuity lock.
 
-A stale digest, invalid actor attribution, unsafe input, dependency conflict, or failed live validation rejects the operation without accepted mutation. A caught transactional failure restores the exact registry, generated view, and active/archive history preimages.
+New labels may start as `planned`, `active`, or `blocked`. `planned`, `active`, and `blocked` may move through their permitted lifecycle or become `cancelled`; only `complete` supplies completion evidence. `complete` and `cancelled` are terminal.
 
-## Lifecycle
-
-- New work starts as `planned`, `active`, or `blocked`.
-- `planned` may become `active`, `blocked`, or `cancelled`.
-- `active` and `blocked` may move between each other or become `cancelled`.
-- Only `complete` may set the `complete` state.
-- `complete` and `cancelled` are terminal.
-- A workstream cannot complete until every dependency is complete.
-
-Use `sequential` or `concurrent` as descriptive kinds. The optional Concurrent Execution Block capability adds human coordination guidance for `ceb` workstreams; it does not create a second registry or lifecycle.
+Use `sequential` or `concurrent` as descriptive kinds. PCP does not infer independence from either value. Missing or inaccurate label metadata cannot hide continuity updates because `sync` always returns every newer event.

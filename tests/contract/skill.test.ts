@@ -37,7 +37,6 @@ describe('build-pcp skill contract', () => {
       'assets/templates/core/.pcp/views/10-status.generated.md',
       'assets/templates/core/.pcp/tools/pcp.mjs',
       'assets/templates/core/.pcp/tools/pcp.sha256',
-      'assets/templates/capabilities/concurrent-execution-blocks/capability.yaml',
       'assets/templates/capabilities/scratch-space/capability.yaml',
       'assets/templates/capabilities/spec-driven-projects/capability.yaml',
       'assets/templates/capabilities/walkthroughs/capability.yaml',
@@ -55,10 +54,10 @@ describe('build-pcp skill contract', () => {
     expect(operation).toContain(
       'register <project-root> --client <client> --machine-label <machine-slug> --json',
     );
-    expect(operation).toContain('returned `execution_id`');
-    expect(operation).toContain('Registration, status checks, and unchanged rendering');
-    expect(operation).toContain('supply a stable `change_key`');
-    expect(operation).toContain('assigns a payload digest');
+    expect(operation).toContain('Use `actor_id` for durable attribution');
+    expect(operation).toContain('Registration, synchronization, acknowledgement');
+    expect(operation).toContain('require a stable external `change_key`');
+    expect(operation).toContain('computes a payload digest');
   });
 
   it('documents digest-bound workstream completion through the engine', async () => {
@@ -66,8 +65,8 @@ describe('build-pcp skill contract', () => {
 
     expect(operation).toContain('workstream validate <project-root>');
     expect(operation).toContain('workstream complete <project-root>');
-    expect(operation).toContain('one exact criterion-to-proof mapping');
-    expect(operation).toContain('same continuity lock');
+    expect(operation).toContain('exactly one proof per criterion');
+    expect(operation).toContain('under the continuity lock');
   });
 
   it('documents preview-first adapter repair and ownership-aware upgrade', async () => {
@@ -98,7 +97,7 @@ describe('build-pcp skill contract', () => {
       'adopt --candidate <candidate-directory> --input <temporary-input> --json',
       'adopt --candidate <candidate-directory> --input <temporary-input> --apply <plan-digest> --json',
       'register <project-root> --client <client> --machine-label <machine-slug> --json',
-      'status <project-root> --actor-id <actor-id>',
+      'sync <project-root> --actor-id <actor-id> --execution-id <execution-id>',
       'record <project-root> --input <external-event.yaml> --json',
       'validate <project-root> --archive-index-only --json',
       'render <project-root> --check --json',
@@ -119,17 +118,12 @@ describe('build-pcp skill contract', () => {
       new URL('references/capabilities.md', skillRoot),
       'utf8',
     );
-    for (const capability of [
-      'concurrent-execution-blocks',
-      'scratch-space',
-      'spec-driven-projects',
-      'walkthroughs',
-    ]) {
+    for (const capability of ['scratch-space', 'spec-driven-projects', 'walkthroughs']) {
       expect(capabilityReference).toContain(`\`${capability}\``);
     }
-    expect(capabilityReference).toContain("input's `capabilities` array");
+    expect(capabilityReference).toContain('desired capability IDs in adoption input');
     expect(capabilityReference).toContain('installs overlays in canonical order');
     expect(capabilityReference).toContain('Upgrade preserves the installed selection');
-    expect(capabilityReference).toContain('do not edit the manifest or copy overlays manually');
+    expect(capabilityReference).toContain('Do not copy overlays or edit the manifest manually');
   });
 });

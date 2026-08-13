@@ -117,7 +117,6 @@ export function normalizeWorkstream(workstream: WorkstreamState): WorkstreamStat
     status: workstream.status,
     paths: sorted(workstream.paths),
     areas: sorted(workstream.areas),
-    dependencies: sorted(workstream.dependencies),
     completion: {
       criteria: sorted(workstream.completion.criteria.map((criterion) => criterion.trim())),
       evidence: normalizeEvidence(workstream.completion.evidence),
@@ -262,16 +261,6 @@ function prepareCompletion(
       `Completion requires exactly one proof for every criterion${missing === undefined ? '.' : `; missing: ${missing}`}`,
     );
   }
-  for (const dependencyId of previous.dependencies) {
-    const dependency = existingWorkstream(registry, dependencyId);
-    if (dependency.status !== 'complete') {
-      throw new WorkstreamError(
-        'PCP_WORKSTREAM_DEPENDENCY_INCOMPLETE',
-        `Workstream ${previous.workstream_id} cannot complete before ${dependencyId}.`,
-      );
-    }
-  }
-
   const workstream = normalizeWorkstream({
     ...previous,
     status: 'complete',

@@ -177,13 +177,12 @@ describe('canonical template sources', () => {
     ).toEqual([]);
   });
 
-  it('declares four complete opt-in capability overlays without orphan entries', async () => {
+  it('declares three complete opt-in capability overlays without orphan entries', async () => {
     const capabilityDirectories = (await readdir(capabilitiesRoot, { withFileTypes: true }))
       .filter((entry) => entry.isDirectory())
       .map((entry) => entry.name)
       .sort();
     expect(capabilityDirectories).toEqual([
-      'concurrent-execution-blocks',
       'scratch-space',
       'spec-driven-projects',
       'walkthroughs',

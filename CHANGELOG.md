@@ -2,6 +2,17 @@
 
 All notable public protocol changes are documented here from the first release candidate onward.
 
+## Unreleased — 0.2.0 mandatory global synchronization
+
+- Replaced scoped `status` with mandatory `sync` before every agent response or project-tool use.
+- Keyed checkpoints by actor plus per-chat execution ID so simultaneous chats cannot consume one another's updates.
+- Added a deterministic no-change fast path and agent-friendly plain-text change delivery with two-phase digest acknowledgement.
+- Removed the Concurrent Execution Block capability, workstream dependency fields, dependency completion gates, and dependency-sensitive reconciliation.
+- Kept flat sequential/concurrent work labels as optional descriptive lifecycle and evidence records only.
+- Turned all five generated platform adapters into automatic operating contracts for registration, synchronization, acknowledgement, and fail-closed behavior.
+- Evolved the newcomer prompt library into an adoption and recovery guide; normal managed-project use requires no pasted startup prompt.
+- Added an ownership-aware 0.1 migration for CEB assets, CEB work labels, dependency fields, and obsolete scoped checkpoints.
+
 ## 0.1.0-rc — release candidate
 
 - Clarified primary-versus-related project input and release-engine upgrade routing, and removed misleading synthetic timestamps from deterministic transient mutation plans.

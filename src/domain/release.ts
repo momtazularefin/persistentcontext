@@ -1,12 +1,12 @@
 export const PCP_NAME = 'Persistent Context Protocol';
-export const PCP_VERSION = '0.1.0';
-export const PCP_RELEASE_STAGE = 'workstream-operations';
+export const PCP_VERSION = '0.2.0';
+export const PCP_RELEASE_STAGE = 'mandatory-global-sync';
 
 export const PCP_COMMANDS = [
   'inspect',
   'adopt',
   'register',
-  'status',
+  'sync',
   'record',
   'validate',
   'render',

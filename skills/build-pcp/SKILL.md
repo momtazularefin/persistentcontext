@@ -1,6 +1,6 @@
 ---
 name: build-pcp
-description: Adopt and maintain Persistent Context Protocol (PCP) in seed, established, or foreign-context-layer projects. Use when an agent needs to inspect or classify a repository for PCP, preview or apply adoption, migrate an existing AI/agent memory layer, register or reconcile project actors, validate or render .pcp state, record a meaningful change, manage workstreams or CEBs, repair drift, or upgrade PCP.
+description: Adopt and maintain Persistent Context Protocol (PCP) in seed, established, or foreign-context-layer projects. Use when an agent needs to inspect or classify a repository for PCP, preview or apply adoption, migrate an existing AI/agent memory layer, register or synchronize project actors, validate or render .pcp state, record a meaningful change, manage descriptive workstreams, repair drift, or upgrade PCP.
 ---
 
 # Build PCP
@@ -10,7 +10,7 @@ Build and maintain repository-native persistent project context with semantic ag
 ## Route the request
 
 - Read [references/adoption.md](references/adoption.md) for inspection, classification, preview, or first adoption.
-- Read [references/operation.md](references/operation.md) for registration, status, reconciliation, event recording, rendering, and workstreams.
+- Read [references/operation.md](references/operation.md) for registration, mandatory synchronization, event recording, rendering, and workstreams.
 - Read [references/migration-and-repair.md](references/migration-and-repair.md) for foreign-layer translation, destructive apply, repair, rollback, or upgrade.
 - Read [references/capabilities.md](references/capabilities.md) when selecting optional modules or checking feature parity.
 
@@ -46,7 +46,7 @@ Never delete foreign context while any file, history entry, collision, or confli
 
 ## Fail closed during development
 
-All declared commands are available. Adoption, repair, and upgrade are preview-only unless the exact recomputed plan digest is supplied. Every adoption installs the same five adapters. Repair changes only missing or stale generated adapters. Upgrade merges live project selections into the release manifest and targets only protocol/generated files; it hashes and rechecks every untargeted and project/runtime-owned file. Both use preimages, continuity and structural locks where applicable, live validation, and exact rollback. Use `render` for the generated status view. `register` recovers or creates durable identity; `status` advances one ignored checkpoint only after exact digest acknowledgement; `record` appends one attributed immutable event; and `workstream` atomically updates canonical state, its view, and continuity. Ordinary operations inspect archive filenames but not archive contents. An unimplemented adapter surface blocks State C adoption. Never bypass a plan digest or mutate around the engine.
+All declared commands are available. Adoption, repair, and upgrade are preview-only unless the exact recomputed plan digest is supplied. Every adoption installs the same five mandatory adapters. Repair changes only missing or stale generated adapters. Upgrade merges live project selections into the release manifest and targets only protocol/generated files; it hashes and rechecks every untargeted and project/runtime-owned file. Both use preimages, continuity and structural locks where applicable, live validation, and exact rollback. Use `render` for the generated status view. `register` recovers or creates durable identity; `sync` globally returns every newer event and advances one per-execution checkpoint only after exact digest acknowledgement; `record` appends one attributed immutable event; and `workstream` atomically updates descriptive state, its view, and continuity. Workstreams never filter sync and have no dependency semantics. Ordinary operations inspect archive filenames but not archive contents. An unimplemented adapter surface blocks State C adoption. Never bypass synchronization, a plan digest, or the engine.
 
 ## Report evidence
 

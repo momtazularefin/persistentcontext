@@ -170,25 +170,6 @@ export interface LoadedCapabilityTemplates {
 }
 
 const EMBEDDED_CAPABILITY_MANIFESTS: Readonly<Record<SupportedCapabilityId, CapabilityManifest>> = {
-  'concurrent-execution-blocks': {
-    schema_version: 1,
-    capability_id: 'concurrent-execution-blocks',
-    name: 'Concurrent Execution Blocks',
-    description:
-      'Adds dependency-aware parallel work guidance and a human-readable scaffold over the core workstream lifecycle.',
-    dependencies: [],
-    manifest_value: 'concurrent-execution-blocks',
-    overlay_root: 'overlay',
-    index_entries: [
-      {
-        folder: 'protocol',
-        path: '90-concurrent-execution-blocks.md',
-        title: 'Concurrent Execution Blocks',
-      },
-      { folder: 'templates', path: '40-workstream.md', title: 'Workstream scaffold' },
-    ],
-    root_paths: [],
-  },
   'scratch-space': {
     schema_version: 1,
     capability_id: 'scratch-space',

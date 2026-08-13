@@ -7,6 +7,9 @@ import coverageSchema from '../../schemas/v1/coverage.schema.json' with { type: 
 import eventSchema from '../../schemas/v1/event.schema.json' with { type: 'json' };
 import eventInputSchema from '../../schemas/v1/event-input.schema.json' with { type: 'json' };
 import frontmatterSchema from '../../schemas/v1/frontmatter.schema.json' with { type: 'json' };
+import legacyCheckpointSchema from '../../schemas/v1/legacy-0.1-checkpoint.schema.json' with { type: 'json' };
+import legacyPcpManifestSchema from '../../schemas/v1/legacy-0.1-pcp-manifest.schema.json' with { type: 'json' };
+import legacyWorkstreamsSchema from '../../schemas/v1/legacy-0.1-workstreams.schema.json' with { type: 'json' };
 import mutationPlanSchema from '../../schemas/v1/mutation-plan.schema.json' with { type: 'json' };
 import pcpManifestSchema from '../../schemas/v1/pcp-manifest.schema.json' with { type: 'json' };
 import projectRegistrySchema from '../../schemas/v1/project-registry.schema.json' with { type: 'json' };
@@ -24,6 +27,9 @@ export const SCHEMA_CATALOG = {
   event: eventSchema,
   'event-input': eventInputSchema,
   frontmatter: frontmatterSchema,
+  'legacy-0.1-checkpoint': legacyCheckpointSchema,
+  'legacy-0.1-pcp-manifest': legacyPcpManifestSchema,
+  'legacy-0.1-workstreams': legacyWorkstreamsSchema,
   'mutation-plan': mutationPlanSchema,
   'pcp-manifest': pcpManifestSchema,
   'project-registry': projectRegistrySchema,

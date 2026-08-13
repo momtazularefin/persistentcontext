@@ -24,10 +24,10 @@ describe('public documentation contract', () => {
     const architecture = await readFile(new URL('docs/architecture.md', projectRoot), 'utf8');
 
     for (const claim of [
-      'five cooperating surfaces',
+      'Five cooperating surfaces',
       'Protocol assets',
       '`build-pcp` skill',
-      'Project-local `pcp` engine',
+      'project-local `pcp` engine',
       'The repository outranks private agent memory',
       'Protocol',
       'Project',
@@ -36,6 +36,9 @@ describe('public documentation contract', () => {
       'at most 64 records',
       'oldest 32',
       'adapter-contract',
+      'Every user request',
+      '(actor_id, execution_id)',
+      'do not filter event delivery',
     ]) {
       expect(architecture, claim).toContain(claim);
     }
@@ -48,7 +51,7 @@ describe('public documentation contract', () => {
       'inspect',
       'adopt',
       'register',
-      'status',
+      'sync',
       'record',
       'validate',
       'render',
@@ -64,6 +67,7 @@ describe('public documentation contract', () => {
       'creates no event',
       'routine startup does not replay the archive',
       'Pull requests are recommended milestone boundaries, not a protocol requirement',
+      'never filters by workstream, inferred dependency',
     ]) {
       expect(lifecycle, boundary).toContain(boundary);
     }
@@ -91,6 +95,39 @@ describe('public documentation contract', () => {
       'Downgrades are rejected',
     ]) {
       expect(compatibility, claim).toContain(claim);
+    }
+  });
+
+  it('documents automatic adapters and a project-neutral recovery path', async () => {
+    const [readme, prompts] = await Promise.all([
+      readFile(new URL('README.md', projectRoot), 'utf8'),
+      readFile(new URL('docs/getting-started.md', projectRoot), 'utf8'),
+    ]);
+
+    expect(readme).toContain('docs/getting-started.md');
+    expect(prompts).toContain('https://github.com/momtazularefin/persistentcontext');
+    expect(prompts).toContain('node .pcp/tools/pcp.mjs');
+    expect(prompts).toContain('Do not assume a global `pcp` command exists');
+    expect(prompts).toContain('not a new durable actor');
+    expect(prompts).toContain('Every chat receives a new execution ID');
+    expect(prompts).toContain('No PCP startup prompt should be necessary');
+    expect(prompts).toContain('before every response or project-tool use');
+    expect(prompts).toContain('stop rather than bypass PCP');
+
+    for (const [platform, adapter, client] of [
+      ['Codex', 'AGENTS.md', 'codex'],
+      ['Antigravity', '.agents/rules/pcp.md', 'antigravity'],
+      ['Claude Code Desktop', 'CLAUDE.md', 'claude-code-desktop'],
+      [
+        'GitHub Copilot in Visual Studio Code',
+        '.github/copilot-instructions.md',
+        'github-copilot-vscode',
+      ],
+      ['Cursor IDE', '.cursor/rules/pcp.mdc', 'cursor'],
+    ]) {
+      expect(prompts, platform).toContain(platform);
+      expect(prompts, adapter).toContain(adapter);
+      expect(prompts, client).toContain(client);
     }
   });
 
@@ -143,7 +180,7 @@ describe('public documentation contract', () => {
       'PCP_PLAN_DIGEST_MISMATCH',
       'PCP_ADOPTION_LIVE_INVALID',
       'PCP_REGISTRATION_STALE_CACHE',
-      'PCP_STATUS_DIGEST_MISMATCH',
+      'PCP_SYNC_DIGEST_MISMATCH',
       'PCP_RECORD_DUPLICATE_CHANGE',
       'PCP_WORKSTREAM_REGISTRY_CHANGED',
       'PCP_REPAIR_NOT_APPLICABLE',

@@ -93,26 +93,6 @@ function validateWorkstreams(records: CanonicalSemanticRecords): CanonicalDiagno
   }
 
   for (const [id, workstream] of byId) {
-    for (const dependency of stringArray(workstream.dependencies)) {
-      if (dependency === id) {
-        diagnostics.push(
-          error(
-            'workstream.self-dependency',
-            records.workstreams.path,
-            `Workstream ${id} depends on itself.`,
-          ),
-        );
-      } else if (!byId.has(dependency)) {
-        diagnostics.push(
-          error(
-            'workstream.missing-dependency',
-            records.workstreams.path,
-            `Workstream ${id} depends on unknown workstream ${dependency}.`,
-          ),
-        );
-      }
-    }
-
     const completion = objectValue(workstream.completion);
     const criteria = stringArray(completion?.criteria);
     const evidence = objectArray(completion?.evidence);
@@ -164,18 +144,6 @@ function validateWorkstreams(records: CanonicalSemanticRecords): CanonicalDiagno
           );
         }
       }
-      for (const dependency of stringArray(workstream.dependencies)) {
-        const dependencyState = byId.get(dependency);
-        if (dependencyState !== undefined && dependencyState.status !== 'complete') {
-          diagnostics.push(
-            error(
-              'workstream.incomplete-dependency',
-              records.workstreams.path,
-              `Complete workstream ${id} depends on incomplete workstream ${dependency}.`,
-            ),
-          );
-        }
-      }
       const announcement = stringValue(completion?.announcement);
       if (announcement === undefined || announcement.trim().length === 0) {
         diagnostics.push(
@@ -196,32 +164,6 @@ function validateWorkstreams(records: CanonicalSemanticRecords): CanonicalDiagno
       );
     }
   }
-
-  const visiting = new Set<string>();
-  const visited = new Set<string>();
-  function visit(id: string, trail: string[]): void {
-    if (visiting.has(id)) {
-      const start = trail.indexOf(id);
-      const cycle = [...trail.slice(Math.max(start, 0)), id];
-      diagnostics.push(
-        error(
-          'workstream.dependency-cycle',
-          records.workstreams?.path ?? 'state/workstreams.yaml',
-          `Workstream dependency cycle: ${cycle.join(' -> ')}.`,
-        ),
-      );
-      return;
-    }
-    if (visited.has(id)) return;
-    visiting.add(id);
-    const workstream = byId.get(id);
-    for (const dependency of stringArray(workstream?.dependencies)) {
-      if (byId.has(dependency)) visit(dependency, [...trail, id]);
-    }
-    visiting.delete(id);
-    visited.add(id);
-  }
-  for (const id of byId.keys()) visit(id, []);
 
   return diagnostics;
 }
@@ -452,7 +394,7 @@ function validateEvents(records: CanonicalSemanticRecords): CanonicalDiagnostic[
 
 function validateCheckpoints(records: CanonicalSemanticRecords): CanonicalDiagnostic[] {
   const diagnostics: CanonicalDiagnostic[] = [];
-  const checkpointIdentities = new Map<string, string>();
+  const executionIdentities = new Map<string, string>();
   const actorTypes = new Map(
     records.actors
       .map((record) => {
@@ -469,13 +411,6 @@ function validateCheckpoints(records: CanonicalSemanticRecords): CanonicalDiagno
       .map((record) => stringValue(objectValue(record.value)?.event_id))
       .filter((id): id is string => id !== undefined),
   );
-  const workstreamRoot = objectValue(records.workstreams?.value);
-  const workstreamIds = new Set(
-    objectArray(workstreamRoot?.workstreams)
-      .map((workstream) => stringValue(workstream.workstream_id))
-      .filter((id): id is string => id !== undefined),
-  );
-
   for (const record of records.checkpoints) {
     const checkpoint = objectValue(record.value);
     const checkpointId = stringValue(checkpoint?.checkpoint_id);
@@ -509,26 +444,15 @@ function validateCheckpoints(records: CanonicalSemanticRecords): CanonicalDiagno
         );
       }
     }
-    const workstreamId = stringValue(checkpoint?.workstream_id);
-    if (workstreamId !== undefined && !workstreamIds.has(workstreamId)) {
+    const executionId = stringValue(checkpoint?.execution_id);
+    if (checkpointId !== undefined && executionId !== undefined && checkpointId !== executionId) {
       diagnostics.push(
         error(
-          'checkpoint.unknown-workstream',
+          'checkpoint.execution-identity-mismatch',
           record.path,
-          `Checkpoint references unknown workstream ${workstreamId}.`,
+          'Checkpoint and execution IDs must be identical.',
         ),
       );
-    }
-    for (const dependency of stringArray(checkpoint?.dependencies)) {
-      if (!workstreamIds.has(dependency)) {
-        diagnostics.push(
-          error(
-            'checkpoint.unknown-dependency',
-            record.path,
-            `Checkpoint references unknown dependency workstream ${dependency}.`,
-          ),
-        );
-      }
     }
     const eventId = stringValue(checkpoint?.last_event_id);
     if (eventId !== undefined && !eventIds.has(eventId)) {
@@ -541,25 +465,19 @@ function validateCheckpoints(records: CanonicalSemanticRecords): CanonicalDiagno
       );
     }
 
-    if (actorId !== undefined) {
-      const identity = JSON.stringify({
-        actor_id: actorId,
-        workstream_id: workstreamId ?? null,
-        scopes: stringArray(checkpoint?.scopes).sort(),
-        paths: stringArray(checkpoint?.paths).sort(),
-        dependencies: stringArray(checkpoint?.dependencies).sort(),
-      });
-      const previous = checkpointIdentities.get(identity);
+    if (actorId !== undefined && executionId !== undefined) {
+      const identity = JSON.stringify({ actor_id: actorId, execution_id: executionId });
+      const previous = executionIdentities.get(identity);
       if (previous !== undefined) {
         diagnostics.push(
           error(
-            'checkpoint.duplicate-scope',
+            'checkpoint.duplicate-execution',
             record.path,
-            `Checkpoint duplicates the actor and scope identity in ${previous}.`,
+            `Checkpoint duplicates the actor and execution identity in ${previous}.`,
           ),
         );
       } else {
-        checkpointIdentities.set(identity, record.path);
+        executionIdentities.set(identity, record.path);
       }
     }
   }

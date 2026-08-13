@@ -3,22 +3,19 @@ valid:
   schema_version: 1
   checkpoint_id: 01ARZ3NDEKTSV4RRFFQ69G5FAV
   actor_id: codex-laptop-01ARZ3NDEK
-  workstream_id: canonical-layer
+  execution_id: 01ARZ3NDEKTSV4RRFFQ69G5FAV
   last_event_id: null
   reconciled_at: 2026-07-12T00:00:00Z
-  scopes: [protocol, validation]
-  paths: [src, schemas]
-  dependencies: []
 invalid:
   - name: malformed checkpoint ULID
     operation: set
     path: checkpoint_id
     value: not-a-ulid
-  - name: nonportable scope name
+  - name: malformed execution ULID
     operation: set
-    path: scopes.0
-    value: Protocol_Rules
-  - name: absolute checkpoint path
+    path: execution_id
+    value: not-an-execution
+  - name: legacy scoped selection
     operation: set
-    path: paths.0
-    value: C:\\private\\source
+    path: dependencies
+    value: []

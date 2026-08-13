@@ -117,20 +117,22 @@ When no recovery material remains, `recovery_path` is `null`. The path is epheme
 
 Full validation reads archive contents. `validate --archive-index-only` checks operational archive identities without treating archived prose as routine startup context.
 
-## Registration and status
+## Registration and synchronization
 
-| Code                               | Safe response                                                                                                                                                       |
-| ---------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `PCP_REGISTRATION_STALE_CACHE`     | Restore the matching durable profile or deliberately remove only the ignored local cache after confirming the profile is truly gone; then register again.           |
-| `PCP_REGISTRATION_CACHE_MISMATCH`  | The requested identity conflicts with the cache. Confirm client, machine label, project path, and explicit actor ID; do not overwrite the durable profile.          |
-| `PCP_REGISTRATION_AMBIGUOUS`       | More than one durable profile matches. Rerun with the intended explicit `--actor-id`.                                                                               |
-| `PCP_REGISTRATION_ACTOR_NOT_FOUND` | The explicit actor ID is absent. Use an existing profile or register without claiming that ID.                                                                      |
-| `PCP_STATUS_ACTOR_NOT_FOUND`       | Status requires a registered durable actor. Register first.                                                                                                         |
-| `PCP_STATUS_WORKSTREAM_NOT_FOUND`  | The selected workstream is absent. Validate the registry and use its exact ID.                                                                                      |
-| `PCP_STATUS_DIGEST_MISMATCH`       | Context changed or the acknowledgement digest is wrong. Read a fresh status preview and acknowledge only after absorbing it.                                        |
-| `PCP_STATUS_CHECKPOINT_AMBIGUOUS`  | Multiple checkpoints match an invalid or conflicting local selection. Preserve files and inspect local checkpoint state; do not choose one by editing its contents. |
+| Code                                    | Safe response                                                                                                                                              |
+| --------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `PCP_REGISTRATION_STALE_CACHE`          | Restore the matching durable profile or deliberately remove only the ignored cache after confirming the profile is truly gone; then register again.        |
+| `PCP_REGISTRATION_CACHE_MISMATCH`       | The requested identity conflicts with the cache. Confirm client, machine label, project path, and explicit actor ID; do not overwrite the durable profile. |
+| `PCP_REGISTRATION_AMBIGUOUS`            | More than one durable profile matches. Rerun with the intended explicit `--actor-id`.                                                                      |
+| `PCP_REGISTRATION_ACTOR_NOT_FOUND`      | The explicit actor ID is absent. Use an existing profile or register without claiming that ID.                                                             |
+| `PCP_SYNC_ACTOR_NOT_FOUND`              | Sync requires a registered durable agent actor. Register once for this chat.                                                                               |
+| `PCP_SYNC_EXECUTION_ID_INVALID`         | The conversation lost or malformed its execution ULID. Register again to establish a fresh conversation checkpoint.                                        |
+| `PCP_SYNC_CHECKPOINT_IDENTITY_MISMATCH` | The deterministic checkpoint belongs to another actor or execution. Preserve it for diagnosis; do not edit or reuse it.                                    |
+| `PCP_SYNC_DIGEST_MISMATCH`              | Context changed or the acknowledgement digest is wrong. Read a fresh sync preview and absorb every returned current path before acknowledging.             |
+| `PCP_SYNC_EVENT_INTEGRITY_FAILED`       | A newer event's payload digest does not match. Stop project work, preserve the event, and investigate history rather than acknowledging past it.           |
+| `PCP_SYNC_INVALID_LAYER`                | A fast-path continuity file is missing, malformed, unsafe, or inconsistent. Run full validation and repair canonical state; do not bypass synchronization. |
 
-Registration and status should not create continuity events. If they do, validation should fail and the behavior should be reported as a defect.
+Registration and synchronization should not create continuity events. If they do, validation should fail and the behavior should be reported as a defect.
 
 ## Event recording
 
@@ -150,7 +152,6 @@ Never edit an accepted event or its payload digest. Record a later corrective ev
 | -------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------ |
 | `PCP_WORKSTREAM_REGISTRY_CHANGED`                                                                  | Another operation changed the registry. Revalidate, rebuild the complete input against the new digest, and review again. |
 | `PCP_WORKSTREAM_TRANSITION_INVALID`, `PCP_WORKSTREAM_TERMINAL`, or `PCP_WORKSTREAM_KIND_IMMUTABLE` | The requested lifecycle change is not allowed. Preserve terminal records and create new work when needed.                |
-| `PCP_WORKSTREAM_DEPENDENCY_INCOMPLETE`                                                             | Complete and evidence every dependency first.                                                                            |
 | `PCP_WORKSTREAM_EVIDENCE_*`                                                                        | Supply exactly one proof for each declared completion criterion and no unknown or duplicate proof.                       |
 | `PCP_WORKSTREAM_ROLLBACK_FAILED`                                                                   | Preserve registry, view, event, and archive recovery evidence; validate before retrying.                                 |
 

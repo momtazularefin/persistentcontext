@@ -1,6 +1,6 @@
 {
   "name": "persistentcontext",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "private": true,
   "description": "Persistent Context Protocol (PCP): repository-native context, safe handoffs, and multi-agent continuity for AI coding agents across tools and machines.",
   "type": "module",
@@ -27,6 +27,7 @@
     "scan:package": "node scripts/scan-package-content.mjs",
     "scan:private": "node scripts/scan-private-data.mjs",
     "test:golden": "node scripts/verify-dist.mjs",
+    "benchmark:sync": "tsx scripts/benchmark-sync.mjs",
     "verify:dist": "npm run test:golden",
     "freeze:candidate": "node scripts/release-candidate.mjs --write",
     "verify:candidate": "node scripts/release-candidate.mjs",

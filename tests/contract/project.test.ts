@@ -21,6 +21,7 @@ describe('public project contract', () => {
     expect(readme).toContain('node dist/pcp.mjs inspect path/to/project --json');
     expect(readme).toContain('node dist/pcp.mjs adopt --candidate path/to/project --input');
     expect(readme).toContain('node dist/pcp.mjs register path/to/managed-project --client codex');
+    expect(readme).toContain('node dist/pcp.mjs sync path/to/managed-project --actor-id');
     expect(readme).toContain('node dist/pcp.mjs validate path/to/managed-project');
     expect(readme).toContain('node dist/pcp.mjs render path/to/managed-project --check');
     expect(readme).toContain('node dist/pcp.mjs workstream validate path/to/managed-project');
@@ -36,14 +37,15 @@ describe('public project contract', () => {
     expect(readme).toContain('can still be marked `project-owned` and preserved unchanged');
     expect(readme).toContain('five generated platform delegations');
     expect(readme).toContain('outside the five-product contract fails closed');
-    expect(readme).toContain('that digest also binds the reviewed coverage');
-    expect(readme).toContain('Apply revalidates the live canonical layer and complete adapter set');
-    expect(readme).toContain('generated views and adapters');
+    expect(readme).toContain('The plan binds reviewed coverage');
+    expect(readme).toContain('mandatory sync contract');
     expect(readme).toContain('Every successful invocation returns a fresh execution ULID');
     expect(readme).toContain('one proof per criterion');
     expect(readme).toContain('stable caller-supplied `change_key`');
     expect(readme).toContain('event payload digests and duplicate change keys');
     expect(readme).toContain('reject downgrades and unsafe collisions');
+    expect(readme).toContain('Workstreams contain no dependencies');
+    expect(readme).toContain('per-execution checkpoint');
   });
 
   it('normalizes text for deterministic cross-platform checks', async () => {
@@ -71,8 +73,8 @@ describe('public project contract', () => {
     ]);
     const manifest = JSON.parse(manifestText) as unknown;
 
-    expect(readme).toContain('is implementation-complete');
-    expect(readme).toContain('awaiting the final signed release PR, tag, and GitHub publication');
+    expect(readme).toContain('current development contract');
+    expect(readme).toContain('historical');
     expect(documentation).toContain('## State C dogfood acceptance');
     expect(documentation).toContain('The private conversion is complete');
     expect(documentation).toContain('Dogfood repeatedly exercised the unfreeze rule');

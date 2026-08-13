@@ -1,106 +1,71 @@
 # Lifecycle
 
-PCP uses one lifecycle for new projects, established repositories, and projects that already contain another persistent context layer. Structural changes are preview-first; ordinary context reconciliation remains scoped and inexpensive.
+PCP uses one lifecycle for seed projects, established repositories, foreign context layers, and managed installations. Structural changes are preview-first. Ordinary synchronization is mandatory, global, and optimized for the no-change case.
 
-## 1. Inspect without mutation
+Commands below use the development bundle. Inside an adopted repository, generated adapters use the installed equivalent: `node .pcp/tools/pcp.mjs`.
+
+## 1. Inspect and classify
 
 ```powershell
 node dist/pcp.mjs inspect path/to/project --json
 ```
 
-Inspection inventories regular files, ignore rules, nested repositories, symlinks, manifests, deployment signals, and known context conventions. It records fingerprints and classification evidence without following symlinks or changing the candidate.
+`inspect` inventories without mutation and classifies the candidate from evidence:
 
-The result is one of four routes:
+- State A: empty, title-only, prompt, README, or prose seed;
+- State B: established project without persistent agent context;
+- State C: foreign instruction, memory, planning, or orchestration layer; or
+- Managed: a valid PCP installation.
 
-| Route   | Meaning                                                                                  | Next operation                                                                                                    |
-| ------- | ---------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------- |
-| State A | Empty, title-only, prompt, README, or prose seed.                                        | Gather indispensable choices and create a suitable initial project scaffold plus PCP.                             |
-| State B | Established project with substantive assets and no persistent context layer.             | Explore progressively and add PCP without reorganizing project-owned assets.                                      |
-| State C | Project with a foreign instruction, knowledge, memory, planning, or orchestration layer. | Translate reviewed current value, replace supported adapters, and remove only completely covered foreign context. |
-| Managed | Valid PCP installation already exists.                                                   | Use registration, status, recording, workstream, repair, render, or upgrade commands.                             |
+Classification does not assume a source-tree shape. Inventory honors ignore and nested-repository boundaries, fingerprints binary and large files without semantic parsing, and records symlinks without following them.
 
-Classification depends on repository evidence, not a required pre-existing folder layout.
-
-## 2. Build the semantic baseline
-
-The `build-pcp` skill guides the judgment-heavy phase. It explores progressively, stops when the model is sufficiently grounded, and prepares one external schema-valid adoption input containing:
-
-- project identity, purpose, type, lifecycle, artifact roots, and persistence profile;
-- optional related projects and workstreams;
-- an explicit VCS policy and capability selection;
-- the eight required canonical knowledge and operations documents with evidence basis;
-- optional grounded, numbered per-project documents when the spec-driven-projects capability is selected; PCP generates both the managed-project and project-local reading-order indexes;
-- State A scaffold files when appropriate; or
-- a reviewed disposition for every detected State C foreign root, followed by a complete source/history coverage matrix for roots selected for translation.
-- optional literal external-reference rewrites for existing project-owned UTF-8 files whose links or path references would otherwise point into removed foreign context.
-
-State B cannot use adoption to add arbitrary project scaffold files. State C first returns `requires-root-review`; the reviewed input then returns scoped coverage. It cannot remove a source until every translated file and structured history entry has a non-unresolved disposition with required targets and evidence. Roots reviewed as `project-owned` remain untouched. A `relocated` disposition is limited to one reviewed regular file and one new project-owned destination outside `.pcp/` and all translated roots; it preserves the exact bytes with a preimage-bound move rather than treating the destination as canonical context.
-
-## 3. Preview the exact plan
+## 2. Adopt from an external semantic baseline
 
 ```powershell
 node dist/pcp.mjs adopt --candidate path/to/project --input path/to/adoption.yaml --json
-```
-
-The engine validates the input, rebuilds the desired canonical layer, and returns an ordered mutation plan. Its digest binds the source inventory, canonical bytes, capabilities, adapters, ownership, preimages, and ordered operations. Preview does not mutate the candidate.
-
-Review the classification, evidence, generated document content, adapter replacements, preserved files, removals, and plan digest. A changed source, input, disposition, target, preimage, or operation produces a different plan.
-
-## 4. Apply only the reviewed digest
-
-```powershell
 node dist/pcp.mjs adopt --candidate path/to/project --input path/to/adoption.yaml --apply <plan-digest> --json
 ```
 
-Apply recomputes the plan before acquiring mutation authority. It then:
+The `build-pcp` skill progressively explores the candidate and prepares schema-valid input containing project identity, canonical documents, policy, optional flat work labels, selected capabilities, and evidence. State C first requires an explicit disposition for every foreign root and then complete reviewed coverage for every translated source.
 
-1. acquires a project-scoped structural lock;
-2. stages desired bytes and exact preimages outside the candidate;
-3. writes a durable operation log before each filesystem action;
-4. uses atomic file replacement and checked directory creation/removal;
-5. revalidates source stability and the live canonical layer;
-6. validates all five adapter manifests, sources, and content digests;
-7. restores exact preimages in reverse order after any caught failure; and
-8. removes recovery material only after successful live acceptance.
+Preview does not mutate. Its digest binds the complete inventory, desired bytes, ownership, generated adapters, preimages, and ordered operations. Apply recomputes the plan, stages content and preimages outside the project, writes an operation log, replaces atomically, validates the live result, and performs reverse exact rollback after any caught failure.
 
-State C adds explicit root-scope review, coverage-bound relocation and removal checks, replacement-first adapter ordering, preservation of `project-owned` roots and files, and a fail-closed boundary for unknown or unsupported adapter surfaces. After its reviewed files are replaced, moved, or removed, the plan deletes only translated directories proven empty in the projected inventory, deepest first. Directory cleanup is part of the approved plan and exact rollback, not a post-transaction shell cleanup.
+Successful adoption has zero actor profiles, zero active events, and zero archived events. Grounded current context is imported; old identities, checkpoints, and history are not.
 
-An external rewrite names one existing regular file, its exact preimage digest, concrete evidence, and one or more literal old/new text pairs. It cannot create files, enter canonical or translated paths, cross symlinks or generated/version-control metadata, or target an unreviewed exclusion. A file inside a detected nested repository is eligible only by exact path and preimage; the repository remains otherwise excluded. The resulting replacement is staged, approved, applied atomically, checked after live validation, and restored byte-for-byte on rollback.
-
-Every successful adoption starts with clean genesis: zero actor profiles, zero active events, and zero archived events. Grounded current context is imported; foreign identities and history are not.
-
-## 5. Register once per execution
+## 3. Register a conversation
 
 ```powershell
 node dist/pcp.mjs register path/to/project --client codex --machine-label laptop --json
 ```
 
-Registration creates or recovers a stable project-lifetime actor profile and stores a matching ignored local cache. A stale cache, contradictory identity, or ambiguous recovery fails closed. Every successful invocation returns a fresh execution ULID. Registration validates continuity but creates no event.
+Registration creates or recovers one stable project-lifetime actor and returns a fresh execution ULID for the current chat. A stale cache, contradictory identity, or ambiguous recovery fails closed. The adapter retains both IDs in conversation state. Registration creates no event.
 
-Humans use the same actor model. The first informed agent can register a human when it needs to record reported or observed human work.
+Each chat registers separately, even when it recovers the same actor. Checkpoints are keyed by execution ID so one chat cannot consume another chat's updates.
 
-## 6. Reconcile only the active scope
+## 4. Synchronize before every response
 
 ```powershell
-node dist/pcp.mjs status path/to/project --actor-id <actor-id> --workstream <id> --json
-node dist/pcp.mjs status path/to/project --actor-id <actor-id> --workstream <id> --acknowledge <status-digest> --json
+node dist/pcp.mjs sync path/to/project --actor-id <actor-id> --execution-id <execution-id>
+node dist/pcp.mjs sync path/to/project --actor-id <actor-id> --execution-id <execution-id> --acknowledge <sync-digest>
 ```
 
-Preview expands the selected workstream through dependencies, compares its exact scoped checkpoint with newer active events, and returns relevant changes, visible out-of-scope changes, and current context paths to read. It does not write.
+The first command is read-only. It compares the conversation checkpoint with globally newer active-event IDs. When nothing changed, plain output reports that immediately. When events are newer, it returns all of them with attribution, rationale, affected paths, and the current canonical paths the agent must read. It never filters by workstream, inferred dependency, semantic scope, or path overlap.
 
-After absorbing those current documents, submit the returned digest. Acknowledgement recomputes the view under the continuity lock and advances only the matching local checkpoint. It changes no project document and creates no event. If the checkpoint predates the active-event floor, rebuild only the affected scope from current canonical state; routine startup does not replay the archive.
+After reading every returned current path, the agent submits the exact digest. Acknowledgement recomputes under the continuity lock and advances only that execution's ignored checkpoint; it creates no event. A stale digest fails without advancing. If the active window no longer reaches a new conversation's baseline, synchronization directs it to reconstruct from current canonical state; routine startup does not replay the archive.
 
-## 7. Record meaningful durable change
+Generated product adapters mandate this operation for every user request before answering or using project tools. Project instructions are not an operating-system interceptor, so PCP verifies the adapter contract and fails closed when followed without claiming universal model enforcement.
+
+## 5. Record meaningful durable change
 
 ```powershell
 node dist/pcp.mjs record path/to/project --input path/to/event.yaml --json
 ```
 
-Record the performer, recorder, evidence basis, concise summary, and affected semantic scopes, workstreams, or paths. Reported and observed changes require a stable external `change_key`, such as a Git commit, Subversion revision, or filesystem snapshot digest. Duplicate active-window keys fail under the continuity lock.
+An event names the performer, recorder, evidence basis, concise summary and rationale, plus affected work labels, scopes, or paths. Reported and observed changes require a stable external `change_key`. The engine assigns a globally ordered ULID and payload digest under the continuity lock. Events are immutable; corrections are later events.
 
-The engine assigns the globally ordered event ULID and a SHA-256 payload digest. Events are immutable; corrections are later events. Inspection, registration, synchronization, no-op rendering, and adoption are not continuity events.
+Inspection, registration, synchronization, acknowledgement, no-op rendering, and discussion without durable change are not events. Event 65 rotates the oldest 32 of the at most 64 active records into explicit-only archive history.
 
-## 8. Manage bounded work
+## 6. Manage optional work labels
 
 ```powershell
 node dist/pcp.mjs workstream validate path/to/project --json
@@ -109,9 +74,9 @@ node dist/pcp.mjs workstream update path/to/project --input path/to/workstream.y
 node dist/pcp.mjs workstream complete path/to/project --input path/to/workstream.yaml --json
 ```
 
-Validate returns the exact registry digest used to prepare create, update, or complete input. A successful mutation replaces the registry, regenerates the status view, and appends its attributed event under one lock. Stale digests and dependency conflicts fail without accepted mutation. Completion requires completed dependencies, one proof per criterion, and a human-facing announcement.
+Workstreams are flat descriptive labels, not dependency graphs or synchronization filters. Validate returns the registry digest used to prepare a create, update, or complete input. Successful mutation replaces the registry, regenerates the status view, and appends one attributed event atomically. Completion requires one proof per criterion and a human-facing announcement. A stale registry digest fails without accepted mutation.
 
-## 9. Validate and render
+## 7. Validate and render
 
 ```powershell
 node dist/pcp.mjs validate path/to/project --json
@@ -119,13 +84,11 @@ node dist/pcp.mjs render path/to/project --check --json
 node dist/pcp.mjs render path/to/project --json
 ```
 
-Validation covers release schemas, required structure, numbered and indexed Markdown, links, portability, secret patterns, ownership, generated views and adapters, identities, event integrity, checkpoints, workstream dependencies, VCS authority, and optional clean genesis.
+Validation covers schemas, required structure, numbered and indexed Markdown, links, portability, secret patterns, ownership, generated views and adapters, identities, event integrity, per-execution checkpoints, VCS authority, and optional clean genesis. Normal operations inspect archive IDs by filename; full validation is the explicit archive-content audit.
 
-The installed project-local engine is self-contained for validation. Enabled capability metadata is embedded in the release executable, so validation does not require the public source templates or skill package beside a managed project. Adoption and upgrade use the incoming release's checked template assets because those operations create or refresh files.
+`render --check` is non-mutating. Write mode replaces only the declared generated status view from canonical YAML sources.
 
-Normal operations may validate archive filenames without reading historical content. Full validation is the explicit archive-content audit. `render --check` is non-mutating; write mode replaces only the declared generated status view.
-
-## 10. Repair or upgrade with preservation proof
+## 8. Repair or upgrade
 
 ```powershell
 node dist/pcp.mjs repair path/to/project --json
@@ -134,10 +97,12 @@ node dist/pcp.mjs upgrade path/to/project --json
 node dist/pcp.mjs upgrade path/to/project --apply <plan-digest> --json
 ```
 
-Repair plans only missing or changed generated adapters. Upgrade projects the running release's protocol and generated assets onto the installation while preserving selected capabilities and project policy. Both operations bind replacements to exact preimages and the complete inventory, reject unsafe collisions and stale approval, and use the same structural transaction and rollback guarantees as adoption.
+Repair plans only missing or changed generated adapters. Upgrade projects current release-owned protocol and generated assets onto a managed installation while preserving project and runtime ownership. Both are preview-first, preimage-bound, inventory-stable transactions with live validation and rollback.
 
-Upgrade rejects downgrades and writes only approved protocol/generated targets. Every untargeted file and every project/runtime-owned canonical file is fingerprinted before and after apply.
+The 0.1-to-0.2 upgrade removes the CEB capability and its pristine release assets, maps `kind: ceb` labels to `kind: concurrent`, removes workstream dependency fields, and discards obsolete scoped checkpoints. Existing actors and events remain; each post-upgrade conversation establishes a new per-execution baseline. A customized CEB scaffold blocks automatic removal so useful project-owned content is not silently lost.
+
+Downgrades are rejected. Every untargeted inventory file and every project/runtime-owned canonical file is fingerprinted before and after apply.
 
 ## Version-control boundary
 
-PCP never treats repository presence or installed tooling as permission. The selected VCS profile assigns every action or prohibits it. The recommended `human-commit` flow has agents prepare verified units and exact signed-commit commands while the human reviews, stages, signs, and reports completion. Pull requests are recommended milestone boundaries, not a protocol requirement.
+PCP never treats a repository or installed VCS tool as authority. The selected VCS profile assigns every action or prohibits it. Pull requests are recommended milestone boundaries, not a protocol requirement.

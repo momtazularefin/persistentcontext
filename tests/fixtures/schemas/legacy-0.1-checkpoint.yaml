@@ -1,0 +1,19 @@
+schema: legacy-0.1-checkpoint
+valid:
+  schema_version: 1
+  checkpoint_id: 01ARZ3NDEKTSV4RRFFQ69G5FAV
+  actor_id: codex-laptop-01ARZ3NDEK
+  workstream_id: implementation
+  last_event_id: null
+  reconciled_at: 2026-07-12T00:00:00Z
+  scopes: [implementation]
+  paths: [src]
+  dependencies: [foundation]
+invalid:
+  - name: malformed checkpoint ULID
+    operation: set
+    path: checkpoint_id
+    value: not-a-ulid
+  - name: missing scoped dependency list
+    operation: delete
+    path: dependencies

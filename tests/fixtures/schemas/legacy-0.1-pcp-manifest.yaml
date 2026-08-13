@@ -1,0 +1,31 @@
+schema: legacy-0.1-pcp-manifest
+valid:
+  schema_version: 1
+  protocol:
+    name: persistent-context-protocol
+    version: 0.1.0
+  persistence: tracked
+  capabilities: [concurrent-execution-blocks, scratch-space]
+  continuity:
+    active_event_limit: 64
+    archive_batch_size: 32
+    archive_read_policy: explicit-only
+  ownership:
+    protocol: [.pcp/protocol/**, .pcp/schemas/**, .pcp/tools/**]
+    project: [.pcp/knowledge/**, .pcp/operations/**, .pcp/projects/**, .pcp/state/**]
+    generated: [.pcp/views/**, AGENTS.md, CLAUDE.md]
+    runtime: [.pcp/runtime/**]
+  adapter_ids: [codex, antigravity, claude-code-desktop]
+  validation:
+    strict: true
+    schema_root: .pcp/schemas
+    generated_views_read_only: true
+  vcs_policy_path: .pcp/operations/20-vcs-policy.yaml
+invalid:
+  - name: unsupported legacy capability
+    operation: set
+    path: capabilities
+    value: [unknown-module]
+  - name: missing runtime ownership
+    operation: delete
+    path: ownership.runtime

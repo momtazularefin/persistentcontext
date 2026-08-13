@@ -13,7 +13,7 @@ The machine-readable source of this table is [`capability-parity.yaml`](capabili
 | `tiered-read-only-exploration`           | Portable reference layer | Preserved  | Exploration begins read-only and deepens only when evidence requires it.                   |
 | `grounded-knowledge-baseline`            | Portable reference layer | Preserved  | Numbered knowledge documents retain grounded project understanding.                        |
 | `snapshot-plus-changelog-reconstruction` | Portable reference layer | Superseded | Living state is authoritative; events explain change but do not reconstruct current truth. |
-| `mandatory-full-startup-reread`          | Portable reference layer | Superseded | Scoped, digest-bound status selects relevant files and events.                             |
+| `mandatory-full-startup-reread`          | Portable reference layer | Superseded | Mandatory global sync returns every change; the current fast path avoids rereading.        |
 | `agent-only-registration`                | Portable reference layer | Superseded | Stable human and agent profiles are separated from fresh execution identities.             |
 | `unbounded-append-only-changelog`        | Portable reference layer | Superseded | A bounded active event window rotates older records to explicit-only history.              |
 | `documentation-and-discoverability`      | Portable reference layer | Preserved  | Metadata, numbering, indexes, and reachability are validated.                              |
@@ -23,10 +23,10 @@ The machine-readable source of this table is [`capability-parity.yaml`](capabili
 | `fixed-copy-adoption`                    | Portable reference layer | Superseded | State A/B/C intake replaces fixed copying with previewed transactional adoption.           |
 | `multi-project-portfolio`                | Advanced command center  | Preserved  | Structured registries and readable project records support broader portfolios.             |
 | `spec-driven-delivery`                   | Advanced command center  | Preserved  | An optional overlay adds specification through evaluation records.                         |
-| `concurrent-execution-blocks`            | Advanced command center  | Preserved  | CEBs specialize generic workstreams for safe parallel execution.                           |
-| `dependency-and-completion-evidence`     | Advanced command center  | Preserved  | Workstreams declare dependencies and require criterion-bound proof.                        |
+| `concurrent-execution-blocks`            | Advanced command center  | Superseded | Flat descriptive work labels retain lifecycle communication without orchestration claims.  |
+| `dependency-and-completion-evidence`     | Advanced command center  | Superseded | Criterion proof remains; dependency declaration and monitoring are removed.                |
 | `human-and-agent-attribution`            | Advanced command center  | Preserved  | Events distinguish actors from reporters and observers.                                    |
-| `scoped-reconciliation`                  | Advanced command center  | Preserved  | Checkpoints bind reconciliation to workstreams, dependencies, scopes, and paths.           |
+| `scoped-reconciliation`                  | Advanced command center  | Superseded | Per-conversation global sync prevents inferred scope from hiding newer events.             |
 | `configurable-vcs-ownership`             | Advanced command center  | Preserved  | Explicit profiles cover human, agent, absent, and custom VCS authority.                    |
 | `three-state-intake-and-translation`     | Advanced command center  | Preserved  | State C translation complements clean-seed and established-project intake.                 |
 | `clean-genesis`                          | Advanced command center  | Preserved  | Adoption imports grounded context without importing actors or history.                     |

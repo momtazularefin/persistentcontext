@@ -8,7 +8,7 @@ This document describes implemented safeguards. It is not a claim that PCP is a 
 
 - Ordinary project source, documentation, deployment files, nested repositories, and unknown files.
 - Project-owned knowledge, policies, plans, decisions, project records, and workstream state.
-- Human and agent identity records, immutable active events, archived history, and scoped checkpoints.
+- Human and agent identity records, immutable active events, archived history, and per-conversation checkpoints.
 - Generated platform adapters and status views derived from canonical sources.
 - Release-owned schemas, protocol files, templates, and the installed engine.
 
@@ -55,7 +55,7 @@ Translated directories are removed only when the projected post-apply inventory 
 
 ## Concurrency and continuity integrity
 
-Continuity operations use a project-scoped lock. Registration recovers or creates one stable profile and rolls back partially created profile/cache files on failure. Status acknowledgement recomputes the exact scoped digest under the same lock before advancing a checkpoint.
+Continuity operations use a project-scoped lock. Registration recovers or creates one stable profile and rolls back partially created profile/cache files on failure. Sync acknowledgement recomputes the exact global event view under the same lock before advancing only the caller's execution checkpoint. Separate chats for one actor cannot acknowledge each other's changes.
 
 Events are immutable and receive an engine-computed payload digest. Reported and observed changes require a stable external `change_key`; duplicate active-window keys are rejected. Archive rotation and workstream mutations are transactional and restore their exact registry, view, event, and archive preimages after caught failure.
 

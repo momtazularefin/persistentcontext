@@ -38,12 +38,7 @@
     "capabilities": {
       "type": "array",
       "items": {
-        "enum": [
-          "concurrent-execution-blocks",
-          "scratch-space",
-          "spec-driven-projects",
-          "walkthroughs"
-        ]
+        "enum": ["scratch-space", "spec-driven-projects", "walkthroughs"]
       },
       "uniqueItems": true
     },

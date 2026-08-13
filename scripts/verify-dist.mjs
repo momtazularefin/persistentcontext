@@ -119,12 +119,7 @@ try {
   const fixtureWrapper = parse(
     await readFile(new URL('tests/fixtures/schemas/adoption-input.yaml', projectRoot), 'utf8'),
   );
-  fixtureWrapper.valid.capabilities = [
-    'walkthroughs',
-    'spec-driven-projects',
-    'concurrent-execution-blocks',
-    'scratch-space',
-  ];
+  fixtureWrapper.valid.capabilities = ['walkthroughs', 'spec-driven-projects', 'scratch-space'];
   await writeFile(adoptionInput, `${JSON.stringify(fixtureWrapper.valid, null, 2)}\n`, 'utf8');
 
   const adoptionPreview = spawnSync(
@@ -191,23 +186,16 @@ try {
   const installedManifest = parse(
     await readFile(join(adoptionCandidate, '.pcp', 'pcp.yaml'), 'utf8'),
   );
-  const expectedCapabilities = [
-    'concurrent-execution-blocks',
-    'scratch-space',
-    'spec-driven-projects',
-    'walkthroughs',
-  ];
+  const expectedCapabilities = ['scratch-space', 'spec-driven-projects', 'walkthroughs'];
   if (JSON.stringify(installedManifest.capabilities) !== JSON.stringify(expectedCapabilities)) {
     throw new Error('Bundled pcp adoption did not normalize selected capabilities.');
   }
   await Promise.all(
     [
       '.pcp/protocol/80-spec-driven-delivery.md',
-      '.pcp/protocol/90-concurrent-execution-blocks.md',
       '.pcp/protocol/100-scratch-space.md',
       '.pcp/protocol/110-walkthrough-creation.md',
       '.pcp/templates/30-project-spec.md',
-      '.pcp/templates/40-workstream.md',
       '.pcp/templates/50-walkthrough.md',
       'scratch/README.md',
     ].map((capabilityPath) => readFile(join(adoptionCandidate, capabilityPath))),
@@ -226,7 +214,7 @@ try {
     encoding: 'utf8',
     windowsHide: true,
   });
-  if (installedVersion.status !== 0 || installedVersion.stdout.trim() !== '0.1.0') {
+  if (installedVersion.status !== 0 || installedVersion.stdout.trim() !== '0.2.0') {
     throw new Error(
       `Installed PCP engine did not execute independently: ${installedVersion.stderr || installedVersion.stdout}`,
     );
@@ -248,7 +236,11 @@ try {
   await Promise.all(
     expectedAdapterPaths.map(async (adapterPath) => {
       const content = await readFile(join(adoptionCandidate, adapterPath), 'utf8');
-      if (!content.includes('.pcp/')) {
+      if (
+        !content.includes('.pcp/00-index.md') ||
+        !content.includes('For every user request') ||
+        !content.includes('sync . --actor-id <actor-id> --execution-id <execution-id>')
+      ) {
         throw new Error(`Bundled pcp adoption wrote an invalid adapter: ${adapterPath}`);
       }
     }),
@@ -348,11 +340,10 @@ try {
         workstream: {
           workstream_id: 'distribution-verification',
           name: 'Distribution verification',
-          kind: 'ceb',
+          kind: 'concurrent',
           status: 'active',
           paths: ['dist', 'skills/build-pcp'],
           areas: ['distribution'],
-          dependencies: [],
           completion: { criteria: ['Bundled lifecycle passes.'], evidence: [] },
         },
       },
@@ -492,81 +483,78 @@ try {
     throw new Error('Bundled workstream and record commands did not create three events.');
   }
 
-  const statusArguments = [
+  const syncArguments = [
     fileURLToPath(skillBundle),
-    'status',
+    'sync',
     adoptionCandidate,
     '--actor-id',
     firstRegistrationResult.actor_id,
-    '--scope',
-    'distribution',
+    '--execution-id',
+    firstRegistrationResult.execution_id,
     '--json',
   ];
-  const statusPreview = spawnSync(process.execPath, statusArguments, {
+  const syncPreview = spawnSync(process.execPath, syncArguments, {
     encoding: 'utf8',
     windowsHide: true,
   });
-  if (statusPreview.status !== 0) {
-    throw new Error(
-      `Bundled pcp status preview failed: ${statusPreview.stderr || statusPreview.stdout}`,
-    );
+  if (syncPreview.status !== 0) {
+    throw new Error(`Bundled pcp sync preview failed: ${syncPreview.stderr || syncPreview.stdout}`);
   }
-  const statusPreviewResult = JSON.parse(statusPreview.stdout);
+  const syncPreviewResult = JSON.parse(syncPreview.stdout);
   if (
-    statusPreviewResult.mode !== 'preview' ||
-    statusPreviewResult.checkpoint?.state !== 'missing' ||
-    statusPreviewResult.acknowledgement?.required !== true ||
-    statusPreviewResult.event_created !== false ||
-    statusPreviewResult.mutated !== false ||
-    !/^[a-f0-9]{64}$/.test(statusPreviewResult.status_digest ?? '')
+    syncPreviewResult.mode !== 'preview' ||
+    syncPreviewResult.checkpoint?.state !== 'missing' ||
+    syncPreviewResult.baseline?.required !== true ||
+    syncPreviewResult.changes?.length !== 3 ||
+    syncPreviewResult.acknowledgement?.required !== true ||
+    syncPreviewResult.event_created !== false ||
+    syncPreviewResult.mutated !== false ||
+    !/^[a-f0-9]{64}$/.test(syncPreviewResult.sync_digest ?? '')
   ) {
-    throw new Error('Bundled pcp status preview returned an unexpected result.');
+    throw new Error('Bundled pcp sync preview returned an unexpected result.');
   }
 
-  const statusAcknowledgement = spawnSync(
+  const syncAcknowledgement = spawnSync(
     process.execPath,
-    [...statusArguments.slice(0, -1), '--acknowledge', statusPreviewResult.status_digest, '--json'],
+    [...syncArguments.slice(0, -1), '--acknowledge', syncPreviewResult.sync_digest, '--json'],
     { encoding: 'utf8', windowsHide: true },
   );
-  if (statusAcknowledgement.status !== 0) {
+  if (syncAcknowledgement.status !== 0) {
     throw new Error(
-      `Bundled pcp status acknowledgement failed: ${statusAcknowledgement.stderr || statusAcknowledgement.stdout}`,
+      `Bundled pcp sync acknowledgement failed: ${syncAcknowledgement.stderr || syncAcknowledgement.stdout}`,
     );
   }
-  const statusAcknowledgementResult = JSON.parse(statusAcknowledgement.stdout);
+  const syncAcknowledgementResult = JSON.parse(syncAcknowledgement.stdout);
   if (
-    statusAcknowledgementResult.mode !== 'acknowledge' ||
-    statusAcknowledgementResult.checkpoint?.state !== 'current' ||
-    statusAcknowledgementResult.acknowledgement?.accepted !== true ||
-    statusAcknowledgementResult.event_created !== false ||
-    statusAcknowledgementResult.mutated !== true
+    syncAcknowledgementResult.mode !== 'acknowledge' ||
+    syncAcknowledgementResult.checkpoint?.state !== 'current' ||
+    syncAcknowledgementResult.acknowledgement?.accepted !== true ||
+    syncAcknowledgementResult.event_created !== false ||
+    syncAcknowledgementResult.mutated !== true
   ) {
-    throw new Error('Bundled pcp status acknowledgement returned an unexpected result.');
+    throw new Error('Bundled pcp sync acknowledgement returned an unexpected result.');
   }
 
-  const currentStatus = spawnSync(process.execPath, statusArguments, {
+  const currentSync = spawnSync(process.execPath, syncArguments, {
     encoding: 'utf8',
     windowsHide: true,
   });
-  const currentStatusResult =
-    currentStatus.status === 0 ? JSON.parse(currentStatus.stdout) : undefined;
+  const currentSyncResult = currentSync.status === 0 ? JSON.parse(currentSync.stdout) : undefined;
   if (
-    currentStatusResult?.checkpoint?.state !== 'current' ||
-    currentStatusResult?.acknowledgement?.required !== false ||
-    currentStatusResult?.mutated !== false
+    currentSyncResult?.checkpoint?.state !== 'current' ||
+    currentSyncResult?.acknowledgement?.required !== false ||
+    currentSyncResult?.mutated !== false
   ) {
-    throw new Error(
-      `Bundled pcp repeat status failed: ${currentStatus.stderr || currentStatus.stdout}`,
-    );
+    throw new Error(`Bundled pcp repeat sync failed: ${currentSync.stderr || currentSync.stdout}`);
   }
-  const statusCheckpoints = (
+  const syncCheckpoints = (
     await readdir(join(adoptionCandidate, '.pcp', 'continuity', 'checkpoints'))
   ).filter((entry) => entry.endsWith('.yaml'));
-  const statusEvents = (
+  const syncEvents = (
     await readdir(join(adoptionCandidate, '.pcp', 'continuity', 'events'))
   ).filter((entry) => entry.endsWith('.yaml'));
-  if (statusCheckpoints.length !== 1 || statusEvents.length !== 3) {
-    throw new Error('Bundled pcp status did not preserve checkpoint-only acknowledgement.');
+  if (syncCheckpoints.length !== 1 || syncEvents.length !== 3) {
+    throw new Error('Bundled pcp sync did not preserve checkpoint-only acknowledgement.');
   }
 
   const managedInspection = spawnSync(
@@ -632,7 +620,7 @@ try {
     upgradePreview.status === 0 ? JSON.parse(upgradePreview.stdout) : undefined;
   if (
     upgradePreviewResult?.from_version !== '0.0.9' ||
-    upgradePreviewResult?.to_version !== '0.1.0' ||
+    upgradePreviewResult?.to_version !== '0.2.0' ||
     upgradePreviewResult?.applicable !== true ||
     !/^[a-f0-9]{64}$/.test(upgradePreviewResult?.plan?.plan_digest ?? '') ||
     upgradePreviewResult?.mutated !== false

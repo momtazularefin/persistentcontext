@@ -1,97 +1,94 @@
 # Architecture
 
-Persistent Context Protocol (PCP) is a repository-native context layer for durable project understanding, scoped agent handoffs, and safe multi-agent work. It uses plain Markdown and YAML for canonical state and a project-local executable for deterministic operations.
+Persistent Context Protocol (PCP) is a repository-native context layer for durable project understanding and fast cross-conversation continuity. It uses plain Markdown and YAML for canonical state, generated product instruction adapters for automatic discovery, and a project-local executable for deterministic operations.
 
-## Product boundary
+The repository outranks private agent memory. A conversation may cache its actor and execution IDs, but project facts, policy, history, and synchronization authority remain in `.pcp/`.
 
-PCP has five cooperating surfaces:
+## Five cooperating surfaces
 
-| Surface                    | Responsibility                                                                          |
-| -------------------------- | --------------------------------------------------------------------------------------- |
-| Protocol assets            | Define schemas, templates, invariants, ownership, adapters, and lifecycle rules.        |
-| `build-pcp` skill          | Guides semantic exploration, synthesis, conflict resolution, and human decisions.       |
-| Project-local `pcp` engine | Inventories, validates, fingerprints, plans, transacts, renders, repairs, and upgrades. |
-| Platform adapters          | Route supported agent products to the same canonical entry point.                       |
-| Installed `.pcp/` layer    | Stores one project's durable context, structured state, continuity, and local engine.   |
+1. **Protocol assets** define the portable canonical structure, schemas, ownership rules, and operating contract.
+2. The **`build-pcp` skill** handles judgment-heavy exploration, adoption, migration, and maintenance.
+3. The **project-local `pcp` engine** performs deterministic inventory, validation, synchronization, rendering, and transactional mutation.
+4. **Generated platform adapters** make the contract discoverable through each supported product's project-instruction convention.
+5. **Public evidence and tests** verify package identity, lifecycle behavior, safety boundaries, and adapter equivalence.
 
-The semantic/deterministic split is intentional. An agent can interpret unfamiliar code and decide what knowledge matters; the engine can then enforce schemas, path boundaries, source fingerprints, approved plan digests, transactions, and exact rollback without improvisation.
+The skill decides what project context means. The engine decides whether bytes, schemas, identities, digests, and filesystem operations satisfy the protocol. The adapters carry a short mandatory operating contract; they never become independent context stores.
 
-## Canonical state
-
-An installation has one authority hierarchy:
-
-1. `.pcp/pcp.yaml` declares the protocol version, persistence profile, capabilities, ownership, adapters, and validation policy.
-2. `.pcp/state/*.yaml` holds canonical structured project, registry, workstream, and VCS state.
-3. Numbered project-owned Markdown holds grounded knowledge, working policy, plans, decisions, and optional project records.
-4. Generated views and platform adapters are replaceable projections from declared canonical sources.
-5. `.pcp/runtime/` contains ignored local caches and locks; it is never durable project context.
-
-The repository outranks private agent memory. Current documents are authoritative; continuity events explain meaningful changes but are not replayed to reconstruct current state.
-
-## Ownership model
-
-| Owner     | Examples                                                | Lifecycle rule                                          |
-| --------- | ------------------------------------------------------- | ------------------------------------------------------- |
-| Protocol  | schemas, protocol documents, installed engine           | Replaced only by a checked PCP release upgrade.         |
-| Project   | knowledge, operations, project records, selected policy | Preserved through repair and upgrade.                   |
-| Generated | status view and five product adapters                   | Rebuilt only from declared canonical sources.           |
-| Runtime   | identity cache, locks, staging, recovery material       | Local and disposable; never treated as durable context. |
-
-Unknown files are preserved until a reviewed plan assigns ownership. Upgrade separately fingerprints untargeted files and project/runtime-owned canonical files so preservation is executable evidence rather than an informal promise.
-
-## Installed layout
+## Canonical layout
 
 ```text
 .pcp/
-├── 00-index.md              # canonical human/agent entry
-├── pcp.yaml                 # release and ownership manifest
-├── protocol/                # static PCP operating rules
-├── state/                   # canonical machine-readable state
-├── knowledge/               # grounded project understanding
-├── operations/              # living agreement, plan, decisions
-├── projects/                # optional managed-project records
+├── 00-index.md             # canonical entry and returning-task contract
+├── pcp.yaml                # installation manifest and release identity
+├── protocol/               # portable rules
+├── knowledge/              # grounded current understanding
+├── operations/             # working agreements, plans, and decisions
+├── projects/               # optional readable project records
+├── state/                  # machine-readable current truth
+│   ├── project.yaml
+│   ├── projects.yaml
+│   ├── workstreams.yaml    # optional flat descriptive work labels
+│   └── vcs-policy.yaml
 ├── continuity/
-│   ├── actors/              # stable human and agent identities
-│   ├── events/              # bounded active reconciliation window
-│   ├── archive/             # explicit-only older history
-│   └── checkpoints/         # local scoped acknowledgement cursors
-├── views/                   # generated projections
-├── references/              # reusable operational guidance
-├── templates/               # inert record scaffolds
-├── schemas/                 # release validation contracts
-└── tools/pcp.mjs            # checked project-local engine
+│   ├── actors/             # stable project-lifetime identities
+│   ├── events/             # bounded active change records
+│   ├── archive/            # explicit-only older history
+│   └── checkpoints/        # ignored per-conversation sync cursors
+├── views/                  # deterministic generated Markdown
+├── templates/              # project-owned scaffolds
+├── references/             # optional references
+├── runtime/                # ignored locks, caches, and recovery state
+└── tools/                  # exact installed engine and checksum
 ```
 
-Numbered Markdown folders have a `00-index.md` and an explicit reading order. Optional capabilities extend this layout through checked overlays rather than parallel context systems.
+Canonical records have four ownership classes:
 
-## Continuity model
+- **Protocol** files are release-owned rules and schemas.
+- **Project** files contain project-specific meaning and policy.
+- **Generated** files are deterministic projections or adapters.
+- **Runtime** files contain local operational state and are not portable authority.
 
-A durable actor ID represents a human or agent across project tasks. Every command execution receives a separate ULID, so identity is not confused with a session. Registration itself creates no event.
+Upgrade and repair use these boundaries rather than treating every `.pcp/` file alike.
 
-Meaningful durable changes become immutable attributed events. The active window holds at most 64 records; adding event 65 rotates the oldest 32 to archive. Normal registration, status, and recording inspect archive identities by filename only. Archive contents are read only during an explicit audit, recovery, or historical request.
+## Mandatory global synchronization
 
-Scoped checkpoints bind one actor to an exact normalized workstream, dependency, semantic-scope, and path selection. `pcp status` identifies relevant newer events and current files; acknowledgement advances only the matching recomputed digest. Unrelated concurrent work remains visible without forcing a full reread.
+Registration separates a stable `actor_id` from a fresh `execution_id`. One execution ID belongs to one conversation. The checkpoint key is therefore `(actor_id, execution_id)`, preventing two chats for the same agent from consuming each other's updates.
 
-## Work and concurrency
+Every user request triggers the same deterministic sequence before an answer or project-tool use:
 
-`.pcp/state/workstreams.yaml` is the one registry for sequential, concurrent, and Concurrent Execution Block work. Workstreams declare paths, semantic areas, dependencies, lifecycle state, and completion criteria. Mutations are bound to the current registry digest. Completion requires finished dependencies and exactly one proof for every criterion.
+```text
+generated adapter
+  -> register once if conversation identity is missing
+  -> sync(actor_id, execution_id)
+       -> no newer event: return immediately
+       -> newer events: return all changes and current paths
+  -> read returned current paths
+  -> acknowledge the exact sync digest
+  -> continue with the request
+```
 
-The optional Concurrent Execution Blocks capability adds coordination language and readable scaffolding over this same lifecycle. It does not create a second scheduler or state store.
+Synchronization is global. Workstream, path, area, and semantic labels do not filter event delivery. This deliberately spends a small, predictable read cost to avoid missing a change because an agent inferred dependencies incorrectly.
 
-## Platform adapters
+The fast path reads the actor, deterministic checkpoint, and active event filenames. It opens event bodies only when their ordered IDs are newer than the conversation checkpoint. The archive is not replayed during routine synchronization. A null checkpoint uses `.pcp/00-index.md` as its baseline; archive filenames are consulted only when needed to detect that active history no longer covers the baseline.
 
-PCP generates five thin startup surfaces for Codex, Antigravity, Claude Code Desktop, GitHub Copilot in Visual Studio Code, and Cursor IDE. Each adapter delegates to `.pcp/00-index.md`; adapters do not maintain independent memories. This is an adapter-contract claim: the documented product convention and canonical reconstruction contract are implemented, but every editor UI and release has not been interactively exercised.
+Sync uses a two-phase digest acknowledgement. Preview does not mutate. After the agent absorbs the returned files, acknowledgement recomputes under the continuity lock and advances only that execution's ignored checkpoint. If the conversation crashes before acknowledgement, the update is offered again.
 
-## Portability and trust boundary
+## Continuity and work labels
 
-Durable state uses repository-relative forward-slash paths. Credentials, tokens, private keys, raw environment files, and private platform identifiers do not belong in PCP. External dependencies are recorded as non-secret requirements.
+Continuity events describe meaningful durable change and distinguish performer, recorder, and evidence basis. Current canonical documents remain authoritative; event prose is not replayed to reconstruct truth. Active history contains at most 64 records. When event 65 is accepted, the oldest 32 rotate atomically into explicit-only archive history.
 
-PCP validates filesystem integrity and event payload digests; it does not authenticate people or replace signed version control. VCS authority is explicit and may be `none`, `human-owned`, recommended `human-commit`, `agent-managed`, or a complete custom responsibility map.
+Workstreams provide optional names, lifecycle status, paths or areas, completion criteria, evidence, and announcements. They are flat descriptive records. PCP does not model dependencies, schedule parallel work, infer impact, or use workstream membership as a synchronization boundary.
 
-## Deliberate non-goals for 0.1.0
+## Platform discovery boundary
 
-- No hosted service, proprietary database, or required network control plane.
-- No global npm CLI; the executable is project-local.
-- No automatic inference of Git or hosting authority.
-- No routine archive replay during startup.
-- No claim that generated adapters replace product-specific capabilities beyond the documented instruction surface.
+Adoption generates five product-native instruction surfaces. PCP validates their exact content, source declaration, target, digest, repair behavior, and equivalent reconstruction of canonical project state. This is an adapter-contract claim, not a claim that PCP controls a product runtime.
+
+Project instructions are portable guidance, not a process-level enforcement hook. Product settings or modes may disable them, and model compliance cannot be proven by repository code. The generated contract therefore fails closed when followed: if identity, the engine, synchronization, or canonical validation fails, the agent must stop project work rather than silently continue. Platform-specific hooks may strengthen enforcement while `.pcp/` remains the sole context authority.
+
+## Deliberate non-goals for 0.2
+
+- Building or monitoring a dependency graph.
+- Determining which change affects which task.
+- Providing a scheduler, lock manager for source ownership, or hosted coordination service.
+- Authenticating actors or proving model compliance with generated instructions.
+- Replacing VCS permissions, branch protection, backups, or product security controls.

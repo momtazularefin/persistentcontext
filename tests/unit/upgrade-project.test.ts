@@ -11,6 +11,7 @@ import { upgradeProject } from '../../src/application/upgrade-project.js';
 import { validateCanonicalLayer } from '../../src/application/validate-canonical-layer.js';
 import type { UpgradeApplyResult, UpgradePreview } from '../../src/domain/upgrade.js';
 import { loadReleaseTemplateFiles } from '../../src/infrastructure/adoption-assets.js';
+import { canonicalSourceDigest } from '../../src/infrastructure/canonical-source-digest.js';
 import { inventoryRepository } from '../../src/infrastructure/filesystem-inventory.js';
 
 const coreTemplate = fileURLToPath(new URL('../../templates/core/.pcp/', import.meta.url));
@@ -78,6 +79,140 @@ async function olderManagedProject(
   };
 }
 
+const legacyCebTemplate = `---
+doc: templates/40-workstream.md
+type: plan
+status: static
+version: 1.1.0
+last_updated: 2026-07-15T11:20:00Z
+ownership: project
+---
+
+# Workstream scaffold
+
+This Markdown scaffold supplements, but never replaces, the canonical entry in \`../state/workstreams.yaml\`.
+
+- Workstream ID: \`[stable slug]\`
+- Name: \`[human-readable name]\`
+- Kind: \`[sequential | concurrent | ceb]\`
+- Status: \`[planned | active | blocked | complete | cancelled]\`
+- Paths: \`[owned relative paths]\`
+- Areas: \`[semantic scope slugs]\`
+- Dependencies: \`[workstream IDs]\`
+- Completion criteria: \`[observable conditions]\`
+- Evidence: \`[one criterion-to-proof mapping per completion criterion]\`
+- Completion announcement: \`[what downstream work may now do]\`
+
+Use this document for discussion only. Apply lifecycle changes through the digest-bound \`pcp workstream\` commands so the registry, generated view, and continuity event remain atomic.
+`;
+
+async function legacy01ManagedProject(): Promise<string> {
+  const root = await mkdtemp(path.join(tmpdir(), 'pcp-upgrade-legacy-01-'));
+  temporaryRoots.push(root);
+  await cp(coreTemplate, path.join(root, '.pcp'), { recursive: true });
+  const manifestPath = path.join(root, '.pcp', 'pcp.yaml');
+  const manifest = parse(await readFile(manifestPath, 'utf8')) as Record<string, unknown>;
+  (manifest.protocol as Record<string, unknown>).version = '0.1.0';
+  manifest.capabilities = ['concurrent-execution-blocks'];
+  manifest.adapter_ids = renderPlatformAdapters().map((adapter) => adapter.manifest.adapter_id);
+  await writeFile(manifestPath, stringify(manifest), 'utf8');
+
+  for (const adapter of renderPlatformAdapters()) {
+    const target = path.join(root, ...adapter.manifest.target_path.split('/'));
+    await mkdir(path.dirname(target), { recursive: true });
+    await writeFile(target, adapter.content);
+  }
+  const workstreamsPath = path.join(root, '.pcp', 'state', 'workstreams.yaml');
+  await writeFile(
+    workstreamsPath,
+    stringify({
+      schema_version: 1,
+      workstreams: [
+        {
+          workstream_id: 'delivery',
+          name: 'Delivery CEB',
+          kind: 'ceb',
+          status: 'active',
+          paths: ['src'],
+          areas: ['implementation'],
+          dependencies: ['foundation'],
+          completion: { criteria: ['Delivery is verified.'], evidence: [] },
+        },
+        {
+          workstream_id: 'foundation',
+          name: 'Foundation',
+          kind: 'sequential',
+          status: 'complete',
+          paths: [],
+          areas: [],
+          dependencies: [],
+          completion: {
+            criteria: ['Foundation is verified.'],
+            evidence: [{ criterion: 'Foundation is verified.', proof: 'Verified.' }],
+            announcement: 'Foundation is complete.',
+          },
+        },
+      ],
+    }),
+    'utf8',
+  );
+
+  const protocolPath = path.join(root, '.pcp', 'protocol', '90-concurrent-execution-blocks.md');
+  await writeFile(
+    protocolPath,
+    `---\ndoc: protocol/90-concurrent-execution-blocks.md\ntype: protocol\nstatus: static\nversion: 1.1.0\nlast_updated: 2026-07-15T11:20:00Z\nownership: protocol\n---\n\n# Concurrent Execution Blocks\n\nLegacy CEB guidance.\n`,
+  );
+  const templatePath = path.join(root, '.pcp', 'templates', '40-workstream.md');
+  await writeFile(templatePath, legacyCebTemplate, 'utf8');
+  for (const [indexPath, line] of [
+    [
+      'protocol/00-index.md',
+      '8. [90-concurrent-execution-blocks.md](90-concurrent-execution-blocks.md) — Concurrent Execution Blocks.',
+    ],
+    [
+      'templates/00-index.md',
+      '3. [40-workstream.md](40-workstream.md) — Concurrent Execution Blocks workstream scaffold.',
+    ],
+  ] as const) {
+    const target = path.join(root, '.pcp', ...indexPath.split('/'));
+    await writeFile(target, `${await readFile(target, 'utf8')}\n${line}\n`, 'utf8');
+  }
+
+  const checkpointId = '01ARZ3NDEKTSV4RRFFQ69G5FAV';
+  await writeFile(
+    path.join(root, '.pcp', 'continuity', 'checkpoints', `${checkpointId}.yaml`),
+    stringify({
+      schema_version: 1,
+      checkpoint_id: checkpointId,
+      actor_id: 'codex-machine-01ARZ3NDEK',
+      workstream_id: 'delivery',
+      last_event_id: null,
+      reconciled_at: '2026-07-15T00:00:00Z',
+      scopes: ['implementation'],
+      paths: ['src'],
+      dependencies: ['foundation'],
+    }),
+    'utf8',
+  );
+
+  const viewPath = path.join(root, '.pcp', 'views', '10-status.generated.md');
+  const sourceDigest = await canonicalSourceDigest(path.join(root, '.pcp'), [
+    'state/project.yaml',
+    'state/projects.yaml',
+    'state/workstreams.yaml',
+    'state/vcs-policy.yaml',
+  ]);
+  await writeFile(
+    viewPath,
+    (await readFile(viewPath, 'utf8')).replace(
+      /source_digest: [a-f0-9]{64}/u,
+      `source_digest: ${sourceDigest}`,
+    ),
+    'utf8',
+  );
+  return root;
+}
+
 function applicable(
   preview: UpgradePreview | UpgradeApplyResult,
 ): asserts preview is UpgradePreview & {
@@ -107,6 +242,47 @@ afterEach(async () => {
 });
 
 describe('ownership-aware upgrade', () => {
+  it('migrates 0.1 CEB state and scoped checkpoints into the 0.2 global-sync contract', async () => {
+    const root = await legacy01ManagedProject();
+    const preview = await upgradeProject(root);
+    applicable(preview);
+    expect(preview.upgrade_paths).toEqual(
+      expect.arrayContaining([
+        '.pcp/state/workstreams.yaml',
+        '.pcp/protocol/90-concurrent-execution-blocks.md',
+        '.pcp/templates/40-workstream.md',
+        '.pcp/continuity/checkpoints/01ARZ3NDEKTSV4RRFFQ69G5FAV.yaml',
+      ]),
+    );
+
+    await upgradeProject(root, { apply: preview.plan.plan_digest });
+    const manifest = parse(await readFile(path.join(root, '.pcp', 'pcp.yaml'), 'utf8')) as {
+      protocol: { version: string };
+      capabilities: string[];
+    };
+    const workstreams = parse(
+      await readFile(path.join(root, '.pcp', 'state', 'workstreams.yaml'), 'utf8'),
+    ) as { workstreams: Array<Record<string, unknown>> };
+    expect(manifest).toMatchObject({ protocol: { version: '0.2.0' }, capabilities: [] });
+    expect(workstreams.workstreams[0]).not.toHaveProperty('dependencies');
+    expect(workstreams.workstreams.find((item) => item.workstream_id === 'delivery')).toMatchObject(
+      {
+        kind: 'concurrent',
+      },
+    );
+    await expect(
+      readFile(path.join(root, '.pcp', 'templates', '40-workstream.md')),
+    ).rejects.toMatchObject({
+      code: 'ENOENT',
+    });
+    expect(await validateCanonicalLayer(root, { archive_content: 'filenames-only' })).toMatchObject(
+      {
+        valid: true,
+        diagnostics: [],
+      },
+    );
+  });
+
   it('previews and applies release-owned changes while preserving project and runtime bytes', async () => {
     const { root, preserved } = await olderManagedProject();
     const first = await upgradeProject(root);
@@ -115,7 +291,7 @@ describe('ownership-aware upgrade', () => {
     applicable(first);
     expect(first).toMatchObject({
       from_version: '0.0.9',
-      to_version: '0.1.0',
+      to_version: '0.2.0',
       applicable: true,
       mutated: false,
     });
@@ -133,7 +309,7 @@ describe('ownership-aware upgrade', () => {
     expect(result).toMatchObject({
       command: 'upgrade',
       from_version: '0.0.9',
-      to_version: '0.1.0',
+      to_version: '0.2.0',
       preserved_files: first.preserved_files,
       preservation_digest: first.preservation_digest,
       validation: { valid: true, checked_adapters: 5 },
@@ -149,10 +325,10 @@ describe('ownership-aware upgrade', () => {
     const upgradedManifest = parse(await readFile(path.join(root, '.pcp', 'pcp.yaml'), 'utf8')) as {
       protocol: { version: string };
     };
-    expect(upgradedManifest.protocol.version).toBe('0.1.0');
+    expect(upgradedManifest.protocol.version).toBe('0.2.0');
     expect(await upgradeProject(root)).toMatchObject({
-      from_version: '0.1.0',
-      to_version: '0.1.0',
+      from_version: '0.2.0',
+      to_version: '0.2.0',
       applicable: false,
       upgrade_paths: [],
       mutated: false,

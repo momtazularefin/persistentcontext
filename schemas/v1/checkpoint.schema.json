@@ -1,19 +1,16 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "urn:pcp:schema:v1:checkpoint",
-  "title": "PCP scoped reconciliation checkpoint",
+  "title": "PCP per-execution synchronization checkpoint",
   "type": "object",
   "additionalProperties": false,
   "required": [
     "schema_version",
     "checkpoint_id",
     "actor_id",
-    "workstream_id",
+    "execution_id",
     "last_event_id",
-    "reconciled_at",
-    "scopes",
-    "paths",
-    "dependencies"
+    "reconciled_at"
   ],
   "properties": {
     "schema_version": {
@@ -27,23 +24,14 @@
       "minLength": 1,
       "maxLength": 192
     },
-    "workstream_id": {
-      "anyOf": [{ "$ref": "urn:pcp:schema:v1:common#/$defs/slug" }, { "type": "null" }]
+    "execution_id": {
+      "$ref": "urn:pcp:schema:v1:common#/$defs/ulid"
     },
     "last_event_id": {
       "anyOf": [{ "$ref": "urn:pcp:schema:v1:common#/$defs/ulid" }, { "type": "null" }]
     },
     "reconciled_at": {
       "$ref": "urn:pcp:schema:v1:common#/$defs/dateTime"
-    },
-    "scopes": {
-      "$ref": "urn:pcp:schema:v1:common#/$defs/slugArray"
-    },
-    "paths": {
-      "$ref": "urn:pcp:schema:v1:common#/$defs/pathArray"
-    },
-    "dependencies": {
-      "$ref": "urn:pcp:schema:v1:common#/$defs/slugArray"
     }
   }
 }

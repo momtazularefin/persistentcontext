@@ -1,0 +1,22 @@
+schema: legacy-0.1-workstreams
+valid:
+  schema_version: 1
+  workstreams:
+    - workstream_id: implementation
+      name: Implementation CEB
+      kind: ceb
+      status: active
+      paths: [src, tests]
+      areas: [implementation]
+      dependencies: [foundation]
+      completion:
+        criteria: [Implementation is verified.]
+        evidence: []
+invalid:
+  - name: missing legacy dependency field
+    operation: delete
+    path: workstreams.0.dependencies
+  - name: unsupported legacy kind
+    operation: set
+    path: workstreams.0.kind
+    value: graph

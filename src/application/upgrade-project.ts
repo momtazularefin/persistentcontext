@@ -8,6 +8,7 @@ import {
   AdoptionError,
   canonicalJson,
   createMutationPlan,
+  normalizeText,
   sha256,
   type MutationOperation,
 } from '../domain/adoption.js';
@@ -73,8 +74,11 @@ function compareVersions(left: string, right: string): number {
   return 0;
 }
 
-function manifest(value: unknown, source: string): ManifestShape {
-  const result = new SchemaRegistry().validate('pcp-manifest', value);
+function manifest(value: unknown, source: string, legacy01 = false): ManifestShape {
+  const result = new SchemaRegistry().validate(
+    legacy01 ? 'legacy-0.1-pcp-manifest' : 'pcp-manifest',
+    value,
+  );
   if (!result.valid) {
     throw new UpgradeError(
       'PCP_UPGRADE_MANIFEST_INVALID',
@@ -157,6 +161,7 @@ async function preservationSnapshot(
   const layerFiles: Array<{ path: string; digest: string }> = [];
   await collectLayerFiles(path.join(root, '.pcp'), path.join(root, '.pcp'), layerFiles);
   for (const file of layerFiles) {
+    if (targetedPaths.has(file.path)) continue;
     const relative = file.path.slice('.pcp/'.length);
     const classes = matchingOwnershipClasses(relative, liveOwnership);
     if (classes.includes('project') || classes.includes('runtime')) {
@@ -220,6 +225,7 @@ function expectedInventory(
         sha256: operation.content_digest,
       });
     }
+    if (operation.action === 'remove') files.delete(operation.path);
   }
   return {
     directories: [...directories].sort(comparePortablePaths),
@@ -238,6 +244,82 @@ function comparableInventory(inventory: RepositoryInventory): object {
   };
 }
 
+const LEGACY_CEB_PROTOCOL_PATH = '.pcp/protocol/90-concurrent-execution-blocks.md';
+const LEGACY_CEB_TEMPLATE_PATH = '.pcp/templates/40-workstream.md';
+const LEGACY_CEB_TEMPLATE = `---
+doc: templates/40-workstream.md
+type: plan
+status: static
+version: 1.1.0
+last_updated: 2026-07-15T11:20:00Z
+ownership: project
+---
+
+# Workstream scaffold
+
+This Markdown scaffold supplements, but never replaces, the canonical entry in \`../state/workstreams.yaml\`.
+
+- Workstream ID: \`[stable slug]\`
+- Name: \`[human-readable name]\`
+- Kind: \`[sequential | concurrent | ceb]\`
+- Status: \`[planned | active | blocked | complete | cancelled]\`
+- Paths: \`[owned relative paths]\`
+- Areas: \`[semantic scope slugs]\`
+- Dependencies: \`[workstream IDs]\`
+- Completion criteria: \`[observable conditions]\`
+- Evidence: \`[one criterion-to-proof mapping per completion criterion]\`
+- Completion announcement: \`[what downstream work may now do]\`
+
+Use this document for discussion only. Apply lifecycle changes through the digest-bound \`pcp workstream\` commands so the registry, generated view, and continuity event remain atomic.
+`;
+
+function migrateLegacyWorkstreams(value: unknown): Record<string, unknown> {
+  if (typeof value !== 'object' || value === null || Array.isArray(value)) {
+    throw new UpgradeError(
+      'PCP_UPGRADE_LEGACY_STATE_INVALID',
+      'Legacy workstream state is not an object.',
+    );
+  }
+  const root = value as Record<string, unknown>;
+  if (!Array.isArray(root.workstreams)) {
+    throw new UpgradeError(
+      'PCP_UPGRADE_LEGACY_STATE_INVALID',
+      'Legacy workstream registry has no workstreams array.',
+    );
+  }
+  const workstreams = root.workstreams.map((item) => {
+    if (typeof item !== 'object' || item === null || Array.isArray(item)) {
+      throw new UpgradeError(
+        'PCP_UPGRADE_LEGACY_STATE_INVALID',
+        'Legacy workstream entry is invalid.',
+      );
+    }
+    const workstream = { ...(item as Record<string, unknown>) };
+    delete workstream.dependencies;
+    return { ...workstream, kind: workstream.kind === 'ceb' ? 'concurrent' : workstream.kind };
+  });
+  const migrated = { ...root, workstreams };
+  const validation = new SchemaRegistry().validate('workstreams', migrated);
+  if (!validation.valid) {
+    throw new UpgradeError(
+      'PCP_UPGRADE_LEGACY_STATE_INVALID',
+      `Legacy work labels cannot be migrated: ${validation.diagnostics.map((item) => `${item.path} ${item.message}`).join('; ')}`,
+    );
+  }
+  return migrated;
+}
+
+function migrateLegacyTemplateIndex(contents: string): Buffer {
+  const lines = normalizeText(contents)
+    .split('\n')
+    .filter(
+      (line) =>
+        !line.includes('[40-workstream.md](40-workstream.md)') &&
+        !line.includes('Concurrent Execution Blocks'),
+    );
+  return Buffer.from(`${lines.join('\n').replace(/\n+$/u, '')}\n`, 'utf8');
+}
+
 async function planUpgradeMaterial(candidate = '.'): Promise<UpgradePreview | UpgradePlanMaterial> {
   const root = await resolveCandidateRoot(candidate);
   const inspection = await inspectRepository(root);
@@ -247,8 +329,22 @@ async function planUpgradeMaterial(candidate = '.'): Promise<UpgradePreview | Up
       `Upgrade requires a managed PCP project; found ${inspection.state}.`,
     );
   }
+  const installedManifestValue = parse(
+    await readFile(path.join(root, '.pcp', 'pcp.yaml'), 'utf8'),
+  ) as unknown;
+  const installedVersion =
+    typeof installedManifestValue === 'object' &&
+    installedManifestValue !== null &&
+    !Array.isArray(installedManifestValue) &&
+    typeof (installedManifestValue as Record<string, unknown>).protocol === 'object' &&
+    (installedManifestValue as Record<string, unknown>).protocol !== null
+      ? ((installedManifestValue as Record<string, unknown>).protocol as Record<string, unknown>)
+          .version
+      : undefined;
+  const legacy01 = typeof installedVersion === 'string' && installedVersion.startsWith('0.1.');
   const currentValidation = await validateCanonicalLayer(root, {
     archive_content: 'filenames-only',
+    ...(legacy01 ? { legacy_upgrade_source: '0.1' as const } : {}),
   });
   if (!currentValidation.valid) {
     throw new UpgradeError(
@@ -260,11 +356,10 @@ async function planUpgradeMaterial(candidate = '.'): Promise<UpgradePreview | Up
     );
   }
 
-  const liveManifest = manifest(
-    parse(await readFile(path.join(root, '.pcp', 'pcp.yaml'), 'utf8')),
-    'Installed',
+  const liveManifest = manifest(installedManifestValue, 'Installed', legacy01);
+  const selectedCapabilities = (liveManifest.capabilities as string[]).filter(
+    (capability) => capability !== 'concurrent-execution-blocks',
   );
-  const selectedCapabilities = liveManifest.capabilities as string[];
   let release: Awaited<ReturnType<typeof loadReleaseTemplateFiles>>;
   try {
     release = await loadReleaseTemplateFiles(selectedCapabilities);
@@ -302,7 +397,7 @@ async function planUpgradeMaterial(candidate = '.'): Promise<UpgradePreview | Up
   const mergedManifest: Record<string, unknown> = {
     ...releaseManifest,
     persistence: liveManifest.persistence,
-    capabilities: liveManifest.capabilities,
+    capabilities: selectedCapabilities,
     adapter_ids: adapters.map((adapter) => adapter.manifest.adapter_id),
     vcs_policy_path: liveManifest.vcs_policy_path,
   };
@@ -318,7 +413,17 @@ async function planUpgradeMaterial(candidate = '.'): Promise<UpgradePreview | Up
     }
   }
   desired.set('.pcp/pcp.yaml', yamlBuffer(mergedManifest));
-  const view = await buildCanonicalStatusView(root);
+  const renderOverrides = new Map<string, Buffer>();
+  let migratedWorkstreams: Buffer | undefined;
+  if (legacy01) {
+    migratedWorkstreams = yamlBuffer(
+      migrateLegacyWorkstreams(
+        parse(await readFile(path.join(root, '.pcp', 'state', 'workstreams.yaml'), 'utf8')),
+      ),
+    );
+    renderOverrides.set('state/workstreams.yaml', migratedWorkstreams);
+  }
+  const view = await buildCanonicalStatusView(root, renderOverrides);
   if (!view.valid || view.content === undefined) {
     throw new UpgradeError(
       'PCP_UPGRADE_RENDER_BLOCKED',
@@ -331,6 +436,62 @@ async function planUpgradeMaterial(candidate = '.'): Promise<UpgradePreview | Up
   const contentByPath = new Map<string, Buffer>();
   const operations: Array<Omit<MutationOperation, 'operation_id'>> = [];
   const plannedDirectories = new Set<string>();
+  if (legacy01 && migratedWorkstreams !== undefined) {
+    const legacyWorkstreamsPath = '.pcp/state/workstreams.yaml';
+    const current = await readFile(path.join(root, ...legacyWorkstreamsPath.split('/')));
+    operations.push({
+      action: 'replace',
+      path: legacyWorkstreamsPath,
+      content_digest: sha256(migratedWorkstreams),
+      preimage_digest: sha256(current),
+    });
+    contentByPath.set(legacyWorkstreamsPath, migratedWorkstreams);
+
+    const templateIndexPath = '.pcp/templates/00-index.md';
+    const templateIndexTarget = path.join(root, ...templateIndexPath.split('/'));
+    const templateIndexCurrent = await readFile(templateIndexTarget);
+    const templateIndexMigrated = migrateLegacyTemplateIndex(templateIndexCurrent.toString('utf8'));
+    if (!templateIndexCurrent.equals(templateIndexMigrated)) {
+      operations.push({
+        action: 'replace',
+        path: templateIndexPath,
+        content_digest: sha256(templateIndexMigrated),
+        preimage_digest: sha256(templateIndexCurrent),
+      });
+      contentByPath.set(templateIndexPath, templateIndexMigrated);
+    }
+
+    for (const legacyPath of [LEGACY_CEB_PROTOCOL_PATH, LEGACY_CEB_TEMPLATE_PATH]) {
+      const target = path.join(root, ...legacyPath.split('/'));
+      const metadata = await metadataOrUndefined(target);
+      if (metadata === undefined) continue;
+      if (!metadata.isFile() || metadata.isSymbolicLink()) {
+        throw new UpgradeError('PCP_UPGRADE_COLLISION', `Legacy CEB path is unsafe: ${legacyPath}`);
+      }
+      const current = await readFile(target);
+      if (
+        legacyPath === LEGACY_CEB_TEMPLATE_PATH &&
+        normalizeText(current.toString('utf8')) !== LEGACY_CEB_TEMPLATE
+      ) {
+        throw new UpgradeError(
+          'PCP_UPGRADE_LEGACY_TEMPLATE_CHANGED',
+          'The project-owned CEB scaffold was modified; preserve its useful content elsewhere before upgrading.',
+        );
+      }
+      operations.push({ action: 'remove', path: legacyPath, preimage_digest: sha256(current) });
+    }
+
+    const checkpointRoot = path.join(root, '.pcp', 'continuity', 'checkpoints');
+    const checkpointEntries = await readdir(checkpointRoot, { withFileTypes: true });
+    for (const entry of checkpointEntries.sort((left, right) =>
+      left.name.localeCompare(right.name),
+    )) {
+      if (!entry.isFile() || !entry.name.endsWith('.yaml')) continue;
+      const checkpointPath = `.pcp/continuity/checkpoints/${entry.name}`;
+      const current = await readFile(path.join(checkpointRoot, entry.name));
+      operations.push({ action: 'remove', path: checkpointPath, preimage_digest: sha256(current) });
+    }
+  }
   for (const [portablePath, content] of desired) {
     const absolute = path.join(root, ...portablePath.split('/'));
     const metadata = await metadataOrUndefined(absolute);

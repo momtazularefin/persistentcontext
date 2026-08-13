@@ -408,7 +408,6 @@ describe('transactional State A adoption', () => {
           status: 'active',
           paths: [fixtureCase.evidence],
           areas: [fixtureCase.name],
-          dependencies: [],
           completion: {
             criteria: [`Preserve and describe the ${fixtureCase.name} project baseline.`],
             evidence: [

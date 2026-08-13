@@ -86,7 +86,7 @@ describe('pcp command surface', () => {
     }
   });
 
-  it('previews and acknowledges scoped status with structured JSON', async () => {
+  it('previews and acknowledges per-execution sync with structured JSON', async () => {
     const output = vi.spyOn(process.stdout, 'write').mockImplementation(() => true);
     const previousExitCode = process.exitCode;
     process.exitCode = undefined;
@@ -99,38 +99,38 @@ describe('pcp command surface', () => {
       await createProgram().parseAsync([
         'node',
         'pcp',
-        'status',
+        'sync',
         root,
         '--actor-id',
         actor.actor_id,
-        '--scope',
-        'implementation',
+        '--execution-id',
+        actor.execution_id,
         '--json',
       ]);
       const preview = JSON.parse(String(output.mock.calls.at(-1)?.[0])) as Record<string, unknown>;
       expect(preview).toMatchObject({
-        command: 'status',
+        command: 'sync',
         mode: 'preview',
         mutated: false,
         event_created: false,
       });
-      expect(preview.status_digest).toMatch(/^[a-f0-9]{64}$/u);
+      expect(preview.sync_digest).toMatch(/^[a-f0-9]{64}$/u);
 
       await createProgram().parseAsync([
         'node',
         'pcp',
-        'status',
+        'sync',
         root,
         '--actor-id',
         actor.actor_id,
-        '--scope',
-        'implementation',
+        '--execution-id',
+        actor.execution_id,
         '--acknowledge',
-        String(preview.status_digest),
+        String(preview.sync_digest),
         '--json',
       ]);
       expect(JSON.parse(String(output.mock.calls.at(-1)?.[0]))).toMatchObject({
-        command: 'status',
+        command: 'sync',
         mode: 'acknowledge',
         checkpoint: { state: 'current', previous_state: 'missing' },
         acknowledgement: { accepted: true },

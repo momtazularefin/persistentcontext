@@ -87,10 +87,12 @@ async function loadSource(
   schema: SchemaName,
   registry: SchemaRegistry,
   diagnostics: CanonicalDiagnostic[],
+  override?: Buffer,
 ): Promise<LoadedRenderSource | undefined> {
   let contents: string;
   try {
-    contents = await readFile(path.join(layerRoot, relativePath), 'utf8');
+    contents =
+      override?.toString('utf8') ?? (await readFile(path.join(layerRoot, relativePath), 'utf8'));
   } catch (error) {
     diagnostics.push(
       issue(
@@ -154,11 +156,11 @@ function renderProjects(projects: Array<Record<string, unknown>>): string[] {
 function renderWorkstreams(workstreams: Array<Record<string, unknown>>): string[] {
   if (workstreams.length === 0) return ['No workstreams are registered.'];
   return [
-    '| ID | Name | Kind | Status | Dependencies | Evidence |',
-    '| --- | --- | --- | --- | --- | --- |',
+    '| ID | Name | Kind | Status | Evidence |',
+    '| --- | --- | --- | --- | --- |',
     ...workstreams.map((workstream) => {
       const completion = objectValue(workstream.completion);
-      return `| ${code(workstream.workstream_id)} | ${tableCell(workstream.name)} | ${code(workstream.kind)} | ${code(workstream.status)} | ${codeList(workstream.dependencies)} | ${objectArray(completion.evidence).length} item(s) |`;
+      return `| ${code(workstream.workstream_id)} | ${tableCell(workstream.name)} | ${code(workstream.kind)} | ${code(workstream.status)} | ${objectArray(completion.evidence).length} item(s) |`;
     }),
   ];
 }
@@ -226,14 +228,24 @@ export function renderCanonicalStatusView(
   return lines.join('\n');
 }
 
-export async function buildCanonicalStatusView(projectRoot: string): Promise<CanonicalRenderBuild> {
+export async function buildCanonicalStatusView(
+  projectRoot: string,
+  sourceOverrides: ReadonlyMap<string, Buffer> = new Map(),
+): Promise<CanonicalRenderBuild> {
   const layerRoot = path.join(path.resolve(projectRoot), '.pcp');
   const diagnostics: CanonicalDiagnostic[] = [];
   const registry = new SchemaRegistry();
   const loadedSources = new Map<string, LoadedRenderSource>();
 
   for (const [relativePath, schema] of SOURCES) {
-    const source = await loadSource(layerRoot, relativePath, schema, registry, diagnostics);
+    const source = await loadSource(
+      layerRoot,
+      relativePath,
+      schema,
+      registry,
+      diagnostics,
+      sourceOverrides.get(relativePath),
+    );
     if (source !== undefined) loadedSources.set(relativePath, source);
   }
   if (diagnostics.length > 0) {
@@ -247,35 +259,37 @@ export async function buildCanonicalStatusView(projectRoot: string): Promise<Can
       contents: source.contents,
     })),
   );
-  let currentSourceDigest: string;
-  try {
-    currentSourceDigest = await canonicalSourceDigest(
-      layerRoot,
-      SOURCES.map(([source]) => source),
-    );
-  } catch (error) {
-    return {
-      valid: false,
-      diagnostics: [
-        issue(
-          'render.source-digest',
-          '.pcp/state',
-          error instanceof Error ? error.message : 'Unable to fingerprint render sources.',
-        ),
-      ],
-    };
-  }
-  if (currentSourceDigest !== digest) {
-    return {
-      valid: false,
-      diagnostics: [
-        issue(
-          'render.source-drift',
-          '.pcp/state',
-          'Canonical render sources changed while the render snapshot was being built.',
-        ),
-      ],
-    };
+  if (sourceOverrides.size === 0) {
+    let currentSourceDigest: string;
+    try {
+      currentSourceDigest = await canonicalSourceDigest(
+        layerRoot,
+        SOURCES.map(([source]) => source),
+      );
+    } catch (error) {
+      return {
+        valid: false,
+        diagnostics: [
+          issue(
+            'render.source-digest',
+            '.pcp/state',
+            error instanceof Error ? error.message : 'Unable to fingerprint render sources.',
+          ),
+        ],
+      };
+    }
+    if (currentSourceDigest !== digest) {
+      return {
+        valid: false,
+        diagnostics: [
+          issue(
+            'render.source-drift',
+            '.pcp/state',
+            'Canonical render sources changed while the render snapshot was being built.',
+          ),
+        ],
+      };
+    }
   }
   const sources = new Map(
     [...loadedSources].map(([sourcePath, source]) => [sourcePath, source.value] as const),

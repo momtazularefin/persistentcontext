@@ -51,7 +51,6 @@ function workstream(
     status: 'active',
     paths: [`src/${workstreamId}`],
     areas: ['implementation'],
-    dependencies: [],
     completion: { criteria: [`${workstreamId} is complete.`], evidence: [] },
     ...overrides,
   };
@@ -286,7 +285,11 @@ describe('workstream management', () => {
         root,
         'update',
         await writeInput(
-          updateInput(actor.actor_id, digest, { ...updated, kind: 'ceb', status: 'blocked' }),
+          updateInput(actor.actor_id, digest, {
+            ...updated,
+            kind: 'concurrent',
+            status: 'blocked',
+          }),
         ),
       ),
     ).rejects.toMatchObject({ code: 'PCP_WORKSTREAM_KIND_IMMUTABLE', mutated: false });
@@ -329,28 +332,20 @@ describe('workstream management', () => {
     expect(await eventNames(root, 'events')).toHaveLength(1);
   });
 
-  it('completes generic and CEB work only with dependency-safe criterion evidence', async () => {
+  it('completes a work label only with criterion evidence and an announcement', async () => {
     const root = await createProject();
     const actor = await registerActor(root, {
       client: 'claude-code-desktop',
       machine_label: 'completion-machine',
     });
-    const foundation = workstream('foundation');
-    const delivery = workstream('delivery-ceb', {
-      kind: 'ceb',
-      dependencies: ['foundation'],
+    const delivery = workstream('delivery', {
+      kind: 'concurrent',
       completion: {
         criteria: ['Checks pass.', 'Handoff is ready.'],
         evidence: [],
       },
     });
     let digest = (await validateWorkstreamRegistry(root)).registry_digest;
-    const foundationCreate = await mutateWorkstream(
-      root,
-      'create',
-      await writeInput(createInput(actor.actor_id, digest, foundation)),
-    );
-    digest = foundationCreate.registry_digest_after;
     const deliveryCreate = await mutateWorkstream(
       root,
       'create',
@@ -359,23 +354,6 @@ describe('workstream management', () => {
     digest = deliveryCreate.registry_digest_after;
     const beforeRejected = await projectSnapshot(root);
 
-    await expect(
-      mutateWorkstream(
-        root,
-        'complete',
-        await writeInput(
-          completeInput(
-            actor.actor_id,
-            digest,
-            delivery.workstream_id,
-            delivery.completion.criteria,
-          ),
-        ),
-      ),
-    ).rejects.toMatchObject({
-      code: 'PCP_WORKSTREAM_DEPENDENCY_INCOMPLETE',
-      mutated: false,
-    });
     await expect(
       mutateWorkstream(
         root,
@@ -396,19 +374,6 @@ describe('workstream management', () => {
     ).rejects.toMatchObject({ code: 'PCP_WORKSTREAM_EVIDENCE_DUPLICATE', mutated: false });
     expect(await projectSnapshot(root)).toEqual(beforeRejected);
 
-    const foundationComplete = await mutateWorkstream(
-      root,
-      'complete',
-      await writeInput(
-        completeInput(
-          actor.actor_id,
-          digest,
-          foundation.workstream_id,
-          foundation.completion.criteria,
-        ),
-      ),
-    );
-    digest = foundationComplete.registry_digest_after;
     const deliveryComplete = await mutateWorkstream(
       root,
       'complete',
@@ -418,7 +383,7 @@ describe('workstream management', () => {
           digest,
           delivery.workstream_id,
           delivery.completion.criteria,
-          'Delivery CEB is complete; dependent work may begin.',
+          'Delivery is complete and ready for review.',
         ),
       ),
     );
@@ -427,18 +392,18 @@ describe('workstream management', () => {
     expect(deliveryComplete).toMatchObject({
       operation: 'complete',
       status: 'completed',
-      announcement: 'Delivery CEB is complete; dependent work may begin.',
+      announcement: 'Delivery is complete and ready for review.',
       event_created: true,
       mutated: true,
     });
     expect(selected.workstream).toMatchObject({
-      kind: 'ceb',
+      kind: 'concurrent',
       status: 'complete',
-      completion: { announcement: 'Delivery CEB is complete; dependent work may begin.' },
+      completion: { announcement: 'Delivery is complete and ready for review.' },
     });
     expect(selected.workstream?.completion.evidence).toHaveLength(2);
     expect(formatWorkstream(deliveryComplete)).toContain(
-      'Announcement: Delivery CEB is complete; dependent work may begin.',
+      'Announcement: Delivery is complete and ready for review.',
     );
     expect((await validateCanonicalLayer(root)).valid).toBe(true);
   });

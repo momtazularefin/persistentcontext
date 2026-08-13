@@ -8,7 +8,6 @@ valid:
       status: active
       paths: [schemas, templates, src]
       areas: [protocol, validation]
-      dependencies: []
       completion:
         criteria: [All canonical schemas and templates validate.]
         evidence: []

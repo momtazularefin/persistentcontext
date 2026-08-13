@@ -148,17 +148,20 @@ async function collectFiles(
   return files;
 }
 
-function schemaForPath(relativePath: string): SchemaName | undefined {
-  if (relativePath === 'pcp.yaml') return 'pcp-manifest';
+function schemaForPath(relativePath: string, legacyUpgradeSource: boolean): SchemaName | undefined {
+  if (relativePath === 'pcp.yaml')
+    return legacyUpgradeSource ? 'legacy-0.1-pcp-manifest' : 'pcp-manifest';
   if (relativePath === 'state/project.yaml') return 'project';
   if (relativePath === 'state/projects.yaml') return 'project-registry';
-  if (relativePath === 'state/workstreams.yaml') return 'workstreams';
+  if (relativePath === 'state/workstreams.yaml')
+    return legacyUpgradeSource ? 'legacy-0.1-workstreams' : 'workstreams';
   if (relativePath === 'state/vcs-policy.yaml') return 'vcs-policy';
   if (/^continuity\/actors\/[^/]+\.yaml$/.test(relativePath)) return 'actor-profile';
   if (/^continuity\/(?:events|archive)\/[^/]+\.yaml$/.test(relativePath)) {
     return 'event';
   }
-  if (/^continuity\/checkpoints\/[^/]+\.yaml$/.test(relativePath)) return 'checkpoint';
+  if (/^continuity\/checkpoints\/[^/]+\.yaml$/.test(relativePath))
+    return legacyUpgradeSource ? 'legacy-0.1-checkpoint' : 'checkpoint';
   return undefined;
 }
 
@@ -169,7 +172,8 @@ function addSemanticRecord(records: CanonicalSemanticRecords, record: LoadedYaml
   if (record.path === 'state/vcs-policy.yaml') records.vcs_policy = record;
   if (record.schema === 'actor-profile') records.actors.push(record);
   if (record.schema === 'event') records.events.push(record);
-  if (record.schema === 'checkpoint') records.checkpoints.push(record);
+  if (record.schema === 'checkpoint' || record.schema === 'legacy-0.1-checkpoint')
+    records.checkpoints.push(record);
 }
 
 function ownershipPatterns(manifest: unknown): OwnershipPatterns | undefined {
@@ -592,7 +596,7 @@ export async function validateCanonicalLayer(
   };
 
   for (const file of files.filter((item) => /\.ya?ml$/i.test(item.relative_path))) {
-    const schema = schemaForPath(file.relative_path);
+    const schema = schemaForPath(file.relative_path, options.legacy_upgrade_source === '0.1');
     if (schema === undefined) {
       diagnostics.push(
         issue(
@@ -712,7 +716,7 @@ export async function validateCanonicalLayer(
 
   const manifest = loadedYaml.get('pcp.yaml')?.value;
   const capabilityIds = stringArray(objectValue(manifest)?.capabilities);
-  if (capabilityIds !== undefined) {
+  if (capabilityIds !== undefined && options.legacy_upgrade_source !== '0.1') {
     try {
       const capabilities = loadCapabilityManifests(capabilityIds);
       for (const capability of capabilities) {
@@ -762,7 +766,11 @@ export async function validateCanonicalLayer(
     }
   }
   const adapterIds = stringArray(objectValue(manifest)?.adapter_ids);
-  if (adapterIds !== undefined && adapterIds.length > 0) {
+  if (
+    adapterIds !== undefined &&
+    adapterIds.length > 0 &&
+    options.legacy_upgrade_source !== '0.1'
+  ) {
     const expectedAdapters = renderPlatformAdapters().map((adapter) => adapter.manifest);
     const adapterValidation = await validatePlatformAdapters(resolvedProjectRoot, expectedAdapters);
     diagnostics.push(
@@ -795,7 +803,13 @@ export async function validateCanonicalLayer(
     validateTextSafety(file.relative_path, await readFile(file.absolute_path, 'utf8'), diagnostics);
   }
 
-  diagnostics.push(...validateCanonicalSemantics(semanticRecords));
+  diagnostics.push(
+    ...validateCanonicalSemantics(
+      options.legacy_upgrade_source === '0.1'
+        ? { ...semanticRecords, checkpoints: [] }
+        : semanticRecords,
+    ),
+  );
 
   const continuity = objectValue(objectValue(manifest)?.continuity);
   const activeEventLimit = continuity?.active_event_limit;

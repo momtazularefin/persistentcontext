@@ -1,5 +1,4 @@
 export const SUPPORTED_CAPABILITY_IDS = [
-  'concurrent-execution-blocks',
   'scratch-space',
   'spec-driven-projects',
   'walkthroughs',

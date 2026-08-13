@@ -5,7 +5,10 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const projectRoot = fileURLToPath(new URL('../', import.meta.url));
-const manifestPath = 'release/0.1.0-rc.json';
+const packageMetadata = JSON.parse(await readFile(path.join(projectRoot, 'package.json'), 'utf8'));
+const releaseVersion = packageMetadata.version;
+if (typeof releaseVersion !== 'string') throw new Error('package.json has no release version.');
+const manifestPath = `release/${releaseVersion}-rc.json`;
 const enginePaths = [
   'skills/build-pcp/scripts/pcp.mjs',
   'skills/build-pcp/assets/templates/core/.pcp/tools/pcp.mjs',
@@ -25,10 +28,29 @@ function sourcePaths() {
   if (result.status !== 0) {
     throw new Error(`Cannot inventory the candidate source tree: ${result.stderr.toString()}`);
   }
+  const deletedResult = spawnSync('git', ['ls-files', '--deleted', '-z'], {
+    cwd: projectRoot,
+    encoding: 'buffer',
+    windowsHide: true,
+  });
+  if (deletedResult.status !== 0) {
+    throw new Error(`Cannot inventory deleted candidate paths: ${deletedResult.stderr.toString()}`);
+  }
+  const deletedPaths = new Set(
+    deletedResult.stdout
+      .toString('utf8')
+      .split('\0')
+      .filter((candidatePath) => candidatePath.length > 0),
+  );
   return result.stdout
     .toString('utf8')
     .split('\0')
-    .filter((candidatePath) => candidatePath.length > 0 && candidatePath !== manifestPath)
+    .filter(
+      (candidatePath) =>
+        candidatePath.length > 0 &&
+        candidatePath !== manifestPath &&
+        !deletedPaths.has(candidatePath),
+    )
     .sort((left, right) => left.localeCompare(right));
 }
 
@@ -62,12 +84,11 @@ async function buildManifest() {
 
   return {
     schema_version: 1,
-    release: '0.1.0',
+    release: releaseVersion,
     stage: 'release-candidate',
     identity: {
       algorithm: 'sha256',
-      scope:
-        'Git-known working-tree files excluding release/0.1.0-rc.json and ignored build, coverage, dependency, and runtime output.',
+      scope: `Git-known existing working-tree files excluding ${manifestPath} and ignored build, coverage, dependency, and runtime output.`,
       source_tree_digest: sha256(identityBytes),
       file_count: files.length,
       files,
@@ -110,7 +131,15 @@ if (write.length === 1 && write[0] === '--write') {
   await writeFile(path.join(projectRoot, manifestPath), expected, 'utf8');
   process.stdout.write(`Wrote ${manifestPath}.\n`);
 } else if (write.length === 0) {
-  const actual = await readFile(path.join(projectRoot, manifestPath), 'utf8').catch(() => '');
+  const actual = await readFile(path.join(projectRoot, manifestPath), 'utf8').catch(
+    () => undefined,
+  );
+  if (actual === undefined) {
+    process.stdout.write(
+      `No release candidate is frozen for ${releaseVersion}; development verification continues without a candidate identity.\n`,
+    );
+    process.exit(0);
+  }
   if (actual !== expected) {
     throw new Error(
       `Release-candidate identity is missing or stale. Review the change, then run npm run freeze:candidate.`,

@@ -1,19 +1,19 @@
-# Ongoing Operation
+# Ongoing operation
 
-## Registration and reconciliation
+## Registration and mandatory synchronization
 
 - Register an actor when a human or agent first needs durable attribution after adoption.
 - Recover a cached stable identity when one exists; do not silently recalculate it.
-- A human uses the same `<actor-label>-<machine-label>-<10-character-Crockford-suffix>` pattern as an agent, with `human` as the actor label. Generate the suffix once; never use a shared counter. The first informed agent may register that human.
-- Keep execution and event IDs separate from actor identity.
-- Compare scoped checkpoints with newer active-event ULIDs. One checkpoint identity consists of the agent, selected workstream, expanded dependencies, semantic scopes, and paths.
-- Load changes relevant to the active workstream, dependencies, shared policies, project and workstream registries, project state, or overlapping paths. Keep unrelated concurrent changes visible without treating them as required context.
-- Preview status first. Advance a checkpoint only after referenced canonical state has been absorbed and the exact preview digest still matches a fresh recomputation.
-- If a checkpoint predates the active-event floor, rebuild the affected baseline from canonical current state; do not replay archived events during normal startup.
+- Keep actor, execution, and event IDs distinct. An actor is project-lifetime identity; a fresh execution ULID belongs to one chat.
+- Retain the returned actor and execution IDs in conversation state.
+- Before every response to a user request and before project-tool use, run global `sync` for that actor and execution.
+- When sync returns changes, read every returned current path and acknowledge only the exact recomputed digest.
+- Never filter synchronization by a workstream, scope, path, inferred dependency, or anticipated impact.
+- If the engine or canonical layer is missing or invalid, stop project work rather than bypassing sync.
 
-Registration, status checks, and unchanged rendering are operational actions, not continuity events.
+Registration, synchronization, acknowledgement, and unchanged rendering are operational actions, not continuity events.
 
-Register an agent once per execution with its supported client label and a stable machine slug:
+Register an agent once per conversation with its supported client label and a stable machine slug:
 
 ```text
 node <pcp-engine> register <project-root> --client <client> --machine-label <machine-slug> --json
@@ -25,27 +25,29 @@ Supported client labels are `codex`, `antigravity`, `claude-code-desktop`, `gith
 node <pcp-engine> register <project-root> --actor-type human --machine-label <machine-slug> --json
 ```
 
-Use the returned `actor_id` for durable attribution and the returned `execution_id` only for the current execution. A repeat call must return the same actor and a new execution ID. When a local cache is missing, the engine recovers one matching profile. If more than one profile matches, inspect the profiles and pass the intended one with `--actor-id`; never guess. A stale or contradictory cache requires explicit repair and must not be bypassed by deleting the profile or inventing a new identity.
+Use `actor_id` for durable attribution and `execution_id` only for the current chat. A repeat call recovers the same matching actor and returns a new execution ID. If more than one profile matches, inspect profiles and pass the intended `--actor-id`; never guess.
 
-Preview a global or scoped reconciliation without mutation:
-
-```text
-node <pcp-engine> status <project-root> --actor-id <actor-id> [--workstream <id>] [--scope <slug...>] [--path <relative-path...>] --json
-```
-
-Read the current paths in `required_context_paths`, using events as locators rather than as reconstructed state. After that context is absorbed, acknowledge only the returned digest:
+Run the mandatory fast-path preview:
 
 ```text
-node <pcp-engine> status <project-root> --actor-id <actor-id> [same scope options] --acknowledge <status-digest> --json
+node <pcp-engine> sync <project-root> --actor-id <actor-id> --execution-id <execution-id>
 ```
 
-Acknowledgement recomputes under the shared continuity lock. A mismatch fails without mutation. A match advances only the ignored local checkpoint to the newest active event, creates no event, and makes a repeated current status acknowledgement unnecessary. Normal registration and status may inspect archived ULIDs by filename to detect the active floor, but never read archived event contents.
+Plain output says immediately when no project update exists. Otherwise it returns every globally newer active event, attribution, rationale, affected paths, and current paths to absorb. A new execution receives `.pcp/00-index.md` as its baseline. Use events as locators and current canonical files as truth.
+
+After absorbing every path, acknowledge the exact digest:
+
+```text
+node <pcp-engine> sync <project-root> --actor-id <actor-id> --execution-id <execution-id> --acknowledge <sync-digest>
+```
+
+Acknowledgement recomputes under the continuity lock. A mismatch fails without mutation. A match advances only the ignored checkpoint named by the execution ID and creates no event. Separate chats for the same actor remain independent. Routine sync may inspect archived ULIDs by filename to detect the active floor but never reads archived event contents.
 
 ## Meaningful changes
 
-Record one minimal immutable event for a durable project change. Include the performing actor, recording actor, basis (`self`, `reported`, `observed`, or `system`), kind, affected scope, summary, and affected paths; add rationale only when it helps reconciliation. The first agent informed of an unrecorded human change records it. Accept a human's VCS report without claiming verification, and report and correct any later contradiction. Never edit an existing event.
+Record one minimal immutable event for a durable project change. Include performer, recorder, basis (`self`, `reported`, `observed`, or `system`), kind, affected labels/scopes/paths, summary, and useful rationale. The first informed agent records an otherwise unrecorded human change. Never edit an accepted event.
 
-Prepare the transient input outside the managed project, then let the engine assign the event ULID. Omit `occurred_at` to use the recording time, or supply it when the action happened earlier:
+Prepare input outside the managed project and let the engine assign the event ULID:
 
 ```yaml
 schema_version: 1
@@ -63,40 +65,31 @@ affected_paths: [src/example.ts]
 node <pcp-engine> record <project-root> --input <external-event.yaml> --json
 ```
 
-Use `reported` when a human tells the recorder about an action and `observed` when the recorder notices it independently. Register the human first if no durable profile exists. For either basis, supply a stable `change_key` from the external action, such as `git:<commit>`, `svn:<revision>`, or `filesystem:sha256:<snapshot-digest>`; never infer identity from matching prose or timestamps. Concurrent attempts with the same active key serialize so only one event is accepted. Use `system` only with system as both actor and recorder. Keep summaries at or below 240 characters and rationale at or below 1,000. At least one scope, workstream, or affected path is required so reconciliation can locate the change.
+Reported and observed events require a stable external `change_key`, such as `git:<commit>`, `svn:<revision>`, or `filesystem:sha256:<snapshot-digest>`. Summaries are at most 240 characters and rationale at most 1,000. At least one scope, workstream, or path is required as a locator, never as a sync filter.
 
-The command validates the installed layer and attribution before mutation, serializes concurrent writers, assigns a payload digest, and validates the live result. That digest detects an uncoordinated schema-valid payload rewrite; it is tamper evidence rather than a signature. Keep at most 64 events in `continuity/events/`. Before adding event 65, the same transaction moves the oldest 32 immutable records to `continuity/archive/`; a caught failure restores exact active contents and archive identities. ULIDs remain unique and ordered across both locations. Archive history is explicit-audit material and is not part of normal agent reading; only full explicit validation checks archived digests or duplicate change keys.
+The command serializes writers, computes a payload digest, and validates live state. Keep at most 64 active events. Before accepting event 65, the same transaction moves the oldest 32 immutable records to the archive. Full explicit validation checks archived payloads; routine work does not.
 
-## Rendering
-
-Validate current operational state without reading archived event contents:
+## Rendering and validation
 
 ```text
 node <pcp-engine> validate <project-root> --archive-index-only --json
-```
-
-Omit `--archive-index-only` only for an explicit archive audit, recovery, or historical integrity check.
-
-Use `--clean-genesis` only for an adoption candidate that must contain zero actor profiles and zero active or archived events.
-
-Check projections without mutation, then render when the policy permits generated-file replacement:
-
-```text
 node <pcp-engine> render <project-root> --check --json
 node <pcp-engine> render <project-root> --json
 ```
 
-Treat a digest mismatch as stale output. Generated Markdown is never an independent source of truth. Adoption installs generated adapters transactionally; use the preview-first `repair` workflow for missing or changed installed adapters.
+Use `--clean-genesis` only for a newly adopted candidate that must have no actors or events. Omit `--archive-index-only` only for an explicit archive audit or recovery. Generated Markdown is not independent authority. Use preview-first `repair` for missing or changed generated adapters.
 
-## Workstreams and CEBs
+## Descriptive workstreams
 
-Use generic workstream state for scope, dependencies, lifecycle, and completion evidence. First obtain the exact current registry digest without mutation:
+Workstreams are optional flat labels for lifecycle, affected paths or areas, completion criteria, evidence, and announcements. They are not dependency graphs, schedulers, source locks, CEBs, or sync boundaries.
+
+First obtain the registry digest:
 
 ```text
 node <pcp-engine> workstream validate <project-root> [--workstream <id>] --json
 ```
 
-Prepare a transient schema-valid input outside the managed project. `create` and `update` carry the complete desired workstream, not a partial patch:
+Create and update inputs contain the complete desired record:
 
 ```yaml
 schema_version: 1
@@ -113,7 +106,6 @@ workstream:
   status: planned
   paths: [src, tests]
   areas: [implementation, validation]
-  dependencies: []
   completion:
     criteria: [Implementation is reviewed., Tests pass.]
     evidence: []
@@ -124,29 +116,10 @@ node <pcp-engine> workstream create <project-root> --input <external-workstream.
 node <pcp-engine> workstream update <project-root> --input <external-workstream.yaml> --json
 ```
 
-Do not set `status: complete` through `update`. Complete active or blocked work with one exact criterion-to-proof mapping for every declared criterion and a concise announcement:
-
-```yaml
-schema_version: 1
-operation: complete
-expected_registry_digest: <digest-from-validate>
-actor: { type: agent, id: <performing-actor-id> }
-recorded_by: { type: agent, id: <recording-actor-id> }
-basis: self
-summary: Completed the implementation workstream.
-workstream_id: implementation
-evidence:
-  - criterion: Implementation is reviewed.
-    proof: Review decision is recorded in operations/30-decisions.md.
-  - criterion: Tests pass.
-    proof: The verified project test command passed.
-announcement: Implementation is complete; dependent work may begin.
-```
+Complete active or blocked work with exactly one proof per criterion and a concise announcement:
 
 ```text
 node <pcp-engine> workstream complete <project-root> --input <external-workstream.yaml> --json
 ```
 
-The digest prevents a stale plan from overwriting concurrent work. `complete` also requires every dependency to be complete. Successful mutation replaces the registry, regenerates its status view, and appends one workstream event under the same continuity lock; a caught failure restores all three histories exactly.
-
-Enable the Concurrent Execution Block capability when the project wants named parallel blocks. A CEB is simply `kind: ceb` plus the optional human guidance; it uses the same commands, registry, dependencies, evidence rules, and completion announcement.
+The registry digest prevents stale replacement. Successful mutation replaces the registry, regenerates the view, and appends one attributed workstream event under the continuity lock.

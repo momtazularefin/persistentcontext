@@ -74,18 +74,17 @@ async function reconstructionInput(): Promise<AdoptionInput> {
     lifecycle: 'active',
     tags: ['field-notes', 'editorial'],
   };
-  input.capabilities = ['concurrent-execution-blocks'];
+  input.capabilities = [];
   input.workstreams = {
     schema_version: 1,
     workstreams: [
       {
         workstream_id: 'weekly-review',
         name: 'Weekly editorial review',
-        kind: 'ceb',
+        kind: 'concurrent',
         status: 'active',
         paths: ['notes'],
         areas: ['editorial'],
-        dependencies: [],
         completion: {
           criteria: ['The weekly collection is reviewed and prioritized.'],
           evidence: [],
@@ -192,6 +191,18 @@ async function reconstructFromPlatform(
     adapters.every((adapter) => adapter.includes('.pcp/00-index.md')),
     platform,
   ).toBe(true);
+  expect(
+    adapters.some((adapter) => adapter.includes(`register . --client ${platform} --json`)),
+    `${platform}: registration contract`,
+  ).toBe(true);
+  expect(
+    adapters.some((adapter) =>
+      adapter.includes('sync . --actor-id <actor-id> --execution-id <execution-id>'),
+    ),
+    `${platform}: sync contract`,
+  ).toBe(true);
+  expect(adapters.some((adapter) => adapter.includes('For every user request'))).toBe(true);
+  expect(adapters.some((adapter) => adapter.includes('do not bypass synchronization'))).toBe(true);
   if (platform === 'cursor') {
     expect(adapters.some((adapter) => adapter.includes('alwaysApply: true'))).toBe(true);
   }

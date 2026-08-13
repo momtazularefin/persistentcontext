@@ -9,8 +9,8 @@ import { mutateWorkstream, validateWorkstreamRegistry } from '../application/man
 import { recordEvent } from '../application/record-event.js';
 import { registerActor } from '../application/register-actor.js';
 import { repairProject } from '../application/repair-project.js';
-import { reportStatus } from '../application/report-status.js';
 import { renderCanonicalViews } from '../application/render-canonical-views.js';
+import { synchronizeProject } from '../application/synchronize-project.js';
 import { validateCanonicalLayer } from '../application/validate-canonical-layer.js';
 import { upgradeProject } from '../application/upgrade-project.js';
 import {
@@ -24,8 +24,8 @@ import { AdoptionError } from '../domain/adoption.js';
 import { InspectionError } from '../domain/inspection.js';
 import { RecordingError } from '../domain/recording.js';
 import { normalizeMachineLabel, RegistrationError } from '../domain/registration.js';
-import { ReconciliationError } from '../domain/reconciliation.js';
 import { RepairError } from '../domain/repair.js';
+import { SynchronizationError } from '../domain/synchronization.js';
 import { UpgradeError } from '../domain/upgrade.js';
 import { WorkstreamError } from '../domain/workstreams.js';
 import { formatAdoption } from '../presentation/format-adoption.js';
@@ -38,7 +38,7 @@ import { formatRecording } from '../presentation/format-recording.js';
 import { formatRecoveryDetails } from '../presentation/format-recovery.js';
 import { formatRegistration } from '../presentation/format-registration.js';
 import { formatRepair } from '../presentation/format-repair.js';
-import { formatStatus } from '../presentation/format-status.js';
+import { formatSync } from '../presentation/format-sync.js';
 import { formatUpgrade } from '../presentation/format-upgrade.js';
 import { formatWorkstream } from '../presentation/format-workstream.js';
 
@@ -46,7 +46,7 @@ const commandDescriptions: Record<PcpCommandName, string> = {
   inspect: 'Inspect and classify a candidate project without mutation',
   adopt: 'Preview or apply adoption into the canonical .pcp layer',
   register: 'Create or recover a stable project actor identity',
-  status: 'Report project state and scoped reconciliation changes',
+  sync: 'Synchronize one conversation with every newer project change',
   record: 'Append one meaningful immutable continuity event',
   validate: 'Validate an installed PCP layer and its projections',
   render: 'Render generated canonical views',
@@ -89,12 +89,10 @@ interface RegisterOptions {
   json?: boolean;
 }
 
-interface StatusOptions {
+interface SyncOptions {
   candidate?: string;
   actorId: string;
-  workstream?: string;
-  scope?: string[];
-  path?: string[];
+  executionId: string;
   acknowledge?: string;
   json?: boolean;
 }
@@ -162,10 +160,10 @@ function reportRegistrationError(error: unknown): void {
   process.exitCode = 2;
 }
 
-function reportStatusError(error: unknown): void {
-  const code = error instanceof ReconciliationError ? error.code : 'PCP_STATUS_FAILED';
+function reportSyncError(error: unknown): void {
+  const code = error instanceof SynchronizationError ? error.code : 'PCP_SYNC_FAILED';
   const message = error instanceof Error ? error.message : String(error);
-  const mutated = error instanceof ReconciliationError ? error.mutated : false;
+  const mutated = error instanceof SynchronizationError ? error.mutated : false;
   process.stderr.write(`${JSON.stringify({ code, message, mutated })}\n`);
   process.exitCode = 2;
 }
@@ -289,32 +287,28 @@ function addRegisterCommand(program: Command): Command {
     });
 }
 
-function addStatusCommand(program: Command): Command {
+function addSyncCommand(program: Command): Command {
   return program
-    .command('status')
-    .description(commandDescriptions.status)
+    .command('sync')
+    .description(commandDescriptions.sync)
     .argument('[directory]', 'managed project root')
     .option('--candidate <directory>', 'managed project root')
     .requiredOption('--actor-id <id>', 'registered agent actor ID')
-    .option('--workstream <id>', 'active workstream ID')
-    .option('--scope <scope...>', 'additional semantic scopes')
-    .option('--path <path...>', 'additional project-relative paths')
-    .option('--acknowledge <digest>', 'advance only the matching recomputed status digest')
+    .requiredOption('--execution-id <id>', 'stable execution ID for this conversation')
+    .option('--acknowledge <digest>', 'advance only the matching recomputed sync digest')
     .option('--json', 'emit stable structured JSON')
-    .action(async (directory: string | undefined, options: StatusOptions) => {
+    .action(async (directory: string | undefined, options: SyncOptions) => {
       try {
-        const result = await reportStatus(options.candidate ?? directory ?? '.', {
+        const result = await synchronizeProject(options.candidate ?? directory ?? '.', {
           actor_id: options.actorId,
-          ...(options.workstream === undefined ? {} : { workstream_id: options.workstream }),
-          ...(options.scope === undefined ? {} : { scopes: options.scope }),
-          ...(options.path === undefined ? {} : { paths: options.path }),
+          execution_id: options.executionId,
           ...(options.acknowledge === undefined ? {} : { acknowledge: options.acknowledge }),
         });
         process.stdout.write(
-          options.json === true ? `${JSON.stringify(result, null, 2)}\n` : formatStatus(result),
+          options.json === true ? `${JSON.stringify(result, null, 2)}\n` : formatSync(result),
         );
       } catch (error) {
-        reportStatusError(error);
+        reportSyncError(error);
       }
     });
 }
@@ -561,8 +555,8 @@ export function createProgram(): Command {
       addAdoptCommand(program);
     } else if (commandName === 'register') {
       addRegisterCommand(program);
-    } else if (commandName === 'status') {
-      addStatusCommand(program);
+    } else if (commandName === 'sync') {
+      addSyncCommand(program);
     } else if (commandName === 'record') {
       addRecordCommand(program);
     } else if (commandName === 'validate') {
