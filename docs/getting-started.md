@@ -16,12 +16,12 @@ https://github.com/momtazularefin/persistentcontext
 
 Inspect the repository and classify it as State A, State B, State C, or already managed. If it is not managed, progressively gather enough evidence to prepare a complete, grounded PCP adoption preview.
 
-Preserve ordinary project files. For State C, translate current useful context only after every detected foreign source has a reviewed disposition and complete coverage. Do not import old actor identities, checkpoints, or changelog history.
+Preserve ordinary project files. Keep agent-operational knowledge in .pcp, keep project-outcome knowledge in the established documentation directory or the default docs/ directory, and catalog every project document from .pcp/state/documentation.yaml. For State C, translate current useful context only after every detected foreign source has a reviewed disposition and complete coverage. Do not import old actor identities, checkpoints, or changelog history.
 
 Show me the classification evidence, indispensable unresolved choices, exact normalized mutation plan, and plan digest. Do not apply the plan until I explicitly approve that exact digest. Use the verified build-pcp engine for structural operations; do not reproduce adoption manually.
 ```
 
-Adoption is preview-first. It installs the project-local engine at `.pcp/tools/pcp.mjs`, the canonical `.pcp/` layer, and all five generated adapters. Do not assume a global `pcp` command exists.
+Adoption is preview-first. It installs the project-local engine at `.pcp/tools/pcp.mjs`, the canonical `.pcp/` layer, and all five generated adapters. It also records the selected external documentation root, creates an initial outcome document when establishing the default `docs/` folder, and catalogs every surviving ordinary project document. Do not assume a global `pcp` command exists.
 
 ## Normal use after adoption
 
@@ -63,6 +63,6 @@ The recovery prompt diagnoses discovery failure; it is not the expected day-to-d
 
 ## Meaningful changes
 
-Synchronization consumes continuity; it does not create it. After accepting a meaningful durable project change, update the relevant canonical PCP sources and record one minimal attributed event. Do not record routine reads, registration, synchronization, acknowledgements, no-op validation, or discussion that changed no durable project fact.
+Synchronization consumes continuity; it does not create it. After accepting a meaningful durable project change, update the relevant internal PCP sources and every affected external project document, maintain `.pcp/state/documentation.yaml` when document paths or purposes change, and record one minimal attributed event. Do not record routine reads, registration, synchronization, acknowledgements, no-op validation, or discussion that changed no durable project fact.
 
 Workstreams remain optional descriptive work labels with lifecycle, affected paths or areas, completion criteria, and evidence. They are not dependency graphs, schedulers, or synchronization filters. PCP delivers every newer event to every conversation regardless of workstream, scope, or path labels.

@@ -27,6 +27,8 @@ import {
 import { canonicalSourceDigest } from '../infrastructure/canonical-source-digest.js';
 import { loadCapabilityManifests } from '../infrastructure/adoption-assets.js';
 import { SchemaRegistry } from '../infrastructure/schema-validator.js';
+import { inventoryRepository } from '../infrastructure/filesystem-inventory.js';
+import { documentationPaths, isProjectDocumentationPath } from '../domain/project-documentation.js';
 import { renderPlatformAdapters } from './render-platform-adapters.js';
 import { validatePlatformAdapters } from './validate-platform-adapters.js';
 
@@ -64,6 +66,7 @@ const REQUIRED_CANONICAL_PATHS = [
   'state/00-index.md',
   'state/project.yaml',
   'state/projects.yaml',
+  'state/documentation.yaml',
   'state/vcs-policy.yaml',
   'state/workstreams.yaml',
   'templates/00-index.md',
@@ -96,6 +99,12 @@ function stringArray(value: unknown): string[] | undefined {
   return Array.isArray(value) && value.every((item) => typeof item === 'string')
     ? value
     : undefined;
+}
+
+function objectArray(value: unknown): Array<Record<string, unknown>> {
+  return Array.isArray(value)
+    ? value.map(objectValue).filter((item): item is Record<string, unknown> => item !== undefined)
+    : [];
 }
 
 function relativeFrom(root: string, target: string): string {
@@ -151,8 +160,11 @@ async function collectFiles(
 function schemaForPath(relativePath: string, legacyUpgradeSource: boolean): SchemaName | undefined {
   if (relativePath === 'pcp.yaml')
     return legacyUpgradeSource ? 'legacy-0.1-pcp-manifest' : 'pcp-manifest';
-  if (relativePath === 'state/project.yaml') return 'project';
-  if (relativePath === 'state/projects.yaml') return 'project-registry';
+  if (relativePath === 'state/project.yaml')
+    return legacyUpgradeSource ? 'legacy-0.1-project' : 'project';
+  if (relativePath === 'state/projects.yaml')
+    return legacyUpgradeSource ? 'legacy-0.1-project-registry' : 'project-registry';
+  if (relativePath === 'state/documentation.yaml') return 'documentation';
   if (relativePath === 'state/workstreams.yaml')
     return legacyUpgradeSource ? 'legacy-0.1-workstreams' : 'workstreams';
   if (relativePath === 'state/vcs-policy.yaml') return 'vcs-policy';
@@ -168,6 +180,7 @@ function schemaForPath(relativePath: string, legacyUpgradeSource: boolean): Sche
 function addSemanticRecord(records: CanonicalSemanticRecords, record: LoadedYaml): void {
   if (record.path === 'state/project.yaml') records.project = record;
   if (record.path === 'state/projects.yaml') records.project_registry = record;
+  if (record.path === 'state/documentation.yaml') records.documentation = record;
   if (record.path === 'state/workstreams.yaml') records.workstreams = record;
   if (record.path === 'state/vcs-policy.yaml') records.vcs_policy = record;
   if (record.schema === 'actor-profile') records.actors.push(record);
@@ -547,6 +560,120 @@ function assignLoadedYaml(
   loaded.set(relativePath, { path: relativePath, schema, value });
 }
 
+async function validateProjectDocumentation(
+  projectRoot: string,
+  loaded: Map<string, LoadedYaml>,
+  diagnostics: CanonicalDiagnostic[],
+): Promise<void> {
+  const documentation = objectValue(loaded.get('state/documentation.yaml')?.value);
+  const primaryProject = objectValue(loaded.get('state/project.yaml')?.value);
+  if (documentation === undefined || primaryProject === undefined) return;
+  const registry = objectValue(loaded.get('state/projects.yaml')?.value);
+  const projects = [primaryProject, ...objectArray(registry?.projects)];
+
+  let inventory;
+  try {
+    inventory = await inventoryRepository(projectRoot);
+  } catch (error) {
+    diagnostics.push(
+      issue(
+        'documentation.inventory-failed',
+        'state/documentation.yaml',
+        error instanceof Error ? error.message : 'Unable to inventory project documentation.',
+      ),
+    );
+    return;
+  }
+  for (const project of projects) {
+    const documentationRoot = project.documentation_root;
+    if (typeof documentationRoot !== 'string') continue;
+    if (
+      inventory.nestedRepositories.some(
+        (nestedRoot) =>
+          documentationRoot === nestedRoot || documentationRoot.startsWith(`${nestedRoot}/`),
+      )
+    ) {
+      continue;
+    }
+    const target = path.join(projectRoot, ...documentationRoot.split('/'));
+    try {
+      const metadata = await lstat(target);
+      if (!metadata.isDirectory() || metadata.isSymbolicLink()) {
+        diagnostics.push(
+          issue(
+            'documentation.root-type',
+            documentationRoot,
+            'Configured outcome-documentation root must be a regular directory.',
+          ),
+        );
+      }
+    } catch {
+      diagnostics.push(
+        issue(
+          'documentation.root-missing',
+          documentationRoot,
+          'Configured outcome-documentation root does not exist.',
+        ),
+      );
+    }
+  }
+  const actualPaths = documentationPaths(inventory);
+  const entries = objectArray(documentation.documents);
+  const catalogPaths = entries
+    .map((entry) => entry.path)
+    .filter((entryPath): entryPath is string => typeof entryPath === 'string')
+    .sort((left, right) => left.localeCompare(right));
+  const actualSet = new Set(actualPaths);
+  const catalogSet = new Set(catalogPaths);
+  for (const actualPath of actualPaths) {
+    if (!catalogSet.has(actualPath)) {
+      diagnostics.push(
+        issue(
+          'documentation.uncatalogued',
+          actualPath,
+          'Project document is not tracked in .pcp/state/documentation.yaml.',
+        ),
+      );
+    }
+  }
+  for (const entry of entries) {
+    const entryPath = entry.path;
+    if (typeof entryPath !== 'string') continue;
+    if (!isProjectDocumentationPath(entryPath)) {
+      diagnostics.push(
+        issue(
+          'documentation.unsupported-path',
+          entryPath,
+          'Documentation registry entry is not a supported project-document path.',
+        ),
+      );
+      continue;
+    }
+    if (!actualSet.has(entryPath)) {
+      diagnostics.push(
+        issue(
+          'documentation.stale-entry',
+          entryPath,
+          'Documentation registry entry does not identify an inventoried project document.',
+        ),
+      );
+    }
+    for (const relatedPath of stringArray(entry.related_paths) ?? []) {
+      try {
+        await lstat(path.join(projectRoot, ...relatedPath.split('/')));
+      } catch {
+        diagnostics.push(
+          issue(
+            'documentation.related-path-missing',
+            `${entryPath}#related_paths`,
+            `Related project path does not exist: ${relatedPath}.`,
+          ),
+        );
+      }
+    }
+  }
+}
+
 export async function validateCanonicalLayer(
   projectRoot: string,
   options: CanonicalValidationOptions = {},
@@ -567,6 +694,9 @@ export async function validateCanonicalLayer(
   const files = await collectFiles(layerRoot, layerRoot, diagnostics);
   const presentPaths = new Set(files.map((file) => file.relative_path));
   for (const requiredPath of REQUIRED_CANONICAL_PATHS) {
+    if (options.legacy_upgrade_source === '0.1' && requiredPath === 'state/documentation.yaml') {
+      continue;
+    }
     if (!presentPaths.has(requiredPath)) {
       diagnostics.push(
         issue('layer.required-path', requiredPath, 'Required canonical core file is missing.'),
@@ -810,6 +940,10 @@ export async function validateCanonicalLayer(
         : semanticRecords,
     ),
   );
+
+  if (options.legacy_upgrade_source !== '0.1' && options.documentation_inventory !== 'skip') {
+    await validateProjectDocumentation(resolvedProjectRoot, loadedYaml, diagnostics);
+  }
 
   const continuity = objectValue(objectValue(manifest)?.continuity);
   const activeEventLimit = continuity?.active_event_limit;

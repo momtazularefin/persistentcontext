@@ -15,6 +15,7 @@ import {
   type InspectionResult,
   type RepositoryInventory,
 } from '../domain/inspection.js';
+import { assessDocumentation } from '../domain/project-documentation.js';
 import {
   inventoryRepository,
   resolveCandidateRoot,
@@ -140,6 +141,7 @@ export async function inspectRepository(candidate = '.'): Promise<InspectionResu
     signals: classification.signals,
     foreignCandidates: classification.foreignCandidates,
     ambiguities: classification.ambiguities,
+    documentation: assessDocumentation(inventory),
     inventory,
     mutated: false,
   };

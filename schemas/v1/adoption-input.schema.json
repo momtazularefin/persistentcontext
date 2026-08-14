@@ -11,9 +11,11 @@
     "capabilities",
     "project",
     "projects",
+    "documentation",
     "workstreams",
     "vcs_policy",
     "documents",
+    "outcome_documents",
     "scaffold_files"
   ],
   "properties": {
@@ -39,6 +41,9 @@
     "projects": {
       "$ref": "urn:pcp:schema:v1:project-registry"
     },
+    "documentation": {
+      "$ref": "urn:pcp:schema:v1:documentation"
+    },
     "workstreams": {
       "$ref": "urn:pcp:schema:v1:workstreams"
     },
@@ -51,7 +56,15 @@
         "$ref": "#/$defs/document"
       },
       "minItems": 8,
-      "maxItems": 256
+      "maxItems": 8
+    },
+    "outcome_documents": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/outcomeDocument"
+      },
+      "maxItems": 256,
+      "uniqueItems": true
     },
     "foreign_roots": {
       "type": "array",
@@ -98,15 +111,47 @@
                 "operations/20-plan.md",
                 "operations/30-decisions.md"
               ]
-            },
-            {
-              "type": "string",
-              "pattern": "^projects/[a-z0-9]+(?:-[a-z0-9]+)*/[1-9][0-9]-[a-z0-9]+(?:-[a-z0-9]+)*\\.md$"
             }
           ]
         },
         "type": {
           "enum": ["knowledge", "policy", "plan", "project"]
+        },
+        "status": {
+          "enum": ["static", "living"]
+        },
+        "basis": {
+          "enum": ["repository", "user", "repository-and-user", "not-applicable"]
+        },
+        "evidence_paths": {
+          "$ref": "urn:pcp:schema:v1:common#/$defs/pathArray"
+        },
+        "body": {
+          "type": "string",
+          "minLength": 3
+        }
+      }
+    },
+    "outcomeDocument": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["path", "project_id", "status", "basis", "evidence_paths", "body"],
+      "properties": {
+        "path": {
+          "allOf": [
+            {
+              "$ref": "urn:pcp:schema:v1:common#/$defs/relativePath"
+            },
+            {
+              "not": {
+                "type": "string",
+                "pattern": "^\\.pcp(?:/|$)"
+              }
+            }
+          ]
+        },
+        "project_id": {
+          "$ref": "urn:pcp:schema:v1:common#/$defs/slug"
         },
         "status": {
           "enum": ["static", "living"]

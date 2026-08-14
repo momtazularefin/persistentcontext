@@ -8,5 +8,7 @@ artifact_roots:
   - .
 context_roots:
   - .pcp
+documentation_root: docs
+documentation_root_source: default
 repositories: []
 tags: []

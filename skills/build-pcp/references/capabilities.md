@@ -4,7 +4,7 @@
 
 - Repository-owned persistent context and one canonical entry.
 - Generated mandatory adapters for five agent products.
-- Progressive exploration and grounded knowledge.
+- Progressive exploration and grounded agent-operational knowledge, plus an external project-document registry.
 - Portable paths, numbered reading order, and discoverability.
 - Stable human and agent identities, fresh per-chat execution IDs, global mandatory synchronization, and immutable ULID events.
 - A bounded 64-event active window with 32-event archive rotation and explicit-only archive reads.
@@ -15,7 +15,7 @@ PCP intentionally does not provide CEBs, dependency graphs, impact inference, or
 
 ## Optional modules
 
-- `spec-driven-projects` — bounded specification and project-record scaffolds.
+- `spec-driven-projects` — bounded specifications created under each project's configured external documentation root and tracked from `.pcp/state/documentation.yaml`.
 - `scratch-space` — a declared noncanonical workspace and promotion policy.
 - `walkthroughs` — progressive evidence-based walkthrough creation.
 

@@ -44,7 +44,7 @@ Run `npm run benchmark:sync` to measure the current machine. A Windows reference
 
 ## Repository shapes
 
-PCP does not require a conventional source or documentation layout. Intake covers clean prose or empty seeds, established software/documentation/data repositories, monorepos and nested repositories, foreign context layers, and already managed installations.
+PCP does not require a conventional source layout. Intake covers clean prose or empty seeds, established software/documentation/data repositories, monorepos and nested repositories, foreign context layers, and already managed installations. It reuses a dedicated existing documentation directory when found and otherwise establishes `docs/`; outcome knowledge stays there while `.pcp/state/documentation.yaml` tracks all ordinary project documents wherever they live.
 
 Inventory honors ignore rules, fingerprints large and binary files without semantic parsing, records symlinks without following them, and stops at nested-repository boundaries. Adoption preserves ordinary assets and requires reviewed complete coverage before translating or removing foreign context.
 

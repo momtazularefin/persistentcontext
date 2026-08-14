@@ -15,6 +15,7 @@ import { inspectRepository } from '../../src/application/inspect-repository.js';
 import { isPlanMaterial, planAdoption } from '../../src/application/plan-adoption.js';
 import { sha256, type AdoptionInput } from '../../src/domain/adoption.js';
 import type { CoverageMatrix } from '../../src/domain/coverage.js';
+import { isProjectDocumentationPath } from '../../src/domain/project-documentation.js';
 import { SchemaRegistry } from '../../src/infrastructure/schema-validator.js';
 import { formatAdoption } from '../../src/presentation/format-adoption.js';
 
@@ -97,6 +98,33 @@ async function stateCInput(coverage?: CoverageMatrix): Promise<AdoptionInput> {
   if (coverage !== undefined) {
     input.foreign_roots = structuredClone(coverage.foreign_roots);
     input.coverage = coverage;
+    const retainedDocuments = new Set(['README.md']);
+    for (const record of coverage.records) {
+      if (
+        (record.source_kind === 'file' || record.source_kind === 'adapter') &&
+        record.disposition === 'project-owned' &&
+        isProjectDocumentationPath(record.source_path)
+      ) {
+        retainedDocuments.add(record.source_path);
+      }
+      if (record.disposition === 'relocated') {
+        const target = record.targets[0];
+        if (target !== undefined && isProjectDocumentationPath(target)) {
+          retainedDocuments.add(target);
+        }
+      }
+    }
+    input.documentation.documents = [
+      ...input.documentation.documents,
+      ...[...retainedDocuments].sort().map((documentPath) => ({
+        path: documentPath,
+        project_id: input.project.project_id,
+        category: 'reference' as const,
+        status: 'living' as const,
+        summary: `Tracks surviving project documentation at ${documentPath}.`,
+        related_paths: [],
+      })),
+    ];
   }
   return input;
 }

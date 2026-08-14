@@ -20,6 +20,7 @@ async function managedProject(): Promise<string> {
   const root = await mkdtemp(path.join(tmpdir(), 'pcp-repair-project-'));
   temporaryRoots.push(root);
   await cp(coreTemplate, path.join(root, '.pcp'), { recursive: true });
+  await mkdir(path.join(root, 'docs'));
   const adapters = renderPlatformAdapters();
   const manifestPath = path.join(root, '.pcp', 'pcp.yaml');
   const manifest = parse(await readFile(manifestPath, 'utf8')) as Record<string, unknown>;

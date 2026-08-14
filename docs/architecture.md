@@ -2,7 +2,7 @@
 
 Persistent Context Protocol (PCP) is a repository-native context layer for durable project understanding and fast cross-conversation continuity. It uses plain Markdown and YAML for canonical state, generated product instruction adapters for automatic discovery, and a project-local executable for deterministic operations.
 
-The repository outranks private agent memory. A conversation may cache its actor and execution IDs, but project facts, policy, history, and synchronization authority remain in `.pcp/`.
+The repository outranks private agent memory. A conversation may cache its actor and execution IDs, but project operating facts, policy, history, and synchronization authority remain in `.pcp/`. Knowledge produced as the project's actual outcome remains ordinary documentation outside `.pcp` and is indexed from canonical state.
 
 ## Five cooperating surfaces
 
@@ -21,12 +21,13 @@ The skill decides what project context means. The engine decides whether bytes, 
 ├── 00-index.md             # canonical entry and returning-task contract
 ├── pcp.yaml                # installation manifest and release identity
 ├── protocol/               # portable rules
-├── knowledge/              # grounded current understanding
+├── knowledge/              # grounded agent-operational understanding
 ├── operations/             # working agreements, plans, and decisions
 ├── projects/               # optional readable project records
 ├── state/                  # machine-readable current truth
 │   ├── project.yaml
 │   ├── projects.yaml
+│   ├── documentation.yaml  # all ordinary project documents and maintenance cues
 │   ├── workstreams.yaml    # optional flat descriptive work labels
 │   └── vcs-policy.yaml
 ├── continuity/
@@ -39,7 +40,11 @@ The skill decides what project context means. The engine decides whether bytes, 
 ├── references/             # optional references
 ├── runtime/                # ignored locks, caches, and recovery state
 └── tools/                  # exact installed engine and checksum
+
+docs/ or existing-doc-root/ # project-outcome knowledge outside .pcp
 ```
+
+Each project state record declares `documentation_root` and whether adoption reused an `existing` folder or created the `default` `docs/` convention. Outcome documents must live beneath that root. `.pcp/state/documentation.yaml` also catalogs reference documents elsewhere in the repository, such as a root README, with ownership, status, summary, and related source or document paths. This gives agents a RAG-like navigation map without turning deliverable knowledge into agent-internal context.
 
 Canonical records have four ownership classes:
 

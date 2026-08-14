@@ -7,6 +7,7 @@ PCP 0.2 changes the operating model in three ways:
 - synchronization is mandatory before every agent response or project-tool use;
 - every conversation receives every newer continuity event, without workstream, dependency, scope, or path filtering; and
 - adoption generates product-native instruction adapters, so normal use does not depend on copying a startup prompt into each chat.
+- agent-operational knowledge remains in `.pcp`, while project-outcome knowledge lives in the project's established documentation directory or the default `docs/` directory and is tracked by path from `.pcp`.
 
 The project-local engine optimizes the common no-change path and emits agent-friendly plain text. Separate execution IDs keep two chats for the same durable actor from acknowledging one another's updates.
 
@@ -26,7 +27,7 @@ The historical [0.1.0 release notes](docs/release-notes.md) and [release-candida
 - The project-local `pcp` engine performs deterministic inventory, schemas, hashing, synchronization, validation, rendering, planning, transactions, and rollback.
 - Generated adapters route each supported agent product into `.pcp/00-index.md` and mandate registration plus per-request synchronization.
 
-Canonical context lives in `.pcp/`. Generated platform files are adapters, not independent memories.
+PCP's operating context lives in `.pcp/`. Generated platform files are adapters, not independent memories. Project-outcome research, specifications, and other deliverable knowledge remain ordinary project documents outside `.pcp`; `.pcp/state/documentation.yaml` catalogs them so every agent can find and maintain them.
 
 ## Adoption states
 
@@ -37,7 +38,7 @@ One preview-first workflow handles:
 3. State C — a project with existing non-PCP instruction, knowledge, memory, planning, or orchestration state; and
 4. Managed — an existing valid PCP installation routed to ordinary lifecycle commands.
 
-All adoption is preview-first. Semantic input is external and schema-valid, the normalized plan has an exact digest, and only `--apply <plan-digest>` authorizes its recomputed form. Every applicable State A, B, or C plan installs the same five generated platform delegations and validates their targets, sources, and content digests.
+All adoption is preview-first. Semantic input is external and schema-valid, the normalized plan has an exact digest, and only `--apply <plan-digest>` authorizes its recomputed form. Adoption selects each project's documentation root from an established directory or defaults it to `docs/`, catalogs every surviving project document, and creates outcome documents outside `.pcp`. Every applicable State A, B, or C plan installs the same five generated platform delegations and validates their targets, sources, and content digests.
 
 State C intake first requires an evidence-backed disposition for every detected foreign root. Translation then requires complete fingerprinted file/adapter/history/registry records. Ordinary files inside a translated root can still be marked `project-owned` and preserved unchanged; a reviewed regular file may be relocated to one collision-free project-owned destination. The plan binds reviewed coverage, preimages, replacements, relocations, removals, and deepest-first cleanup. An adapter surface outside the five-product contract fails closed.
 
@@ -97,13 +98,13 @@ node dist/pcp.mjs upgrade path/to/managed-project --json
 
 Workstreams are optional flat descriptive records. Create and update replace one complete digest-bound record; completion requires one proof per criterion and an announcement. Workstreams contain no dependencies and never filter synchronization. Successful workstream changes atomically replace the registry, regenerate the view, and append one event.
 
-Full `validate` checks schemas, structure, indexed Markdown, links, portability, secrets, ownership, generated views and adapters, identity, event payload digests and duplicate change keys, execution checkpoints, VCS authority, and optional clean genesis. Normal operations inspect archive IDs by filename without replaying archive bodies. `render --check` is non-mutating.
+Full `validate` checks schemas, structure, indexed canonical Markdown, external documentation roots and registry coverage, links, portability, secrets, ownership, generated views and adapters, identity, event payload digests and duplicate change keys, execution checkpoints, VCS authority, and optional clean genesis. Normal operations inspect archive IDs by filename without replaying archive bodies. `render --check` is non-mutating.
 
 `repair` plans only missing or changed generated adapters. `upgrade` merges project-specific manifest fields and replaces approved protocol/generated targets. Both bind exact preimages and complete inventory, reject downgrades and unsafe collisions, and prove untargeted and project/runtime-owned bytes remain unchanged.
 
 ## Canonical layer and optional capabilities
 
-The source baseline is [`templates/core/.pcp/`](templates/core/.pcp/). It uses versioned YAML for machine authority, numbered Markdown with folder indexes, bounded continuity, per-conversation checkpoints, generated views, and explicit Protocol, Project, Generated, and Runtime ownership.
+The source baseline is [`templates/core/.pcp/`](templates/core/.pcp/). It uses versioned YAML for machine authority, numbered internal Markdown with folder indexes, an external project-document registry, bounded continuity, per-conversation checkpoints, generated views, and explicit Protocol, Project, Generated, and Runtime ownership.
 
 Core-only projects select `[]`. Three optional overlays remain:
 

@@ -4,11 +4,14 @@ import actorProfileSchema from '../../schemas/v1/actor-profile.schema.json' with
 import checkpointSchema from '../../schemas/v1/checkpoint.schema.json' with { type: 'json' };
 import commonSchema from '../../schemas/v1/common.schema.json' with { type: 'json' };
 import coverageSchema from '../../schemas/v1/coverage.schema.json' with { type: 'json' };
+import documentationSchema from '../../schemas/v1/documentation.schema.json' with { type: 'json' };
 import eventSchema from '../../schemas/v1/event.schema.json' with { type: 'json' };
 import eventInputSchema from '../../schemas/v1/event-input.schema.json' with { type: 'json' };
 import frontmatterSchema from '../../schemas/v1/frontmatter.schema.json' with { type: 'json' };
 import legacyCheckpointSchema from '../../schemas/v1/legacy-0.1-checkpoint.schema.json' with { type: 'json' };
 import legacyPcpManifestSchema from '../../schemas/v1/legacy-0.1-pcp-manifest.schema.json' with { type: 'json' };
+import legacyProjectSchema from '../../schemas/v1/legacy-0.1-project.schema.json' with { type: 'json' };
+import legacyProjectRegistrySchema from '../../schemas/v1/legacy-0.1-project-registry.schema.json' with { type: 'json' };
 import legacyWorkstreamsSchema from '../../schemas/v1/legacy-0.1-workstreams.schema.json' with { type: 'json' };
 import mutationPlanSchema from '../../schemas/v1/mutation-plan.schema.json' with { type: 'json' };
 import pcpManifestSchema from '../../schemas/v1/pcp-manifest.schema.json' with { type: 'json' };
@@ -24,11 +27,14 @@ export const SCHEMA_CATALOG = {
   'actor-profile': actorProfileSchema,
   checkpoint: checkpointSchema,
   coverage: coverageSchema,
+  documentation: documentationSchema,
   event: eventSchema,
   'event-input': eventInputSchema,
   frontmatter: frontmatterSchema,
   'legacy-0.1-checkpoint': legacyCheckpointSchema,
   'legacy-0.1-pcp-manifest': legacyPcpManifestSchema,
+  'legacy-0.1-project': legacyProjectSchema,
+  'legacy-0.1-project-registry': legacyProjectRegistrySchema,
   'legacy-0.1-workstreams': legacyWorkstreamsSchema,
   'mutation-plan': mutationPlanSchema,
   'pcp-manifest': pcpManifestSchema,

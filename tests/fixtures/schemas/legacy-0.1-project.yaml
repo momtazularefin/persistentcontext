@@ -1,0 +1,21 @@
+schema: legacy-0.1-project
+valid:
+  schema_version: 1
+  project_id: sample-service
+  name: Sample Service
+  purpose: Demonstrate legacy project state.
+  project_type: software
+  lifecycle: active
+  artifact_roots: [src, tests]
+  context_roots: [.pcp]
+  repositories: []
+  tags: [sample]
+invalid:
+  - name: legacy project id remains portable
+    operation: set
+    path: project_id
+    value: Sample_Service
+  - name: legacy project rejects unknown fields
+    operation: set
+    path: documentation_root
+    value: docs

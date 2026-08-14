@@ -1,4 +1,4 @@
-import { cp, mkdtemp, readdir, rm, writeFile } from 'node:fs/promises';
+import { cp, mkdir, mkdtemp, readdir, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -20,6 +20,7 @@ async function createProject(): Promise<string> {
   const root = await mkdtemp(path.join(tmpdir(), 'pcp-sync-'));
   temporaryRoots.push(root);
   await cp(coreTemplate, path.join(root, '.pcp'), { recursive: true });
+  await mkdir(path.join(root, 'docs'));
   return root;
 }
 

@@ -9,7 +9,7 @@ ownership: project
 
 # Reusable project templates
 
-1. [10-project-record.md](10-project-record.md) — inert scaffold for a managed project document.
+1. [10-project-record.md](10-project-record.md) — inert scaffold for an agent-operational managed-project record; project-outcome documents belong under the project's external documentation root.
 2. [20-decision-record.md](20-decision-record.md) — inert scaffold for a durable decision.
 
 Optional capabilities add later numbered templates and update this index. Copy a scaffold to its owning folder, replace every placeholder, assign the next reading-order number, and link it from that folder's `00-index.md` before treating it as active.

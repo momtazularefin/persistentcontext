@@ -13,6 +13,7 @@ import {
   type MutationOperation,
 } from '../domain/adoption.js';
 import { comparePortablePaths, type RepositoryInventory } from '../domain/inspection.js';
+import { isInsideDocumentationRoot } from '../domain/project-documentation.js';
 import { PCP_VERSION } from '../domain/release.js';
 import {
   UpgradeError,
@@ -28,6 +29,7 @@ import {
 import { withContinuityLock } from '../infrastructure/continuity-lock.js';
 import {
   inventoryRepository,
+  isMutationDirectoryIgnored,
   resolveCandidateRoot,
 } from '../infrastructure/filesystem-inventory.js';
 import { executeFilesystemTransaction } from '../infrastructure/filesystem-transaction.js';
@@ -309,6 +311,150 @@ function migrateLegacyWorkstreams(value: unknown): Record<string, unknown> {
   return migrated;
 }
 
+function recordValue(value: unknown, label: string): Record<string, unknown> {
+  if (typeof value !== 'object' || value === null || Array.isArray(value)) {
+    throw new UpgradeError('PCP_UPGRADE_LEGACY_STATE_INVALID', `${label} is not an object.`);
+  }
+  return value as Record<string, unknown>;
+}
+
+function stringValues(value: unknown): string[] {
+  return Array.isArray(value)
+    ? value.filter((item): item is string => typeof item === 'string')
+    : [];
+}
+
+function isOpaqueNestedPath(
+  candidatePath: string,
+  inspection: Awaited<ReturnType<typeof inspectRepository>>,
+): boolean {
+  return inspection.inventory.nestedRepositories.some(
+    (nestedRoot) => candidatePath === nestedRoot || candidatePath.startsWith(`${nestedRoot}/`),
+  );
+}
+
+function relatedDocumentationRoot(
+  project: Record<string, unknown>,
+  inspection: Awaited<ReturnType<typeof inspectRepository>>,
+): { root: string; source: 'existing' | 'default' } {
+  const artifactRoot = stringValues(project.artifact_roots).find((candidate) => candidate !== '.');
+  const prefix = artifactRoot === undefined ? '' : `${artifactRoot}/`;
+  const candidates = [
+    'docs',
+    'documentation',
+    'doc',
+    'handbook',
+    'guides',
+    'research',
+    'specs',
+  ].map((candidate) => `${prefix}${candidate}`);
+  const existing = candidates.find((candidate) =>
+    inspection.inventory.directories.includes(candidate),
+  );
+  return existing === undefined
+    ? { root: `${prefix}docs`, source: 'default' }
+    : { root: existing, source: 'existing' };
+}
+
+function migrateLegacyProjects(
+  projectValue: unknown,
+  registryValue: unknown,
+  inspection: Awaited<ReturnType<typeof inspectRepository>>,
+): {
+  project: Record<string, unknown>;
+  projects: Record<string, unknown>;
+  documentation: Record<string, unknown>;
+  initialOutcomeDocuments: Array<{ path: string; content: Buffer }>;
+} {
+  const project: Record<string, unknown> = {
+    ...recordValue(projectValue, 'Legacy project state'),
+    documentation_root: inspection.documentation.recommended_root,
+    documentation_root_source: inspection.documentation.recommended_root_source,
+  };
+  const registry = recordValue(registryValue, 'Legacy project registry');
+  const projects: Record<string, unknown>[] = Array.isArray(registry.projects)
+    ? registry.projects.map((value) => {
+        const related = recordValue(value, 'Legacy related-project state');
+        const documentation = relatedDocumentationRoot(related, inspection);
+        return {
+          ...related,
+          documentation_root: documentation.root,
+          documentation_root_source: documentation.source,
+        };
+      })
+    : [];
+  const primaryId = typeof project['project_id'] === 'string' ? project['project_id'] : 'project';
+  const documentPaths = new Set(inspection.documentation.document_paths);
+  const allProjects = [project, ...projects];
+  const initialOutcomeDocuments = new Map<string, { path: string; content: Buffer }>();
+  for (const candidateProject of allProjects) {
+    if (
+      candidateProject.documentation_root_source !== 'default' ||
+      typeof candidateProject.documentation_root !== 'string' ||
+      isOpaqueNestedPath(candidateProject.documentation_root, inspection)
+    ) {
+      continue;
+    }
+    const documentPath = `${candidateProject.documentation_root}/README.md`;
+    documentPaths.add(documentPath);
+    initialOutcomeDocuments.set(documentPath, {
+      path: documentPath,
+      content: Buffer.from(
+        '# Project documentation\n\nProject-outcome knowledge belongs in this directory. Register every project document and its maintenance cues in `.pcp/state/documentation.yaml`.\n',
+        'utf8',
+      ),
+    });
+  }
+  const documentation = {
+    schema_version: 1,
+    documents: [...documentPaths].sort(comparePortablePaths).map((documentPath) => {
+      const owner = [...allProjects]
+        .filter(
+          (candidateProject) =>
+            typeof candidateProject.documentation_root === 'string' &&
+            isInsideDocumentationRoot(documentPath, candidateProject.documentation_root),
+        )
+        .sort(
+          (left, right) =>
+            String(right.documentation_root).length - String(left.documentation_root).length,
+        )[0];
+      return {
+        path: documentPath,
+        project_id:
+          owner !== undefined && typeof owner.project_id === 'string'
+            ? owner.project_id
+            : primaryId,
+        category: owner === undefined ? 'reference' : 'outcome',
+        status: 'living',
+        summary: `Tracks the migrated project document at ${documentPath}.`,
+        related_paths: [],
+      };
+    }),
+  };
+  const schemaRegistry = new SchemaRegistry();
+  for (const [schema, value] of [
+    ['project', project],
+    ['project-registry', { ...registry, projects }],
+    ['documentation', documentation],
+  ] as const) {
+    const validation = schemaRegistry.validate(schema, value);
+    if (!validation.valid) {
+      throw new UpgradeError(
+        'PCP_UPGRADE_LEGACY_STATE_INVALID',
+        `Legacy ${schema} cannot be migrated: ${validation.diagnostics.map((item) => `${item.path} ${item.message}`).join('; ')}`,
+      );
+    }
+  }
+  return {
+    project,
+    projects: { ...registry, projects },
+    documentation,
+    initialOutcomeDocuments: [...initialOutcomeDocuments.values()].sort((left, right) =>
+      comparePortablePaths(left.path, right.path),
+    ),
+  };
+}
+
 function migrateLegacyTemplateIndex(contents: string): Buffer {
   const lines = normalizeText(contents)
     .split('\n')
@@ -415,7 +561,23 @@ async function planUpgradeMaterial(candidate = '.'): Promise<UpgradePreview | Up
   desired.set('.pcp/pcp.yaml', yamlBuffer(mergedManifest));
   const renderOverrides = new Map<string, Buffer>();
   let migratedWorkstreams: Buffer | undefined;
+  let migratedProject: Buffer | undefined;
+  let migratedProjects: Buffer | undefined;
+  let migratedDocumentation: Buffer | undefined;
+  let initialOutcomeDocuments: Array<{ path: string; content: Buffer }> = [];
   if (legacy01) {
+    const migrated = migrateLegacyProjects(
+      parse(await readFile(path.join(root, '.pcp', 'state', 'project.yaml'), 'utf8')),
+      parse(await readFile(path.join(root, '.pcp', 'state', 'projects.yaml'), 'utf8')),
+      inspection,
+    );
+    migratedProject = yamlBuffer(migrated.project);
+    migratedProjects = yamlBuffer(migrated.projects);
+    migratedDocumentation = yamlBuffer(migrated.documentation);
+    initialOutcomeDocuments = migrated.initialOutcomeDocuments;
+    renderOverrides.set('state/project.yaml', migratedProject);
+    renderOverrides.set('state/projects.yaml', migratedProjects);
+    renderOverrides.set('state/documentation.yaml', migratedDocumentation);
     migratedWorkstreams = yamlBuffer(
       migrateLegacyWorkstreams(
         parse(await readFile(path.join(root, '.pcp', 'state', 'workstreams.yaml'), 'utf8')),
@@ -432,10 +594,53 @@ async function planUpgradeMaterial(candidate = '.'): Promise<UpgradePreview | Up
   }
   desired.set('.pcp/views/10-status.generated.md', Buffer.from(view.content, 'utf8'));
   for (const adapter of adapters) desired.set(adapter.manifest.target_path, adapter.content);
+  for (const initialOutcomeDocument of initialOutcomeDocuments) {
+    const documentationRoot = path.posix.dirname(initialOutcomeDocument.path);
+    if (await isMutationDirectoryIgnored(root, documentationRoot)) {
+      throw new UpgradeError(
+        'PCP_UPGRADE_DOCUMENTATION_ROOT_BLOCKED',
+        `The default documentation root is ignored by project policy: ${documentationRoot}`,
+      );
+    }
+    desired.set(initialOutcomeDocument.path, initialOutcomeDocument.content);
+  }
 
   const contentByPath = new Map<string, Buffer>();
   const operations: Array<Omit<MutationOperation, 'operation_id'>> = [];
   const plannedDirectories = new Set<string>();
+  if (
+    legacy01 &&
+    migratedProject !== undefined &&
+    migratedProjects !== undefined &&
+    migratedDocumentation !== undefined
+  ) {
+    for (const [portablePath, content] of [
+      ['.pcp/state/project.yaml', migratedProject],
+      ['.pcp/state/projects.yaml', migratedProjects],
+    ] as const) {
+      const current = await readFile(path.join(root, ...portablePath.split('/')));
+      operations.push({
+        action: 'replace',
+        path: portablePath,
+        content_digest: sha256(content),
+        preimage_digest: sha256(current),
+      });
+      contentByPath.set(portablePath, content);
+    }
+    const documentationPath = '.pcp/state/documentation.yaml';
+    for (const directory of await missingParents(root, documentationPath)) {
+      if (!plannedDirectories.has(directory)) {
+        plannedDirectories.add(directory);
+        operations.push({ action: 'mkdir', path: directory });
+      }
+    }
+    operations.push({
+      action: 'write',
+      path: documentationPath,
+      content_digest: sha256(migratedDocumentation),
+    });
+    contentByPath.set(documentationPath, migratedDocumentation);
+  }
   if (legacy01 && migratedWorkstreams !== undefined) {
     const legacyWorkstreamsPath = '.pcp/state/workstreams.yaml';
     const current = await readFile(path.join(root, ...legacyWorkstreamsPath.split('/')));
@@ -565,6 +770,7 @@ async function planUpgradeMaterial(candidate = '.'): Promise<UpgradePreview | Up
       'canonical-layer',
       'desired-hashes',
       'ownership-preservation',
+      'project-documentation-registry',
       'platform-adapters',
       'rollback',
     ],

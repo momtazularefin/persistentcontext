@@ -12,7 +12,8 @@ ownership: project
 ## Purpose
 
 - Replace this baseline with the grounded project purpose.
-- State who or what the project serves and the outcome it exists to produce.
+- State only enough purpose and scope for an agent to orient its work.
+- Put substantive research, requirements, or other project-outcome knowledge under the configured external documentation root.
 
 ## Scope
 

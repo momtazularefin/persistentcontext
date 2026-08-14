@@ -7,7 +7,16 @@ export function formatInspection(result: InspectionResult): string {
     `Confidence: ${result.confidence}`,
     `Inventory: ${result.inventory.counts.files} files, ${result.inventory.counts.directories} directories, ${result.inventory.counts.symlinks} symlinks`,
     `Digest: ${result.inventory.digest}`,
+    `Outcome documentation root: ${result.documentation.recommended_root} (${result.documentation.recommended_root_source})`,
+    `Tracked project documents: ${result.documentation.document_paths.length}`,
   ];
+
+  if (result.documentation.root_candidates.length > 0) {
+    lines.push('Documentation root candidates:');
+    for (const candidate of result.documentation.root_candidates) {
+      lines.push(`- ${candidate.path}: ${candidate.document_paths.length} document(s)`);
+    }
+  }
 
   if (result.signals.length === 0) {
     lines.push('Signals: none (seed or empty project)');

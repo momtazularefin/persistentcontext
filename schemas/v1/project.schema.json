@@ -13,6 +13,8 @@
     "lifecycle",
     "artifact_roots",
     "context_roots",
+    "documentation_root",
+    "documentation_root_source",
     "repositories",
     "tags"
   ],
@@ -50,6 +52,20 @@
     },
     "context_roots": {
       "$ref": "urn:pcp:schema:v1:common#/$defs/pathArray"
+    },
+    "documentation_root": {
+      "allOf": [
+        {
+          "$ref": "urn:pcp:schema:v1:common#/$defs/relativePath"
+        },
+        {
+          "type": "string",
+          "pattern": "^(?!\\.pcp(?:/|$))(?!\\.$)(?!.*\\/$).+$"
+        }
+      ]
+    },
+    "documentation_root_source": {
+      "enum": ["existing", "default"]
     },
     "repositories": {
       "type": "array",

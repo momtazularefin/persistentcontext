@@ -40,6 +40,7 @@ const STATUS_VIEW_PATH = '.pcp/views/10-status.generated.md';
 const STATUS_SOURCES = [
   'state/project.yaml',
   'state/projects.yaml',
+  'state/documentation.yaml',
   'state/workstreams.yaml',
   'state/vcs-policy.yaml',
 ] as const;

@@ -29,6 +29,9 @@ describe('public project contract', () => {
     expect(readme).toContain('node dist/pcp.mjs repair path/to/managed-project --json');
     expect(readme).toContain('node dist/pcp.mjs upgrade path/to/managed-project --json');
     expect(readme).toContain('All adoption is preview-first');
+    expect(readme).toContain('Project-outcome research, specifications');
+    expect(readme).toContain('`.pcp/state/documentation.yaml` catalogs them');
+    expect(readme).toContain('defaults it to `docs/`');
     expect(readme).toContain('Every applicable State A, B, or C plan installs the same five');
     expect(readme).toContain(
       'State C intake first requires an evidence-backed disposition for every detected foreign root',

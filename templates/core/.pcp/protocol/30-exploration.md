@@ -9,7 +9,7 @@ ownership: protocol
 
 # Exploration
 
-PCP accepts arbitrary repository layouts. It does not require a predefined source, documentation, or context folder.
+PCP accepts arbitrary repository layouts. It does not require a predefined source or context folder. Intake reuses an established dedicated documentation folder when one exists; otherwise it defines `docs/` as the outcome-documentation root.
 
 ## Intake states
 
@@ -24,6 +24,8 @@ PCP accepts arbitrary repository layouts. It does not require a predefined sourc
 2. Read interfaces, contracts, public types, data flow, state model, tests, and high-risk boundaries.
 3. Read implementation bodies only where they determine behavior, risk, invariants, or unresolved classification.
 4. Use external authoritative research only when repository evidence is insufficient and record its source.
+
+During intake, inventory every project document. Keep the agent-facing repository map inside `.pcp`, but place research, specifications, and other project-outcome knowledge under the configured external documentation root. Record every surviving or newly created document in `state/documentation.yaml` with enough summary and related-path information for future agents to know when it should change.
 
 Stop when the current model is grounded enough to produce a complete baseline and an evidence-backed mutation preview. Do not brute-force an entire large repository merely to claim completeness.
 

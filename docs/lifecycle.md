@@ -17,7 +17,7 @@ node dist/pcp.mjs inspect path/to/project --json
 - State C: foreign instruction, memory, planning, or orchestration layer; or
 - Managed: a valid PCP installation.
 
-Classification does not assume a source-tree shape. Inventory honors ignore and nested-repository boundaries, fingerprints binary and large files without semantic parsing, and records symlinks without following them.
+Classification does not assume a source-tree shape. Inventory honors ignore and nested-repository boundaries, fingerprints binary and large files without semantic parsing, records symlinks without following them, and reports existing project-document candidates plus the recommended documentation root.
 
 ## 2. Adopt from an external semantic baseline
 
@@ -26,7 +26,7 @@ node dist/pcp.mjs adopt --candidate path/to/project --input path/to/adoption.yam
 node dist/pcp.mjs adopt --candidate path/to/project --input path/to/adoption.yaml --apply <plan-digest> --json
 ```
 
-The `build-pcp` skill progressively explores the candidate and prepares schema-valid input containing project identity, canonical documents, policy, optional flat work labels, selected capabilities, and evidence. State C first requires an explicit disposition for every foreign root and then complete reviewed coverage for every translated source.
+The `build-pcp` skill progressively explores the candidate and prepares schema-valid input containing project identity, eight internal agent-operational documents, external outcome documents, a complete ordinary-project-document registry, policy, optional flat work labels, selected capabilities, and evidence. It reuses an established documentation directory or configures `docs/` when none exists. State C first requires an explicit disposition for every foreign root and then complete reviewed coverage for every translated source.
 
 Preview does not mutate. Its digest binds the complete inventory, desired bytes, ownership, generated adapters, preimages, and ordered operations. Apply recomputes the plan, stages content and preimages outside the project, writes an operation log, replaces atomically, validates the live result, and performs reverse exact rollback after any caught failure.
 
@@ -84,7 +84,7 @@ node dist/pcp.mjs render path/to/project --check --json
 node dist/pcp.mjs render path/to/project --json
 ```
 
-Validation covers schemas, required structure, numbered and indexed Markdown, links, portability, secret patterns, ownership, generated views and adapters, identities, event integrity, per-execution checkpoints, VCS authority, and optional clean genesis. Normal operations inspect archive IDs by filename; full validation is the explicit archive-content audit.
+Validation covers schemas, required structure, numbered and indexed internal Markdown, configured documentation roots, complete external-document registry coverage, related paths, links, portability, secret patterns, ownership, generated views and adapters, identities, event integrity, per-execution checkpoints, VCS authority, and optional clean genesis. Uncataloged, missing, misplaced outcome, or stale registry entries fail validation. Normal operations inspect archive IDs by filename; full validation is the explicit archive-content audit.
 
 `render --check` is non-mutating. Write mode replaces only the declared generated status view from canonical YAML sources.
 
@@ -97,7 +97,7 @@ node dist/pcp.mjs upgrade path/to/project --json
 node dist/pcp.mjs upgrade path/to/project --apply <plan-digest> --json
 ```
 
-Repair plans only missing or changed generated adapters. Upgrade projects current release-owned protocol and generated assets onto a managed installation while preserving project and runtime ownership. Both are preview-first, preimage-bound, inventory-stable transactions with live validation and rollback.
+Repair plans only missing or changed generated adapters. Upgrade projects current release-owned protocol and generated assets onto a managed installation while preserving project and runtime ownership. The 0.1 migration adds documentation-root metadata and a complete documentation registry without relocating existing documents; when no established root exists it adds `docs/README.md` as the initial outcome document. Both are preview-first, preimage-bound, inventory-stable transactions with live validation and rollback.
 
 The 0.1-to-0.2 upgrade removes the CEB capability and its pristine release assets, maps `kind: ceb` labels to `kind: concurrent`, removes workstream dependency fields, and discards obsolete scoped checkpoints. Existing actors and events remain; each post-upgrade conversation establishes a new per-execution baseline. A customized CEB scaffold blocks automatic removal so useful project-owned content is not silently lost.
 

@@ -36,6 +36,7 @@ async function olderManagedProject(
       await writeFile(target, content);
     }
   }
+  await mkdir(path.join(root, 'docs'), { recursive: true });
   const adapters = renderPlatformAdapters();
   const manifestPath = path.join(root, '.pcp', 'pcp.yaml');
   const manifest = parse(await readFile(manifestPath, 'utf8')) as Record<string, unknown>;
@@ -110,6 +111,12 @@ async function legacy01ManagedProject(): Promise<string> {
   const root = await mkdtemp(path.join(tmpdir(), 'pcp-upgrade-legacy-01-'));
   temporaryRoots.push(root);
   await cp(coreTemplate, path.join(root, '.pcp'), { recursive: true });
+  await rm(path.join(root, '.pcp', 'state', 'documentation.yaml'));
+  const legacyProjectPath = path.join(root, '.pcp', 'state', 'project.yaml');
+  const legacyProject = parse(await readFile(legacyProjectPath, 'utf8')) as Record<string, unknown>;
+  delete legacyProject.documentation_root;
+  delete legacyProject.documentation_root_source;
+  await writeFile(legacyProjectPath, stringify(legacyProject), 'utf8');
   const manifestPath = path.join(root, '.pcp', 'pcp.yaml');
   const manifest = parse(await readFile(manifestPath, 'utf8')) as Record<string, unknown>;
   (manifest.protocol as Record<string, unknown>).version = '0.1.0';
@@ -204,10 +211,9 @@ async function legacy01ManagedProject(): Promise<string> {
   ]);
   await writeFile(
     viewPath,
-    (await readFile(viewPath, 'utf8')).replace(
-      /source_digest: [a-f0-9]{64}/u,
-      `source_digest: ${sourceDigest}`,
-    ),
+    (await readFile(viewPath, 'utf8'))
+      .replace('  - state/documentation.yaml\n', '')
+      .replace(/source_digest: [a-f0-9]{64}/u, `source_digest: ${sourceDigest}`),
     'utf8',
   );
   return root;
@@ -249,6 +255,10 @@ describe('ownership-aware upgrade', () => {
     expect(preview.upgrade_paths).toEqual(
       expect.arrayContaining([
         '.pcp/state/workstreams.yaml',
+        '.pcp/state/project.yaml',
+        '.pcp/state/projects.yaml',
+        '.pcp/state/documentation.yaml',
+        'docs/README.md',
         '.pcp/protocol/90-concurrent-execution-blocks.md',
         '.pcp/templates/40-workstream.md',
         '.pcp/continuity/checkpoints/01ARZ3NDEKTSV4RRFFQ69G5FAV.yaml',
@@ -269,6 +279,26 @@ describe('ownership-aware upgrade', () => {
       {
         kind: 'concurrent',
       },
+    );
+    const project = parse(
+      await readFile(path.join(root, '.pcp', 'state', 'project.yaml'), 'utf8'),
+    ) as Record<string, unknown>;
+    const documentation = parse(
+      await readFile(path.join(root, '.pcp', 'state', 'documentation.yaml'), 'utf8'),
+    ) as { documents: unknown[] };
+    expect(project).toMatchObject({
+      documentation_root: 'docs',
+      documentation_root_source: 'default',
+    });
+    expect(documentation.documents).toEqual([
+      expect.objectContaining({
+        path: 'docs/README.md',
+        project_id: 'pending-project',
+        category: 'outcome',
+      }),
+    ]);
+    await expect(readFile(path.join(root, 'docs', 'README.md'), 'utf8')).resolves.toContain(
+      'Project-outcome knowledge belongs in this directory.',
     );
     await expect(
       readFile(path.join(root, '.pcp', 'templates', '40-workstream.md')),

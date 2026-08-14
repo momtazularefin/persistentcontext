@@ -10,6 +10,8 @@ valid:
       lifecycle: active
       artifact_roots: [src]
       context_roots: [.pcp]
+      documentation_root: docs
+      documentation_root_source: existing
       repositories: []
       tags: [sample]
 invalid:

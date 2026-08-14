@@ -1,0 +1,25 @@
+schema: documentation
+valid:
+  schema_version: 1
+  documents:
+    - path: docs/product-model.md
+      project_id: sample-service
+      category: outcome
+      status: living
+      summary: Defines the product model delivered by the service.
+      related_paths: [src, schemas]
+    - path: README.md
+      project_id: sample-service
+      category: reference
+      status: living
+      summary: Public project entry point.
+      related_paths: [docs]
+invalid:
+  - name: canonical path is forbidden
+    operation: set
+    path: documents.0.path
+    value: .pcp/knowledge/10-overview.md
+  - name: unsupported status
+    operation: set
+    path: documents.0.status
+    value: current

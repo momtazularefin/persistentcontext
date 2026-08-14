@@ -89,6 +89,18 @@ export interface InspectionAmbiguity {
   paths: string[];
 }
 
+export interface DocumentationRootCandidate {
+  path: string;
+  document_paths: string[];
+}
+
+export interface DocumentationAssessment {
+  document_paths: string[];
+  root_candidates: DocumentationRootCandidate[];
+  recommended_root: string;
+  recommended_root_source: 'existing' | 'default';
+}
+
 export interface InspectionResult {
   schemaVersion: typeof INSPECTION_SCHEMA_VERSION;
   candidate: '.';
@@ -97,6 +109,7 @@ export interface InspectionResult {
   signals: InspectionSignal[];
   foreignCandidates: ForeignLayerCandidate[];
   ambiguities: InspectionAmbiguity[];
+  documentation: DocumentationAssessment;
   inventory: RepositoryInventory;
   mutated: false;
 }

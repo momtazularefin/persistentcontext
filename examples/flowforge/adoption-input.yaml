@@ -11,11 +11,28 @@ project:
   lifecycle: active
   artifact_roots: [src, tests, examples]
   context_roots: [.pcp]
+  documentation_root: docs
+  documentation_root_source: default
   repositories: []
   tags: [dotnet, dag, cli]
 projects:
   schema_version: 1
   projects: []
+documentation:
+  schema_version: 1
+  documents:
+    - path: README.md
+      project_id: flowforge
+      category: reference
+      status: living
+      summary: Public overview, build commands, and usage examples.
+      related_paths: [src, tests, examples]
+    - path: docs/README.md
+      project_id: flowforge
+      category: outcome
+      status: living
+      summary: Entry point for FlowForge outcome documentation.
+      related_paths: [README.md]
 workstreams:
   schema_version: 1
   workstreams: []
@@ -159,4 +176,14 @@ documents:
       - Keep the core runner dependency-free.
       - Use deterministic topological scheduling.
       - Persist run records as JSON outside the source tree.
+outcome_documents:
+  - path: docs/README.md
+    project_id: flowforge
+    status: living
+    basis: repository-and-user
+    evidence_paths: [README.md]
+    body: |
+      # FlowForge documentation
+
+      FlowForge outcome documentation belongs in this directory. The root README remains the public quick start; add specifications, domain research, and user-facing guides here and register each path in `.pcp/state/documentation.yaml`.
 scaffold_files: []

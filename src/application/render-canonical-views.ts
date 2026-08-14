@@ -26,6 +26,7 @@ const RENDERER_TEMPLATE_UPDATED_AT = '2026-07-14T07:20:00Z';
 const SOURCES: Array<[string, SchemaName]> = [
   ['state/project.yaml', 'project'],
   ['state/projects.yaml', 'project-registry'],
+  ['state/documentation.yaml', 'documentation'],
   ['state/workstreams.yaml', 'workstreams'],
   ['state/vcs-policy.yaml', 'vcs-policy'],
 ];
@@ -144,11 +145,23 @@ async function loadSource(
 function renderProjects(projects: Array<Record<string, unknown>>): string[] {
   if (projects.length === 0) return ['No managed subprojects are registered.'];
   return [
-    '| ID | Name | Type | Lifecycle | Artifact roots |',
-    '| --- | --- | --- | --- | --- |',
+    '| ID | Name | Type | Lifecycle | Artifact roots | Documentation root |',
+    '| --- | --- | --- | --- | --- | --- |',
     ...projects.map(
       (project) =>
-        `| ${code(project.project_id)} | ${tableCell(project.name)} | ${code(project.project_type)} | ${code(project.lifecycle)} | ${codeList(project.artifact_roots)} |`,
+        `| ${code(project.project_id)} | ${tableCell(project.name)} | ${code(project.project_type)} | ${code(project.lifecycle)} | ${codeList(project.artifact_roots)} | ${code(project.documentation_root)} |`,
+    ),
+  ];
+}
+
+function renderDocumentation(documents: Array<Record<string, unknown>>): string[] {
+  if (documents.length === 0) return ['No project documents are registered.'];
+  return [
+    '| Path | Project | Category | Status | Summary | Related paths |',
+    '| --- | --- | --- | --- | --- | --- |',
+    ...documents.map(
+      (document) =>
+        `| ${code(document.path)} | ${code(document.project_id)} | ${code(document.category)} | ${code(document.status)} | ${tableCell(document.summary)} | ${codeList(document.related_paths)} |`,
     ),
   ];
 }
@@ -171,6 +184,7 @@ export function renderCanonicalStatusView(
 ): string {
   const project = objectValue(sources.get('state/project.yaml'));
   const projectRegistry = objectValue(sources.get('state/projects.yaml'));
+  const documentationRegistry = objectValue(sources.get('state/documentation.yaml'));
   const workstreamRegistry = objectValue(sources.get('state/workstreams.yaml'));
   const vcsPolicy = objectValue(sources.get('state/vcs-policy.yaml'));
   const repository = objectValue(vcsPolicy.repository);
@@ -204,10 +218,16 @@ export function renderCanonicalStatusView(
     `- Lifecycle: ${code(project.lifecycle)}`,
     `- Artifact roots: ${codeList(project.artifact_roots)}`,
     `- Context roots: ${codeList(project.context_roots)}`,
+    `- Outcome documentation root: ${code(project.documentation_root)}`,
+    `- Documentation-root source: ${code(project.documentation_root_source)}`,
     '',
     '## Managed projects',
     '',
     ...renderProjects(objectArray(projectRegistry.projects)),
+    '',
+    '## Project documentation',
+    '',
+    ...renderDocumentation(objectArray(documentationRegistry.documents)),
     '',
     '## Workstreams',
     '',

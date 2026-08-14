@@ -1,4 +1,4 @@
-import { cp, mkdtemp, readFile, rm, writeFile } from 'node:fs/promises';
+import { cp, mkdir, mkdtemp, readFile, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -14,6 +14,7 @@ const templateLayer = path.join(templateProject, '.pcp');
 const sources = [
   'state/project.yaml',
   'state/projects.yaml',
+  'state/documentation.yaml',
   'state/workstreams.yaml',
   'state/vcs-policy.yaml',
 ];
@@ -30,6 +31,7 @@ async function createProject(): Promise<string> {
   const root = await mkdtemp(path.join(tmpdir(), 'pcp-render-'));
   temporaryRoots.push(root);
   await cp(templateLayer, path.join(root, '.pcp'), { recursive: true });
+  await mkdir(path.join(root, 'docs'));
   return root;
 }
 
@@ -51,9 +53,14 @@ describe('canonical view rendering', () => {
       changed_paths: [],
       diagnostics: [],
     });
-    expect((await validateCanonicalLayer(templateProject, { clean_genesis: true })).valid).toBe(
-      true,
-    );
+    expect(
+      (
+        await validateCanonicalLayer(templateProject, {
+          clean_genesis: true,
+          documentation_inventory: 'skip',
+        })
+      ).valid,
+    ).toBe(true);
   });
 
   it('checks without mutation, renders drift, and becomes idempotent', async () => {
@@ -132,11 +139,14 @@ describe('canonical view rendering', () => {
         lifecycle: 'active',
         artifact_roots: ['src'],
         context_roots: ['.pcp/projects'],
+        documentation_root: 'docs/example',
+        documentation_root_source: 'existing',
         repositories: [],
         tags: ['example'],
       },
     ];
     await writeFile(projectsFile, stringify(projects), 'utf8');
+    await mkdir(path.join(root, 'docs', 'example'));
 
     const workstreamsFile = path.join(root, '.pcp', 'state', 'workstreams.yaml');
     const workstreams = await readYamlObject(workstreamsFile);

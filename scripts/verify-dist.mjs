@@ -1,6 +1,6 @@
 import { spawnSync } from 'node:child_process';
 import { createHash } from 'node:crypto';
-import { mkdir, mkdtemp, readFile, readdir, rm, writeFile } from 'node:fs/promises';
+import { cp, mkdir, mkdtemp, readFile, readdir, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join, relative, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -120,6 +120,24 @@ try {
     await readFile(new URL('tests/fixtures/schemas/adoption-input.yaml', projectRoot), 'utf8'),
   );
   fixtureWrapper.valid.capabilities = ['walkthroughs', 'spec-driven-projects', 'scratch-space'];
+  fixtureWrapper.valid.documentation.documents.push(
+    {
+      path: 'README.md',
+      project_id: fixtureWrapper.valid.project.project_id,
+      category: 'reference',
+      status: 'living',
+      summary: 'Introduces the sample project.',
+      related_paths: [],
+    },
+    {
+      path: 'scratch/README.md',
+      project_id: fixtureWrapper.valid.project.project_id,
+      category: 'reference',
+      status: 'static',
+      summary: 'Explains the optional noncanonical scratch workspace.',
+      related_paths: [],
+    },
+  );
   await writeFile(adoptionInput, `${JSON.stringify(fixtureWrapper.valid, null, 2)}\n`, 'utf8');
 
   const adoptionPreview = spawnSync(
@@ -656,35 +674,42 @@ try {
   await rm(adoptionRoot, { recursive: true, force: true });
 }
 
-const canonicalFixture = fileURLToPath(new URL('templates/core/', assetRoot));
-const validation = spawnSync(
-  process.execPath,
-  [fileURLToPath(skillBundle), 'validate', canonicalFixture, '--clean-genesis', '--json'],
-  { encoding: 'utf8', windowsHide: true },
-);
-if (validation.status !== 0) {
-  throw new Error(`Bundled pcp validate failed: ${validation.stderr || validation.stdout}`);
-}
-const validationResult = JSON.parse(validation.stdout);
-if (validationResult.valid !== true || validationResult.mutated !== false) {
-  throw new Error('Bundled pcp validate returned an unexpected canonical result.');
-}
+const canonicalRoot = await mkdtemp(join(tmpdir(), 'pcp-dist-canonical-'));
+try {
+  const canonicalTemplate = fileURLToPath(new URL('templates/core/', assetRoot));
+  await cp(canonicalTemplate, canonicalRoot, { recursive: true });
+  await mkdir(join(canonicalRoot, 'docs'));
+  const validation = spawnSync(
+    process.execPath,
+    [fileURLToPath(skillBundle), 'validate', canonicalRoot, '--clean-genesis', '--json'],
+    { encoding: 'utf8', windowsHide: true },
+  );
+  if (validation.status !== 0) {
+    throw new Error(`Bundled pcp validate failed: ${validation.stderr || validation.stdout}`);
+  }
+  const validationResult = JSON.parse(validation.stdout);
+  if (validationResult.valid !== true || validationResult.mutated !== false) {
+    throw new Error('Bundled pcp validate returned an unexpected canonical result.');
+  }
 
-const rendering = spawnSync(
-  process.execPath,
-  [fileURLToPath(skillBundle), 'render', canonicalFixture, '--check', '--json'],
-  { encoding: 'utf8', windowsHide: true },
-);
-if (rendering.status !== 0) {
-  throw new Error(`Bundled pcp render --check failed: ${rendering.stderr || rendering.stdout}`);
-}
-const renderingResult = JSON.parse(rendering.stdout);
-if (
-  renderingResult.valid !== true ||
-  renderingResult.mode !== 'check' ||
-  renderingResult.mutated !== false
-) {
-  throw new Error('Bundled pcp render --check returned an unexpected canonical result.');
+  const rendering = spawnSync(
+    process.execPath,
+    [fileURLToPath(skillBundle), 'render', canonicalRoot, '--check', '--json'],
+    { encoding: 'utf8', windowsHide: true },
+  );
+  if (rendering.status !== 0) {
+    throw new Error(`Bundled pcp render --check failed: ${rendering.stderr || rendering.stdout}`);
+  }
+  const renderingResult = JSON.parse(rendering.stdout);
+  if (
+    renderingResult.valid !== true ||
+    renderingResult.mode !== 'check' ||
+    renderingResult.mutated !== false
+  ) {
+    throw new Error('Bundled pcp render --check returned an unexpected canonical result.');
+  }
+} finally {
+  await rm(canonicalRoot, { recursive: true, force: true });
 }
 
 process.stdout.write(`Verified bundled engine ${expectedDigest}.\n`);

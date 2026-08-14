@@ -9,7 +9,7 @@ ownership: project
 
 # Project specification scaffold
 
-This scaffold is inert until copied, renumbered, grounded, and linked from its owning project index.
+This scaffold is inert until copied under the owning project's external `documentation_root`, grounded, and registered in `state/documentation.yaml`. Never activate a project specification inside `.pcp`.
 
 ## Outcome
 

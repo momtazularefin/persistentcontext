@@ -11,4 +11,4 @@ ownership: project
 
 This folder starts with no project Markdown records. `../state/projects.yaml` is the structured registry.
 
-Create numbered records in increments of ten only for managed projects that need human-readable goals, constraints, acceptance checks, or external-state notes. Use [../templates/10-project-record.md](../templates/10-project-record.md) as an inert scaffold and add each created record to this reading order.
+Create a numbered record here only when agents need an internal coordination map for a managed project. Put product research, specifications, requirements, and other project-outcome knowledge under that project's configured external documentation root and catalog it in `../state/documentation.yaml`.

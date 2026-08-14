@@ -16,6 +16,7 @@ import { validateCanonicalLayer } from '../../src/application/validate-canonical
 import { validatePlatformAdapters } from '../../src/application/validate-platform-adapters.js';
 import { AdoptionError, sha256, type AdoptionInput } from '../../src/domain/adoption.js';
 import type { CoverageMatrix } from '../../src/domain/coverage.js';
+import { isProjectDocumentationPath } from '../../src/domain/project-documentation.js';
 
 const schemaFixture = fileURLToPath(
   new URL('../fixtures/schemas/adoption-input.yaml', import.meta.url),
@@ -45,7 +46,76 @@ async function adoptionFixture(): Promise<AdoptionInput> {
   return structuredClone(wrapper.valid);
 }
 
-async function writeExternalInput(input: AdoptionInput): Promise<string> {
+async function configureDocumentation(input: AdoptionInput, candidate: string): Promise<void> {
+  const inspection = await inspectRepository(candidate);
+  input.project.documentation_root = inspection.documentation.recommended_root;
+  input.project.documentation_root_source = inspection.documentation.recommended_root_source;
+  const paths = new Set(inspection.documentation.document_paths);
+  for (const record of input.coverage?.records ?? []) {
+    if (record.source_kind !== 'file' && record.source_kind !== 'adapter') continue;
+    if (record.disposition === 'project-owned') continue;
+    paths.delete(record.source_path);
+    if (record.disposition === 'relocated') {
+      const target = record.targets[0];
+      if (target !== undefined && isProjectDocumentationPath(target)) paths.add(target);
+    }
+  }
+  for (const scaffold of input.scaffold_files) {
+    if (isProjectDocumentationPath(scaffold.path)) paths.add(scaffold.path);
+  }
+  if (input.capabilities.includes('scratch-space')) paths.add('scratch/README.md');
+
+  input.outcome_documents = [];
+  if (input.project.documentation_root_source === 'default') {
+    const outcomePath = `${input.project.documentation_root}/README.md`;
+    input.outcome_documents.push({
+      path: outcomePath,
+      project_id: input.project.project_id,
+      status: 'living',
+      basis: 'user',
+      evidence_paths: [],
+      body: '# Project documentation\n\nOutcome knowledge for the adopted project.',
+    });
+    paths.add(outcomePath);
+  }
+  for (const project of input.projects.projects) {
+    const opaqueRoot = inspection.inventory.nestedRepositories.some(
+      (nestedRoot) =>
+        project.documentation_root === nestedRoot ||
+        project.documentation_root.startsWith(`${nestedRoot}/`),
+    );
+    if (project.documentation_root_source !== 'default' || opaqueRoot) continue;
+    const outcomePath = `${project.documentation_root}/README.md`;
+    input.outcome_documents.push({
+      path: outcomePath,
+      project_id: project.project_id,
+      status: 'living',
+      basis: 'user',
+      evidence_paths: [],
+      body: `# ${project.name} documentation\n\nOutcome knowledge for the related project.`,
+    });
+    paths.add(outcomePath);
+  }
+  const outcomePaths = new Map(
+    input.outcome_documents.map((document) => [document.path, document.project_id]),
+  );
+  input.documentation = {
+    schema_version: 1,
+    documents: [...paths]
+      .sort((left, right) => left.localeCompare(right))
+      .map((documentPath) => ({
+        path: documentPath,
+        project_id: outcomePaths.get(documentPath) ?? input.project.project_id,
+        category: outcomePaths.has(documentPath) ? 'outcome' : 'reference',
+        status: 'living',
+        summary: `Tracks project documentation at ${documentPath}.`,
+        related_paths: [],
+      })),
+  };
+}
+
+async function writeExternalInput(input: AdoptionInput, candidate?: string): Promise<string> {
+  if (candidate !== undefined) await configureDocumentation(input, candidate);
   const inputRoot = await temporaryRoot('pcp-transaction-input-');
   const inputPath = path.join(inputRoot, 'adoption.json');
   await writeFile(inputPath, `${JSON.stringify(input, null, 2)}\n`, 'utf8');
@@ -56,7 +126,7 @@ async function createSeed(): Promise<{ candidate: string; inputPath: string; see
   const candidate = await temporaryRoot('pcp-transaction-seed-');
   const seed = '# Sample project\n\nA small software seed with an explicit purpose.\n';
   await writeFile(path.join(candidate, 'README.md'), seed, 'utf8');
-  const inputPath = await writeExternalInput(await adoptionFixture());
+  const inputPath = await writeExternalInput(await adoptionFixture(), candidate);
   return { candidate, inputPath, seed };
 }
 
@@ -156,7 +226,7 @@ async function createStateC(): Promise<{ candidate: string; inputPath: string }>
       evidence: ['The reviewed nested guide links to a translated policy source.'],
     },
   ];
-  return { candidate, inputPath: await writeExternalInput(input) };
+  return { candidate, inputPath: await writeExternalInput(input, candidate) };
 }
 
 async function createEquivalentStateC(
@@ -172,7 +242,7 @@ async function createEquivalentStateC(
   input.scaffold_files = [];
   input.foreign_roots = structuredClone(catalog.foreign_roots);
   input.coverage = representedCoverage(catalog.template);
-  return { candidate, inputPath: await writeExternalInput(input) };
+  return { candidate, inputPath: await writeExternalInput(input, candidate) };
 }
 
 async function previewDigest(
@@ -248,7 +318,7 @@ describe('transactional State A adoption', () => {
     await writeFile(path.join(candidate, 'README.md'), '# Capability project\n\nExplicit seed.\n');
     const input = await adoptionFixture();
     input.capabilities = ['scratch-space', 'spec-driven-projects'];
-    const inputPath = await writeExternalInput(input);
+    const inputPath = await writeExternalInput(input, candidate);
     const preview = await previewDigest(candidate, inputPath);
 
     await adoptProject(candidate, { input: inputPath, apply: preview.digest });
@@ -292,7 +362,7 @@ describe('transactional State A adoption', () => {
     await writeFile(path.join(candidate, 'scratch', 'README.md'), existingGuide);
     const input = await adoptionFixture();
     input.capabilities = ['scratch-space'];
-    const inputPath = await writeExternalInput(input);
+    const inputPath = await writeExternalInput(input, candidate);
     const preview = await adoptProject(candidate, { input: inputPath });
     if (!('plan' in preview) || preview.plan === undefined) {
       throw new Error('Expected an applicable adoption preview.');
@@ -325,7 +395,7 @@ describe('transactional State A adoption', () => {
       { path: 'README.md', content: '# Research project\n\nInitial research question.\n' },
       { path: 'notes/00-index.md', content: '# Notes\n' },
     ];
-    const inputPath = await writeExternalInput(input);
+    const inputPath = await writeExternalInput(input, candidate);
     const { digest } = await previewDigest(candidate, inputPath);
 
     const result = await adoptProject(candidate, { input: inputPath, apply: digest });
@@ -396,6 +466,8 @@ describe('transactional State A adoption', () => {
                 lifecycle: 'active',
                 artifact_roots: [subprojectRoot],
                 context_roots: ['.pcp'],
+                documentation_root: `${subprojectRoot}/docs`,
+                documentation_root_source: 'default',
                 repositories: [],
                 tags: [fixtureCase.name],
               },
@@ -420,7 +492,7 @@ describe('transactional State A adoption', () => {
         },
       ];
       input.scaffold_files = [];
-      const inputPath = await writeExternalInput(input);
+      const inputPath = await writeExternalInput(input, candidate);
       const before = await inspectRepository(candidate);
       expect(before.state, fixtureCase.name).toBe('B');
       if ('nested' in fixtureCase) {
@@ -487,7 +559,7 @@ describe('transactional State A adoption', () => {
       evidence_paths: ['research/protocol.md'],
     }));
     researchInput.scaffold_files = [];
-    const researchInputPath = await writeExternalInput(researchInput);
+    const researchInputPath = await writeExternalInput(researchInput, researchCandidate);
     const researchBefore = await inspectRepository(researchCandidate);
     expect(researchBefore.state).toBe('B');
     const { digest } = await previewDigest(researchCandidate, researchInputPath);

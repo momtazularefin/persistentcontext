@@ -11,9 +11,10 @@ ownership: protocol
 
 Read these machine-readable records as the current authority:
 
-1. `project.yaml` — stable project identity, purpose, lifecycle, and boundaries.
-2. `projects.yaml` — managed subprojects and repositories.
-3. `workstreams.yaml` — optional descriptive work labels, status, and completion evidence. Labels never filter synchronization.
-4. `vcs-policy.yaml` — explicit version-control responsibility boundary.
+1. `project.yaml` — stable project identity, purpose, lifecycle, boundaries, and the external outcome-documentation root.
+2. `projects.yaml` — managed subprojects, repositories, and their documentation roots.
+3. `documentation.yaml` — every project document outside `.pcp`, its purpose, freshness, owning project, and related implementation paths.
+4. `workstreams.yaml` — optional descriptive work labels, status, and completion evidence. Labels never filter synchronization.
+5. `vcs-policy.yaml` — explicit version-control responsibility boundary.
 
 Generated Markdown views never override these YAML records. The `pending-project` baseline must be replaced with grounded project facts before adoption is applied.

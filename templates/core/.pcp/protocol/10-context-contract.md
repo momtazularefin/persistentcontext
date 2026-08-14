@@ -13,7 +13,9 @@ ownership: protocol
 
 - `pcp.yaml` defines protocol version, capabilities, ownership, adapters, and validation policy.
 - `state/*.yaml` is canonical structured state.
-- Numbered project-owned Markdown carries grounded knowledge, policy, plans, and rationale.
+- `.pcp/knowledge/**` carries agent-operational knowledge: navigation, architecture, tooling, source maps, and implementation invariants.
+- Project-outcome knowledge remains ordinary project documentation under each project's configured `documentation_root`; `state/documentation.yaml` catalogs every project document and its maintenance cues.
+- Numbered project-owned Markdown inside `.pcp` carries internal policy, plans, coordination, and rationale.
 - Generated views and platform adapters are read-only projections.
 - The repository outranks private agent memory when they conflict.
 

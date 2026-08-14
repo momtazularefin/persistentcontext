@@ -1,0 +1,52 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:pcp:schema:v1:documentation",
+  "title": "PCP project documentation registry",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "documents"],
+  "properties": {
+    "schema_version": {
+      "$ref": "urn:pcp:schema:v1:common#/$defs/schemaVersion"
+    },
+    "documents": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["path", "project_id", "category", "status", "summary", "related_paths"],
+        "properties": {
+          "path": {
+            "allOf": [
+              {
+                "$ref": "urn:pcp:schema:v1:common#/$defs/relativePath"
+              },
+              {
+                "not": {
+                  "type": "string",
+                  "pattern": "^\\.pcp(?:/|$)"
+                }
+              }
+            ]
+          },
+          "project_id": {
+            "$ref": "urn:pcp:schema:v1:common#/$defs/slug"
+          },
+          "category": {
+            "enum": ["outcome", "reference"]
+          },
+          "status": {
+            "enum": ["living", "static", "generated"]
+          },
+          "summary": {
+            "$ref": "urn:pcp:schema:v1:common#/$defs/nonEmptyString"
+          },
+          "related_paths": {
+            "$ref": "urn:pcp:schema:v1:common#/$defs/pathArray"
+          }
+        }
+      },
+      "uniqueItems": true
+    }
+  }
+}

@@ -327,7 +327,7 @@ var require_ignore = __commonJS({
       //   path matching.
       // - check `string` either `MODE_IGNORE` or `MODE_CHECK_IGNORE`
       // @returns {TestResult} true if a file is ignored
-      test(path21, checkUnignored, mode) {
+      test(path22, checkUnignored, mode) {
         let ignored = false;
         let unignored = false;
         let matchedRule;
@@ -336,7 +336,7 @@ var require_ignore = __commonJS({
           if (unignored === negative && ignored !== unignored || negative && !ignored && !unignored && !checkUnignored) {
             return;
           }
-          const matched = rule[mode].test(path21);
+          const matched = rule[mode].test(path22);
           if (!matched) {
             return;
           }
@@ -357,17 +357,17 @@ var require_ignore = __commonJS({
     var throwError = (message, Ctor) => {
       throw new Ctor(message);
     };
-    var checkPath = (path21, originalPath, doThrow) => {
-      if (!isString(path21)) {
+    var checkPath = (path22, originalPath, doThrow) => {
+      if (!isString(path22)) {
         return doThrow(
           `path must be a string, but got \`${originalPath}\``,
           TypeError
         );
       }
-      if (!path21) {
+      if (!path22) {
         return doThrow(`path must not be empty`, TypeError);
       }
-      if (checkPath.isNotRelative(path21)) {
+      if (checkPath.isNotRelative(path22)) {
         const r = "`path.relative()`d";
         return doThrow(
           `path should be a ${r} string, but got "${originalPath}"`,
@@ -376,7 +376,7 @@ var require_ignore = __commonJS({
       }
       return true;
     };
-    var isNotRelative = (path21) => REGEX_TEST_INVALID_PATH.test(path21);
+    var isNotRelative = (path22) => REGEX_TEST_INVALID_PATH.test(path22);
     checkPath.isNotRelative = isNotRelative;
     checkPath.convert = (p) => p;
     var Ignore = class {
@@ -406,19 +406,19 @@ var require_ignore = __commonJS({
       }
       // @returns {TestResult}
       _test(originalPath, cache, checkUnignored, slices) {
-        const path21 = originalPath && checkPath.convert(originalPath);
+        const path22 = originalPath && checkPath.convert(originalPath);
         checkPath(
-          path21,
+          path22,
           originalPath,
           this._strictPathCheck ? throwError : RETURN_FALSE
         );
-        return this._t(path21, cache, checkUnignored, slices);
+        return this._t(path22, cache, checkUnignored, slices);
       }
-      checkIgnore(path21) {
-        if (!REGEX_TEST_TRAILING_SLASH.test(path21)) {
-          return this.test(path21);
+      checkIgnore(path22) {
+        if (!REGEX_TEST_TRAILING_SLASH.test(path22)) {
+          return this.test(path22);
         }
-        const slices = path21.split(SLASH).filter(Boolean);
+        const slices = path22.split(SLASH).filter(Boolean);
         slices.pop();
         if (slices.length) {
           const parent = this._t(
@@ -431,18 +431,18 @@ var require_ignore = __commonJS({
             return parent;
           }
         }
-        return this._rules.test(path21, false, MODE_CHECK_IGNORE);
+        return this._rules.test(path22, false, MODE_CHECK_IGNORE);
       }
-      _t(path21, cache, checkUnignored, slices) {
-        if (path21 in cache) {
-          return cache[path21];
+      _t(path22, cache, checkUnignored, slices) {
+        if (path22 in cache) {
+          return cache[path22];
         }
         if (!slices) {
-          slices = path21.split(SLASH).filter(Boolean);
+          slices = path22.split(SLASH).filter(Boolean);
         }
         slices.pop();
         if (!slices.length) {
-          return cache[path21] = this._rules.test(path21, checkUnignored, MODE_IGNORE);
+          return cache[path22] = this._rules.test(path22, checkUnignored, MODE_IGNORE);
         }
         const parent = this._t(
           slices.join(SLASH) + SLASH,
@@ -450,29 +450,29 @@ var require_ignore = __commonJS({
           checkUnignored,
           slices
         );
-        return cache[path21] = parent.ignored ? parent : this._rules.test(path21, checkUnignored, MODE_IGNORE);
+        return cache[path22] = parent.ignored ? parent : this._rules.test(path22, checkUnignored, MODE_IGNORE);
       }
-      ignores(path21) {
-        return this._test(path21, this._ignoreCache, false).ignored;
+      ignores(path22) {
+        return this._test(path22, this._ignoreCache, false).ignored;
       }
       createFilter() {
-        return (path21) => !this.ignores(path21);
+        return (path22) => !this.ignores(path22);
       }
       filter(paths) {
         return makeArray(paths).filter(this.createFilter());
       }
       // @returns {TestResult}
-      test(path21) {
-        return this._test(path21, this._testCache, true);
+      test(path22) {
+        return this._test(path22, this._testCache, true);
       }
     };
     var factory = (options) => new Ignore(options);
-    var isPathValid = (path21) => checkPath(path21 && checkPath.convert(path21), path21, RETURN_FALSE);
+    var isPathValid = (path22) => checkPath(path22 && checkPath.convert(path22), path22, RETURN_FALSE);
     var setupWindows = () => {
       const makePosix = (str) => /^\\\\\?\\/.test(str) || /["<>|\u0000-\u001F]+/u.test(str) ? str : str.replace(/\\/g, "/");
       checkPath.convert = makePosix;
       const REGEX_TEST_WINDOWS_PATH_ABSOLUTE = /^[a-z]:\//i;
-      checkPath.isNotRelative = (path21) => REGEX_TEST_WINDOWS_PATH_ABSOLUTE.test(path21) || isNotRelative(path21);
+      checkPath.isNotRelative = (path22) => REGEX_TEST_WINDOWS_PATH_ABSOLUTE.test(path22) || isNotRelative(path22);
     };
     if (
       // Detect `process` so that it can run in browsers.
@@ -3683,8 +3683,8 @@ var require_utils = __commonJS({
       }
       return ind;
     }
-    function removeDotSegments(path21) {
-      let input = path21;
+    function removeDotSegments(path22) {
+      let input = path22;
       const output = [];
       let nextSlash = -1;
       let len = 0;
@@ -3936,8 +3936,8 @@ var require_schemes = __commonJS({
         wsComponent.secure = void 0;
       }
       if (wsComponent.resourceName) {
-        const [path21, query] = wsComponent.resourceName.split("?");
-        wsComponent.path = path21 && path21 !== "/" ? path21 : void 0;
+        const [path22, query] = wsComponent.resourceName.split("?");
+        wsComponent.path = path22 && path22 !== "/" ? path22 : void 0;
         wsComponent.query = query;
         wsComponent.resourceName = void 0;
       }
@@ -11282,9 +11282,9 @@ Expecting one of '${allowedValues.join("', '")}'`);
    * @param {string} [path]
    * @return {(string|null|Command)}
    */
-  executableDir(path21) {
-    if (path21 === void 0) return this._executableDir;
-    this._executableDir = path21;
+  executableDir(path22) {
+    if (path22 === void 0) return this._executableDir;
+    this._executableDir = path22;
     return this;
   }
   /**
@@ -11542,7 +11542,7 @@ var program = new Command();
 // src/application/adopt-project.ts
 import { timingSafeEqual } from "node:crypto";
 import { readFile as readFile11 } from "node:fs/promises";
-import path13 from "node:path";
+import path14 from "node:path";
 
 // src/domain/adoption.ts
 import { createHash } from "node:crypto";
@@ -12595,7 +12595,7 @@ async function executeFilesystemTransaction(root, plan, contentByPath, options) 
 // src/application/inspect-repository.ts
 import { createHash as createHash4 } from "node:crypto";
 import { readFile as readFile3 } from "node:fs/promises";
-import path5 from "node:path";
+import path6 from "node:path";
 
 // node_modules/yaml/browser/dist/nodes/identity.js
 var ALIAS = /* @__PURE__ */ Symbol.for("yaml.alias");
@@ -12649,17 +12649,17 @@ function visit(node, visitor) {
 visit.BREAK = BREAK;
 visit.SKIP = SKIP;
 visit.REMOVE = REMOVE;
-function visit_(key, node, visitor, path21) {
-  const ctrl = callVisitor(key, node, visitor, path21);
+function visit_(key, node, visitor, path22) {
+  const ctrl = callVisitor(key, node, visitor, path22);
   if (isNode(ctrl) || isPair(ctrl)) {
-    replaceNode(key, path21, ctrl);
-    return visit_(key, ctrl, visitor, path21);
+    replaceNode(key, path22, ctrl);
+    return visit_(key, ctrl, visitor, path22);
   }
   if (typeof ctrl !== "symbol") {
     if (isCollection(node)) {
-      path21 = Object.freeze(path21.concat(node));
+      path22 = Object.freeze(path22.concat(node));
       for (let i = 0; i < node.items.length; ++i) {
-        const ci = visit_(i, node.items[i], visitor, path21);
+        const ci = visit_(i, node.items[i], visitor, path22);
         if (typeof ci === "number")
           i = ci - 1;
         else if (ci === BREAK)
@@ -12670,13 +12670,13 @@ function visit_(key, node, visitor, path21) {
         }
       }
     } else if (isPair(node)) {
-      path21 = Object.freeze(path21.concat(node));
-      const ck = visit_("key", node.key, visitor, path21);
+      path22 = Object.freeze(path22.concat(node));
+      const ck = visit_("key", node.key, visitor, path22);
       if (ck === BREAK)
         return BREAK;
       else if (ck === REMOVE)
         node.key = null;
-      const cv = visit_("value", node.value, visitor, path21);
+      const cv = visit_("value", node.value, visitor, path22);
       if (cv === BREAK)
         return BREAK;
       else if (cv === REMOVE)
@@ -12697,17 +12697,17 @@ async function visitAsync(node, visitor) {
 visitAsync.BREAK = BREAK;
 visitAsync.SKIP = SKIP;
 visitAsync.REMOVE = REMOVE;
-async function visitAsync_(key, node, visitor, path21) {
-  const ctrl = await callVisitor(key, node, visitor, path21);
+async function visitAsync_(key, node, visitor, path22) {
+  const ctrl = await callVisitor(key, node, visitor, path22);
   if (isNode(ctrl) || isPair(ctrl)) {
-    replaceNode(key, path21, ctrl);
-    return visitAsync_(key, ctrl, visitor, path21);
+    replaceNode(key, path22, ctrl);
+    return visitAsync_(key, ctrl, visitor, path22);
   }
   if (typeof ctrl !== "symbol") {
     if (isCollection(node)) {
-      path21 = Object.freeze(path21.concat(node));
+      path22 = Object.freeze(path22.concat(node));
       for (let i = 0; i < node.items.length; ++i) {
-        const ci = await visitAsync_(i, node.items[i], visitor, path21);
+        const ci = await visitAsync_(i, node.items[i], visitor, path22);
         if (typeof ci === "number")
           i = ci - 1;
         else if (ci === BREAK)
@@ -12718,13 +12718,13 @@ async function visitAsync_(key, node, visitor, path21) {
         }
       }
     } else if (isPair(node)) {
-      path21 = Object.freeze(path21.concat(node));
-      const ck = await visitAsync_("key", node.key, visitor, path21);
+      path22 = Object.freeze(path22.concat(node));
+      const ck = await visitAsync_("key", node.key, visitor, path22);
       if (ck === BREAK)
         return BREAK;
       else if (ck === REMOVE)
         node.key = null;
-      const cv = await visitAsync_("value", node.value, visitor, path21);
+      const cv = await visitAsync_("value", node.value, visitor, path22);
       if (cv === BREAK)
         return BREAK;
       else if (cv === REMOVE)
@@ -12751,23 +12751,23 @@ function initVisitor(visitor) {
   }
   return visitor;
 }
-function callVisitor(key, node, visitor, path21) {
+function callVisitor(key, node, visitor, path22) {
   if (typeof visitor === "function")
-    return visitor(key, node, path21);
+    return visitor(key, node, path22);
   if (isMap(node))
-    return visitor.Map?.(key, node, path21);
+    return visitor.Map?.(key, node, path22);
   if (isSeq(node))
-    return visitor.Seq?.(key, node, path21);
+    return visitor.Seq?.(key, node, path22);
   if (isPair(node))
-    return visitor.Pair?.(key, node, path21);
+    return visitor.Pair?.(key, node, path22);
   if (isScalar(node))
-    return visitor.Scalar?.(key, node, path21);
+    return visitor.Scalar?.(key, node, path22);
   if (isAlias(node))
-    return visitor.Alias?.(key, node, path21);
+    return visitor.Alias?.(key, node, path22);
   return void 0;
 }
-function replaceNode(key, path21, node) {
-  const parent = path21[path21.length - 1];
+function replaceNode(key, path22, node) {
+  const parent = path22[path22.length - 1];
   if (isCollection(parent)) {
     parent.items[key] = node;
   } else if (isPair(parent)) {
@@ -13296,10 +13296,10 @@ function createNode(value, tagName, ctx) {
 }
 
 // node_modules/yaml/browser/dist/nodes/Collection.js
-function collectionFromPath(schema4, path21, value) {
+function collectionFromPath(schema4, path22, value) {
   let v = value;
-  for (let i = path21.length - 1; i >= 0; --i) {
-    const k = path21[i];
+  for (let i = path22.length - 1; i >= 0; --i) {
+    const k = path22[i];
     if (typeof k === "number" && Number.isInteger(k) && k >= 0) {
       const a = [];
       a[k] = v;
@@ -13318,7 +13318,7 @@ function collectionFromPath(schema4, path21, value) {
     sourceObjects: /* @__PURE__ */ new Map()
   });
 }
-var isEmptyPath = (path21) => path21 == null || typeof path21 === "object" && !!path21[Symbol.iterator]().next().done;
+var isEmptyPath = (path22) => path22 == null || typeof path22 === "object" && !!path22[Symbol.iterator]().next().done;
 var Collection = class extends NodeBase {
   constructor(type, schema4) {
     super(type);
@@ -13348,11 +13348,11 @@ var Collection = class extends NodeBase {
    * be a Pair instance or a `{ key, value }` object, which may not have a key
    * that already exists in the map.
    */
-  addIn(path21, value) {
-    if (isEmptyPath(path21))
+  addIn(path22, value) {
+    if (isEmptyPath(path22))
       this.add(value);
     else {
-      const [key, ...rest] = path21;
+      const [key, ...rest] = path22;
       const node = this.get(key, true);
       if (isCollection(node))
         node.addIn(rest, value);
@@ -13366,8 +13366,8 @@ var Collection = class extends NodeBase {
    * Removes a value from the collection.
    * @returns `true` if the item was found and removed.
    */
-  deleteIn(path21) {
-    const [key, ...rest] = path21;
+  deleteIn(path22) {
+    const [key, ...rest] = path22;
     if (rest.length === 0)
       return this.delete(key);
     const node = this.get(key, true);
@@ -13381,8 +13381,8 @@ var Collection = class extends NodeBase {
    * scalar values from their surrounding node; to disable set `keepScalar` to
    * `true` (collections are always returned intact).
    */
-  getIn(path21, keepScalar) {
-    const [key, ...rest] = path21;
+  getIn(path22, keepScalar) {
+    const [key, ...rest] = path22;
     const node = this.get(key, true);
     if (rest.length === 0)
       return !keepScalar && isScalar(node) ? node.value : node;
@@ -13400,8 +13400,8 @@ var Collection = class extends NodeBase {
   /**
    * Checks if the collection includes a value with the key `key`.
    */
-  hasIn(path21) {
-    const [key, ...rest] = path21;
+  hasIn(path22) {
+    const [key, ...rest] = path22;
     if (rest.length === 0)
       return this.has(key);
     const node = this.get(key, true);
@@ -13411,8 +13411,8 @@ var Collection = class extends NodeBase {
    * Sets a value in this collection. For `!!set`, `value` needs to be a
    * boolean to add/remove the item from the set.
    */
-  setIn(path21, value) {
-    const [key, ...rest] = path21;
+  setIn(path22, value) {
+    const [key, ...rest] = path22;
     if (rest.length === 0) {
       this.set(key, value);
     } else {
@@ -15551,9 +15551,9 @@ var Document = class _Document {
       this.contents.add(value);
   }
   /** Adds a value to the document. */
-  addIn(path21, value) {
+  addIn(path22, value) {
     if (assertCollection(this.contents))
-      this.contents.addIn(path21, value);
+      this.contents.addIn(path22, value);
   }
   /**
    * Create a new `Alias` node, ensuring that the target `node` has the required anchor.
@@ -15628,14 +15628,14 @@ var Document = class _Document {
    * Removes a value from the document.
    * @returns `true` if the item was found and removed.
    */
-  deleteIn(path21) {
-    if (isEmptyPath(path21)) {
+  deleteIn(path22) {
+    if (isEmptyPath(path22)) {
       if (this.contents == null)
         return false;
       this.contents = null;
       return true;
     }
-    return assertCollection(this.contents) ? this.contents.deleteIn(path21) : false;
+    return assertCollection(this.contents) ? this.contents.deleteIn(path22) : false;
   }
   /**
    * Returns item at `key`, or `undefined` if not found. By default unwraps
@@ -15650,10 +15650,10 @@ var Document = class _Document {
    * scalar values from their surrounding node; to disable set `keepScalar` to
    * `true` (collections are always returned intact).
    */
-  getIn(path21, keepScalar) {
-    if (isEmptyPath(path21))
+  getIn(path22, keepScalar) {
+    if (isEmptyPath(path22))
       return !keepScalar && isScalar(this.contents) ? this.contents.value : this.contents;
-    return isCollection(this.contents) ? this.contents.getIn(path21, keepScalar) : void 0;
+    return isCollection(this.contents) ? this.contents.getIn(path22, keepScalar) : void 0;
   }
   /**
    * Checks if the document includes a value with the key `key`.
@@ -15664,10 +15664,10 @@ var Document = class _Document {
   /**
    * Checks if the document includes a value at `path`.
    */
-  hasIn(path21) {
-    if (isEmptyPath(path21))
+  hasIn(path22) {
+    if (isEmptyPath(path22))
       return this.contents !== void 0;
-    return isCollection(this.contents) ? this.contents.hasIn(path21) : false;
+    return isCollection(this.contents) ? this.contents.hasIn(path22) : false;
   }
   /**
    * Sets a value in this document. For `!!set`, `value` needs to be a
@@ -15684,13 +15684,13 @@ var Document = class _Document {
    * Sets a value in this document. For `!!set`, `value` needs to be a
    * boolean to add/remove the item from the set.
    */
-  setIn(path21, value) {
-    if (isEmptyPath(path21)) {
+  setIn(path22, value) {
+    if (isEmptyPath(path22)) {
       this.contents = value;
     } else if (this.contents == null) {
-      this.contents = collectionFromPath(this.schema, Array.from(path21), value);
+      this.contents = collectionFromPath(this.schema, Array.from(path22), value);
     } else if (assertCollection(this.contents)) {
-      this.contents.setIn(path21, value);
+      this.contents.setIn(path22, value);
     }
   }
   /**
@@ -17240,9 +17240,9 @@ function visit2(cst, visitor) {
 visit2.BREAK = BREAK2;
 visit2.SKIP = SKIP2;
 visit2.REMOVE = REMOVE2;
-visit2.itemAtPath = (cst, path21) => {
+visit2.itemAtPath = (cst, path22) => {
   let item = cst;
-  for (const [field, index] of path21) {
+  for (const [field, index] of path22) {
     const tok = item?.[field];
     if (tok && "items" in tok) {
       item = tok.items[index];
@@ -17251,23 +17251,23 @@ visit2.itemAtPath = (cst, path21) => {
   }
   return item;
 };
-visit2.parentCollection = (cst, path21) => {
-  const parent = visit2.itemAtPath(cst, path21.slice(0, -1));
-  const field = path21[path21.length - 1][0];
+visit2.parentCollection = (cst, path22) => {
+  const parent = visit2.itemAtPath(cst, path22.slice(0, -1));
+  const field = path22[path22.length - 1][0];
   const coll = parent?.[field];
   if (coll && "items" in coll)
     return coll;
   throw new Error("Parent collection not found");
 };
-function _visit(path21, item, visitor) {
-  let ctrl = visitor(item, path21);
+function _visit(path22, item, visitor) {
+  let ctrl = visitor(item, path22);
   if (typeof ctrl === "symbol")
     return ctrl;
   for (const field of ["key", "value"]) {
     const token = item[field];
     if (token && "items" in token) {
       for (let i = 0; i < token.items.length; ++i) {
-        const ci = _visit(Object.freeze(path21.concat([[field, i]])), token.items[i], visitor);
+        const ci = _visit(Object.freeze(path22.concat([[field, i]])), token.items[i], visitor);
         if (typeof ci === "number")
           i = ci - 1;
         else if (ci === BREAK2)
@@ -17278,10 +17278,10 @@ function _visit(path21, item, visitor) {
         }
       }
       if (typeof ctrl === "function" && field === "key")
-        ctrl = ctrl(item, path21);
+        ctrl = ctrl(item, path22);
     }
   }
-  return typeof ctrl === "function" ? ctrl(item, path21) : ctrl;
+  return typeof ctrl === "function" ? ctrl(item, path22) : ctrl;
 }
 
 // node_modules/yaml/browser/dist/parse/cst.js
@@ -19148,7 +19148,7 @@ function projectSignals(inventory) {
   const testPaths = [];
   const manifestPaths = [];
   const deploymentPaths = [];
-  const documentationPaths = [];
+  const documentationPaths2 = [];
   const dataPaths = [];
   const assetPaths = [];
   for (const file of inventory.files) {
@@ -19170,7 +19170,7 @@ function projectSignals(inventory) {
     }
     if (documentationExtensions.has(fileExtension)) {
       const atRoot = !normalized.includes("/");
-      if (!atRoot || !rootSeedDocumentNames.has(fileName)) documentationPaths.push(file.path);
+      if (!atRoot || !rootSeedDocumentNames.has(fileName)) documentationPaths2.push(file.path);
     }
     if (dataExtensions.has(fileExtension)) dataPaths.push(file.path);
     if (assetExtensions.has(fileExtension)) assetPaths.push(file.path);
@@ -19207,17 +19207,17 @@ function projectSignals(inventory) {
     `Found ${deploymentPaths.length} deployment or CI file${deploymentPaths.length === 1 ? "" : "s"}.`,
     "strong"
   );
-  const documentationBytes = inventory.files.filter((file) => documentationPaths.includes(file.path)).reduce((total, file) => total + file.size, 0);
-  const docsDirectoryCount = documentationPaths.filter(
+  const documentationBytes = inventory.files.filter((file) => documentationPaths2.includes(file.path)).reduce((total, file) => total + file.size, 0);
+  const docsDirectoryCount = documentationPaths2.filter(
     (candidate) => candidate.includes("/")
   ).length;
-  if (documentationPaths.length >= 3 || docsDirectoryCount >= 2 || documentationPaths.length >= 2 && documentationBytes >= 12e3) {
+  if (documentationPaths2.length >= 3 || docsDirectoryCount >= 2 || documentationPaths2.length >= 2 && documentationBytes >= 12e3) {
     representativeSignal(
       signals,
       "project.documentation-set",
       "documentation",
-      documentationPaths,
-      `Found a substantive documentation set (${documentationPaths.length} files, ${documentationBytes} bytes).`,
+      documentationPaths2,
+      `Found a substantive documentation set (${documentationPaths2.length} files, ${documentationBytes} bytes).`,
       "moderate"
     );
   }
@@ -19242,7 +19242,7 @@ function projectSignals(inventory) {
     ...testPaths,
     ...manifestPaths,
     ...deploymentPaths,
-    ...documentationPaths,
+    ...documentationPaths2,
     ...dataPaths,
     ...assetPaths
   ]);
@@ -19423,6 +19423,135 @@ function classifyRepository(input) {
   };
 }
 
+// src/domain/project-documentation.ts
+import path5 from "node:path";
+
+// src/domain/adapters.ts
+var SUPPORTED_ADAPTER_IDS = [
+  "codex",
+  "antigravity",
+  "claude-code-desktop",
+  "github-copilot-vscode",
+  "cursor"
+];
+var ADAPTER_BASENAMES = /* @__PURE__ */ new Set([
+  ".cursorrules",
+  "agents.md",
+  "claude.md",
+  "copilot-instructions.md",
+  "gemini.md",
+  "skill.md"
+]);
+var ADAPTER_NAMESPACES = [
+  ".agents/rules",
+  ".claude/agents",
+  ".claude/commands",
+  ".claude/rules",
+  ".claude/skills",
+  ".cursor/rules",
+  ".github/agents",
+  ".github/instructions",
+  ".roo/rules",
+  ".windsurf/rules"
+];
+function normalizedPath(candidatePath) {
+  return candidatePath.replaceAll("\\", "/").replace(/^\.\//u, "").toLowerCase();
+}
+function isInsideNamespace(candidatePath, namespace) {
+  return candidatePath === namespace || candidatePath.startsWith(`${namespace}/`) || candidatePath.includes(`/${namespace}/`);
+}
+function isForeignAdapterSourcePath(candidatePath) {
+  const normalized = normalizedPath(candidatePath);
+  const basename2 = normalized.split("/").at(-1) ?? normalized;
+  return ADAPTER_BASENAMES.has(basename2) || ADAPTER_NAMESPACES.some((namespace) => isInsideNamespace(normalized, namespace));
+}
+function supportedAdapterForSourcePath(candidatePath) {
+  const normalized = normalizedPath(candidatePath);
+  const basename2 = normalized.split("/").at(-1) ?? normalized;
+  if (basename2 === "agents.md") return "codex";
+  if (basename2 === "claude.md") return "claude-code-desktop";
+  if (basename2 === ".cursorrules" || isInsideNamespace(normalized, ".cursor/rules")) {
+    return "cursor";
+  }
+  if (isInsideNamespace(normalized, ".agents/rules")) return "antigravity";
+  if (basename2 === "copilot-instructions.md" || isInsideNamespace(normalized, ".github/agents") || isInsideNamespace(normalized, ".github/instructions")) {
+    return "github-copilot-vscode";
+  }
+  return void 0;
+}
+
+// src/domain/project-documentation.ts
+var DOCUMENTATION_EXTENSIONS = /* @__PURE__ */ new Set([".adoc", ".asciidoc", ".md", ".mdx", ".rst"]);
+var DOCUMENTATION_BASENAMES = /* @__PURE__ */ new Set([
+  "authors",
+  "changelog",
+  "code_of_conduct",
+  "contributing",
+  "copying",
+  "license",
+  "notice",
+  "readme",
+  "security"
+]);
+var DEDICATED_ROOT_PRIORITY = [
+  "docs",
+  "documentation",
+  "doc",
+  "handbook",
+  "guides",
+  "research",
+  "specs"
+];
+function normalizedBasename(candidatePath) {
+  return path5.posix.basename(candidatePath).toLowerCase();
+}
+function isProjectDocumentationPath(candidatePath) {
+  const normalized = candidatePath.replaceAll("\\", "/");
+  if (normalized === ".pcp" || normalized.startsWith(".pcp/") || isForeignAdapterSourcePath(normalized)) {
+    return false;
+  }
+  const basename2 = normalizedBasename(normalized);
+  const extension2 = path5.posix.extname(basename2);
+  return DOCUMENTATION_EXTENSIONS.has(extension2) || DOCUMENTATION_BASENAMES.has(basename2);
+}
+function documentationPaths(inventory, excludedPaths = /* @__PURE__ */ new Set()) {
+  return inventory.files.map((file) => file.path).filter((candidatePath) => !excludedPaths.has(candidatePath)).filter(isProjectDocumentationPath).sort(comparePortablePaths);
+}
+function topLevelRoot(candidatePath) {
+  const segments = candidatePath.split("/");
+  return segments.length > 1 ? segments[0] : void 0;
+}
+function assessDocumentation(inventory) {
+  const documentPaths = documentationPaths(inventory);
+  const byRoot = /* @__PURE__ */ new Map();
+  for (const documentPath of documentPaths) {
+    const root = topLevelRoot(documentPath);
+    if (root === void 0) continue;
+    const paths = byRoot.get(root) ?? [];
+    paths.push(documentPath);
+    byRoot.set(root, paths);
+  }
+  const rootCandidates = [...byRoot].map(([candidatePath, paths]) => ({
+    path: candidatePath,
+    document_paths: paths.sort(comparePortablePaths)
+  })).sort((left, right) => comparePortablePaths(left.path, right.path));
+  const directoryKeys = new Map(
+    inventory.directories.map((directory) => [directory.toLowerCase(), directory])
+  );
+  const selected = DEDICATED_ROOT_PRIORITY.map((candidate) => directoryKeys.get(candidate)).find(
+    (candidate) => candidate !== void 0
+  );
+  return {
+    document_paths: documentPaths,
+    root_candidates: rootCandidates,
+    recommended_root: selected ?? "docs",
+    recommended_root_source: selected === void 0 ? "default" : "existing"
+  };
+}
+function isInsideDocumentationRoot(candidatePath, root) {
+  return candidatePath === root || candidatePath.startsWith(`${root}/`);
+}
+
 // src/application/inspect-repository.ts
 var maximumSemanticFileBytes = 1048576;
 function isText(buffer) {
@@ -19447,7 +19576,7 @@ async function loadTextDocuments(root, inventory) {
   const documents = [];
   for (const file of inventory.files) {
     if (file.size > maximumSemanticFileBytes) continue;
-    const buffer = await readFile3(path5.join(root, ...file.path.split("/")));
+    const buffer = await readFile3(path6.join(root, ...file.path.split("/")));
     const observedDigest = createHash4("sha256").update(buffer).digest("hex");
     if (observedDigest !== file.sha256) {
       throw new InspectionError(
@@ -19517,6 +19646,7 @@ async function inspectRepository(candidate = ".") {
     signals: classification.signals,
     foreignCandidates: classification.foreignCandidates,
     ambiguities: classification.ambiguities,
+    documentation: assessDocumentation(inventory),
     inventory,
     mutated: false
   };
@@ -19525,65 +19655,11 @@ async function inspectRepository(candidate = ".") {
 // src/application/plan-adoption.ts
 import { lstat as lstat6, mkdir as mkdir2, mkdtemp as mkdtemp2, readFile as readFile10, readdir as readdir3, rm as rm2, writeFile as writeFile3 } from "node:fs/promises";
 import { tmpdir as tmpdir2 } from "node:os";
-import path12 from "node:path";
-
-// src/domain/adapters.ts
-var SUPPORTED_ADAPTER_IDS = [
-  "codex",
-  "antigravity",
-  "claude-code-desktop",
-  "github-copilot-vscode",
-  "cursor"
-];
-var ADAPTER_BASENAMES = /* @__PURE__ */ new Set([
-  ".cursorrules",
-  "agents.md",
-  "claude.md",
-  "copilot-instructions.md",
-  "gemini.md",
-  "skill.md"
-]);
-var ADAPTER_NAMESPACES = [
-  ".agents/rules",
-  ".claude/agents",
-  ".claude/commands",
-  ".claude/rules",
-  ".claude/skills",
-  ".cursor/rules",
-  ".github/agents",
-  ".github/instructions",
-  ".roo/rules",
-  ".windsurf/rules"
-];
-function normalizedPath(candidatePath) {
-  return candidatePath.replaceAll("\\", "/").replace(/^\.\//u, "").toLowerCase();
-}
-function isInsideNamespace(candidatePath, namespace) {
-  return candidatePath === namespace || candidatePath.startsWith(`${namespace}/`) || candidatePath.includes(`/${namespace}/`);
-}
-function isForeignAdapterSourcePath(candidatePath) {
-  const normalized = normalizedPath(candidatePath);
-  const basename2 = normalized.split("/").at(-1) ?? normalized;
-  return ADAPTER_BASENAMES.has(basename2) || ADAPTER_NAMESPACES.some((namespace) => isInsideNamespace(normalized, namespace));
-}
-function supportedAdapterForSourcePath(candidatePath) {
-  const normalized = normalizedPath(candidatePath);
-  const basename2 = normalized.split("/").at(-1) ?? normalized;
-  if (basename2 === "agents.md") return "codex";
-  if (basename2 === "claude.md") return "claude-code-desktop";
-  if (basename2 === ".cursorrules" || isInsideNamespace(normalized, ".cursor/rules")) {
-    return "cursor";
-  }
-  if (isInsideNamespace(normalized, ".agents/rules")) return "antigravity";
-  if (basename2 === "copilot-instructions.md" || isInsideNamespace(normalized, ".github/agents") || isInsideNamespace(normalized, ".github/instructions")) {
-    return "github-copilot-vscode";
-  }
-  return void 0;
-}
+import path13 from "node:path";
 
 // src/infrastructure/adoption-assets.ts
 import { lstat as lstat3, readdir, readFile as readFile4 } from "node:fs/promises";
-import path6 from "node:path";
+import path7 from "node:path";
 import { fileURLToPath } from "node:url";
 
 // src/domain/capabilities.ts
@@ -19598,24 +19674,24 @@ function normalizeCapabilityIds(values) {
 }
 
 // src/infrastructure/adoption-assets.ts
-var moduleDirectory = path6.dirname(fileURLToPath(import.meta.url));
+var moduleDirectory = path7.dirname(fileURLToPath(import.meta.url));
 function candidateTemplateRoots() {
   return [
-    path6.resolve(moduleDirectory, "../../templates/core"),
-    path6.resolve(moduleDirectory, "../templates/core"),
-    path6.resolve(moduleDirectory, "../assets/templates/core")
+    path7.resolve(moduleDirectory, "../../templates/core"),
+    path7.resolve(moduleDirectory, "../templates/core"),
+    path7.resolve(moduleDirectory, "../assets/templates/core")
   ];
 }
 function candidateCapabilityRoots() {
   return [
-    path6.resolve(moduleDirectory, "../../templates/capabilities"),
-    path6.resolve(moduleDirectory, "../templates/capabilities"),
-    path6.resolve(moduleDirectory, "../assets/templates/capabilities")
+    path7.resolve(moduleDirectory, "../../templates/capabilities"),
+    path7.resolve(moduleDirectory, "../templates/capabilities"),
+    path7.resolve(moduleDirectory, "../assets/templates/capabilities")
   ];
 }
 async function isCoreTemplateRoot(candidate) {
   try {
-    const marker = await lstat3(path6.join(candidate, ".pcp", "pcp.yaml"));
+    const marker = await lstat3(path7.join(candidate, ".pcp", "pcp.yaml"));
     return marker.isFile() && !marker.isSymbolicLink();
   } catch (error2) {
     if (error2.code === "ENOENT") return false;
@@ -19655,9 +19731,9 @@ async function collectFiles(directory, root, result) {
   const entries = await readdir(directory, { withFileTypes: true });
   entries.sort((left, right) => comparePortablePaths(left.name, right.name));
   for (const entry of entries) {
-    const absolutePath = path6.join(directory, entry.name);
+    const absolutePath = path7.join(directory, entry.name);
     const metadata = await lstat3(absolutePath);
-    const relativePath = path6.relative(root, absolutePath).split(path6.sep).join("/");
+    const relativePath = path7.relative(root, absolutePath).split(path7.sep).join("/");
     if (metadata.isSymbolicLink()) {
       throw new AdoptionError(
         "PCP_ADOPTION_ASSET_SYMLINK",
@@ -19679,7 +19755,7 @@ async function loadCoreTemplateFiles() {
   return new Map(files.map((file) => [file.path, file.content]));
 }
 function isPortableRelativePath(value) {
-  return typeof value === "string" && value.length > 0 && value === path6.posix.normalize(value) && value !== "." && !value.startsWith("../") && !value.startsWith("/") && !value.includes("\\");
+  return typeof value === "string" && value.length > 0 && value === path7.posix.normalize(value) && value !== "." && !value.startsWith("../") && !value.startsWith("/") && !value.includes("\\");
 }
 function capabilityManifest(value, expected) {
   if (typeof value !== "object" || value === null || Array.isArray(value)) {
@@ -19766,9 +19842,9 @@ async function loadCapabilityTemplateFiles(selectedValues) {
   const files = /* @__PURE__ */ new Map();
   for (const manifest2 of manifests) {
     const capability = manifest2.capability_id;
-    const capabilityRoot = path6.join(root, capability);
+    const capabilityRoot = path7.join(root, capability);
     const assetManifest = capabilityManifest(
-      parse(await readFile4(path6.join(capabilityRoot, "capability.yaml"), "utf8")),
+      parse(await readFile4(path7.join(capabilityRoot, "capability.yaml"), "utf8")),
       capability
     );
     if (canonicalJson(assetManifest) !== canonicalJson(manifest2)) {
@@ -19785,7 +19861,7 @@ async function loadCapabilityTemplateFiles(selectedValues) {
         );
       }
     }
-    const overlayRoot = path6.join(capabilityRoot, manifest2.overlay_root);
+    const overlayRoot = path7.join(capabilityRoot, manifest2.overlay_root);
     const collected = [];
     await collectFiles(overlayRoot, overlayRoot, collected);
     const declaredMarkdown = new Set(
@@ -19943,9 +20019,11 @@ var adoption_input_schema_default = {
     "capabilities",
     "project",
     "projects",
+    "documentation",
     "workstreams",
     "vcs_policy",
     "documents",
+    "outcome_documents",
     "scaffold_files"
   ],
   properties: {
@@ -19971,6 +20049,9 @@ var adoption_input_schema_default = {
     projects: {
       $ref: "urn:pcp:schema:v1:project-registry"
     },
+    documentation: {
+      $ref: "urn:pcp:schema:v1:documentation"
+    },
     workstreams: {
       $ref: "urn:pcp:schema:v1:workstreams"
     },
@@ -19983,7 +20064,15 @@ var adoption_input_schema_default = {
         $ref: "#/$defs/document"
       },
       minItems: 8,
-      maxItems: 256
+      maxItems: 8
+    },
+    outcome_documents: {
+      type: "array",
+      items: {
+        $ref: "#/$defs/outcomeDocument"
+      },
+      maxItems: 256,
+      uniqueItems: true
     },
     foreign_roots: {
       type: "array",
@@ -20030,15 +20119,47 @@ var adoption_input_schema_default = {
                 "operations/20-plan.md",
                 "operations/30-decisions.md"
               ]
-            },
-            {
-              type: "string",
-              pattern: "^projects/[a-z0-9]+(?:-[a-z0-9]+)*/[1-9][0-9]-[a-z0-9]+(?:-[a-z0-9]+)*\\.md$"
             }
           ]
         },
         type: {
           enum: ["knowledge", "policy", "plan", "project"]
+        },
+        status: {
+          enum: ["static", "living"]
+        },
+        basis: {
+          enum: ["repository", "user", "repository-and-user", "not-applicable"]
+        },
+        evidence_paths: {
+          $ref: "urn:pcp:schema:v1:common#/$defs/pathArray"
+        },
+        body: {
+          type: "string",
+          minLength: 3
+        }
+      }
+    },
+    outcomeDocument: {
+      type: "object",
+      additionalProperties: false,
+      required: ["path", "project_id", "status", "basis", "evidence_paths", "body"],
+      properties: {
+        path: {
+          allOf: [
+            {
+              $ref: "urn:pcp:schema:v1:common#/$defs/relativePath"
+            },
+            {
+              not: {
+                type: "string",
+                pattern: "^\\.pcp(?:/|$)"
+              }
+            }
+          ]
+        },
+        project_id: {
+          $ref: "urn:pcp:schema:v1:common#/$defs/slug"
         },
         status: {
           enum: ["static", "living"]
@@ -20476,6 +20597,60 @@ var coverage_schema_default = {
   }
 };
 
+// schemas/v1/documentation.schema.json
+var documentation_schema_default = {
+  $schema: "https://json-schema.org/draft/2020-12/schema",
+  $id: "urn:pcp:schema:v1:documentation",
+  title: "PCP project documentation registry",
+  type: "object",
+  additionalProperties: false,
+  required: ["schema_version", "documents"],
+  properties: {
+    schema_version: {
+      $ref: "urn:pcp:schema:v1:common#/$defs/schemaVersion"
+    },
+    documents: {
+      type: "array",
+      items: {
+        type: "object",
+        additionalProperties: false,
+        required: ["path", "project_id", "category", "status", "summary", "related_paths"],
+        properties: {
+          path: {
+            allOf: [
+              {
+                $ref: "urn:pcp:schema:v1:common#/$defs/relativePath"
+              },
+              {
+                not: {
+                  type: "string",
+                  pattern: "^\\.pcp(?:/|$)"
+                }
+              }
+            ]
+          },
+          project_id: {
+            $ref: "urn:pcp:schema:v1:common#/$defs/slug"
+          },
+          category: {
+            enum: ["outcome", "reference"]
+          },
+          status: {
+            enum: ["living", "static", "generated"]
+          },
+          summary: {
+            $ref: "urn:pcp:schema:v1:common#/$defs/nonEmptyString"
+          },
+          related_paths: {
+            $ref: "urn:pcp:schema:v1:common#/$defs/pathArray"
+          }
+        }
+      },
+      uniqueItems: true
+    }
+  }
+};
+
 // schemas/v1/event.schema.json
 var event_schema_default = {
   $schema: "https://json-schema.org/draft/2020-12/schema",
@@ -20873,6 +21048,113 @@ var legacy_0_1_pcp_manifest_schema_default = {
   }
 };
 
+// schemas/v1/legacy-0.1-project.schema.json
+var legacy_0_1_project_schema_default = {
+  $schema: "https://json-schema.org/draft/2020-12/schema",
+  $id: "urn:pcp:schema:v1:legacy-0.1-project",
+  title: "Legacy PCP 0.1 project state",
+  type: "object",
+  additionalProperties: false,
+  required: [
+    "schema_version",
+    "project_id",
+    "name",
+    "purpose",
+    "project_type",
+    "lifecycle",
+    "artifact_roots",
+    "context_roots",
+    "repositories",
+    "tags"
+  ],
+  properties: {
+    schema_version: {
+      $ref: "urn:pcp:schema:v1:common#/$defs/schemaVersion"
+    },
+    project_id: {
+      $ref: "urn:pcp:schema:v1:common#/$defs/slug"
+    },
+    name: {
+      $ref: "urn:pcp:schema:v1:common#/$defs/nonEmptyString"
+    },
+    purpose: {
+      $ref: "urn:pcp:schema:v1:common#/$defs/nonEmptyString"
+    },
+    project_type: {
+      enum: [
+        "software",
+        "research",
+        "data",
+        "writing",
+        "career",
+        "creative",
+        "operations",
+        "mixed",
+        "other"
+      ]
+    },
+    lifecycle: {
+      enum: ["seed", "active", "maintenance", "paused", "complete", "archived"]
+    },
+    artifact_roots: {
+      $ref: "urn:pcp:schema:v1:common#/$defs/pathArray"
+    },
+    context_roots: {
+      $ref: "urn:pcp:schema:v1:common#/$defs/pathArray"
+    },
+    repositories: {
+      type: "array",
+      items: {
+        type: "object",
+        additionalProperties: false,
+        required: ["provider", "url", "default_branch", "visibility"],
+        properties: {
+          provider: {
+            enum: ["github", "gitlab", "bitbucket", "other"]
+          },
+          url: {
+            type: "string",
+            format: "uri",
+            pattern: "^https://"
+          },
+          default_branch: {
+            $ref: "urn:pcp:schema:v1:common#/$defs/slug"
+          },
+          visibility: {
+            enum: ["public", "private", "internal", "unknown"]
+          }
+        }
+      },
+      uniqueItems: true
+    },
+    tags: {
+      $ref: "urn:pcp:schema:v1:common#/$defs/slugArray"
+    }
+  }
+};
+
+// schemas/v1/legacy-0.1-project-registry.schema.json
+var legacy_0_1_project_registry_schema_default = {
+  $schema: "https://json-schema.org/draft/2020-12/schema",
+  $id: "urn:pcp:schema:v1:legacy-0.1-project-registry",
+  title: "Legacy PCP 0.1 project registry",
+  type: "object",
+  additionalProperties: false,
+  required: ["schema_version", "projects"],
+  properties: {
+    schema_version: {
+      $ref: "urn:pcp:schema:v1:common#/$defs/schemaVersion"
+    },
+    projects: {
+      type: "array",
+      items: {
+        $ref: "urn:pcp:schema:v1:legacy-0.1-project"
+      },
+      uniqueItems: true
+    }
+  }
+};
+
 // schemas/v1/legacy-0.1-workstreams.schema.json
 var legacy_0_1_workstreams_schema_default = {
   $schema: "https://json-schema.org/draft/2020-12/schema",
@@ -21228,6 +21510,8 @@ var project_schema_default = {
     "lifecycle",
     "artifact_roots",
     "context_roots",
+    "documentation_root",
+    "documentation_root_source",
     "repositories",
     "tags"
   ],
@@ -21265,6 +21549,20 @@ var project_schema_default = {
     },
     context_roots: {
       $ref: "urn:pcp:schema:v1:common#/$defs/pathArray"
+    },
+    documentation_root: {
+      allOf: [
+        {
+          $ref: "urn:pcp:schema:v1:common#/$defs/relativePath"
+        },
+        {
+          type: "string",
+          pattern: "^(?!\\.pcp(?:/|$))(?!\\.$)(?!.*\\/$).+$"
+        }
+      ]
+    },
+    documentation_root_source: {
+      enum: ["existing", "default"]
     },
     repositories: {
       type: "array",
@@ -21820,11 +22118,14 @@ var SCHEMA_CATALOG = {
   "actor-profile": actor_profile_schema_default,
   checkpoint: checkpoint_schema_default,
   coverage: coverage_schema_default,
+  documentation: documentation_schema_default,
   event: event_schema_default,
   "event-input": event_input_schema_default,
   frontmatter: frontmatter_schema_default,
   "legacy-0.1-checkpoint": legacy_0_1_checkpoint_schema_default,
   "legacy-0.1-pcp-manifest": legacy_0_1_pcp_manifest_schema_default,
+  "legacy-0.1-project": legacy_0_1_project_schema_default,
+  "legacy-0.1-project-registry": legacy_0_1_project_registry_schema_default,
   "legacy-0.1-workstreams": legacy_0_1_workstreams_schema_default,
   "mutation-plan": mutation_plan_schema_default,
   "pcp-manifest": pcp_manifest_schema_default,
@@ -21904,7 +22205,7 @@ function validateSchema(name, value) {
 
 // src/application/foreign-coverage.ts
 import { readFile as readFile5 } from "node:fs/promises";
-import path7 from "node:path";
+import path8 from "node:path";
 
 // src/domain/coverage.ts
 var COVERAGE_SCHEMA_VERSION = 1;
@@ -21970,7 +22271,7 @@ function markdownHeadingEntries(contents) {
   });
 }
 function parseStructuredEntries(candidatePath, contents, kind) {
-  if (path7.posix.extname(candidatePath).toLowerCase() === ".md") {
+  if (path8.posix.extname(candidatePath).toLowerCase() === ".md") {
     const entries2 = kind === "registry-entry" ? markdownTableEntries(contents) : markdownHeadingEntries(contents);
     if (entries2.length > 0) return { entries: entries2 };
     return {
@@ -22189,7 +22490,7 @@ async function discoverForeignCoverage(root, inspection, foreignRoots = defaultF
     }
     let bytes;
     try {
-      bytes = await readFile5(path7.join(root, ...file.path.split("/")));
+      bytes = await readFile5(path8.join(root, ...file.path.split("/")));
     } catch (error2) {
       const detail = error2 instanceof Error ? error2.message : String(error2);
       issues.push({
@@ -22433,7 +22734,7 @@ function renderPlatformAdapters() {
 
 // src/application/render-canonical-views.ts
 import { readFile as readFile7, writeFile as writeFile2 } from "node:fs/promises";
-import path9 from "node:path";
+import path10 from "node:path";
 
 // src/domain/canonical-validation.ts
 function compareCanonicalDiagnostics(left, right) {
@@ -22445,14 +22746,14 @@ function compareCanonicalDiagnostics(left, right) {
 // src/infrastructure/canonical-source-digest.ts
 import { createHash as createHash5 } from "node:crypto";
 import { readFile as readFile6 } from "node:fs/promises";
-import path8 from "node:path";
+import path9 from "node:path";
 function normalizeSource(contents) {
   return contents.replace(/\r\n?/g, "\n");
 }
 function resolveContained(root, relativePath) {
-  const resolvedRoot = path8.resolve(root);
-  const resolved = path8.resolve(resolvedRoot, relativePath);
-  if (resolved !== resolvedRoot && !resolved.startsWith(`${resolvedRoot}${path8.sep}`)) {
+  const resolvedRoot = path9.resolve(root);
+  const resolved = path9.resolve(resolvedRoot, relativePath);
+  if (resolved !== resolvedRoot && !resolved.startsWith(`${resolvedRoot}${path9.sep}`)) {
     throw new Error(`Canonical source escapes the .pcp root: ${relativePath}`);
   }
   return resolved;
@@ -22488,6 +22789,7 @@ var RENDERER_TEMPLATE_UPDATED_AT = "2026-07-14T07:20:00Z";
 var SOURCES = [
   ["state/project.yaml", "project"],
   ["state/projects.yaml", "project-registry"],
+  ["state/documentation.yaml", "documentation"],
   ["state/workstreams.yaml", "workstreams"],
   ["state/vcs-policy.yaml", "vcs-policy"]
 ];
@@ -22527,7 +22829,7 @@ function issue(codeValue, pathValue, message) {
 async function loadSource(layerRoot, relativePath, schema4, registry, diagnostics, override) {
   let contents;
   try {
-    contents = override?.toString("utf8") ?? await readFile7(path9.join(layerRoot, relativePath), "utf8");
+    contents = override?.toString("utf8") ?? await readFile7(path10.join(layerRoot, relativePath), "utf8");
   } catch (error2) {
     diagnostics.push(
       issue(
@@ -22576,10 +22878,20 @@ async function loadSource(layerRoot, relativePath, schema4, registry, diagnostic
 function renderProjects(projects) {
   if (projects.length === 0) return ["No managed subprojects are registered."];
   return [
-    "| ID | Name | Type | Lifecycle | Artifact roots |",
-    "| --- | --- | --- | --- | --- |",
+    "| ID | Name | Type | Lifecycle | Artifact roots | Documentation root |",
+    "| --- | --- | --- | --- | --- | --- |",
     ...projects.map(
-      (project) => `| ${code(project.project_id)} | ${tableCell(project.name)} | ${code(project.project_type)} | ${code(project.lifecycle)} | ${codeList(project.artifact_roots)} |`
+      (project) => `| ${code(project.project_id)} | ${tableCell(project.name)} | ${code(project.project_type)} | ${code(project.lifecycle)} | ${codeList(project.artifact_roots)} | ${code(project.documentation_root)} |`
+    )
+  ];
+}
+function renderDocumentation(documents) {
+  if (documents.length === 0) return ["No project documents are registered."];
+  return [
+    "| Path | Project | Category | Status | Summary | Related paths |",
+    "| --- | --- | --- | --- | --- | --- |",
+    ...documents.map(
+      (document) => `| ${code(document.path)} | ${code(document.project_id)} | ${code(document.category)} | ${code(document.status)} | ${tableCell(document.summary)} | ${codeList(document.related_paths)} |`
     )
   ];
 }
@@ -22597,6 +22909,7 @@ function renderWorkstreams(workstreams) {
 function renderCanonicalStatusView(sources, sourceDigest) {
   const project = objectValue(sources.get("state/project.yaml"));
   const projectRegistry = objectValue(sources.get("state/projects.yaml"));
+  const documentationRegistry = objectValue(sources.get("state/documentation.yaml"));
   const workstreamRegistry = objectValue(sources.get("state/workstreams.yaml"));
   const vcsPolicy = objectValue(sources.get("state/vcs-policy.yaml"));
   const repository = objectValue(vcsPolicy.repository);
@@ -22629,10 +22942,16 @@ function renderCanonicalStatusView(sources, sourceDigest) {
     `- Lifecycle: ${code(project.lifecycle)}`,
     `- Artifact roots: ${codeList(project.artifact_roots)}`,
     `- Context roots: ${codeList(project.context_roots)}`,
+    `- Outcome documentation root: ${code(project.documentation_root)}`,
+    `- Documentation-root source: ${code(project.documentation_root_source)}`,
     "",
     "## Managed projects",
     "",
     ...renderProjects(objectArray(projectRegistry.projects)),
+    "",
+    "## Project documentation",
+    "",
+    ...renderDocumentation(objectArray(documentationRegistry.documents)),
     "",
     "## Workstreams",
     "",
@@ -22653,7 +22972,7 @@ function renderCanonicalStatusView(sources, sourceDigest) {
   return lines.join("\n");
 }
 async function buildCanonicalStatusView(projectRoot, sourceOverrides = /* @__PURE__ */ new Map()) {
-  const layerRoot = path9.join(path9.resolve(projectRoot), ".pcp");
+  const layerRoot = path10.join(path10.resolve(projectRoot), ".pcp");
   const diagnostics = [];
   const registry = new SchemaRegistry();
   const loadedSources = /* @__PURE__ */ new Map();
@@ -22716,7 +23035,7 @@ async function buildCanonicalStatusView(projectRoot, sourceOverrides = /* @__PUR
   return { valid: true, content: renderCanonicalStatusView(sources, digest2), diagnostics: [] };
 }
 async function renderCanonicalViews(projectRoot, options = {}) {
-  const layerRoot = path9.join(path9.resolve(projectRoot), ".pcp");
+  const layerRoot = path10.join(path10.resolve(projectRoot), ".pcp");
   const built = await buildCanonicalStatusView(projectRoot);
   if (!built.valid || built.content === void 0) {
     return {
@@ -22728,7 +23047,7 @@ async function renderCanonicalViews(projectRoot, options = {}) {
   }
   const desired = built.content;
   const diagnostics = [];
-  const absoluteViewPath = path9.join(layerRoot, VIEW_PATH);
+  const absoluteViewPath = path10.join(layerRoot, VIEW_PATH);
   let current;
   try {
     current = await readFile7(absoluteViewPath, "utf8");
@@ -22797,7 +23116,7 @@ async function renderCanonicalViews(projectRoot, options = {}) {
 // src/application/validate-canonical-layer.ts
 import { createHash as createHash7 } from "node:crypto";
 import { lstat as lstat5, readdir as readdir2, readFile as readFile9, stat as stat2 } from "node:fs/promises";
-import path11 from "node:path";
+import path12 from "node:path";
 
 // src/domain/recording.ts
 import { createHash as createHash6 } from "node:crypto";
@@ -22826,6 +23145,67 @@ function nextEventId(existingIds, now = Date.now()) {
 }
 
 // src/domain/canonical-semantics.ts
+function validateDocumentation(records) {
+  if (records.documentation === void 0) return [];
+  const diagnostics = [];
+  const projects = /* @__PURE__ */ new Map();
+  const rootProject = objectValue2(records.project?.value);
+  const rootId = stringValue(rootProject?.project_id);
+  if (rootId !== void 0 && rootProject !== void 0) projects.set(rootId, rootProject);
+  const registry = objectValue2(records.project_registry?.value);
+  for (const project of objectArray2(registry?.projects)) {
+    const projectId = stringValue(project.project_id);
+    if (projectId !== void 0) projects.set(projectId, project);
+  }
+  const documentation = objectValue2(records.documentation.value);
+  const seenPaths = /* @__PURE__ */ new Set();
+  for (const entry of objectArray2(documentation?.documents)) {
+    const documentPath = stringValue(entry.path);
+    const projectId = stringValue(entry.project_id);
+    if (documentPath === void 0 || projectId === void 0) continue;
+    if (seenPaths.has(documentPath)) {
+      diagnostics.push(
+        error(
+          "documentation.duplicate-path",
+          records.documentation.path,
+          `Documentation path appears more than once: ${documentPath}.`
+        )
+      );
+    }
+    seenPaths.add(documentPath);
+    const project = projects.get(projectId);
+    if (project === void 0) {
+      diagnostics.push(
+        error(
+          "documentation.unknown-project",
+          records.documentation.path,
+          `Documentation path ${documentPath} references unknown project ${projectId}.`
+        )
+      );
+      continue;
+    }
+    const documentationRoot = stringValue(project.documentation_root);
+    if (entry.category === "outcome" && documentationRoot !== void 0 && !isInsideDocumentationRoot(documentPath, documentationRoot)) {
+      diagnostics.push(
+        error(
+          "documentation.outcome-outside-root",
+          records.documentation.path,
+          `Outcome document ${documentPath} must stay under ${documentationRoot}.`
+        )
+      );
+    }
+  }
+  if (rootProject?.documentation_root_source === "default" && rootProject.documentation_root !== "docs") {
+    diagnostics.push(
+      error(
+        "documentation.default-root",
+        records.project?.path ?? "state/project.yaml",
+        "The primary default outcome-documentation root must be docs."
+      )
+    );
+  }
+  return diagnostics;
+}
 function objectValue2(value) {
   return typeof value === "object" && value !== null && !Array.isArray(value) ? value : void 0;
 }
@@ -22838,8 +23218,8 @@ function objectArray2(value) {
 function stringArray2(value) {
   return Array.isArray(value) ? value.filter((item) => typeof item === "string") : [];
 }
-function error(code2, path21, message) {
-  return { severity: "error", code: code2, path: path21, message };
+function error(code2, path22, message) {
+  return { severity: "error", code: code2, path: path22, message };
 }
 function validateProjectIdentity(records) {
   const diagnostics = [];
@@ -23267,6 +23647,7 @@ function validateVcsPolicy(records) {
 function validateCanonicalSemantics(records) {
   return [
     ...validateProjectIdentity(records),
+    ...validateDocumentation(records),
     ...validateWorkstreams(records),
     ...validateActors(records),
     ...validateEvents(records),
@@ -23331,18 +23712,18 @@ function matchingOwnershipClasses(relativePath, patterns) {
 
 // src/application/validate-platform-adapters.ts
 import { lstat as lstat4, readFile as readFile8 } from "node:fs/promises";
-import path10 from "node:path";
+import path11 from "node:path";
 function isInside2(root, candidate) {
-  const relative = path10.relative(root, candidate);
-  return relative === "" || !relative.startsWith(`..${path10.sep}`) && relative !== ".." && !path10.isAbsolute(relative);
+  const relative = path11.relative(root, candidate);
+  return relative === "" || !relative.startsWith(`..${path11.sep}`) && relative !== ".." && !path11.isAbsolute(relative);
 }
 function absoluteTarget(root, portablePath2) {
-  const normalized = path10.posix.normalize(portablePath2);
+  const normalized = path11.posix.normalize(portablePath2);
   if (portablePath2 === "." || normalized !== portablePath2 || portablePath2.startsWith("/") || portablePath2.includes("\\")) {
     return void 0;
   }
-  const target = path10.resolve(root, ...portablePath2.split("/"));
-  return isInside2(root, target) && target !== path10.resolve(root) ? target : void 0;
+  const target = path11.resolve(root, ...portablePath2.split("/"));
+  return isInside2(root, target) && target !== path11.resolve(root) ? target : void 0;
 }
 function compareDiagnostics2(left, right) {
   return comparePortablePaths(left.path, right.path) || comparePortablePaths(left.code, right.code);
@@ -23497,6 +23878,7 @@ var REQUIRED_CANONICAL_PATHS = [
   "state/00-index.md",
   "state/project.yaml",
   "state/projects.yaml",
+  "state/documentation.yaml",
   "state/vcs-policy.yaml",
   "state/workstreams.yaml",
   "templates/00-index.md",
@@ -23524,13 +23906,16 @@ function objectValue3(value) {
 function stringArray3(value) {
   return Array.isArray(value) && value.every((item) => typeof item === "string") ? value : void 0;
 }
+function objectArray3(value) {
+  return Array.isArray(value) ? value.map(objectValue3).filter((item) => item !== void 0) : [];
+}
 function relativeFrom(root, target) {
-  return path11.relative(root, target).split(path11.sep).join("/");
+  return path12.relative(root, target).split(path12.sep).join("/");
 }
 function isInside3(root, target) {
-  const resolvedRoot = path11.resolve(root);
-  const resolvedTarget = path11.resolve(target);
-  return resolvedTarget === resolvedRoot || resolvedTarget.startsWith(`${resolvedRoot}${path11.sep}`);
+  const resolvedRoot = path12.resolve(root);
+  const resolvedTarget = path12.resolve(target);
+  return resolvedTarget === resolvedRoot || resolvedTarget.startsWith(`${resolvedRoot}${path12.sep}`);
 }
 function issue2(code2, relativePath, message) {
   return { severity: "error", code: code2, path: relativePath, message };
@@ -23551,7 +23936,7 @@ async function collectFiles2(directory, layerRoot, diagnostics) {
     return files;
   }
   for (const entry of entries.sort((left, right) => left.name.localeCompare(right.name))) {
-    const absolutePath = path11.join(directory, entry.name);
+    const absolutePath = path12.join(directory, entry.name);
     const relativePath = relativeFrom(layerRoot, absolutePath);
     if (entry.isSymbolicLink()) {
       diagnostics.push(
@@ -23568,8 +23953,11 @@ async function collectFiles2(directory, layerRoot, diagnostics) {
 function schemaForPath(relativePath, legacyUpgradeSource) {
   if (relativePath === "pcp.yaml")
     return legacyUpgradeSource ? "legacy-0.1-pcp-manifest" : "pcp-manifest";
-  if (relativePath === "state/project.yaml") return "project";
-  if (relativePath === "state/projects.yaml") return "project-registry";
+  if (relativePath === "state/project.yaml")
+    return legacyUpgradeSource ? "legacy-0.1-project" : "project";
+  if (relativePath === "state/projects.yaml")
+    return legacyUpgradeSource ? "legacy-0.1-project-registry" : "project-registry";
+  if (relativePath === "state/documentation.yaml") return "documentation";
   if (relativePath === "state/workstreams.yaml")
     return legacyUpgradeSource ? "legacy-0.1-workstreams" : "workstreams";
   if (relativePath === "state/vcs-policy.yaml") return "vcs-policy";
@@ -23584,6 +23972,7 @@ function schemaForPath(relativePath, legacyUpgradeSource) {
 function addSemanticRecord(records, record) {
   if (record.path === "state/project.yaml") records.project = record;
   if (record.path === "state/projects.yaml") records.project_registry = record;
+  if (record.path === "state/documentation.yaml") records.documentation = record;
   if (record.path === "state/workstreams.yaml") records.workstreams = record;
   if (record.path === "state/vcs-policy.yaml") records.vcs_policy = record;
   if (record.schema === "actor-profile") records.actors.push(record);
@@ -23610,10 +23999,10 @@ function normalizedLinkTarget(target) {
 }
 async function validateMarkdownLinks(projectRoot, layerRoot, records, diagnostics) {
   const graph = /* @__PURE__ */ new Map();
-  const canonicalMarkdown = new Set(records.map((record) => path11.resolve(record.absolute_path)));
+  const canonicalMarkdown = new Set(records.map((record) => path12.resolve(record.absolute_path)));
   for (const record of records) {
     const edges = /* @__PURE__ */ new Set();
-    graph.set(path11.resolve(record.absolute_path), edges);
+    graph.set(path12.resolve(record.absolute_path), edges);
     for (const link of record.parsed.links) {
       const diagnosticPath = `${record.relative_path}:${link.line}`;
       const rawTarget = link.target;
@@ -23656,7 +24045,7 @@ async function validateMarkdownLinks(projectRoot, layerRoot, records, diagnostic
         continue;
       }
       if (relativeTarget.length === 0) continue;
-      const target = path11.resolve(path11.dirname(record.absolute_path), relativeTarget);
+      const target = path12.resolve(path12.dirname(record.absolute_path), relativeTarget);
       if (!isInside3(projectRoot, target)) {
         diagnostics.push(
           issue2(
@@ -23683,11 +24072,11 @@ async function validateMarkdownLinks(projectRoot, layerRoot, records, diagnostic
 function validateMarkdownStructure(layerRoot, records, graph, diagnostics) {
   const byDirectory = /* @__PURE__ */ new Map();
   for (const record of records) {
-    const directory = path11.dirname(record.absolute_path);
+    const directory = path12.dirname(record.absolute_path);
     const siblings = byDirectory.get(directory) ?? [];
     siblings.push(record);
     byDirectory.set(directory, siblings);
-    const number = pathNumber(path11.basename(record.absolute_path));
+    const number = pathNumber(path12.basename(record.absolute_path));
     if (number === void 0) {
       diagnostics.push(
         issue2(
@@ -23707,7 +24096,7 @@ function validateMarkdownStructure(layerRoot, records, graph, diagnostics) {
     }
   }
   for (const [directory, siblings] of byDirectory) {
-    const index = siblings.find((record) => path11.basename(record.absolute_path) === "00-index.md");
+    const index = siblings.find((record) => path12.basename(record.absolute_path) === "00-index.md");
     if (index === void 0) {
       diagnostics.push(
         issue2(
@@ -23720,7 +24109,7 @@ function validateMarkdownStructure(layerRoot, records, graph, diagnostics) {
     }
     const seenNumbers = /* @__PURE__ */ new Map();
     for (const sibling of siblings) {
-      const number = pathNumber(path11.basename(sibling.absolute_path));
+      const number = pathNumber(path12.basename(sibling.absolute_path));
       if (number === void 0) continue;
       const previous = seenNumbers.get(number);
       if (previous !== void 0) {
@@ -23735,21 +24124,21 @@ function validateMarkdownStructure(layerRoot, records, graph, diagnostics) {
         seenNumbers.set(number, sibling.relative_path);
       }
     }
-    const indexTargets = graph.get(path11.resolve(index.absolute_path)) ?? /* @__PURE__ */ new Set();
+    const indexTargets = graph.get(path12.resolve(index.absolute_path)) ?? /* @__PURE__ */ new Set();
     for (const sibling of siblings) {
       if (sibling === index) continue;
-      if (!indexTargets.has(path11.resolve(sibling.absolute_path))) {
+      if (!indexTargets.has(path12.resolve(sibling.absolute_path))) {
         diagnostics.push(
           issue2(
             "index.unlisted-document",
             index.relative_path,
-            `Folder index does not link ${path11.basename(sibling.absolute_path)}.`
+            `Folder index does not link ${path12.basename(sibling.absolute_path)}.`
           )
         );
       }
     }
   }
-  const rootIndex = path11.resolve(layerRoot, "00-index.md");
+  const rootIndex = path12.resolve(layerRoot, "00-index.md");
   const reached = /* @__PURE__ */ new Set();
   const queue = [rootIndex];
   while (queue.length > 0) {
@@ -23759,7 +24148,7 @@ function validateMarkdownStructure(layerRoot, records, graph, diagnostics) {
     queue.push(...graph.get(current) ?? []);
   }
   for (const record of records) {
-    if (!reached.has(path11.resolve(record.absolute_path))) {
+    if (!reached.has(path12.resolve(record.absolute_path))) {
       diagnostics.push(
         issue2(
           "markdown.orphan",
@@ -23906,9 +24295,111 @@ async function validateOwnership(layerRoot, files, markdown, patterns, diagnosti
 function assignLoadedYaml(loaded, relativePath, schema4, value) {
   loaded.set(relativePath, { path: relativePath, schema: schema4, value });
 }
+async function validateProjectDocumentation(projectRoot, loaded, diagnostics) {
+  const documentation = objectValue3(loaded.get("state/documentation.yaml")?.value);
+  const primaryProject = objectValue3(loaded.get("state/project.yaml")?.value);
+  if (documentation === void 0 || primaryProject === void 0) return;
+  const registry = objectValue3(loaded.get("state/projects.yaml")?.value);
+  const projects = [primaryProject, ...objectArray3(registry?.projects)];
+  let inventory;
+  try {
+    inventory = await inventoryRepository(projectRoot);
+  } catch (error2) {
+    diagnostics.push(
+      issue2(
+        "documentation.inventory-failed",
+        "state/documentation.yaml",
+        error2 instanceof Error ? error2.message : "Unable to inventory project documentation."
+      )
+    );
+    return;
+  }
+  for (const project of projects) {
+    const documentationRoot = project.documentation_root;
+    if (typeof documentationRoot !== "string") continue;
+    if (inventory.nestedRepositories.some(
+      (nestedRoot) => documentationRoot === nestedRoot || documentationRoot.startsWith(`${nestedRoot}/`)
+    )) {
+      continue;
+    }
+    const target = path12.join(projectRoot, ...documentationRoot.split("/"));
+    try {
+      const metadata = await lstat5(target);
+      if (!metadata.isDirectory() || metadata.isSymbolicLink()) {
+        diagnostics.push(
+          issue2(
+            "documentation.root-type",
+            documentationRoot,
+            "Configured outcome-documentation root must be a regular directory."
+          )
+        );
+      }
+    } catch {
+      diagnostics.push(
+        issue2(
+          "documentation.root-missing",
+          documentationRoot,
+          "Configured outcome-documentation root does not exist."
+        )
+      );
+    }
+  }
+  const actualPaths = documentationPaths(inventory);
+  const entries = objectArray3(documentation.documents);
+  const catalogPaths = entries.map((entry) => entry.path).filter((entryPath2) => typeof entryPath2 === "string").sort((left, right) => left.localeCompare(right));
+  const actualSet = new Set(actualPaths);
+  const catalogSet = new Set(catalogPaths);
+  for (const actualPath of actualPaths) {
+    if (!catalogSet.has(actualPath)) {
+      diagnostics.push(
+        issue2(
+          "documentation.uncatalogued",
+          actualPath,
+          "Project document is not tracked in .pcp/state/documentation.yaml."
+        )
+      );
+    }
+  }
+  for (const entry of entries) {
+    const entryPath2 = entry.path;
+    if (typeof entryPath2 !== "string") continue;
+    if (!isProjectDocumentationPath(entryPath2)) {
+      diagnostics.push(
+        issue2(
+          "documentation.unsupported-path",
+          entryPath2,
+          "Documentation registry entry is not a supported project-document path."
+        )
+      );
+      continue;
+    }
+    if (!actualSet.has(entryPath2)) {
+      diagnostics.push(
+        issue2(
+          "documentation.stale-entry",
+          entryPath2,
+          "Documentation registry entry does not identify an inventoried project document."
+        )
+      );
+    }
+    for (const relatedPath of stringArray3(entry.related_paths) ?? []) {
+      try {
+        await lstat5(path12.join(projectRoot, ...relatedPath.split("/")));
+      } catch {
+        diagnostics.push(
+          issue2(
+            "documentation.related-path-missing",
+            `${entryPath2}#related_paths`,
+            `Related project path does not exist: ${relatedPath}.`
+          )
+        );
+      }
+    }
+  }
+}
 async function validateCanonicalLayer(projectRoot, options = {}) {
-  const resolvedProjectRoot = path11.resolve(projectRoot);
-  const layerRoot = path11.join(resolvedProjectRoot, ".pcp");
+  const resolvedProjectRoot = path12.resolve(projectRoot);
+  const layerRoot = path12.join(resolvedProjectRoot, ".pcp");
   const diagnostics = [];
   try {
     if (!(await stat2(layerRoot)).isDirectory()) {
@@ -23921,6 +24412,9 @@ async function validateCanonicalLayer(projectRoot, options = {}) {
   const files = await collectFiles2(layerRoot, layerRoot, diagnostics);
   const presentPaths = new Set(files.map((file) => file.relative_path));
   for (const requiredPath of REQUIRED_CANONICAL_PATHS) {
+    if (options.legacy_upgrade_source === "0.1" && requiredPath === "state/documentation.yaml") {
+      continue;
+    }
     if (!presentPaths.has(requiredPath)) {
       diagnostics.push(
         issue2("layer.required-path", requiredPath, "Required canonical core file is missing.")
@@ -23928,8 +24422,8 @@ async function validateCanonicalLayer(projectRoot, options = {}) {
     }
   }
   if (presentPaths.has("tools/pcp.mjs") && presentPaths.has("tools/pcp.sha256")) {
-    const engineBytes = await readFile9(path11.join(layerRoot, "tools", "pcp.mjs"));
-    const checksum = await readFile9(path11.join(layerRoot, "tools", "pcp.sha256"), "utf8");
+    const engineBytes = await readFile9(path12.join(layerRoot, "tools", "pcp.mjs"));
+    const checksum = await readFile9(path12.join(layerRoot, "tools", "pcp.sha256"), "utf8");
     const actual = createHash7("sha256").update(engineBytes).digest("hex");
     if (checksum !== `${actual}  pcp.mjs
 `) {
@@ -23962,7 +24456,7 @@ async function validateCanonicalLayer(projectRoot, options = {}) {
       continue;
     }
     if (options.archive_content === "filenames-only" && /^continuity\/archive\/[^/]+\.yaml$/.test(file.relative_path)) {
-      const eventId = path11.basename(file.relative_path, ".yaml");
+      const eventId = path12.basename(file.relative_path, ".yaml");
       if (!/^[0-7][0-9A-HJKMNP-TV-Z]{25}$/u.test(eventId)) {
         diagnostics.push(
           issue2(
@@ -24081,7 +24575,7 @@ async function validateCanonicalLayer(projectRoot, options = {}) {
         }
         for (const rootPath of capability.root_paths) {
           try {
-            const metadata = await lstat5(path11.join(resolvedProjectRoot, ...rootPath.split("/")));
+            const metadata = await lstat5(path12.join(resolvedProjectRoot, ...rootPath.split("/")));
             if (!metadata.isFile() || metadata.isSymbolicLink()) {
               diagnostics.push(
                 issue2(
@@ -24142,6 +24636,9 @@ async function validateCanonicalLayer(projectRoot, options = {}) {
       options.legacy_upgrade_source === "0.1" ? { ...semanticRecords, checkpoints: [] } : semanticRecords
     )
   );
+  if (options.legacy_upgrade_source !== "0.1" && options.documentation_inventory !== "skip") {
+    await validateProjectDocumentation(resolvedProjectRoot, loadedYaml, diagnostics);
+  }
   const continuity = objectValue3(objectValue3(manifest2)?.continuity);
   const activeEventLimit = continuity?.active_event_limit;
   if (typeof activeEventLimit === "number") {
@@ -24209,13 +24706,12 @@ var expectedDocuments = /* @__PURE__ */ new Map([
   ["operations/20-plan.md", { type: "plan", status: "living" }],
   ["operations/30-decisions.md", { type: "policy", status: "living" }]
 ]);
-var PROJECT_DOCUMENT_PATH = /^projects\/([a-z0-9]+(?:-[a-z0-9]+)*)\/([1-9][0-9])-[a-z0-9]+(?:-[a-z0-9]+)*\.md$/u;
 function isInside4(root, candidate) {
-  const relative = path12.relative(root, candidate);
-  return relative === "" || !relative.startsWith(`..${path12.sep}`) && relative !== ".." && !path12.isAbsolute(relative);
+  const relative = path13.relative(root, candidate);
+  return relative === "" || !relative.startsWith(`..${path13.sep}`) && relative !== ".." && !path13.isAbsolute(relative);
 }
 function portableBasename(root) {
-  const normalized = path12.basename(root).normalize("NFKD").toLowerCase();
+  const normalized = path13.basename(root).normalize("NFKD").toLowerCase();
   const slug = normalized.replace(/[^a-z0-9]+/gu, "-").replace(/^-+|-+$/gu, "").slice(0, 63);
   return slug || "project";
 }
@@ -24232,6 +24728,7 @@ function baselineFor(root, inspection) {
     seed_sources: inspection.state === "A" ? inspection.inventory.files.map((file) => file.path) : [],
     evidence_groups: [...groups.entries()].map(([category, paths]) => ({ category, paths: [...paths].sort(comparePortablePaths) })).sort((left, right) => comparePortablePaths(left.category, right.category)),
     nested_repositories: [...inspection.inventory.nestedRepositories],
+    documentation: inspection.documentation,
     required_documents: REQUIRED_ADOPTION_DOCUMENTS,
     preserves_existing_paths: true
   };
@@ -24242,6 +24739,13 @@ function questionsFor(inspection) {
     id: "capability-selection",
     prompt: "Select zero or more supported optional capabilities: Concurrent Execution Blocks, spec-driven projects, scratch space, or walkthroughs.",
     reason: "PCP installs optional project workflows only through explicit selection.",
+    required: true,
+    response_shape: "object"
+  };
+  const documentationQuestion = {
+    id: "documentation-boundary",
+    prompt: "Confirm the existing dedicated documentation root, or use docs when none exists; catalog every project document and place project-outcome knowledge there.",
+    reason: "Agent-operational knowledge stays in .pcp, while project-outcome knowledge remains an ordinary project artifact outside .pcp.",
     required: true,
     response_shape: "object"
   };
@@ -24261,7 +24765,8 @@ function questionsFor(inspection) {
         required: true,
         response_shape: "object"
       },
-      capabilityQuestion
+      capabilityQuestion,
+      documentationQuestion
     ];
   }
   if (inspection.state === "B") {
@@ -24281,7 +24786,8 @@ function questionsFor(inspection) {
         response_shape: "enum",
         options: ["human-commit", "none", "human-owned", "agent-managed", "custom"]
       },
-      capabilityQuestion
+      capabilityQuestion,
+      documentationQuestion
     ];
   }
   const questions = [
@@ -24308,7 +24814,8 @@ function questionsFor(inspection) {
       response_shape: "enum",
       options: ["human-commit", "none", "human-owned", "agent-managed", "custom"]
     },
-    capabilityQuestion
+    capabilityQuestion,
+    documentationQuestion
   ];
   if (inspection.inventory.files.length === 0) {
     questions.push({
@@ -24344,7 +24851,7 @@ function schemaFailure(diagnostics) {
   return new AdoptionError("PCP_ADOPTION_INPUT_INVALID", `Invalid adoption input: ${details}`);
 }
 async function loadAdoptionInput(inputPath, candidateRoot2) {
-  const resolvedInput = path12.resolve(inputPath);
+  const resolvedInput = path13.resolve(inputPath);
   if (isInside4(candidateRoot2, resolvedInput)) {
     throw new AdoptionError(
       "PCP_ADOPTION_INPUT_INSIDE_CANDIDATE",
@@ -24401,29 +24908,19 @@ function validateDocumentSet(input, inspection) {
     ...inspection.inventory.files.map((file) => file.path),
     ...inspection.inventory.nestedRepositories
   ]);
-  const projectIds = /* @__PURE__ */ new Set([
-    input.project.project_id,
-    ...input.projects.projects.map((project) => project.project_id)
-  ]);
   for (const document of input.documents) {
     const expected = expectedDocuments.get(document.path);
-    const projectMatch = PROJECT_DOCUMENT_PATH.exec(document.path);
     if (expected !== void 0 && (expected.type !== document.type || expected.status !== document.status)) {
       throw new AdoptionError(
         "PCP_ADOPTION_INPUT_INVALID",
         `Document metadata does not match its canonical role: ${document.path}`
       );
     }
-    if (expected === void 0) {
-      const projectId = projectMatch?.[1];
-      const order = Number(projectMatch?.[2]);
-      if (projectId === void 0 || !projectIds.has(projectId) || order % 10 !== 0 || document.type !== "project" || !input.capabilities.includes("spec-driven-projects")) {
-        throw new AdoptionError(
-          "PCP_ADOPTION_INPUT_INVALID",
-          `Unsupported canonical project document: ${document.path}`
-        );
-      }
-    }
+    if (expected === void 0)
+      throw new AdoptionError(
+        "PCP_ADOPTION_INPUT_INVALID",
+        `Unsupported internal context document: ${document.path}`
+      );
     const body = normalizeText(document.body).trim();
     if (!body.startsWith("# ") || body.startsWith("---") || PLACEHOLDER_PATTERN.test(body)) {
       throw new AdoptionError(
@@ -24437,7 +24934,7 @@ function validateDocumentSet(input, inspection) {
         `Repository-grounded document has no evidence path: ${document.path}`
       );
     }
-    if ((inspection.state === "B" || inspection.state === "C") && (document.type === "knowledge" || document.type === "project") && document.basis !== "repository" && document.basis !== "repository-and-user") {
+    if ((inspection.state === "B" || inspection.state === "C") && document.type === "knowledge" && document.basis !== "repository" && document.basis !== "repository-and-user") {
       throw new AdoptionError(
         "PCP_ADOPTION_INPUT_INVALID",
         `Established-project knowledge must cite current repository evidence: ${document.path}`
@@ -24453,78 +24950,6 @@ function validateDocumentSet(input, inspection) {
     }
   }
 }
-function documentTitle(document) {
-  const heading = normalizeText(document.body).split("\n").find((line2) => line2.startsWith("# "));
-  return (heading?.slice(2).trim() || path12.posix.basename(document.path, ".md")).replaceAll("[", "").replaceAll("]", "");
-}
-function renderIndex(documentPath, title, baselineAt, links) {
-  const frontmatter = stringify3(
-    {
-      doc: documentPath,
-      type: "index",
-      status: "living",
-      version: "1.0.0",
-      last_updated: baselineAt,
-      ownership: "project"
-    },
-    { lineWidth: 0 }
-  ).trimEnd();
-  const readingOrder = links.map((link) => `- [${link.title}](${link.path})`).join("\n");
-  return Buffer.from(
-    `---
-${frontmatter}
----
-
-# ${title}
-
-## Reading order
-
-${readingOrder}
-`,
-    "utf8"
-  );
-}
-function renderProjectDocumentIndexes(input) {
-  const projects = new Map(
-    [input.project, ...input.projects.projects].map((project) => [project.project_id, project])
-  );
-  const grouped = /* @__PURE__ */ new Map();
-  for (const document of input.documents) {
-    const projectId = PROJECT_DOCUMENT_PATH.exec(document.path)?.[1];
-    if (projectId === void 0) continue;
-    const documents = grouped.get(projectId) ?? [];
-    documents.push(document);
-    grouped.set(projectId, documents);
-  }
-  const rendered = /* @__PURE__ */ new Map();
-  const rootLinks = [];
-  for (const projectId of [...grouped.keys()].sort(comparePortablePaths)) {
-    const project = projects.get(projectId);
-    if (project === void 0) continue;
-    const documents = grouped.get(projectId) ?? [];
-    documents.sort((left, right) => comparePortablePaths(left.path, right.path));
-    rendered.set(
-      `.pcp/projects/${projectId}/00-index.md`,
-      renderIndex(
-        `projects/${projectId}/00-index.md`,
-        project.name,
-        input.baseline_at,
-        documents.map((document) => ({
-          path: path12.posix.basename(document.path),
-          title: documentTitle(document)
-        }))
-      )
-    );
-    rootLinks.push({ path: `${projectId}/00-index.md`, title: project.name });
-  }
-  if (rootLinks.length > 0) {
-    rendered.set(
-      ".pcp/projects/00-index.md",
-      renderIndex("projects/00-index.md", "Managed projects", input.baseline_at, rootLinks)
-    );
-  }
-  return rendered;
-}
 function portableCollisionKey(value) {
   return value.normalize("NFKC").toLowerCase();
 }
@@ -24536,6 +24961,209 @@ function assertPortableMutationPath(value) {
         `Planned path is not portable across supported platforms: ${value}`
       );
     }
+  }
+}
+function projectMap(input) {
+  return new Map(
+    [input.project, ...input.projects.projects].map((project) => [project.project_id, project])
+  );
+}
+function isInsideOpaqueNestedRepository(candidatePath, inspection) {
+  return inspection.inventory.nestedRepositories.some(
+    (nestedRoot) => candidatePath === nestedRoot || candidatePath.startsWith(`${nestedRoot}/`)
+  );
+}
+function validateDocumentationRoots(input, inspection) {
+  const existingRoots = /* @__PURE__ */ new Set([
+    ...inspection.inventory.directories,
+    ...inspection.inventory.nestedRepositories
+  ]);
+  for (const project of projectMap(input).values()) {
+    const opaqueRoot = isInsideOpaqueNestedRepository(project.documentation_root, inspection);
+    assertPortableMutationPath(project.documentation_root);
+    if (project.documentation_root === ".pcp" || project.documentation_root.startsWith(".pcp/") || project.documentation_root === "." || project.documentation_root.endsWith("/")) {
+      throw new AdoptionError(
+        "PCP_DOCUMENTATION_ROOT_INVALID",
+        `Outcome documentation root must be a project-owned directory outside .pcp: ${project.documentation_root}`
+      );
+    }
+    if (project.documentation_root_source === "existing" && !opaqueRoot && !existingRoots.has(project.documentation_root)) {
+      throw new AdoptionError(
+        "PCP_DOCUMENTATION_ROOT_MISSING",
+        `Existing documentation root was not found during inspection: ${project.documentation_root}`
+      );
+    }
+    if (project.documentation_root_source === "default" && !opaqueRoot && existingRoots.has(project.documentation_root)) {
+      throw new AdoptionError(
+        "PCP_DOCUMENTATION_ROOT_SOURCE_INVALID",
+        `Documentation root already exists and must be recorded as existing: ${project.documentation_root}`
+      );
+    }
+  }
+  if (input.project.documentation_root !== inspection.documentation.recommended_root || input.project.documentation_root_source !== inspection.documentation.recommended_root_source) {
+    throw new AdoptionError(
+      "PCP_DOCUMENTATION_ROOT_SELECTION_INVALID",
+      `Primary documentation root must match inspection: ${inspection.documentation.recommended_root} (${inspection.documentation.recommended_root_source}).`
+    );
+  }
+  if (input.project.documentation_root_source === "default" && input.project.documentation_root !== "docs") {
+    throw new AdoptionError(
+      "PCP_DOCUMENTATION_ROOT_DEFAULT_INVALID",
+      "The primary project must use docs when inspection finds no existing dedicated documentation root."
+    );
+  }
+}
+function validateOutcomeDocument(document, input, inspection) {
+  const project = projectMap(input).get(document.project_id);
+  if (project === void 0) {
+    throw new AdoptionError(
+      "PCP_ADOPTION_INPUT_INVALID",
+      `Outcome document references an unknown project: ${document.project_id}`
+    );
+  }
+  assertPortableMutationPath(document.path);
+  if (!isProjectDocumentationPath(document.path) || !isInsideDocumentationRoot(document.path, project.documentation_root)) {
+    throw new AdoptionError(
+      "PCP_OUTCOME_DOCUMENT_PATH_INVALID",
+      `Outcome document must be a documentation file under ${project.documentation_root}: ${document.path}`
+    );
+  }
+  const body = normalizeText(document.body).trim();
+  if (!body.startsWith("# ") || body.startsWith("---") || PLACEHOLDER_PATTERN.test(body)) {
+    throw new AdoptionError(
+      "PCP_ADOPTION_INPUT_INVALID",
+      `Outcome document must contain grounded ordinary Markdown without PCP frontmatter: ${document.path}`
+    );
+  }
+  const availableEvidence = /* @__PURE__ */ new Set([
+    ...inspection.inventory.directories,
+    ...inspection.inventory.files.map((file) => file.path),
+    ...inspection.inventory.nestedRepositories
+  ]);
+  if ((document.basis === "repository" || document.basis === "repository-and-user") && document.evidence_paths.length === 0) {
+    throw new AdoptionError(
+      "PCP_ADOPTION_INPUT_INVALID",
+      `Repository-grounded outcome document has no evidence path: ${document.path}`
+    );
+  }
+  for (const evidencePath of document.evidence_paths) {
+    if (!availableEvidence.has(evidencePath)) {
+      throw new AdoptionError(
+        "PCP_ADOPTION_EVIDENCE_MISSING",
+        `Outcome document cites evidence outside the inspected candidate: ${evidencePath}`
+      );
+    }
+  }
+}
+function finalDocumentationPaths(input, inspection) {
+  const paths = new Set(documentationPaths(inspection.inventory));
+  for (const record of input.coverage?.records ?? []) {
+    if (record.source_kind !== "file" && record.source_kind !== "adapter") continue;
+    if (record.disposition === "project-owned") continue;
+    paths.delete(record.source_path);
+    if (record.disposition === "relocated") {
+      const target = record.targets[0];
+      if (target !== void 0 && isProjectDocumentationPath(target)) paths.add(target);
+    }
+  }
+  for (const scaffold of input.scaffold_files) {
+    if (isProjectDocumentationPath(scaffold.path)) paths.add(scaffold.path);
+  }
+  for (const capability of loadCapabilityManifests(input.capabilities)) {
+    for (const rootPath of capability.root_paths) {
+      if (isProjectDocumentationPath(rootPath)) paths.add(rootPath);
+    }
+  }
+  for (const document of input.outcome_documents) paths.add(document.path);
+  return [...paths].sort(comparePortablePaths);
+}
+function validateDocumentationRegistry(input, inspection, completeCoverage) {
+  validateDocumentationRoots(input, inspection);
+  const projects = projectMap(input);
+  const outcomePaths = input.outcome_documents.map((document) => document.path);
+  if (new Set(outcomePaths).size !== outcomePaths.length) {
+    throw new AdoptionError(
+      "PCP_ADOPTION_INPUT_INVALID",
+      "Each new outcome document path must appear exactly once."
+    );
+  }
+  for (const document of input.outcome_documents) {
+    validateOutcomeDocument(document, input, inspection);
+  }
+  for (const project of projects.values()) {
+    if (project.documentation_root_source === "default" && !isInsideOpaqueNestedRepository(project.documentation_root, inspection) && !input.outcome_documents.some(
+      (document) => document.project_id === project.project_id && isInsideDocumentationRoot(document.path, project.documentation_root)
+    )) {
+      throw new AdoptionError(
+        "PCP_DOCUMENTATION_ROOT_INITIAL_DOCUMENT_REQUIRED",
+        `The default ${project.documentation_root} root requires at least one initial outcome document so the directory is durable and discoverable.`
+      );
+    }
+  }
+  const entries = input.documentation.documents;
+  const entryPaths = entries.map((entry) => entry.path);
+  if (new Set(entryPaths).size !== entryPaths.length) {
+    throw new AdoptionError(
+      "PCP_DOCUMENTATION_REGISTRY_DUPLICATE",
+      "Every tracked project document path must appear exactly once."
+    );
+  }
+  const futurePaths = /* @__PURE__ */ new Set([
+    ...inspection.inventory.directories,
+    ...inspection.inventory.files.map((file) => file.path),
+    ...inspection.inventory.nestedRepositories,
+    ...input.scaffold_files.map((file) => file.path),
+    ...input.outcome_documents.map((document) => document.path)
+  ]);
+  const outcomes = new Map(input.outcome_documents.map((document) => [document.path, document]));
+  for (const entry of entries) {
+    const project = projects.get(entry.project_id);
+    if (project === void 0) {
+      throw new AdoptionError(
+        "PCP_DOCUMENTATION_PROJECT_UNKNOWN",
+        `Documentation entry references an unknown project: ${entry.project_id}`
+      );
+    }
+    if (!isProjectDocumentationPath(entry.path)) {
+      throw new AdoptionError(
+        "PCP_DOCUMENTATION_PATH_INVALID",
+        `Documentation registry path is not a supported project document: ${entry.path}`
+      );
+    }
+    if (entry.category === "outcome" && !isInsideDocumentationRoot(entry.path, project.documentation_root)) {
+      throw new AdoptionError(
+        "PCP_OUTCOME_DOCUMENT_PATH_INVALID",
+        `Outcome documentation must stay under ${project.documentation_root}: ${entry.path}`
+      );
+    }
+    const outcome = outcomes.get(entry.path);
+    if (outcome !== void 0 && (entry.category !== "outcome" || entry.project_id !== outcome.project_id || entry.status !== outcome.status)) {
+      throw new AdoptionError(
+        "PCP_DOCUMENTATION_REGISTRY_MISMATCH",
+        `New outcome document metadata does not match its registry entry: ${entry.path}`
+      );
+    }
+    for (const relatedPath of entry.related_paths) {
+      if (!futurePaths.has(relatedPath)) {
+        throw new AdoptionError(
+          "PCP_DOCUMENTATION_RELATED_PATH_MISSING",
+          `Documentation entry references an unavailable project path: ${relatedPath}`
+        );
+      }
+    }
+  }
+  if (!completeCoverage) return;
+  const expected = finalDocumentationPaths(input, inspection);
+  const actual = [...entryPaths].sort(comparePortablePaths);
+  if (canonicalJson(actual) !== canonicalJson(expected)) {
+    const expectedSet = new Set(expected);
+    const actualSet = new Set(actual);
+    const missing = expected.filter((candidatePath) => !actualSet.has(candidatePath));
+    const stale = actual.filter((candidatePath) => !expectedSet.has(candidatePath));
+    throw new AdoptionError(
+      "PCP_DOCUMENTATION_REGISTRY_INCOMPLETE",
+      `Documentation registry must cover every surviving project document. Missing: ${missing.join(", ") || "none"}. Stale: ${stale.join(", ") || "none"}.`
+    );
   }
 }
 function validateProjectInput(input, inspection) {
@@ -24586,7 +25214,7 @@ function validateProjectInput(input, inspection) {
     throw new AdoptionError("PCP_ADOPTION_INPUT_INVALID", "Scaffold paths must be unique.");
   }
   for (const scaffold of input.scaffold_files) {
-    const normalized = path12.posix.normalize(scaffold.path);
+    const normalized = path13.posix.normalize(scaffold.path);
     if (scaffold.path === "." || normalized !== scaffold.path || scaffold.path.endsWith("/") || scaffold.path.startsWith(".pcp/")) {
       throw new AdoptionError("PCP_ADOPTION_PATH_UNSAFE", `Unsafe scaffold path: ${scaffold.path}`);
     }
@@ -24619,10 +25247,25 @@ ${frontmatter}
 ${body}
 `, "utf8");
 }
+function renderOutcomeDocument(document) {
+  return Buffer.from(`${normalizeText(document.body).trim()}
+`, "utf8");
+}
+function addOutcomeDocuments(content, input) {
+  for (const document of input.outcome_documents) {
+    if (content.has(document.path)) {
+      throw new AdoptionError(
+        "PCP_ADOPTION_PATH_BOUNDARY",
+        `Outcome document path is reserved by another planned artifact: ${document.path}`
+      );
+    }
+    content.set(document.path, renderOutcomeDocument(document));
+  }
+}
 async function writeStageFiles(root, files) {
   for (const [relativePath, content] of files) {
-    const target = path12.join(root, ...relativePath.split("/"));
-    await mkdir2(path12.dirname(target), { recursive: true });
+    const target = path13.join(root, ...relativePath.split("/"));
+    await mkdir2(path13.dirname(target), { recursive: true });
     await writeFile3(target, content, { flag: "wx" });
   }
 }
@@ -24630,9 +25273,9 @@ async function collectStageFiles(directory, stageRoot, result) {
   const entries = await readdir3(directory, { withFileTypes: true });
   entries.sort((left, right) => comparePortablePaths(left.name, right.name));
   for (const entry of entries) {
-    const target = path12.join(directory, entry.name);
+    const target = path13.join(directory, entry.name);
     const metadata = await lstat6(target);
-    const relativePath = toPortablePath(path12.relative(stageRoot, target));
+    const relativePath = toPortablePath(path13.relative(stageRoot, target));
     if (metadata.isSymbolicLink()) {
       throw new AdoptionError(
         "PCP_ADOPTION_STAGE_INVALID",
@@ -24650,7 +25293,7 @@ function yamlBuffer(value) {
   return Buffer.from(stringify3(value, { lineWidth: 0, sortMapEntries: true }), "utf8");
 }
 async function stageCanonicalLayer(root, inspection, input, adapters = []) {
-  const stageRoot = await mkdtemp2(path12.join(tmpdir2(), "pcp-adoption-preview-"));
+  const stageRoot = await mkdtemp2(path13.join(tmpdir2(), "pcp-adoption-preview-"));
   try {
     const release = await loadReleaseTemplateFiles(input.capabilities);
     const template = new Map(release.files);
@@ -24662,7 +25305,7 @@ async function stageCanonicalLayer(root, inspection, input, adapters = []) {
         (record) => record.source_path === rootPath && record.source_kind === "file"
       );
       if (coverageRecord !== void 0 && coverageRecord.disposition !== "project-owned") continue;
-      const existing = await readFile10(path12.join(root, ...rootPath.split("/")));
+      const existing = await readFile10(path13.join(root, ...rootPath.split("/")));
       if (sha256(existing) !== inventoried.sha256) {
         throw new AdoptionError(
           "PCP_SOURCE_CHANGED",
@@ -24684,13 +25327,11 @@ async function stageCanonicalLayer(root, inspection, input, adapters = []) {
     template.set(manifestPath, yamlBuffer(manifest2));
     template.set(".pcp/state/project.yaml", yamlBuffer(input.project));
     template.set(".pcp/state/projects.yaml", yamlBuffer(input.projects));
+    template.set(".pcp/state/documentation.yaml", yamlBuffer(input.documentation));
     template.set(".pcp/state/workstreams.yaml", yamlBuffer(input.workstreams));
     template.set(".pcp/state/vcs-policy.yaml", yamlBuffer(input.vcs_policy));
     for (const document of input.documents) {
       template.set(`.pcp/${document.path}`, renderDocument(document, input.baseline_at));
-    }
-    for (const [indexPath, content] of renderProjectDocumentIndexes(input)) {
-      template.set(indexPath, content);
     }
     for (const adapter of adapters) {
       if (template.has(adapter.manifest.target_path)) {
@@ -24709,7 +25350,10 @@ async function stageCanonicalLayer(root, inspection, input, adapters = []) {
         `Unable to render staged canonical views: ${rendering.diagnostics.map((item) => item.message).join("; ")}`
       );
     }
-    const validation = await validateCanonicalLayer(stageRoot, { clean_genesis: true });
+    const validation = await validateCanonicalLayer(stageRoot, {
+      clean_genesis: true,
+      documentation_inventory: "skip"
+    });
     if (!validation.valid) {
       throw new AdoptionError(
         "PCP_ADOPTION_STAGE_INVALID",
@@ -24726,10 +25370,10 @@ async function stageCanonicalLayer(root, inspection, input, adapters = []) {
 }
 function parentDirectories(relativePath) {
   const result = [];
-  let parent = path12.posix.dirname(relativePath);
+  let parent = path13.posix.dirname(relativePath);
   while (parent !== ".") {
     result.push(parent);
-    parent = path12.posix.dirname(parent);
+    parent = path13.posix.dirname(parent);
   }
   return result;
 }
@@ -24865,10 +25509,10 @@ async function assertExternalRewritePathHasNoSymlink(root, target) {
     if (metadata?.isSymbolicLink() === true) {
       throw new AdoptionError(
         "PCP_ADOPTION_PATH_BOUNDARY",
-        `External rewrite crosses a symbolic-link boundary: ${toPortablePath(path12.relative(root, target))}`
+        `External rewrite crosses a symbolic-link boundary: ${toPortablePath(path13.relative(root, target))}`
       );
     }
-    current = path12.dirname(current);
+    current = path13.dirname(current);
   }
 }
 async function prepareExternalRewrites(root, inspection, input, reservedPaths) {
@@ -24925,7 +25569,7 @@ async function prepareExternalRewrites(root, inspection, input, reservedPaths) {
         `External rewrite target is ignored by candidate policy: ${rewrite.path}`
       );
     }
-    const target = path12.resolve(root, ...rewrite.path.split("/"));
+    const target = path13.resolve(root, ...rewrite.path.split("/"));
     if (!isInside4(root, target) || target === root) {
       throw new AdoptionError(
         "PCP_ADOPTION_PATH_UNSAFE",
@@ -25220,10 +25864,12 @@ async function buildStateCTranslationPlan(root, inspection, input) {
   const catalog = await discoverForeignCoverage(root, inspection, input.foreign_roots);
   const validation = validateForeignCoverage(catalog, input.coverage);
   if (!validation.valid) throw stateCCoverageFailure(validation.diagnostics);
+  validateDocumentationRegistry(input, inspection, false);
   assertSupportedStateCAdapters(input);
   const adapters = renderPlatformAdapters();
   assertGeneratedPlatformAdapters(adapters);
-  const content = await stageCanonicalLayer(root, inspection, input, adapters);
+  const content = new Map(await stageCanonicalLayer(root, inspection, input, adapters));
+  addOutcomeDocuments(content, input);
   validateStateCCoverageTargets(input, content);
   const removalPaths = stateCRemovalPaths(input);
   const relocations = stateCRelocations(input);
@@ -25249,6 +25895,7 @@ async function buildStateCTranslationPlan(root, inspection, input) {
     input.persistence,
     removalPaths
   );
+  validateDocumentationRegistry(input, inspection, true);
   const consumedFiles = /* @__PURE__ */ new Set([
     ...removalPaths,
     ...relocations.map((relocation) => relocation.source_path)
@@ -25282,6 +25929,7 @@ async function buildStateCTranslationPlan(root, inspection, input) {
       "path-boundaries",
       "platform-adapters",
       "preimages",
+      "project-documentation-registry",
       "rollback",
       "semantic-input"
     ]
@@ -25317,6 +25965,7 @@ async function buildStateCTranslationPlan(root, inspection, input) {
 async function previewScopedStateCCoverage(root, inspection, input) {
   validateDocumentSet(input, inspection);
   validateProjectInput(input, inspection);
+  validateDocumentationRegistry(input, inspection, false);
   const catalog = await discoverForeignCoverage(root, inspection, input.foreign_roots);
   return {
     schema_version: ADOPTION_SCHEMA_VERSION,
@@ -25343,6 +25992,7 @@ async function buildPlanMaterial(root, inspection, input) {
   }
   validateDocumentSet(input, inspection);
   validateProjectInput(input, inspection);
+  validateDocumentationRegistry(input, inspection, false);
   if (input.persistence === "local" && !await isMutationDirectoryIgnored(root, ".pcp")) {
     throw new AdoptionError(
       "PCP_LOCAL_PERSISTENCE_NOT_IGNORED",
@@ -25352,6 +26002,7 @@ async function buildPlanMaterial(root, inspection, input) {
   const adapters = renderPlatformAdapters();
   assertGeneratedPlatformAdapters(adapters);
   const content = new Map(await stageCanonicalLayer(root, inspection, input, adapters));
+  addOutcomeDocuments(content, input);
   for (const scaffold of input.scaffold_files) {
     if (content.has(scaffold.path)) {
       throw new AdoptionError(
@@ -25362,6 +26013,7 @@ async function buildPlanMaterial(root, inspection, input) {
     content.set(scaffold.path, Buffer.from(normalizeText(scaffold.content), "utf8"));
   }
   await assertContentTargetsSafe(root, content, inspection, input.persistence);
+  validateDocumentationRegistry(input, inspection, true);
   const existingDirectories = new Set(inspection.inventory.directories);
   const requiredDirectories = /* @__PURE__ */ new Set();
   for (const target of content.keys()) {
@@ -25386,6 +26038,7 @@ async function buildPlanMaterial(root, inspection, input) {
       "desired-hashes",
       "path-boundaries",
       "platform-adapters",
+      "project-documentation-registry",
       "rollback",
       "semantic-input"
     ]
@@ -25549,7 +26202,7 @@ async function verifyAdoptionSourceStability(root, original, plan, contentByPath
     );
   }
   for (const [portablePath2, fingerprint] of excludedReplacements) {
-    const bytes = await readFile11(path13.join(root, ...portablePath2.split("/")));
+    const bytes = await readFile11(path14.join(root, ...portablePath2.split("/")));
     if (bytes.length !== fingerprint.size || sha256(bytes) !== fingerprint.sha256) {
       throw new AdoptionError(
         "PCP_SOURCE_CHANGED",
@@ -25667,7 +26320,7 @@ import {
   utimes as utimes2
 } from "node:fs/promises";
 import { tmpdir as tmpdir5 } from "node:os";
-import path16 from "node:path";
+import path17 from "node:path";
 
 // src/application/record-event.ts
 import { createHash as createHash9, randomUUID as randomUUID2 } from "node:crypto";
@@ -25684,13 +26337,13 @@ import {
   writeFile as writeFile4
 } from "node:fs/promises";
 import { tmpdir as tmpdir4 } from "node:os";
-import path15 from "node:path";
+import path16 from "node:path";
 
 // src/infrastructure/continuity-lock.ts
 import { createHash as createHash8, randomUUID } from "node:crypto";
 import { mkdir as mkdir3, open as open2, readFile as readFile12, stat as stat3, unlink as unlink2 } from "node:fs/promises";
 import { tmpdir as tmpdir3 } from "node:os";
-import path14 from "node:path";
+import path15 from "node:path";
 import { setTimeout as delay } from "node:timers/promises";
 var LOCK_WAIT_MS = 3e4;
 var STALE_LOCK_MS = 5 * 6e4;
@@ -25701,7 +26354,7 @@ var ContinuityLockError = class extends Error {
   }
 };
 function lockDigest(root) {
-  const resolved = path14.resolve(root);
+  const resolved = path15.resolve(root);
   const portableRoot = process.platform === "win32" ? resolved.toLowerCase() : resolved;
   return createHash8("sha256").update(portableRoot).digest("hex");
 }
@@ -25735,9 +26388,9 @@ async function removeStaleLock(lockPath) {
   }
 }
 async function withContinuityLock(projectRoot, operation) {
-  const lockRoot = path14.join(tmpdir3(), "pcp-continuity-locks");
+  const lockRoot = path15.join(tmpdir3(), "pcp-continuity-locks");
   await mkdir3(lockRoot, { recursive: true });
-  const lockPath = path14.join(lockRoot, `${lockDigest(projectRoot)}.lock`);
+  const lockPath = path15.join(lockRoot, `${lockDigest(projectRoot)}.lock`);
   const token = randomUUID();
   const lockContents = `${JSON.stringify({ token, pid: process.pid, created_at: (/* @__PURE__ */ new Date()).toISOString() })}
 `;
@@ -25790,14 +26443,14 @@ var ACTIVE_EVENT_LIMIT = 64;
 var ARCHIVE_BATCH_SIZE = 32;
 var MAXIMUM_EVENT_INPUT_BYTES = 64 * 1024;
 function isInside5(root, candidate) {
-  const relative = path15.relative(root, candidate);
-  return relative === "" || !relative.startsWith(`..${path15.sep}`) && relative !== ".." && !path15.isAbsolute(relative);
+  const relative = path16.relative(root, candidate);
+  return relative === "" || !relative.startsWith(`..${path16.sep}`) && relative !== ".." && !path16.isAbsolute(relative);
 }
 function digest(value) {
   return createHash9("sha256").update(value).digest("hex");
 }
 function rootDigest(root) {
-  const resolved = path15.resolve(root);
+  const resolved = path16.resolve(root);
   return digest(process.platform === "win32" ? resolved.toLowerCase() : resolved);
 }
 function validationSummary(report) {
@@ -25816,7 +26469,7 @@ function inputFailure(message) {
   return new RecordingError("PCP_RECORD_INPUT_INVALID", message);
 }
 async function loadEventInput(inputPath, projectRoot) {
-  const resolvedInput = path15.resolve(inputPath);
+  const resolvedInput = path16.resolve(inputPath);
   if (isInside5(projectRoot, resolvedInput)) {
     throw new RecordingError(
       "PCP_RECORD_INPUT_INSIDE_PROJECT",
@@ -25892,11 +26545,11 @@ async function listYamlNames(directory) {
   return entries.filter((entry) => entry.isFile() && entry.name.endsWith(".yaml")).map((entry) => entry.name).sort((left, right) => left.localeCompare(right));
 }
 async function loadActiveEvents(root) {
-  const directory = path15.join(root, ...ACTIVE_EVENT_DIRECTORY.split("/"));
+  const directory = path16.join(root, ...ACTIVE_EVENT_DIRECTORY.split("/"));
   const names = await listYamlNames(directory);
   const events = [];
   for (const name of names) {
-    const absolutePath = path15.join(directory, name);
+    const absolutePath = path16.join(directory, name);
     const contents = await readFile13(absolutePath);
     events.push({
       event_id: name.slice(0, -".yaml".length),
@@ -25909,23 +26562,23 @@ async function loadActiveEvents(root) {
   return events;
 }
 async function loadArchiveIds(root) {
-  const directory = path15.join(root, ...ARCHIVE_EVENT_DIRECTORY.split("/"));
+  const directory = path16.join(root, ...ARCHIVE_EVENT_DIRECTORY.split("/"));
   return (await listYamlNames(directory)).map((name) => name.slice(0, -".yaml".length));
 }
 async function loadSemanticRecords(root) {
-  const actorRoot = path15.join(root, ...ACTOR_DIRECTORY.split("/"));
+  const actorRoot = path16.join(root, ...ACTOR_DIRECTORY.split("/"));
   const actorNames = await listYamlNames(actorRoot);
   const actors = await Promise.all(
     actorNames.map(async (name) => ({
       path: `continuity/actors/${name}`,
-      value: parse(await readFile13(path15.join(actorRoot, name), "utf8"))
+      value: parse(await readFile13(path16.join(actorRoot, name), "utf8"))
     }))
   );
   return {
     actors,
     workstreams: {
       path: "state/workstreams.yaml",
-      value: parse(await readFile13(path15.join(root, ...WORKSTREAM_PATH.split("/")), "utf8"))
+      value: parse(await readFile13(path16.join(root, ...WORKSTREAM_PATH.split("/")), "utf8"))
     }
   };
 }
@@ -26021,10 +26674,10 @@ async function executeEventTransaction(root, event, activeEvents, archiveIds, op
       `Cannot rotate ${archiveCollision.event_id} because that identity already exists in the archive.`
     );
   }
-  const eventRoot = path15.join(root, ...ACTIVE_EVENT_DIRECTORY.split("/"));
-  const archiveRoot = path15.join(root, ...ARCHIVE_EVENT_DIRECTORY.split("/"));
-  const eventPath = path15.join(eventRoot, `${event.event_id}.yaml`);
-  const temporaryEventPath = path15.join(eventRoot, `.${event.event_id}.${randomUUID2()}.tmp`);
+  const eventRoot = path16.join(root, ...ACTIVE_EVENT_DIRECTORY.split("/"));
+  const archiveRoot = path16.join(root, ...ARCHIVE_EVENT_DIRECTORY.split("/"));
+  const eventPath = path16.join(eventRoot, `${event.event_id}.yaml`);
+  const temporaryEventPath = path16.join(eventRoot, `.${event.event_id}.${randomUUID2()}.tmp`);
   const moved = [];
   let eventInstalled = false;
   let operation = 0;
@@ -26032,15 +26685,15 @@ async function executeEventTransaction(root, event, activeEvents, archiveIds, op
   let walPath;
   try {
     recoveryRoot = await mkdtemp3(
-      path15.join(tmpdir4(), `pcp-event-transaction-${rootDigest(root).slice(0, 12)}-`)
+      path16.join(tmpdir4(), `pcp-event-transaction-${rootDigest(root).slice(0, 12)}-`)
     );
-    walPath = path15.join(recoveryRoot, "operations.jsonl");
+    walPath = path16.join(recoveryRoot, "operations.jsonl");
     await writeFile4(walPath, "", { flag: "wx" });
     await writeDurableFile(temporaryEventPath, stringify3(event));
     for (const source of rotation) {
       operation += 1;
       await appendWal2(walPath, operation, "archive", source.event_id, "prepared");
-      await rename2(source.absolute_path, path15.join(archiveRoot, `${source.event_id}.yaml`));
+      await rename2(source.absolute_path, path16.join(archiveRoot, `${source.event_id}.yaml`));
       moved.push(source);
       await appendWal2(walPath, operation, "archive", source.event_id, "applied");
       injectedFailure(operation, options);
@@ -26107,7 +26760,7 @@ async function executeEventTransaction(root, event, activeEvents, archiveIds, op
     });
     for (const source of [...moved].reverse()) {
       try {
-        await rename2(path15.join(archiveRoot, `${source.event_id}.yaml`), source.absolute_path);
+        await rename2(path16.join(archiveRoot, `${source.event_id}.yaml`), source.absolute_path);
         if (walPath !== void 0) {
           await appendWal2(
             walPath,
@@ -26191,7 +26844,7 @@ async function recordEventUnderLock(root, input, options) {
   return executeEventTransaction(root, event, activeEvents, archiveIds, options);
 }
 async function recordEvent(projectRoot, inputPath, options = {}) {
-  const root = path15.resolve(projectRoot);
+  const root = path16.resolve(projectRoot);
   try {
     const input = await loadEventInput(inputPath, root);
     return await withContinuityLock(root, () => recordEventUnderLock(root, input, options));
@@ -26387,6 +27040,7 @@ var STATUS_VIEW_PATH = ".pcp/views/10-status.generated.md";
 var STATUS_SOURCES = [
   "state/project.yaml",
   "state/projects.yaml",
+  "state/documentation.yaml",
   "state/workstreams.yaml",
   "state/vcs-policy.yaml"
 ];
@@ -26395,12 +27049,12 @@ function sha2562(value) {
   return createHash10("sha256").update(value).digest("hex");
 }
 function rootDigest2(root) {
-  const resolved = path16.resolve(root);
+  const resolved = path17.resolve(root);
   return sha2562(process.platform === "win32" ? resolved.toLowerCase() : resolved);
 }
 function isInside6(root, candidate) {
-  const relative = path16.relative(root, candidate);
-  return relative === "" || !relative.startsWith(`..${path16.sep}`) && relative !== ".." && !path16.isAbsolute(relative);
+  const relative = path17.relative(root, candidate);
+  return relative === "" || !relative.startsWith(`..${path17.sep}`) && relative !== ".." && !path17.isAbsolute(relative);
 }
 function layerSummary(report) {
   return report.diagnostics.slice(0, 4).map((diagnostic2) => `${diagnostic2.path}: ${diagnostic2.message}`).join("; ");
@@ -26418,7 +27072,7 @@ function inputFailure2(message) {
   return new WorkstreamError("PCP_WORKSTREAM_INPUT_INVALID", message);
 }
 async function loadWorkstreamInput(inputPath, projectRoot, expectedOperation) {
-  const resolvedInput = path16.resolve(inputPath);
+  const resolvedInput = path17.resolve(inputPath);
   if (isInside6(projectRoot, resolvedInput)) {
     throw new WorkstreamError(
       "PCP_WORKSTREAM_INPUT_INSIDE_PROJECT",
@@ -26539,11 +27193,11 @@ function parseSource(contents, relativePath) {
   return value;
 }
 async function desiredStatusView(root, workstreamContents, registry) {
-  const layerRoot = path16.join(root, ".pcp");
+  const layerRoot = path17.join(root, ".pcp");
   const contents = await Promise.all(
     STATUS_SOURCES.map(async (relativePath) => ({
       path: relativePath,
-      contents: relativePath === "state/workstreams.yaml" ? workstreamContents : await readFile14(path16.join(layerRoot, ...relativePath.split("/")), "utf8")
+      contents: relativePath === "state/workstreams.yaml" ? workstreamContents : await readFile14(path17.join(layerRoot, ...relativePath.split("/")), "utf8")
     }))
   );
   const values = /* @__PURE__ */ new Map();
@@ -26557,7 +27211,7 @@ async function desiredStatusView(root, workstreamContents, registry) {
   return Buffer.from(renderCanonicalStatusView(values, sourceDigest), "utf8");
 }
 async function loadRegistry(root) {
-  const absolutePath = path16.join(root, ...WORKSTREAM_PATH2.split("/"));
+  const absolutePath = path17.join(root, ...WORKSTREAM_PATH2.split("/"));
   const metadata = await lstat8(absolutePath).catch((error2) => {
     throw new WorkstreamError(
       "PCP_WORKSTREAM_REGISTRY_UNREADABLE",
@@ -26629,9 +27283,9 @@ async function replaceWithTemporary(target, temporary) {
   }
 }
 async function installBytes(target, bytes) {
-  const temporary = path16.join(
-    path16.dirname(target),
-    `.${path16.basename(target)}.${randomUUID3()}.tmp`
+  const temporary = path17.join(
+    path17.dirname(target),
+    `.${path17.basename(target)}.${randomUUID3()}.tmp`
   );
   try {
     await writeDurableExclusive(temporary, bytes);
@@ -26673,7 +27327,7 @@ function injectedFailure2(operation, options) {
 async function executeMutation(root, loaded, input, nextRegistry, workstreamId, options) {
   const nextBytes = Buffer.from(stringify3(nextRegistry), "utf8");
   const nextDigest = sha2562(nextBytes);
-  const statusViewPath = path16.join(root, ...STATUS_VIEW_PATH.split("/"));
+  const statusViewPath = path17.join(root, ...STATUS_VIEW_PATH.split("/"));
   const [metadata, viewMetadata, viewBytes, nextViewBytes] = await Promise.all([
     stat4(loaded.absolute_path),
     stat4(statusViewPath),
@@ -26695,12 +27349,12 @@ async function executeMutation(root, loaded, input, nextRegistry, workstreamId, 
   let statusViewInstalled = false;
   try {
     recoveryRoot = await mkdtemp4(
-      path16.join(tmpdir5(), `pcp-workstream-transaction-${rootDigest2(root).slice(0, 12)}-`)
+      path17.join(tmpdir5(), `pcp-workstream-transaction-${rootDigest2(root).slice(0, 12)}-`)
     );
-    await writeDurableExclusive(path16.join(recoveryRoot, "workstreams.preimage"), loaded.bytes);
-    await writeDurableExclusive(path16.join(recoveryRoot, "status-view.preimage"), viewBytes);
+    await writeDurableExclusive(path17.join(recoveryRoot, "workstreams.preimage"), loaded.bytes);
+    await writeDurableExclusive(path17.join(recoveryRoot, "status-view.preimage"), viewBytes);
     await writeDurableExclusive(
-      path16.join(recoveryRoot, "transaction.json"),
+      path17.join(recoveryRoot, "transaction.json"),
       Buffer.from(
         `${JSON.stringify({
           schema_version: 1,
@@ -26837,7 +27491,7 @@ async function underLock(root, operation) {
   }
 }
 async function validateWorkstreamRegistry(projectRoot, workstreamId) {
-  const root = path16.resolve(projectRoot);
+  const root = path17.resolve(projectRoot);
   return underLock(root, async () => {
     await assertValidOperationalLayer2(root);
     const loaded = await loadRegistry(root);
@@ -26864,7 +27518,7 @@ async function validateWorkstreamRegistry(projectRoot, workstreamId) {
   });
 }
 async function mutateWorkstream(projectRoot, operation, inputPath, options = {}) {
-  const root = path16.resolve(projectRoot);
+  const root = path17.resolve(projectRoot);
   const input = await loadWorkstreamInput(inputPath, root, operation);
   return underLock(root, async () => {
     await assertValidOperationalLayer2(root);
@@ -26897,7 +27551,7 @@ async function mutateWorkstream(projectRoot, operation, inputPath, options = {})
 
 // src/application/register-actor.ts
 import { mkdir as mkdir4, open as open5, readFile as readFile15, readdir as readdir5, rm as rm5, unlink as unlink5 } from "node:fs/promises";
-import path17 from "node:path";
+import path18 from "node:path";
 
 // src/domain/registration.ts
 var ACTOR_TYPES = ["agent", "human"];
@@ -27006,7 +27660,7 @@ function actorIdentityMatches(profile, identity) {
 var ACTOR_DIRECTORY2 = ".pcp/continuity/actors";
 var CACHE_DIRECTORY = ".pcp/runtime/actors";
 function portablePath(value) {
-  return value.split(path17.sep).join("/");
+  return value.split(path18.sep).join("/");
 }
 function profileRelativePath(actorId) {
   return `${ACTOR_DIRECTORY2}/${actorId}.yaml`;
@@ -27045,13 +27699,13 @@ function actorProfile(value, relativePath) {
   return value;
 }
 async function loadActorProfiles(projectRoot) {
-  const actorRoot = path17.join(projectRoot, ...ACTOR_DIRECTORY2.split("/"));
+  const actorRoot = path18.join(projectRoot, ...ACTOR_DIRECTORY2.split("/"));
   const entries = await readdir5(actorRoot, { withFileTypes: true });
   const profiles = [];
   for (const entry of entries.sort((left, right) => left.name.localeCompare(right.name))) {
     if (!entry.isFile() || !entry.name.endsWith(".yaml")) continue;
     const relativePath = `${ACTOR_DIRECTORY2}/${entry.name}`;
-    const contents = await readFile15(path17.join(actorRoot, entry.name), "utf8");
+    const contents = await readFile15(path18.join(actorRoot, entry.name), "utf8");
     let value;
     try {
       value = parse(contents);
@@ -27179,7 +27833,7 @@ async function withActorRegistrationLock(root, operation) {
   }
 }
 async function registerActor(projectRoot, input) {
-  const root = path17.resolve(projectRoot);
+  const root = path18.resolve(projectRoot);
   const identity = normalizeActorIdentity(input);
   const executionId = createExecutionId();
   return withActorRegistrationLock(root, async () => {
@@ -27190,7 +27844,7 @@ async function registerActor(projectRoot, input) {
       await assertValidCanonicalLayer(root);
       const profiles = await loadActorProfiles(root);
       const profilesById = new Map(profiles.map((profile) => [profile.actor_id, profile]));
-      const cachePath = path17.join(root, ...cacheRelativePath(identity).split("/"));
+      const cachePath = path18.join(root, ...cacheRelativePath(identity).split("/"));
       const cachedContents = await readOptionalText(cachePath);
       let selected;
       if (cachedContents !== void 0) {
@@ -27256,7 +27910,7 @@ async function registerActor(projectRoot, input) {
             "The generated actor profile did not satisfy the release schema."
           );
         }
-        const newProfilePath = path17.join(
+        const newProfilePath = path18.join(
           root,
           ...profileRelativePath(selected.actor_id).split("/")
         );
@@ -27268,7 +27922,7 @@ async function registerActor(projectRoot, input) {
       }
       let cacheCreated = false;
       if (cachedContents === void 0) {
-        const cacheDirectory = path17.dirname(cachePath);
+        const cacheDirectory = path18.dirname(cachePath);
         createdRuntimeRoot = await mkdir4(cacheDirectory, { recursive: true });
         await createExclusiveFile(
           cachePath,
@@ -27324,7 +27978,7 @@ async function registerActor(projectRoot, input) {
 // src/application/repair-project.ts
 import { timingSafeEqual as timingSafeEqual2 } from "node:crypto";
 import { lstat as lstat9, readFile as readFile16 } from "node:fs/promises";
-import path18 from "node:path";
+import path19 from "node:path";
 
 // src/domain/repair.ts
 var RepairError = class extends Error {
@@ -27355,14 +28009,14 @@ async function metadataOrUndefined3(target) {
   }
 }
 function portableParent(portablePath2) {
-  const parent = path18.posix.dirname(portablePath2);
+  const parent = path19.posix.dirname(portablePath2);
   return parent === "." ? void 0 : parent;
 }
 async function missingParents(root, portablePath2) {
   const missing = [];
   let parent = portableParent(portablePath2);
   while (parent !== void 0) {
-    const absolute = path18.join(root, ...parent.split("/"));
+    const absolute = path19.join(root, ...parent.split("/"));
     const metadata = await metadataOrUndefined3(absolute);
     if (metadata === void 0) {
       missing.push(parent);
@@ -27436,7 +28090,7 @@ async function planRepairMaterial(candidate = ".") {
   const plannedDirectories = /* @__PURE__ */ new Set();
   for (const adapter of adapters) {
     const targetPath = adapter.manifest.target_path;
-    const absolute = path18.join(root, ...targetPath.split("/"));
+    const absolute = path19.join(root, ...targetPath.split("/"));
     const metadata = await metadataOrUndefined3(absolute);
     if (metadata === void 0) {
       for (const directory of await missingParents(root, targetPath)) {
@@ -27585,7 +28239,7 @@ async function repairProject(candidate = ".", options = {}) {
 // src/application/synchronize-project.ts
 import { randomUUID as randomUUID4 } from "node:crypto";
 import { lstat as lstat10, mkdir as mkdir5, open as open6, readFile as readFile17, readdir as readdir6, rename as rename4, unlink as unlink6 } from "node:fs/promises";
-import path19 from "node:path";
+import path20 from "node:path";
 
 // src/domain/synchronization.ts
 var SynchronizationError = class extends Error {
@@ -27617,7 +28271,7 @@ function syncError(code2, message) {
   return new SynchronizationError(code2, message);
 }
 async function readRegularFile(layerRoot, relativePath) {
-  const target = path19.join(layerRoot, ...relativePath.split("/"));
+  const target = path20.join(layerRoot, ...relativePath.split("/"));
   let metadata;
   try {
     metadata = await lstat10(target);
@@ -27682,7 +28336,7 @@ async function loadCheckpoint(layerRoot, actorId, executionId) {
     throw syncError("PCP_SYNC_EXECUTION_ID_INVALID", "Execution ID must be a 26-character ULID.");
   }
   const relativePath = checkpointRelativePath(executionId);
-  const target = path19.join(layerRoot, ...relativePath.split("/"));
+  const target = path20.join(layerRoot, ...relativePath.split("/"));
   let metadata;
   try {
     metadata = await lstat10(target);
@@ -27708,7 +28362,7 @@ async function loadCheckpoint(layerRoot, actorId, executionId) {
 }
 async function listActiveEventIds(layerRoot) {
   const relativePath = ACTIVE_EVENT_DIRECTORY2;
-  const target = path19.join(layerRoot, ...relativePath.split("/"));
+  const target = path20.join(layerRoot, ...relativePath.split("/"));
   let entries;
   try {
     const metadata = await lstat10(target);
@@ -27750,7 +28404,7 @@ async function listActiveEventIds(layerRoot) {
   return ids;
 }
 async function archiveHasEvents(layerRoot) {
-  const target = path19.join(layerRoot, ...ARCHIVE_EVENT_DIRECTORY2.split("/"));
+  const target = path20.join(layerRoot, ...ARCHIVE_EVENT_DIRECTORY2.split("/"));
   let entries;
   try {
     const metadata = await lstat10(target);
@@ -27921,8 +28575,8 @@ async function writeCheckpoint(layerRoot, checkpoint, existing) {
     throw syncError("PCP_SYNC_CHECKPOINT_INVALID", "Generated sync checkpoint is invalid.");
   }
   const relativePath = checkpointRelativePath(checkpoint.execution_id);
-  const directory = path19.join(layerRoot, ...CHECKPOINT_DIRECTORY.split("/"));
-  const target = path19.join(layerRoot, ...relativePath.split("/"));
+  const directory = path20.join(layerRoot, ...CHECKPOINT_DIRECTORY.split("/"));
+  const target = path20.join(layerRoot, ...relativePath.split("/"));
   await mkdir5(directory, { recursive: true });
   const current = await fileContentsOrUndefined(target);
   if (existing === void 0 ? current !== void 0 : current !== existing.contents) {
@@ -27932,7 +28586,7 @@ async function writeCheckpoint(layerRoot, checkpoint, existing) {
     );
   }
   const contents = stringify3(checkpoint);
-  const temporary = path19.join(directory, `.${checkpoint.execution_id}.${randomUUID4()}.tmp`);
+  const temporary = path20.join(directory, `.${checkpoint.execution_id}.${randomUUID4()}.tmp`);
   const previous = `${temporary}.previous`;
   await writeDurableFile2(temporary, contents);
   let previousHeld = false;
@@ -27980,7 +28634,7 @@ async function writeCheckpoint(layerRoot, checkpoint, existing) {
   }
 }
 async function synchronizeLocked(root, input) {
-  const layerRoot = path19.join(root, ".pcp");
+  const layerRoot = path20.join(root, ".pcp");
   const preview = await previewSync(layerRoot, input);
   if (input.acknowledge === void 0) return preview.result;
   if (input.acknowledge !== preview.result.sync_digest) {
@@ -28023,7 +28677,7 @@ async function synchronizeLocked(root, input) {
   };
 }
 async function synchronizeProject(projectRoot, input) {
-  const root = path19.resolve(projectRoot);
+  const root = path20.resolve(projectRoot);
   try {
     return await withContinuityLock(root, () => synchronizeLocked(root, input));
   } catch (error2) {
@@ -28041,7 +28695,7 @@ async function synchronizeProject(projectRoot, input) {
 // src/application/upgrade-project.ts
 import { timingSafeEqual as timingSafeEqual3 } from "node:crypto";
 import { lstat as lstat11, readFile as readFile18, readdir as readdir7 } from "node:fs/promises";
-import path20 from "node:path";
+import path21 from "node:path";
 
 // src/domain/release.ts
 var PCP_NAME = "Persistent Context Protocol";
@@ -28119,14 +28773,14 @@ async function metadataOrUndefined4(target) {
   }
 }
 function portableParent2(portablePath2) {
-  const parent = path20.posix.dirname(portablePath2);
+  const parent = path21.posix.dirname(portablePath2);
   return parent === "." ? void 0 : parent;
 }
 async function missingParents2(root, portablePath2) {
   const missing = [];
   let parent = portableParent2(portablePath2);
   while (parent !== void 0) {
-    const metadata = await metadataOrUndefined4(path20.join(root, ...parent.split("/")));
+    const metadata = await metadataOrUndefined4(path21.join(root, ...parent.split("/")));
     if (metadata === void 0) missing.push(parent);
     else if (!metadata.isDirectory() || metadata.isSymbolicLink()) {
       throw new UpgradeError("PCP_UPGRADE_COLLISION", `Upgrade parent is unsafe: ${parent}`);
@@ -28139,9 +28793,9 @@ async function collectLayerFiles(directory, layerRoot, result) {
   const entries = await readdir7(directory, { withFileTypes: true });
   entries.sort((left, right) => comparePortablePaths(left.name, right.name));
   for (const entry of entries) {
-    const target = path20.join(directory, entry.name);
+    const target = path21.join(directory, entry.name);
     const metadata = await lstat11(target);
-    const relative = path20.relative(layerRoot, target).split(path20.sep).join("/");
+    const relative = path21.relative(layerRoot, target).split(path21.sep).join("/");
     if (metadata.isSymbolicLink()) {
       throw new UpgradeError(
         "PCP_UPGRADE_SYMLINK",
@@ -28159,7 +28813,7 @@ async function preservationSnapshot(root, inventory, targetedPaths, liveOwnershi
     if (!targetedPaths.has(file.path)) preserved.set(file.path, file.sha256);
   }
   const layerFiles = [];
-  await collectLayerFiles(path20.join(root, ".pcp"), path20.join(root, ".pcp"), layerFiles);
+  await collectLayerFiles(path21.join(root, ".pcp"), path21.join(root, ".pcp"), layerFiles);
   for (const file of layerFiles) {
     if (targetedPaths.has(file.path)) continue;
     const relative = file.path.slice(".pcp/".length);
@@ -28177,7 +28831,7 @@ function preservationDigest(preserved) {
 }
 async function verifyPreserved(root, preserved) {
   for (const [portablePath2, digest2] of preserved) {
-    const target = path20.join(root, ...portablePath2.split("/"));
+    const target = path21.join(root, ...portablePath2.split("/"));
     const metadata = await metadataOrUndefined4(target);
     if (metadata === void 0 || !metadata.isFile() || metadata.isSymbolicLink()) {
       throw new UpgradeError(
@@ -28295,6 +28949,112 @@ function migrateLegacyWorkstreams(value) {
   }
   return migrated;
 }
+function recordValue(value, label) {
+  if (typeof value !== "object" || value === null || Array.isArray(value)) {
+    throw new UpgradeError("PCP_UPGRADE_LEGACY_STATE_INVALID", `${label} is not an object.`);
+  }
+  return value;
+}
+function stringValues(value) {
+  return Array.isArray(value) ? value.filter((item) => typeof item === "string") : [];
+}
+function isOpaqueNestedPath(candidatePath, inspection) {
+  return inspection.inventory.nestedRepositories.some(
+    (nestedRoot) => candidatePath === nestedRoot || candidatePath.startsWith(`${nestedRoot}/`)
+  );
+}
+function relatedDocumentationRoot(project, inspection) {
+  const artifactRoot = stringValues(project.artifact_roots).find((candidate) => candidate !== ".");
+  const prefix = artifactRoot === void 0 ? "" : `${artifactRoot}/`;
+  const candidates = [
+    "docs",
+    "documentation",
+    "doc",
+    "handbook",
+    "guides",
+    "research",
+    "specs"
+  ].map((candidate) => `${prefix}${candidate}`);
+  const existing = candidates.find(
+    (candidate) => inspection.inventory.directories.includes(candidate)
+  );
+  return existing === void 0 ? { root: `${prefix}docs`, source: "default" } : { root: existing, source: "existing" };
+}
+function migrateLegacyProjects(projectValue, registryValue, inspection) {
+  const project = {
+    ...recordValue(projectValue, "Legacy project state"),
+    documentation_root: inspection.documentation.recommended_root,
+    documentation_root_source: inspection.documentation.recommended_root_source
+  };
+  const registry = recordValue(registryValue, "Legacy project registry");
+  const projects = Array.isArray(registry.projects) ? registry.projects.map((value) => {
+    const related = recordValue(value, "Legacy related-project state");
+    const documentation2 = relatedDocumentationRoot(related, inspection);
+    return {
+      ...related,
+      documentation_root: documentation2.root,
+      documentation_root_source: documentation2.source
+    };
+  }) : [];
+  const primaryId = typeof project["project_id"] === "string" ? project["project_id"] : "project";
+  const documentPaths = new Set(inspection.documentation.document_paths);
+  const allProjects = [project, ...projects];
+  const initialOutcomeDocuments = /* @__PURE__ */ new Map();
+  for (const candidateProject of allProjects) {
+    if (candidateProject.documentation_root_source !== "default" || typeof candidateProject.documentation_root !== "string" || isOpaqueNestedPath(candidateProject.documentation_root, inspection)) {
+      continue;
+    }
+    const documentPath = `${candidateProject.documentation_root}/README.md`;
+    documentPaths.add(documentPath);
+    initialOutcomeDocuments.set(documentPath, {
+      path: documentPath,
+      content: Buffer.from(
+        "# Project documentation\n\nProject-outcome knowledge belongs in this directory. Register every project document and its maintenance cues in `.pcp/state/documentation.yaml`.\n",
+        "utf8"
+      )
+    });
+  }
+  const documentation = {
+    schema_version: 1,
+    documents: [...documentPaths].sort(comparePortablePaths).map((documentPath) => {
+      const owner = [...allProjects].filter(
+        (candidateProject) => typeof candidateProject.documentation_root === "string" && isInsideDocumentationRoot(documentPath, candidateProject.documentation_root)
+      ).sort(
+        (left, right) => String(right.documentation_root).length - String(left.documentation_root).length
+      )[0];
+      return {
+        path: documentPath,
+        project_id: owner !== void 0 && typeof owner.project_id === "string" ? owner.project_id : primaryId,
+        category: owner === void 0 ? "reference" : "outcome",
+        status: "living",
+        summary: `Tracks the migrated project document at ${documentPath}.`,
+        related_paths: []
+      };
+    })
+  };
+  const schemaRegistry = new SchemaRegistry();
+  for (const [schema4, value] of [
+    ["project", project],
+    ["project-registry", { ...registry, projects }],
+    ["documentation", documentation]
+  ]) {
+    const validation = schemaRegistry.validate(schema4, value);
+    if (!validation.valid) {
+      throw new UpgradeError(
+        "PCP_UPGRADE_LEGACY_STATE_INVALID",
+        `Legacy ${schema4} cannot be migrated: ${validation.diagnostics.map((item) => `${item.path} ${item.message}`).join("; ")}`
+      );
+    }
+  }
+  return {
+    project,
+    projects: { ...registry, projects },
+    documentation,
+    initialOutcomeDocuments: [...initialOutcomeDocuments.values()].sort(
+      (left, right) => comparePortablePaths(left.path, right.path)
+    )
+  };
+}
 function migrateLegacyTemplateIndex(contents) {
   const lines = normalizeText(contents).split("\n").filter(
     (line2) => !line2.includes("[40-workstream.md](40-workstream.md)") && !line2.includes("Concurrent Execution Blocks")
@@ -28312,7 +29072,7 @@ async function planUpgradeMaterial(candidate = ".") {
     );
   }
   const installedManifestValue = parse(
-    await readFile18(path20.join(root, ".pcp", "pcp.yaml"), "utf8")
+    await readFile18(path21.join(root, ".pcp", "pcp.yaml"), "utf8")
   );
   const installedVersion = typeof installedManifestValue === "object" && installedManifestValue !== null && !Array.isArray(installedManifestValue) && typeof installedManifestValue.protocol === "object" && installedManifestValue.protocol !== null ? installedManifestValue.protocol.version : void 0;
   const legacy01 = typeof installedVersion === "string" && installedVersion.startsWith("0.1.");
@@ -28381,10 +29141,26 @@ async function planUpgradeMaterial(candidate = ".") {
   desired.set(".pcp/pcp.yaml", yamlBuffer2(mergedManifest));
   const renderOverrides = /* @__PURE__ */ new Map();
   let migratedWorkstreams;
+  let migratedProject;
+  let migratedProjects;
+  let migratedDocumentation;
+  let initialOutcomeDocuments = [];
   if (legacy01) {
+    const migrated = migrateLegacyProjects(
+      parse(await readFile18(path21.join(root, ".pcp", "state", "project.yaml"), "utf8")),
+      parse(await readFile18(path21.join(root, ".pcp", "state", "projects.yaml"), "utf8")),
+      inspection
+    );
+    migratedProject = yamlBuffer2(migrated.project);
+    migratedProjects = yamlBuffer2(migrated.projects);
+    migratedDocumentation = yamlBuffer2(migrated.documentation);
+    initialOutcomeDocuments = migrated.initialOutcomeDocuments;
+    renderOverrides.set("state/project.yaml", migratedProject);
+    renderOverrides.set("state/projects.yaml", migratedProjects);
+    renderOverrides.set("state/documentation.yaml", migratedDocumentation);
     migratedWorkstreams = yamlBuffer2(
       migrateLegacyWorkstreams(
-        parse(await readFile18(path20.join(root, ".pcp", "state", "workstreams.yaml"), "utf8"))
+        parse(await readFile18(path21.join(root, ".pcp", "state", "workstreams.yaml"), "utf8"))
       )
     );
     renderOverrides.set("state/workstreams.yaml", migratedWorkstreams);
@@ -28398,12 +29174,50 @@ async function planUpgradeMaterial(candidate = ".") {
   }
   desired.set(".pcp/views/10-status.generated.md", Buffer.from(view.content, "utf8"));
   for (const adapter of adapters) desired.set(adapter.manifest.target_path, adapter.content);
+  for (const initialOutcomeDocument of initialOutcomeDocuments) {
+    const documentationRoot = path21.posix.dirname(initialOutcomeDocument.path);
+    if (await isMutationDirectoryIgnored(root, documentationRoot)) {
+      throw new UpgradeError(
+        "PCP_UPGRADE_DOCUMENTATION_ROOT_BLOCKED",
+        `The default documentation root is ignored by project policy: ${documentationRoot}`
+      );
+    }
+    desired.set(initialOutcomeDocument.path, initialOutcomeDocument.content);
+  }
   const contentByPath = /* @__PURE__ */ new Map();
   const operations = [];
   const plannedDirectories = /* @__PURE__ */ new Set();
+  if (legacy01 && migratedProject !== void 0 && migratedProjects !== void 0 && migratedDocumentation !== void 0) {
+    for (const [portablePath2, content] of [
+      [".pcp/state/project.yaml", migratedProject],
+      [".pcp/state/projects.yaml", migratedProjects]
+    ]) {
+      const current = await readFile18(path21.join(root, ...portablePath2.split("/")));
+      operations.push({
+        action: "replace",
+        path: portablePath2,
+        content_digest: sha256(content),
+        preimage_digest: sha256(current)
+      });
+      contentByPath.set(portablePath2, content);
+    }
+    const documentationPath = ".pcp/state/documentation.yaml";
+    for (const directory of await missingParents2(root, documentationPath)) {
+      if (!plannedDirectories.has(directory)) {
+        plannedDirectories.add(directory);
+        operations.push({ action: "mkdir", path: directory });
+      }
+    }
+    operations.push({
+      action: "write",
+      path: documentationPath,
+      content_digest: sha256(migratedDocumentation)
+    });
+    contentByPath.set(documentationPath, migratedDocumentation);
+  }
   if (legacy01 && migratedWorkstreams !== void 0) {
     const legacyWorkstreamsPath = ".pcp/state/workstreams.yaml";
-    const current = await readFile18(path20.join(root, ...legacyWorkstreamsPath.split("/")));
+    const current = await readFile18(path21.join(root, ...legacyWorkstreamsPath.split("/")));
     operations.push({
       action: "replace",
       path: legacyWorkstreamsPath,
@@ -28412,7 +29226,7 @@ async function planUpgradeMaterial(candidate = ".") {
     });
     contentByPath.set(legacyWorkstreamsPath, migratedWorkstreams);
     const templateIndexPath = ".pcp/templates/00-index.md";
-    const templateIndexTarget = path20.join(root, ...templateIndexPath.split("/"));
+    const templateIndexTarget = path21.join(root, ...templateIndexPath.split("/"));
     const templateIndexCurrent = await readFile18(templateIndexTarget);
     const templateIndexMigrated = migrateLegacyTemplateIndex(templateIndexCurrent.toString("utf8"));
     if (!templateIndexCurrent.equals(templateIndexMigrated)) {
@@ -28425,7 +29239,7 @@ async function planUpgradeMaterial(candidate = ".") {
       contentByPath.set(templateIndexPath, templateIndexMigrated);
     }
     for (const legacyPath of [LEGACY_CEB_PROTOCOL_PATH, LEGACY_CEB_TEMPLATE_PATH]) {
-      const target = path20.join(root, ...legacyPath.split("/"));
+      const target = path21.join(root, ...legacyPath.split("/"));
       const metadata = await metadataOrUndefined4(target);
       if (metadata === void 0) continue;
       if (!metadata.isFile() || metadata.isSymbolicLink()) {
@@ -28440,19 +29254,19 @@ async function planUpgradeMaterial(candidate = ".") {
       }
       operations.push({ action: "remove", path: legacyPath, preimage_digest: sha256(current2) });
     }
-    const checkpointRoot = path20.join(root, ".pcp", "continuity", "checkpoints");
+    const checkpointRoot = path21.join(root, ".pcp", "continuity", "checkpoints");
     const checkpointEntries = await readdir7(checkpointRoot, { withFileTypes: true });
     for (const entry of checkpointEntries.sort(
       (left, right) => left.name.localeCompare(right.name)
     )) {
       if (!entry.isFile() || !entry.name.endsWith(".yaml")) continue;
       const checkpointPath = `.pcp/continuity/checkpoints/${entry.name}`;
-      const current2 = await readFile18(path20.join(checkpointRoot, entry.name));
+      const current2 = await readFile18(path21.join(checkpointRoot, entry.name));
       operations.push({ action: "remove", path: checkpointPath, preimage_digest: sha256(current2) });
     }
   }
   for (const [portablePath2, content] of desired) {
-    const absolute = path20.join(root, ...portablePath2.split("/"));
+    const absolute = path21.join(root, ...portablePath2.split("/"));
     const metadata = await metadataOrUndefined4(absolute);
     if (metadata === void 0) {
       for (const directory of await missingParents2(root, portablePath2)) {
@@ -28523,6 +29337,7 @@ async function planUpgradeMaterial(candidate = ".") {
       "canonical-layer",
       "desired-hashes",
       "ownership-preservation",
+      "project-documentation-registry",
       "platform-adapters",
       "rollback"
     ]
@@ -28746,8 +29561,16 @@ function formatInspection(result) {
     `State: ${result.state}`,
     `Confidence: ${result.confidence}`,
     `Inventory: ${result.inventory.counts.files} files, ${result.inventory.counts.directories} directories, ${result.inventory.counts.symlinks} symlinks`,
-    `Digest: ${result.inventory.digest}`
+    `Digest: ${result.inventory.digest}`,
+    `Outcome documentation root: ${result.documentation.recommended_root} (${result.documentation.recommended_root_source})`,
+    `Tracked project documents: ${result.documentation.document_paths.length}`
   ];
+  if (result.documentation.root_candidates.length > 0) {
+    lines.push("Documentation root candidates:");
+    for (const candidate of result.documentation.root_candidates) {
+      lines.push(`- ${candidate.path}: ${candidate.document_paths.length} document(s)`);
+    }
+  }
   if (result.signals.length === 0) {
     lines.push("Signals: none (seed or empty project)");
   } else {

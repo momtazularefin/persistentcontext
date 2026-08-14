@@ -15,11 +15,22 @@ valid:
       - .
     context_roots:
       - .pcp
+    documentation_root: docs
+    documentation_root_source: default
     repositories: []
     tags: []
   projects:
     schema_version: 1
     projects: []
+  documentation:
+    schema_version: 1
+    documents:
+      - path: docs/README.md
+        project_id: sample-project
+        category: outcome
+        status: living
+        summary: Introduces the project outcome documentation set.
+        related_paths: []
   workstreams:
     schema_version: 1
     workstreams: []
@@ -109,6 +120,13 @@ valid:
       basis: user
       evidence_paths: []
       body: "# Decision ledger\n\nNo accepted project decision yet."
+  outcome_documents:
+    - path: docs/README.md
+      project_id: sample-project
+      status: living
+      basis: user
+      evidence_paths: []
+      body: "# Project documentation\n\nOutcome knowledge for the sample project."
   scaffold_files:
     - path: src/index.ts
       content: "export {};\n"

@@ -9,13 +9,13 @@ ownership: project
 
 # Project record scaffold
 
-This file is inert. Copy it into `../projects/`, renumber it, and replace every bracketed placeholder.
+This file is inert. Copy it into `../projects/` only for an agent-internal coordination map, renumber it, and replace every bracketed placeholder. Put outcome specifications or research under the owning project's external documentation root instead.
 
 ## Identity
 
 - Project ID: `[project-id]`
 - Name: `[public or working name]`
-- Purpose: `[measurable outcome]`
+- Purpose: `[brief orientation for agents; link the catalogued outcome document]`
 
 ## Scope
 
@@ -29,7 +29,7 @@ This file is inert. Copy it into `../projects/`, renumber it, and replace every 
 - Next action: `[concrete action]`
 - Dependencies: `[project or workstream IDs]`
 
-## Acceptance
+## Documentation map
 
-- Criteria: `[observable completion checks]`
-- Evidence: `[tests, artifacts, or external verification]`
+- Outcome documents: `[paths registered in state/documentation.yaml]`
+- Related implementation: `[source or data roots]`

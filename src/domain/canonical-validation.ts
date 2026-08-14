@@ -17,6 +17,7 @@ export interface CanonicalValidationOptions {
   clean_genesis?: boolean;
   archive_content?: 'full' | 'filenames-only';
   legacy_upgrade_source?: '0.1';
+  documentation_inventory?: 'full' | 'skip';
 }
 
 export function compareCanonicalDiagnostics(

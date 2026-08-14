@@ -8,9 +8,10 @@ ownership: generated
 sources:
   - state/project.yaml
   - state/projects.yaml
+  - state/documentation.yaml
   - state/workstreams.yaml
   - state/vcs-policy.yaml
-source_digest: 02cfa35829cbb532f1560cac8566a15d0b1d6651ca6f05c580147a592b31f5cb
+source_digest: 94bb87c7541fdc3be026d8d462fdd8dae9cc36c267cde685604f9b1006b45524
 ---
 
 <!-- PCP: GENERATED; DO NOT EDIT -->
@@ -28,10 +29,16 @@ Generated from canonical YAML. Edit the source records, then render again.
 - Lifecycle: `seed`
 - Artifact roots: `.`
 - Context roots: `.pcp`
+- Outcome documentation root: `docs`
+- Documentation-root source: `default`
 
 ## Managed projects
 
 No managed subprojects are registered.
+
+## Project documentation
+
+No project documents are registered.
 
 ## Workstreams
 

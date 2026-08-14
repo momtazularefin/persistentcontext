@@ -75,6 +75,24 @@ async function reconstructionInput(): Promise<AdoptionInput> {
     tags: ['field-notes', 'editorial'],
   };
   input.capabilities = [];
+  input.outcome_documents = input.outcome_documents.map((document) => ({
+    ...document,
+    project_id: 'northstar-notes',
+  }));
+  input.documentation.documents = [
+    ...input.documentation.documents.map((document) => ({
+      ...document,
+      project_id: 'northstar-notes',
+    })),
+    {
+      path: 'README.md',
+      project_id: 'northstar-notes',
+      category: 'reference',
+      status: 'living',
+      summary: 'Introduces the Northstar Notes project.',
+      related_paths: [],
+    },
+  ];
   input.workstreams = {
     schema_version: 1,
     workstreams: [

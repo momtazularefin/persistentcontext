@@ -11,8 +11,9 @@ ownership: project
 
 ## Vocabulary
 
-- Define project-specific terms that an agent must interpret consistently.
+- Define project-specific implementation terms that an agent must interpret consistently.
 - Prefer the project's established language over invented abstractions.
+- Link to catalogued outcome documents for substantive domain research instead of copying it here.
 
 ## Invariants
 

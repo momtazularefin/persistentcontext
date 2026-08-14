@@ -39,6 +39,8 @@ describe('public documentation contract', () => {
       'Every user request',
       '(actor_id, execution_id)',
       'do not filter event delivery',
+      'state/documentation.yaml',
+      'project-outcome knowledge',
     ]) {
       expect(architecture, claim).toContain(claim);
     }
@@ -68,6 +70,7 @@ describe('public documentation contract', () => {
       'routine startup does not replay the archive',
       'Pull requests are recommended milestone boundaries, not a protocol requirement',
       'never filters by workstream, inferred dependency',
+      'complete ordinary-project-document registry',
     ]) {
       expect(lifecycle, boundary).toContain(boundary);
     }
@@ -113,6 +116,8 @@ describe('public documentation contract', () => {
     expect(prompts).toContain('No PCP startup prompt should be necessary');
     expect(prompts).toContain('before every response or project-tool use');
     expect(prompts).toContain('stop rather than bypass PCP');
+    expect(prompts).toContain('default `docs/` folder');
+    expect(prompts).toContain('`.pcp/state/documentation.yaml`');
 
     for (const [platform, adapter, client] of [
       ['Codex', 'AGENTS.md', 'codex'],

@@ -29,7 +29,8 @@ Load only the references required for the requested lifecycle operation.
 
 - Use agent reasoning for repository exploration, seed interpretation, knowledge synthesis, conflict resolution, and history dispositions.
 - Use the engine for inventory, hashes, schemas, path boundaries, normalized plans, locks, transactions, rendering, and mechanical validation.
-- Canonicalize the project context layer only. Preserve ordinary source, deployment, data, documentation, and assets unless the user separately requests changes.
+- Keep agent-operational knowledge in `.pcp/knowledge/**`. Keep project-outcome knowledge in the project's configured external documentation root, reusing an established documentation folder or defaulting to `<project-root>/docs/`.
+- Catalog every ordinary project document in `.pcp/state/documentation.yaml` so agents can find and maintain relevant documentation without moving it into `.pcp/`. Preserve unrelated source, deployment, data, documentation, and assets unless the reviewed plan explicitly creates or translates project-outcome documentation.
 - Treat current explicit user direction and verifiable project state as stronger than stale foreign context.
 
 ## Apply the lifecycle guardrails

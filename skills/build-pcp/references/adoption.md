@@ -28,7 +28,8 @@ State C takes precedence. Ambiguous State A/B input becomes State B. A README th
 
 - Preserve project-owned structure.
 - Explore progressively: manifests and structure, interfaces and contracts, then targeted high-value implementation.
-- Generate grounded current-state knowledge from actual evidence.
+- Generate grounded current-state agent-operational knowledge from actual evidence.
+- Inventory existing project documents, select the strongest established documentation directory when one exists, and otherwise use `docs/` as the project's default outcome-documentation root.
 - Record incompleteness and uncertainty rather than inventing detail.
 
 ## Prepare the semantic input
@@ -41,10 +42,13 @@ node <pcp-engine> adopt --candidate <candidate-directory> --json
 
 Create a temporary YAML or JSON document outside the candidate that validates against `assets/schemas/v1/adoption-input.schema.json`. Do not leave this transient synthesis artifact in the project. It must contain:
 
-- the baseline timestamp, persistence profile, explicit supported capability selection (an empty array means core only), schema-valid primary project state, grounded related-project registry and workstreams, and explicit VCS policy;
-- exactly the five canonical knowledge documents and three operations documents named by the schema, plus any grounded per-project documents selected for an established project;
+- the baseline timestamp, persistence profile, explicit supported capability selection (an empty array means core only), schema-valid primary project state, grounded related-project registry and workstreams, complete project-documentation registry, and explicit VCS policy;
+- exactly the five agent-operational knowledge documents and three operations documents named by the schema;
 - each document's canonical type/status, evidence basis, cited candidate-relative paths, and grounded Markdown body;
-- when `spec-driven-projects` is selected, per-project documents may use numbered `projects/<project-id>/<NN>-<name>.md` paths, must identify the primary or a registered related project, and are emitted with generated root and project reading-order indexes;
+- every surviving ordinary project document in `documentation.documents`, with its path, owning project, `outcome` or `reference` category, maintenance status, concise summary, and related source/document paths;
+- each primary or related project must record one external `documentation_root` and whether it was selected from an `existing` directory or the `default` `docs/` directory; outcome documents must stay under that root while reference documents such as a root README may remain elsewhere;
+- project-outcome documents to create in `outcome_documents`; State A and any adoption that must establish the default `docs/` root require at least one, while an existing documentation root may reuse its present documents without inventing a new one;
+- when `spec-driven-projects` is selected, create the specification as an external outcome document under the owning project's configured documentation root and catalog it in `documentation.documents`; never create project-outcome specifications under `.pcp/projects/`;
 - State A scaffold files only when they are explicitly appropriate; an empty State A target requires at least one;
 - an empty `scaffold_files` array for State B;
 - for State C, an empty `scaffold_files` array, a disposition for every detected foreign root, the completed coverage matrix emitted for that reviewed scope, and any reviewed external-reference rewrites needed to prevent project-owned files from pointing into removed context.
@@ -52,6 +56,8 @@ Create a temporary YAML or JSON document outside the candidate that validates ag
 Use `tracked` unless the candidate's existing ignore policy already covers the complete `.pcp/` layer. The engine rejects a `local` persistence claim that is not actually ignored and rejects tracked adoption into an ignored canonical path.
 
 Use `repository` or `repository-and-user` only with cited paths from the engine inventory. Every State B knowledge document must use one of those repository-grounded bases. Use `user` for explicit current direction and `not-applicable` only when the document says why. Preserve uncertainty; never fill a baseline with guesses or template placeholders.
+
+The inspection result reports documentation candidates, document paths, and a recommended root. Treat that recommendation as evidence, not a filename shortcut: prefer a dedicated established documentation directory that actually contains project documentation. If none exists, set the primary project's root to `docs`, mark it `default`, create an initial useful outcome document there, and include that new path in both `outcome_documents` and `documentation.documents`. The registry must exactly cover all ordinary project documents that survive the projected plan, including root READMEs and capability-created documents. It tracks paths and maintenance cues; it does not relocate ordinary documentation by itself.
 
 The singular `project` record is the adopted primary project. The `projects.projects` array contains only additional related or nested projects; do not duplicate the primary project there. Use an empty array when no secondary project is established by evidence.
 

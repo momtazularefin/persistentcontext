@@ -108,13 +108,51 @@ function adoptionInput(options: {
       lifecycle: options.evidencePath === undefined ? 'seed' : 'active',
       artifact_roots: ['.'],
       context_roots: ['.pcp'],
+      documentation_root: 'docs',
+      documentation_root_source: 'default',
       repositories: [],
       tags: [],
     },
     projects: { schema_version: 1, projects: [] },
+    documentation: {
+      schema_version: 1,
+      documents: [
+        {
+          path: 'docs/README.md',
+          project_id: 'fixture-project',
+          category: 'outcome',
+          status: 'living',
+          summary: 'Introduces the project outcome documentation set.',
+          related_paths: options.evidencePath === undefined ? [] : [options.evidencePath],
+        },
+        ...(options.evidencePath !== undefined &&
+        /\.(?:adoc|md|mdx|rst|txt)$/u.test(options.evidencePath)
+          ? [
+              {
+                path: options.evidencePath,
+                project_id: 'fixture-project',
+                category: 'reference' as const,
+                status: 'living' as const,
+                summary: 'Existing project document used as adoption evidence.',
+                related_paths: [],
+              },
+            ]
+          : []),
+      ],
+    },
     workstreams: { schema_version: 1, workstreams: [] },
     vcs_policy: noneVcsPolicy(),
     documents: documents(options.evidencePath),
+    outcome_documents: [
+      {
+        path: 'docs/README.md',
+        project_id: 'fixture-project',
+        status: 'living',
+        basis: 'user',
+        evidence_paths: [],
+        body: '# Project documentation\n\nOutcome knowledge for the fixture project.',
+      },
+    ],
     scaffold_files: options.scaffold ?? [],
   };
 }
@@ -168,6 +206,7 @@ describe('State A and State B adoption planning', () => {
       'grounded-baseline',
       'vcs-profile',
       'capability-selection',
+      'documentation-boundary',
     ]);
     expect(result.questions[1]?.options?.[0]).toBe('human-commit');
   });
@@ -207,7 +246,11 @@ describe('State A and State B adoption planning', () => {
     }
     expect(
       first.preview.plan.operations.every(
-        (operation) => operation.path.startsWith('.pcp') || adapterPlanPaths.has(operation.path),
+        (operation) =>
+          operation.path.startsWith('.pcp') ||
+          operation.path === 'docs' ||
+          operation.path === 'docs/README.md' ||
+          adapterPlanPaths.has(operation.path),
       ),
     ).toBe(true);
     expect((await inspectRepository(candidate)).inventory.digest).toBe(before.inventory.digest);
@@ -236,6 +279,14 @@ describe('State A and State B adoption planning', () => {
     const candidate = path.join(fixtureRoot, 'conventional');
     const value = adoptionInput({ projectType: 'software', evidencePath: 'package.json' });
     value.capabilities = ['walkthroughs', 'spec-driven-projects', 'scratch-space'];
+    value.documentation.documents.push({
+      path: 'scratch/README.md',
+      project_id: 'fixture-project',
+      category: 'reference',
+      status: 'static',
+      summary: 'Explains the optional noncanonical scratch workspace.',
+      related_paths: [],
+    });
     const result = await planAdoption(candidate, await writeInput(value));
     if (!isPlanMaterial(result)) throw new Error('Expected an applicable capability plan.');
 
@@ -260,70 +311,110 @@ describe('State A and State B adoption planning', () => {
     expect(protocolIndex).toContain('[110-walkthrough-creation.md](110-walkthrough-creation.md)');
   });
 
-  it('stages grounded project documents with generated reading-order indexes', async () => {
+  it('uses an established documentation directory without creating a replacement baseline', async () => {
+    const candidate = path.join(fixtureRoot, 'docs-heavy');
+    const value = adoptionInput({
+      projectType: 'writing',
+      evidencePath: 'docs/architecture.md',
+    });
+    value.project.documentation_root = 'docs';
+    value.project.documentation_root_source = 'existing';
+    value.outcome_documents = [];
+    value.documentation.documents = [
+      'docs/architecture.md',
+      'docs/field-guide.md',
+      'docs/publishing.md',
+    ].map((documentPath) => ({
+      path: documentPath,
+      project_id: 'fixture-project',
+      category: 'outcome' as const,
+      status: 'living' as const,
+      summary: `Tracks ${documentPath}.`,
+      related_paths: [],
+    }));
+
+    const result = await planAdoption(candidate, await writeInput(value));
+    if (!isPlanMaterial(result)) throw new Error('Expected an applicable documented plan.');
+    expect(result.preview.baseline.documentation).toMatchObject({
+      recommended_root: 'docs',
+      recommended_root_source: 'existing',
+    });
+    expect(result.preview.plan.operations).not.toContainEqual(
+      expect.objectContaining({ path: 'docs/README.md' }),
+    );
+  });
+
+  it('rejects a primary documentation root that contradicts inspection', async () => {
+    const candidate = path.join(fixtureRoot, 'conventional');
+    const value = adoptionInput({ projectType: 'software', evidencePath: 'package.json' });
+    value.project.documentation_root = 'src';
+    value.project.documentation_root_source = 'existing';
+
+    await expect(planAdoption(candidate, await writeInput(value))).rejects.toMatchObject({
+      code: 'PCP_DOCUMENTATION_ROOT_SELECTION_INVALID',
+    });
+  });
+
+  it('stages project-outcome knowledge under the external documentation root', async () => {
     const candidate = path.join(fixtureRoot, 'conventional');
     const value = adoptionInput({ projectType: 'software', evidencePath: 'package.json' });
     value.capabilities = ['spec-driven-projects'];
-    value.documents.push(
-      {
-        path: 'projects/fixture-project/10-specification.md',
-        type: 'project',
-        status: 'living',
-        basis: 'repository',
-        evidence_paths: ['package.json'],
-        body: '# Fixture specification\n\nThe accepted outcome remains intentionally incomplete.',
-      },
-      {
-        path: 'projects/fixture-project/20-tasks.md',
-        type: 'project',
-        status: 'living',
-        basis: 'repository',
-        evidence_paths: ['package.json'],
-        body: '# Fixture tasks\n\n- [ ] Preserve the unfinished delivery state.',
-      },
-    );
+    value.outcome_documents.push({
+      path: 'docs/fixture-specification.md',
+      project_id: 'fixture-project',
+      status: 'living',
+      basis: 'repository',
+      evidence_paths: ['package.json'],
+      body: '# Fixture specification\n\nThe accepted outcome remains intentionally incomplete.',
+    });
+    value.documentation.documents.push({
+      path: 'docs/fixture-specification.md',
+      project_id: 'fixture-project',
+      category: 'outcome',
+      status: 'living',
+      summary: 'Defines the fixture project outcome.',
+      related_paths: ['package.json'],
+    });
 
     const result = await planAdoption(candidate, await writeInput(value));
     if (!isPlanMaterial(result)) throw new Error('Expected an applicable project-document plan.');
 
-    expect(
-      result.content_by_path
-        .get('.pcp/projects/fixture-project/10-specification.md')
-        ?.toString('utf8'),
-    ).toContain('type: project');
-    expect(result.content_by_path.get('.pcp/projects/00-index.md')?.toString('utf8')).toContain(
-      '[Fixture project](fixture-project/00-index.md)',
+    expect(result.content_by_path.get('docs/fixture-specification.md')?.toString('utf8')).toBe(
+      '# Fixture specification\n\nThe accepted outcome remains intentionally incomplete.\n',
     );
-    const projectIndex = result.content_by_path
-      .get('.pcp/projects/fixture-project/00-index.md')
-      ?.toString('utf8');
-    expect(projectIndex).toContain('[Fixture specification](10-specification.md)');
-    expect(projectIndex).toContain('[Fixture tasks](20-tasks.md)');
+    expect(result.content_by_path.has('.pcp/projects/fixture-project/10-specification.md')).toBe(
+      false,
+    );
+    expect(
+      parse(result.content_by_path.get('.pcp/state/documentation.yaml')?.toString('utf8') ?? ''),
+    ).toMatchObject({
+      documents: [
+        expect.objectContaining({ path: 'docs/README.md', category: 'outcome' }),
+        expect.objectContaining({ path: 'docs/fixture-specification.md', category: 'outcome' }),
+      ],
+    });
   });
 
-  it('rejects project documents without the capability, project identity, or numbered order', async () => {
+  it('rejects outcome documents outside their configured root or project registry', async () => {
     const candidate = path.join(fixtureRoot, 'conventional');
     const value = adoptionInput({ projectType: 'software', evidencePath: 'package.json' });
-    const projectDocument: AdoptionDocumentInput = {
-      path: 'projects/fixture-project/10-specification.md',
-      type: 'project',
+    value.outcome_documents.push({
+      path: 'fixture-specification.md',
+      project_id: 'fixture-project',
       status: 'living',
       basis: 'repository',
       evidence_paths: ['package.json'],
       body: '# Fixture specification\n\nGrounded project detail.',
+    });
+    await expect(planAdoption(candidate, await writeInput(value))).rejects.toMatchObject({
+      code: 'PCP_OUTCOME_DOCUMENT_PATH_INVALID',
+    });
+
+    value.outcome_documents[1] = {
+      ...value.outcome_documents[1]!,
+      path: 'docs/fixture-specification.md',
+      project_id: 'unknown-project',
     };
-    value.documents.push(projectDocument);
-    await expect(planAdoption(candidate, await writeInput(value))).rejects.toMatchObject({
-      code: 'PCP_ADOPTION_INPUT_INVALID',
-    });
-
-    value.capabilities = ['spec-driven-projects'];
-    projectDocument.path = 'projects/unknown-project/10-specification.md';
-    await expect(planAdoption(candidate, await writeInput(value))).rejects.toMatchObject({
-      code: 'PCP_ADOPTION_INPUT_INVALID',
-    });
-
-    projectDocument.path = 'projects/fixture-project/11-specification.md';
     await expect(planAdoption(candidate, await writeInput(value))).rejects.toMatchObject({
       code: 'PCP_ADOPTION_INPUT_INVALID',
     });
@@ -331,15 +422,32 @@ describe('State A and State B adoption planning', () => {
 
   it('plans an explicit non-software State A scaffold while preserving the seed boundary', async () => {
     const candidate = await temporaryRoot('pcp-research-seed-');
-    const input = await writeInput(
-      adoptionInput({
-        projectType: 'research',
-        scaffold: [
-          { path: 'README.md', content: '# Research notebook\n' },
-          { path: 'notes/00-index.md', content: '# Notes\n' },
-        ],
-      }),
+    const value = adoptionInput({
+      projectType: 'research',
+      scaffold: [
+        { path: 'README.md', content: '# Research notebook\n' },
+        { path: 'notes/00-index.md', content: '# Notes\n' },
+      ],
+    });
+    value.documentation.documents.push(
+      {
+        path: 'README.md',
+        project_id: 'fixture-project',
+        category: 'reference',
+        status: 'living',
+        summary: 'Introduces the research notebook.',
+        related_paths: [],
+      },
+      {
+        path: 'notes/00-index.md',
+        project_id: 'fixture-project',
+        category: 'reference',
+        status: 'living',
+        summary: 'Indexes the research notes.',
+        related_paths: [],
+      },
     );
+    const input = await writeInput(value);
     const result = await planAdoption(candidate, input);
     if (!isPlanMaterial(result)) throw new Error('Expected an applicable State A plan.');
 

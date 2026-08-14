@@ -40,6 +40,29 @@ export interface AdoptionDocumentInput {
   body: string;
 }
 
+export interface AdoptionOutcomeDocumentInput {
+  path: string;
+  project_id: string;
+  status: AdoptionDocumentStatus;
+  basis: AdoptionEvidenceBasis;
+  evidence_paths: string[];
+  body: string;
+}
+
+export interface DocumentationRegistryEntry {
+  path: string;
+  project_id: string;
+  category: 'outcome' | 'reference';
+  status: 'living' | 'static' | 'generated';
+  summary: string;
+  related_paths: string[];
+}
+
+export interface DocumentationRegistry {
+  schema_version: 1;
+  documents: DocumentationRegistryEntry[];
+}
+
 export interface AdoptionScaffoldFile {
   path: string;
   content: string;
@@ -70,6 +93,8 @@ export interface AdoptionProjectState {
   lifecycle: 'seed' | 'active' | 'maintenance' | 'paused' | 'complete' | 'archived';
   artifact_roots: string[];
   context_roots: string[];
+  documentation_root: string;
+  documentation_root_source: 'existing' | 'default';
   repositories: Array<Record<string, unknown>>;
   tags: string[];
 }
@@ -84,12 +109,14 @@ export interface AdoptionInput {
     schema_version: 1;
     projects: AdoptionProjectState[];
   };
+  documentation: DocumentationRegistry;
   workstreams: {
     schema_version: 1;
     workstreams: Array<Record<string, unknown>>;
   };
   vcs_policy: Record<string, unknown>;
   documents: AdoptionDocumentInput[];
+  outcome_documents: AdoptionOutcomeDocumentInput[];
   foreign_roots?: ForeignRootReview[];
   coverage?: CoverageMatrix;
   external_rewrites?: AdoptionExternalRewrite[];
@@ -140,6 +167,7 @@ export interface AdoptionBaseline {
   seed_sources: string[];
   evidence_groups: AdoptionEvidenceGroup[];
   nested_repositories: string[];
+  documentation: InspectionResult['documentation'];
   required_documents: readonly RequiredAdoptionDocumentPath[];
   preserves_existing_paths: true;
 }

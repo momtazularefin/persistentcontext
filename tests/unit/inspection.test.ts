@@ -116,6 +116,31 @@ describe('golden intake classification', () => {
     ]);
   });
 
+  it('reuses an established documentation directory and otherwise recommends docs', async () => {
+    const [documented, conventional] = await Promise.all([
+      inspectRepository(path.join(fixtureRoot, 'docs-heavy')),
+      inspectRepository(path.join(fixtureRoot, 'conventional')),
+    ]);
+
+    expect(documented.documentation).toEqual({
+      document_paths: ['docs/architecture.md', 'docs/field-guide.md', 'docs/publishing.md'],
+      root_candidates: [
+        {
+          path: 'docs',
+          document_paths: ['docs/architecture.md', 'docs/field-guide.md', 'docs/publishing.md'],
+        },
+      ],
+      recommended_root: 'docs',
+      recommended_root_source: 'existing',
+    });
+    expect(conventional.documentation).toEqual({
+      document_paths: [],
+      root_candidates: [],
+      recommended_root: 'docs',
+      recommended_root_source: 'default',
+    });
+  });
+
   it('renders state, evidence, exclusions, digest, and no-mutation status for humans', async () => {
     const root = await temporaryRoot();
     await mkdir(path.join(root, 'node_modules', 'sample'), { recursive: true });
@@ -128,6 +153,7 @@ describe('golden intake classification', () => {
     expect(output).toContain('Exclusions:');
     expect(output).toContain('[generated-or-vendor] node_modules');
     expect(output).toContain('Digest: ');
+    expect(output).toContain('Outcome documentation root: docs (default)');
     expect(output).toContain('Mutation: none');
   });
 });

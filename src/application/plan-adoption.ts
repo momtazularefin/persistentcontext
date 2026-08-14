@@ -15,6 +15,7 @@ import {
   type AdoptionBaseline,
   type AdoptionDocumentInput,
   type AdoptionInput,
+  type AdoptionOutcomeDocumentInput,
   type AdoptionPlanMaterial,
   type AdoptionPreview,
   type AdoptionQuestion,
@@ -22,7 +23,15 @@ import {
 } from '../domain/adoption.js';
 import { supportedAdapterForSourcePath } from '../domain/adapters.js';
 import { comparePortablePaths, type InspectionResult } from '../domain/inspection.js';
-import { loadReleaseTemplateFiles } from '../infrastructure/adoption-assets.js';
+import {
+  documentationPaths,
+  isInsideDocumentationRoot,
+  isProjectDocumentationPath,
+} from '../domain/project-documentation.js';
+import {
+  loadCapabilityManifests,
+  loadReleaseTemplateFiles,
+} from '../infrastructure/adoption-assets.js';
 import {
   isMutationDirectoryIgnored,
   isMutationPathIgnored,
@@ -68,9 +77,6 @@ const expectedDocuments = new Map<string, Pick<AdoptionDocumentInput, 'type' | '
   ['operations/20-plan.md', { type: 'plan', status: 'living' }],
   ['operations/30-decisions.md', { type: 'policy', status: 'living' }],
 ]);
-const PROJECT_DOCUMENT_PATH =
-  /^projects\/([a-z0-9]+(?:-[a-z0-9]+)*)\/([1-9][0-9])-[a-z0-9]+(?:-[a-z0-9]+)*\.md$/u;
-
 function isInside(root: string, candidate: string): boolean {
   const relative = path.relative(root, candidate);
   return (
@@ -105,6 +111,7 @@ function baselineFor(root: string, inspection: InspectionResult): AdoptionBaseli
       .map(([category, paths]) => ({ category, paths: [...paths].sort(comparePortablePaths) }))
       .sort((left, right) => comparePortablePaths(left.category, right.category)),
     nested_repositories: [...inspection.inventory.nestedRepositories],
+    documentation: inspection.documentation,
     required_documents: REQUIRED_ADOPTION_DOCUMENTS,
     preserves_existing_paths: true,
   };
@@ -117,6 +124,15 @@ function questionsFor(inspection: InspectionResult): AdoptionQuestion[] {
     prompt:
       'Select zero or more supported optional capabilities: Concurrent Execution Blocks, spec-driven projects, scratch space, or walkthroughs.',
     reason: 'PCP installs optional project workflows only through explicit selection.',
+    required: true,
+    response_shape: 'object',
+  };
+  const documentationQuestion: AdoptionQuestion = {
+    id: 'documentation-boundary',
+    prompt:
+      'Confirm the existing dedicated documentation root, or use docs when none exists; catalog every project document and place project-outcome knowledge there.',
+    reason:
+      'Agent-operational knowledge stays in .pcp, while project-outcome knowledge remains an ordinary project artifact outside .pcp.',
     required: true,
     response_shape: 'object',
   };
@@ -139,6 +155,7 @@ function questionsFor(inspection: InspectionResult): AdoptionQuestion[] {
         response_shape: 'object',
       },
       capabilityQuestion,
+      documentationQuestion,
     ];
   }
   if (inspection.state === 'B') {
@@ -162,6 +179,7 @@ function questionsFor(inspection: InspectionResult): AdoptionQuestion[] {
         options: ['human-commit', 'none', 'human-owned', 'agent-managed', 'custom'],
       },
       capabilityQuestion,
+      documentationQuestion,
     ];
   }
 
@@ -193,6 +211,7 @@ function questionsFor(inspection: InspectionResult): AdoptionQuestion[] {
       options: ['human-commit', 'none', 'human-owned', 'agent-managed', 'custom'],
     },
     capabilityQuestion,
+    documentationQuestion,
   ];
   if (inspection.inventory.files.length === 0) {
     questions.push({
@@ -300,13 +319,8 @@ function validateDocumentSet(input: AdoptionInput, inspection: InspectionResult)
     ...inspection.inventory.files.map((file) => file.path),
     ...inspection.inventory.nestedRepositories,
   ]);
-  const projectIds = new Set([
-    input.project.project_id,
-    ...input.projects.projects.map((project) => project.project_id),
-  ]);
   for (const document of input.documents) {
     const expected = expectedDocuments.get(document.path);
-    const projectMatch = PROJECT_DOCUMENT_PATH.exec(document.path);
     if (
       expected !== undefined &&
       (expected.type !== document.type || expected.status !== document.status)
@@ -316,22 +330,11 @@ function validateDocumentSet(input: AdoptionInput, inspection: InspectionResult)
         `Document metadata does not match its canonical role: ${document.path}`,
       );
     }
-    if (expected === undefined) {
-      const projectId = projectMatch?.[1];
-      const order = Number(projectMatch?.[2]);
-      if (
-        projectId === undefined ||
-        !projectIds.has(projectId) ||
-        order % 10 !== 0 ||
-        document.type !== 'project' ||
-        !input.capabilities.includes('spec-driven-projects')
-      ) {
-        throw new AdoptionError(
-          'PCP_ADOPTION_INPUT_INVALID',
-          `Unsupported canonical project document: ${document.path}`,
-        );
-      }
-    }
+    if (expected === undefined)
+      throw new AdoptionError(
+        'PCP_ADOPTION_INPUT_INVALID',
+        `Unsupported internal context document: ${document.path}`,
+      );
     const body = normalizeText(document.body).trim();
     if (!body.startsWith('# ') || body.startsWith('---') || PLACEHOLDER_PATTERN.test(body)) {
       throw new AdoptionError(
@@ -350,7 +353,7 @@ function validateDocumentSet(input: AdoptionInput, inspection: InspectionResult)
     }
     if (
       (inspection.state === 'B' || inspection.state === 'C') &&
-      (document.type === 'knowledge' || document.type === 'project') &&
+      document.type === 'knowledge' &&
       document.basis !== 'repository' &&
       document.basis !== 'repository-and-user'
     ) {
@@ -368,82 +371,6 @@ function validateDocumentSet(input: AdoptionInput, inspection: InspectionResult)
       }
     }
   }
-}
-
-function documentTitle(document: AdoptionDocumentInput): string {
-  const heading = normalizeText(document.body)
-    .split('\n')
-    .find((line) => line.startsWith('# '));
-  return (heading?.slice(2).trim() || path.posix.basename(document.path, '.md'))
-    .replaceAll('[', '')
-    .replaceAll(']', '');
-}
-
-function renderIndex(
-  documentPath: string,
-  title: string,
-  baselineAt: string,
-  links: readonly { path: string; title: string }[],
-): Buffer {
-  const frontmatter = stringify(
-    {
-      doc: documentPath,
-      type: 'index',
-      status: 'living',
-      version: '1.0.0',
-      last_updated: baselineAt,
-      ownership: 'project',
-    },
-    { lineWidth: 0 },
-  ).trimEnd();
-  const readingOrder = links.map((link) => `- [${link.title}](${link.path})`).join('\n');
-  return Buffer.from(
-    `---\n${frontmatter}\n---\n\n# ${title}\n\n## Reading order\n\n${readingOrder}\n`,
-    'utf8',
-  );
-}
-
-function renderProjectDocumentIndexes(input: AdoptionInput): Map<string, Buffer> {
-  const projects = new Map(
-    [input.project, ...input.projects.projects].map((project) => [project.project_id, project]),
-  );
-  const grouped = new Map<string, AdoptionDocumentInput[]>();
-  for (const document of input.documents) {
-    const projectId = PROJECT_DOCUMENT_PATH.exec(document.path)?.[1];
-    if (projectId === undefined) continue;
-    const documents = grouped.get(projectId) ?? [];
-    documents.push(document);
-    grouped.set(projectId, documents);
-  }
-
-  const rendered = new Map<string, Buffer>();
-  const rootLinks: { path: string; title: string }[] = [];
-  for (const projectId of [...grouped.keys()].sort(comparePortablePaths)) {
-    const project = projects.get(projectId);
-    if (project === undefined) continue;
-    const documents = grouped.get(projectId) ?? [];
-    documents.sort((left, right) => comparePortablePaths(left.path, right.path));
-    rendered.set(
-      `.pcp/projects/${projectId}/00-index.md`,
-      renderIndex(
-        `projects/${projectId}/00-index.md`,
-        project.name,
-        input.baseline_at,
-        documents.map((document) => ({
-          path: path.posix.basename(document.path),
-          title: documentTitle(document),
-        })),
-      ),
-    );
-    rootLinks.push({ path: `${projectId}/00-index.md`, title: project.name });
-  }
-  if (rootLinks.length > 0) {
-    rendered.set(
-      '.pcp/projects/00-index.md',
-      renderIndex('projects/00-index.md', 'Managed projects', input.baseline_at, rootLinks),
-    );
-  }
-  return rendered;
 }
 
 function portableCollisionKey(value: string): string {
@@ -465,6 +392,267 @@ function assertPortableMutationPath(value: string): void {
         `Planned path is not portable across supported platforms: ${value}`,
       );
     }
+  }
+}
+
+function projectMap(input: AdoptionInput): Map<string, AdoptionInput['project']> {
+  return new Map(
+    [input.project, ...input.projects.projects].map((project) => [project.project_id, project]),
+  );
+}
+
+function isInsideOpaqueNestedRepository(
+  candidatePath: string,
+  inspection: InspectionResult,
+): boolean {
+  return inspection.inventory.nestedRepositories.some(
+    (nestedRoot) => candidatePath === nestedRoot || candidatePath.startsWith(`${nestedRoot}/`),
+  );
+}
+
+function validateDocumentationRoots(input: AdoptionInput, inspection: InspectionResult): void {
+  const existingRoots = new Set([
+    ...inspection.inventory.directories,
+    ...inspection.inventory.nestedRepositories,
+  ]);
+  for (const project of projectMap(input).values()) {
+    const opaqueRoot = isInsideOpaqueNestedRepository(project.documentation_root, inspection);
+    assertPortableMutationPath(project.documentation_root);
+    if (
+      project.documentation_root === '.pcp' ||
+      project.documentation_root.startsWith('.pcp/') ||
+      project.documentation_root === '.' ||
+      project.documentation_root.endsWith('/')
+    ) {
+      throw new AdoptionError(
+        'PCP_DOCUMENTATION_ROOT_INVALID',
+        `Outcome documentation root must be a project-owned directory outside .pcp: ${project.documentation_root}`,
+      );
+    }
+    if (
+      project.documentation_root_source === 'existing' &&
+      !opaqueRoot &&
+      !existingRoots.has(project.documentation_root)
+    ) {
+      throw new AdoptionError(
+        'PCP_DOCUMENTATION_ROOT_MISSING',
+        `Existing documentation root was not found during inspection: ${project.documentation_root}`,
+      );
+    }
+    if (
+      project.documentation_root_source === 'default' &&
+      !opaqueRoot &&
+      existingRoots.has(project.documentation_root)
+    ) {
+      throw new AdoptionError(
+        'PCP_DOCUMENTATION_ROOT_SOURCE_INVALID',
+        `Documentation root already exists and must be recorded as existing: ${project.documentation_root}`,
+      );
+    }
+  }
+  if (
+    input.project.documentation_root !== inspection.documentation.recommended_root ||
+    input.project.documentation_root_source !== inspection.documentation.recommended_root_source
+  ) {
+    throw new AdoptionError(
+      'PCP_DOCUMENTATION_ROOT_SELECTION_INVALID',
+      `Primary documentation root must match inspection: ${inspection.documentation.recommended_root} (${inspection.documentation.recommended_root_source}).`,
+    );
+  }
+  if (
+    input.project.documentation_root_source === 'default' &&
+    input.project.documentation_root !== 'docs'
+  ) {
+    throw new AdoptionError(
+      'PCP_DOCUMENTATION_ROOT_DEFAULT_INVALID',
+      'The primary project must use docs when inspection finds no existing dedicated documentation root.',
+    );
+  }
+}
+
+function validateOutcomeDocument(
+  document: AdoptionOutcomeDocumentInput,
+  input: AdoptionInput,
+  inspection: InspectionResult,
+): void {
+  const project = projectMap(input).get(document.project_id);
+  if (project === undefined) {
+    throw new AdoptionError(
+      'PCP_ADOPTION_INPUT_INVALID',
+      `Outcome document references an unknown project: ${document.project_id}`,
+    );
+  }
+  assertPortableMutationPath(document.path);
+  if (
+    !isProjectDocumentationPath(document.path) ||
+    !isInsideDocumentationRoot(document.path, project.documentation_root)
+  ) {
+    throw new AdoptionError(
+      'PCP_OUTCOME_DOCUMENT_PATH_INVALID',
+      `Outcome document must be a documentation file under ${project.documentation_root}: ${document.path}`,
+    );
+  }
+  const body = normalizeText(document.body).trim();
+  if (!body.startsWith('# ') || body.startsWith('---') || PLACEHOLDER_PATTERN.test(body)) {
+    throw new AdoptionError(
+      'PCP_ADOPTION_INPUT_INVALID',
+      `Outcome document must contain grounded ordinary Markdown without PCP frontmatter: ${document.path}`,
+    );
+  }
+  const availableEvidence = new Set([
+    ...inspection.inventory.directories,
+    ...inspection.inventory.files.map((file) => file.path),
+    ...inspection.inventory.nestedRepositories,
+  ]);
+  if (
+    (document.basis === 'repository' || document.basis === 'repository-and-user') &&
+    document.evidence_paths.length === 0
+  ) {
+    throw new AdoptionError(
+      'PCP_ADOPTION_INPUT_INVALID',
+      `Repository-grounded outcome document has no evidence path: ${document.path}`,
+    );
+  }
+  for (const evidencePath of document.evidence_paths) {
+    if (!availableEvidence.has(evidencePath)) {
+      throw new AdoptionError(
+        'PCP_ADOPTION_EVIDENCE_MISSING',
+        `Outcome document cites evidence outside the inspected candidate: ${evidencePath}`,
+      );
+    }
+  }
+}
+
+function finalDocumentationPaths(input: AdoptionInput, inspection: InspectionResult): string[] {
+  const paths = new Set(documentationPaths(inspection.inventory));
+  for (const record of input.coverage?.records ?? []) {
+    if (record.source_kind !== 'file' && record.source_kind !== 'adapter') continue;
+    if (record.disposition === 'project-owned') continue;
+    paths.delete(record.source_path);
+    if (record.disposition === 'relocated') {
+      const target = record.targets[0];
+      if (target !== undefined && isProjectDocumentationPath(target)) paths.add(target);
+    }
+  }
+  for (const scaffold of input.scaffold_files) {
+    if (isProjectDocumentationPath(scaffold.path)) paths.add(scaffold.path);
+  }
+  for (const capability of loadCapabilityManifests(input.capabilities)) {
+    for (const rootPath of capability.root_paths) {
+      if (isProjectDocumentationPath(rootPath)) paths.add(rootPath);
+    }
+  }
+  for (const document of input.outcome_documents) paths.add(document.path);
+  return [...paths].sort(comparePortablePaths);
+}
+
+function validateDocumentationRegistry(
+  input: AdoptionInput,
+  inspection: InspectionResult,
+  completeCoverage: boolean,
+): void {
+  validateDocumentationRoots(input, inspection);
+  const projects = projectMap(input);
+  const outcomePaths = input.outcome_documents.map((document) => document.path);
+  if (new Set(outcomePaths).size !== outcomePaths.length) {
+    throw new AdoptionError(
+      'PCP_ADOPTION_INPUT_INVALID',
+      'Each new outcome document path must appear exactly once.',
+    );
+  }
+  for (const document of input.outcome_documents) {
+    validateOutcomeDocument(document, input, inspection);
+  }
+  for (const project of projects.values()) {
+    if (
+      project.documentation_root_source === 'default' &&
+      !isInsideOpaqueNestedRepository(project.documentation_root, inspection) &&
+      !input.outcome_documents.some(
+        (document) =>
+          document.project_id === project.project_id &&
+          isInsideDocumentationRoot(document.path, project.documentation_root),
+      )
+    ) {
+      throw new AdoptionError(
+        'PCP_DOCUMENTATION_ROOT_INITIAL_DOCUMENT_REQUIRED',
+        `The default ${project.documentation_root} root requires at least one initial outcome document so the directory is durable and discoverable.`,
+      );
+    }
+  }
+
+  const entries = input.documentation.documents;
+  const entryPaths = entries.map((entry) => entry.path);
+  if (new Set(entryPaths).size !== entryPaths.length) {
+    throw new AdoptionError(
+      'PCP_DOCUMENTATION_REGISTRY_DUPLICATE',
+      'Every tracked project document path must appear exactly once.',
+    );
+  }
+  const futurePaths = new Set([
+    ...inspection.inventory.directories,
+    ...inspection.inventory.files.map((file) => file.path),
+    ...inspection.inventory.nestedRepositories,
+    ...input.scaffold_files.map((file) => file.path),
+    ...input.outcome_documents.map((document) => document.path),
+  ]);
+  const outcomes = new Map(input.outcome_documents.map((document) => [document.path, document]));
+  for (const entry of entries) {
+    const project = projects.get(entry.project_id);
+    if (project === undefined) {
+      throw new AdoptionError(
+        'PCP_DOCUMENTATION_PROJECT_UNKNOWN',
+        `Documentation entry references an unknown project: ${entry.project_id}`,
+      );
+    }
+    if (!isProjectDocumentationPath(entry.path)) {
+      throw new AdoptionError(
+        'PCP_DOCUMENTATION_PATH_INVALID',
+        `Documentation registry path is not a supported project document: ${entry.path}`,
+      );
+    }
+    if (
+      entry.category === 'outcome' &&
+      !isInsideDocumentationRoot(entry.path, project.documentation_root)
+    ) {
+      throw new AdoptionError(
+        'PCP_OUTCOME_DOCUMENT_PATH_INVALID',
+        `Outcome documentation must stay under ${project.documentation_root}: ${entry.path}`,
+      );
+    }
+    const outcome = outcomes.get(entry.path);
+    if (
+      outcome !== undefined &&
+      (entry.category !== 'outcome' ||
+        entry.project_id !== outcome.project_id ||
+        entry.status !== outcome.status)
+    ) {
+      throw new AdoptionError(
+        'PCP_DOCUMENTATION_REGISTRY_MISMATCH',
+        `New outcome document metadata does not match its registry entry: ${entry.path}`,
+      );
+    }
+    for (const relatedPath of entry.related_paths) {
+      if (!futurePaths.has(relatedPath)) {
+        throw new AdoptionError(
+          'PCP_DOCUMENTATION_RELATED_PATH_MISSING',
+          `Documentation entry references an unavailable project path: ${relatedPath}`,
+        );
+      }
+    }
+  }
+
+  if (!completeCoverage) return;
+  const expected = finalDocumentationPaths(input, inspection);
+  const actual = [...entryPaths].sort(comparePortablePaths);
+  if (canonicalJson(actual) !== canonicalJson(expected)) {
+    const expectedSet = new Set(expected);
+    const actualSet = new Set(actual);
+    const missing = expected.filter((candidatePath) => !actualSet.has(candidatePath));
+    const stale = actual.filter((candidatePath) => !expectedSet.has(candidatePath));
+    throw new AdoptionError(
+      'PCP_DOCUMENTATION_REGISTRY_INCOMPLETE',
+      `Documentation registry must cover every surviving project document. Missing: ${missing.join(', ') || 'none'}. Stale: ${stale.join(', ') || 'none'}.`,
+    );
   }
 }
 
@@ -557,6 +745,22 @@ function renderDocument(document: AdoptionDocumentInput, baselineAt: string): Bu
   return Buffer.from(`---\n${frontmatter}\n---\n\n${body}\n`, 'utf8');
 }
 
+function renderOutcomeDocument(document: AdoptionOutcomeDocumentInput): Buffer {
+  return Buffer.from(`${normalizeText(document.body).trim()}\n`, 'utf8');
+}
+
+function addOutcomeDocuments(content: Map<string, Buffer>, input: AdoptionInput): void {
+  for (const document of input.outcome_documents) {
+    if (content.has(document.path)) {
+      throw new AdoptionError(
+        'PCP_ADOPTION_PATH_BOUNDARY',
+        `Outcome document path is reserved by another planned artifact: ${document.path}`,
+      );
+    }
+    content.set(document.path, renderOutcomeDocument(document));
+  }
+}
+
 async function writeStageFiles(root: string, files: ReadonlyMap<string, Buffer>): Promise<void> {
   for (const [relativePath, content] of files) {
     const target = path.join(root, ...relativePath.split('/'));
@@ -634,13 +838,11 @@ async function stageCanonicalLayer(
     template.set(manifestPath, yamlBuffer(manifest));
     template.set('.pcp/state/project.yaml', yamlBuffer(input.project));
     template.set('.pcp/state/projects.yaml', yamlBuffer(input.projects));
+    template.set('.pcp/state/documentation.yaml', yamlBuffer(input.documentation));
     template.set('.pcp/state/workstreams.yaml', yamlBuffer(input.workstreams));
     template.set('.pcp/state/vcs-policy.yaml', yamlBuffer(input.vcs_policy));
     for (const document of input.documents) {
       template.set(`.pcp/${document.path}`, renderDocument(document, input.baseline_at));
-    }
-    for (const [indexPath, content] of renderProjectDocumentIndexes(input)) {
-      template.set(indexPath, content);
     }
     for (const adapter of adapters) {
       if (template.has(adapter.manifest.target_path)) {
@@ -660,7 +862,10 @@ async function stageCanonicalLayer(
         `Unable to render staged canonical views: ${rendering.diagnostics.map((item) => item.message).join('; ')}`,
       );
     }
-    const validation = await validateCanonicalLayer(stageRoot, { clean_genesis: true });
+    const validation = await validateCanonicalLayer(stageRoot, {
+      clean_genesis: true,
+      documentation_inventory: 'skip',
+    });
     if (!validation.valid) {
       throw new AdoptionError(
         'PCP_ADOPTION_STAGE_INVALID',
@@ -1321,11 +1526,13 @@ async function buildStateCTranslationPlan(
   const catalog = await discoverForeignCoverage(root, inspection, input.foreign_roots);
   const validation = validateForeignCoverage(catalog, input.coverage);
   if (!validation.valid) throw stateCCoverageFailure(validation.diagnostics);
+  validateDocumentationRegistry(input, inspection, false);
   assertSupportedStateCAdapters(input);
 
   const adapters = renderPlatformAdapters();
   assertGeneratedPlatformAdapters(adapters);
-  const content = await stageCanonicalLayer(root, inspection, input, adapters);
+  const content = new Map(await stageCanonicalLayer(root, inspection, input, adapters));
+  addOutcomeDocuments(content, input);
   validateStateCCoverageTargets(input, content);
   const removalPaths = stateCRemovalPaths(input);
   const relocations = stateCRelocations(input);
@@ -1351,6 +1558,7 @@ async function buildStateCTranslationPlan(
     input.persistence,
     removalPaths,
   );
+  validateDocumentationRegistry(input, inspection, true);
   const consumedFiles = new Set([
     ...removalPaths,
     ...relocations.map((relocation) => relocation.source_path),
@@ -1384,6 +1592,7 @@ async function buildStateCTranslationPlan(
       'path-boundaries',
       'platform-adapters',
       'preimages',
+      'project-documentation-registry',
       'rollback',
       'semantic-input',
     ],
@@ -1425,6 +1634,7 @@ async function previewScopedStateCCoverage(
 ): Promise<AdoptionPreview> {
   validateDocumentSet(input, inspection);
   validateProjectInput(input, inspection);
+  validateDocumentationRegistry(input, inspection, false);
   const catalog = await discoverForeignCoverage(root, inspection, input.foreign_roots);
   return {
     schema_version: ADOPTION_SCHEMA_VERSION,
@@ -1456,6 +1666,7 @@ async function buildPlanMaterial(
   }
   validateDocumentSet(input, inspection);
   validateProjectInput(input, inspection);
+  validateDocumentationRegistry(input, inspection, false);
   if (input.persistence === 'local' && !(await isMutationDirectoryIgnored(root, '.pcp'))) {
     throw new AdoptionError(
       'PCP_LOCAL_PERSISTENCE_NOT_IGNORED',
@@ -1466,6 +1677,7 @@ async function buildPlanMaterial(
   const adapters = renderPlatformAdapters();
   assertGeneratedPlatformAdapters(adapters);
   const content = new Map(await stageCanonicalLayer(root, inspection, input, adapters));
+  addOutcomeDocuments(content, input);
   for (const scaffold of input.scaffold_files) {
     if (content.has(scaffold.path)) {
       throw new AdoptionError(
@@ -1476,6 +1688,7 @@ async function buildPlanMaterial(
     content.set(scaffold.path, Buffer.from(normalizeText(scaffold.content), 'utf8'));
   }
   await assertContentTargetsSafe(root, content, inspection, input.persistence);
+  validateDocumentationRegistry(input, inspection, true);
 
   const existingDirectories = new Set(inspection.inventory.directories);
   const requiredDirectories = new Set<string>();
@@ -1505,6 +1718,7 @@ async function buildPlanMaterial(
       'desired-hashes',
       'path-boundaries',
       'platform-adapters',
+      'project-documentation-registry',
       'rollback',
       'semantic-input',
     ],

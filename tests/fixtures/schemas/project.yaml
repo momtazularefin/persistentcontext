@@ -8,6 +8,8 @@ valid:
   lifecycle: active
   artifact_roots: [src, tests]
   context_roots: [.pcp]
+  documentation_root: docs
+  documentation_root_source: existing
   repositories:
     - provider: github
       url: https://github.com/example/sample-service
@@ -23,3 +25,7 @@ invalid:
     operation: set
     path: repositories.0.url
     value: http://example.com/sample-service
+  - name: canonical documentation root
+    operation: set
+    path: documentation_root
+    value: .pcp/docs

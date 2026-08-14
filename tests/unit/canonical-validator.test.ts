@@ -1,4 +1,4 @@
-import { appendFile, cp, mkdtemp, readFile, rename, rm, writeFile } from 'node:fs/promises';
+import { appendFile, cp, mkdir, mkdtemp, readFile, rename, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -33,6 +33,7 @@ async function createProject(): Promise<string> {
   const root = await mkdtemp(path.join(tmpdir(), 'pcp-canonical-'));
   temporaryRoots.push(root);
   await cp(coreTemplate, path.join(root, '.pcp'), { recursive: true });
+  await mkdir(path.join(root, 'docs'));
   return root;
 }
 
@@ -131,6 +132,58 @@ describe('installed canonical layer validation', () => {
     expect(report.diagnostics).toEqual([]);
   });
 
+  it('requires every ordinary project document to be cataloged', async () => {
+    const root = await createProject();
+    await writeFile(path.join(root, 'docs', 'new-guide.md'), '# New guide\n', 'utf8');
+
+    expect(diagnosticCodes(await validateCanonicalLayer(root))).toContain(
+      'documentation.uncatalogued',
+    );
+  });
+
+  it('keeps outcome documentation under the owning project root', async () => {
+    const root = await createProject();
+    await writeFile(path.join(root, 'README.md'), '# Project outcome\n', 'utf8');
+    await writeYamlObject(path.join(root, '.pcp', 'state', 'documentation.yaml'), {
+      schema_version: 1,
+      documents: [
+        {
+          path: 'README.md',
+          project_id: 'pending-project',
+          category: 'outcome',
+          status: 'living',
+          summary: 'Misplaced outcome document.',
+          related_paths: [],
+        },
+      ],
+    });
+
+    expect(diagnosticCodes(await validateCanonicalLayer(root))).toContain(
+      'documentation.outcome-outside-root',
+    );
+  });
+
+  it('rejects stale document entries and missing related paths', async () => {
+    const root = await createProject();
+    await writeYamlObject(path.join(root, '.pcp', 'state', 'documentation.yaml'), {
+      schema_version: 1,
+      documents: [
+        {
+          path: 'docs/missing.md',
+          project_id: 'pending-project',
+          category: 'outcome',
+          status: 'living',
+          summary: 'Missing outcome document.',
+          related_paths: ['src/missing.ts'],
+        },
+      ],
+    });
+
+    const codes = diagnosticCodes(await validateCanonicalLayer(root));
+    expect(codes).toContain('documentation.stale-entry');
+    expect(codes).toContain('documentation.related-path-missing');
+  });
+
   it('rejects a structurally incomplete canonical core', async () => {
     const root = await createProject();
     await rm(path.join(root, '.pcp', 'state', 'project.yaml'));
@@ -185,6 +238,8 @@ describe('installed canonical layer validation', () => {
         lifecycle: 'seed',
         artifact_roots: ['.'],
         context_roots: ['.pcp'],
+        documentation_root: 'docs',
+        documentation_root_source: 'existing',
         repositories: [],
         tags: [],
       },
@@ -193,6 +248,33 @@ describe('installed canonical layer validation', () => {
 
     expect(diagnosticCodes(await validateCanonicalLayer(root))).toContain(
       'identity.duplicate-project',
+    );
+  });
+
+  it('requires related projects to have their configured documentation roots', async () => {
+    const root = await createProject();
+    await writeYamlObject(path.join(root, '.pcp', 'state', 'projects.yaml'), {
+      schema_version: 1,
+      projects: [
+        {
+          schema_version: 1,
+          project_id: 'related-project',
+          name: 'Related project',
+          purpose: 'Prove related documentation-root validation.',
+          project_type: 'other',
+          lifecycle: 'seed',
+          artifact_roots: ['related'],
+          context_roots: ['.pcp'],
+          documentation_root: 'related/docs',
+          documentation_root_source: 'default',
+          repositories: [],
+          tags: [],
+        },
+      ],
+    });
+
+    expect(diagnosticCodes(await validateCanonicalLayer(root))).toContain(
+      'documentation.root-missing',
     );
   });
 

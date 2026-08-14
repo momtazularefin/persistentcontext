@@ -1,4 +1,4 @@
-import { cp, mkdtemp, rm } from 'node:fs/promises';
+import { cp, mkdir, mkdtemp, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -56,6 +56,7 @@ describe('pcp command surface', () => {
     const root = await mkdtemp(path.join(tmpdir(), 'pcp-program-registration-'));
     const template = fileURLToPath(new URL('../../templates/core/.pcp/', import.meta.url));
     await cp(template, path.join(root, '.pcp'), { recursive: true });
+    await mkdir(path.join(root, 'docs'));
 
     try {
       await createProgram().parseAsync([
@@ -93,6 +94,7 @@ describe('pcp command surface', () => {
     const root = await mkdtemp(path.join(tmpdir(), 'pcp-program-status-'));
     const template = fileURLToPath(new URL('../../templates/core/.pcp/', import.meta.url));
     await cp(template, path.join(root, '.pcp'), { recursive: true });
+    await mkdir(path.join(root, 'docs'));
     const actor = await registerActor(root, { client: 'codex', machine_label: 'cli-machine' });
 
     try {
@@ -188,7 +190,10 @@ describe('pcp command surface', () => {
     const output = vi.spyOn(process.stdout, 'write').mockImplementation(() => true);
     const previousExitCode = process.exitCode;
     process.exitCode = undefined;
-    const fixture = fileURLToPath(new URL('../../templates/core/', import.meta.url));
+    const fixture = await mkdtemp(path.join(tmpdir(), 'pcp-program-validation-'));
+    const template = fileURLToPath(new URL('../../templates/core/.pcp/', import.meta.url));
+    await cp(template, path.join(fixture, '.pcp'), { recursive: true });
+    await mkdir(path.join(fixture, 'docs'));
 
     try {
       await createProgram().parseAsync([
@@ -207,6 +212,7 @@ describe('pcp command surface', () => {
       });
       expect(process.exitCode).toBeUndefined();
     } finally {
+      await rm(fixture, { recursive: true, force: true });
       process.exitCode = previousExitCode;
       output.mockRestore();
     }

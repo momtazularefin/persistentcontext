@@ -6,8 +6,8 @@ This document describes implemented safeguards. It is not a claim that PCP is a 
 
 ## Assets PCP protects
 
-- Ordinary project source, documentation, deployment files, nested repositories, and unknown files.
-- Project-owned knowledge, policies, plans, decisions, project records, and workstream state.
+- Ordinary project source, project-outcome documentation, deployment files, nested repositories, and unknown files.
+- Agent-operational knowledge, policies, plans, decisions, project records, documentation registry, and workstream state.
 - Human and agent identity records, immutable active events, archived history, and per-conversation checkpoints.
 - Generated platform adapters and status views derived from canonical sources.
 - Release-owned schemas, protocol files, templates, and the installed engine.
@@ -29,6 +29,7 @@ VCS signing, branch protection, operating-system permissions, backups, credentia
 - Adoption, event, and workstream inputs must be regular non-symlink files within their size limits.
 - Mutation targets that cross a symlink, nested repository, ignored runtime boundary, or candidate root are rejected.
 - Unknown files remain preserved until a reviewed plan explicitly resolves ownership.
+- Selecting a documentation root and cataloging a document does not authorize moving or rewriting it. Outcome-document writes are limited to the exact external paths in the reviewed adoption or versioned migration plan.
 
 ## Adoption and mutation safety
 

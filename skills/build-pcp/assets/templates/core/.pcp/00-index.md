@@ -24,11 +24,13 @@ This is the canonical project context entry point. Root convention files are thi
 
 1. [Protocol](protocol/00-index.md) — PCP-owned operating rules.
 2. [State](state/00-index.md) — machine-readable project, registry, work-label, and VCS authority.
-3. [Knowledge](knowledge/00-index.md) — grounded project understanding.
+3. [Knowledge](knowledge/00-index.md) — grounded agent-operational understanding of the project.
 4. [Operations](operations/00-index.md) — living agreements, plan, and decisions.
 5. [Projects](projects/00-index.md) — managed project records.
 6. [Continuity](continuity/00-index.md) — actor identity, bounded active events, archive, and per-conversation checkpoints.
 7. [Views](views/00-index.md), [references](references/00-index.md), and [templates](templates/00-index.md) — projections and reusable guidance.
 8. [Schemas](schemas/00-index.md) and [tools](tools/00-index.md) — local protocol validation and execution.
+
+Project-outcome knowledge lives under each project's external documentation root, not in `.pcp`. Use `state/documentation.yaml` to find every tracked project document and the source paths it relates to.
 
 The repository is authoritative. Private memory may accelerate work but cannot replace durable current state.

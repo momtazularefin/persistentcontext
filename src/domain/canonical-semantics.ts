@@ -1,4 +1,5 @@
 import type { CanonicalDiagnostic } from './canonical-validation.js';
+import { isInsideDocumentationRoot } from './project-documentation.js';
 import { eventPayloadDigest } from './recording.js';
 
 export interface CanonicalRecord {
@@ -9,11 +10,82 @@ export interface CanonicalRecord {
 export interface CanonicalSemanticRecords {
   project?: CanonicalRecord;
   project_registry?: CanonicalRecord;
+  documentation?: CanonicalRecord;
   workstreams?: CanonicalRecord;
   vcs_policy?: CanonicalRecord;
   actors: CanonicalRecord[];
   events: CanonicalRecord[];
   checkpoints: CanonicalRecord[];
+}
+
+function validateDocumentation(records: CanonicalSemanticRecords): CanonicalDiagnostic[] {
+  if (records.documentation === undefined) return [];
+  const diagnostics: CanonicalDiagnostic[] = [];
+  const projects = new Map<string, Record<string, unknown>>();
+  const rootProject = objectValue(records.project?.value);
+  const rootId = stringValue(rootProject?.project_id);
+  if (rootId !== undefined && rootProject !== undefined) projects.set(rootId, rootProject);
+  const registry = objectValue(records.project_registry?.value);
+  for (const project of objectArray(registry?.projects)) {
+    const projectId = stringValue(project.project_id);
+    if (projectId !== undefined) projects.set(projectId, project);
+  }
+
+  const documentation = objectValue(records.documentation.value);
+  const seenPaths = new Set<string>();
+  for (const entry of objectArray(documentation?.documents)) {
+    const documentPath = stringValue(entry.path);
+    const projectId = stringValue(entry.project_id);
+    if (documentPath === undefined || projectId === undefined) continue;
+    if (seenPaths.has(documentPath)) {
+      diagnostics.push(
+        error(
+          'documentation.duplicate-path',
+          records.documentation.path,
+          `Documentation path appears more than once: ${documentPath}.`,
+        ),
+      );
+    }
+    seenPaths.add(documentPath);
+    const project = projects.get(projectId);
+    if (project === undefined) {
+      diagnostics.push(
+        error(
+          'documentation.unknown-project',
+          records.documentation.path,
+          `Documentation path ${documentPath} references unknown project ${projectId}.`,
+        ),
+      );
+      continue;
+    }
+    const documentationRoot = stringValue(project.documentation_root);
+    if (
+      entry.category === 'outcome' &&
+      documentationRoot !== undefined &&
+      !isInsideDocumentationRoot(documentPath, documentationRoot)
+    ) {
+      diagnostics.push(
+        error(
+          'documentation.outcome-outside-root',
+          records.documentation.path,
+          `Outcome document ${documentPath} must stay under ${documentationRoot}.`,
+        ),
+      );
+    }
+  }
+  if (
+    rootProject?.documentation_root_source === 'default' &&
+    rootProject.documentation_root !== 'docs'
+  ) {
+    diagnostics.push(
+      error(
+        'documentation.default-root',
+        records.project?.path ?? 'state/project.yaml',
+        'The primary default outcome-documentation root must be docs.',
+      ),
+    );
+  }
+  return diagnostics;
 }
 
 function objectValue(value: unknown): Record<string, unknown> | undefined {
@@ -505,6 +577,7 @@ export function validateCanonicalSemantics(
 ): CanonicalDiagnostic[] {
   return [
     ...validateProjectIdentity(records),
+    ...validateDocumentation(records),
     ...validateWorkstreams(records),
     ...validateActors(records),
     ...validateEvents(records),

@@ -35,11 +35,11 @@ capabilities:
   - id: grounded-knowledge-baseline
     source: portable-reference-layer
     outcome: preserved
-    pcp: Numbered knowledge documents retain grounded architecture, source, tooling, and invariant context.
+    pcp: Internal knowledge retains grounded architecture, source, tooling, and invariants while outcome knowledge stays in tracked external project documents.
     evidence:
       {
         path: templates/core/.pcp/knowledge/00-index.md,
-        contains: ['grounded baseline', 'architecture'],
+        contains: ['agent-operational', 'architecture'],
       }
   - id: snapshot-plus-changelog-reconstruction
     source: portable-reference-layer
@@ -81,11 +81,11 @@ capabilities:
   - id: documentation-and-discoverability
     source: portable-reference-layer
     outcome: preserved
-    pcp: Metadata, numbered Markdown, folder indexes, and reachability are validated protocol rules.
+    pcp: Internal metadata and indexes plus complete external project-document registry coverage are validated protocol rules.
     evidence:
       {
         path: templates/core/.pcp/protocol/40-documentation.md,
-        contains: ['00-index.md', 'numbered'],
+        contains: ['state/documentation.yaml', 'numbered'],
       }
   - id: naming-portability-and-safety
     source: portable-reference-layer
@@ -122,17 +122,20 @@ capabilities:
   - id: multi-project-portfolio
     source: advanced-command-center
     outcome: preserved
-    pcp: Structured project registries and optional human-readable project records support a broader portfolio.
+    pcp: Structured project registries bind each project to its external documentation root while optional readable records support agent navigation.
     evidence:
-      { path: templates/core/.pcp/projects/00-index.md, contains: ['managed projects', 'goals'] }
+      {
+        path: templates/core/.pcp/projects/00-index.md,
+        contains: ['Managed projects', 'documentation root'],
+      }
   - id: spec-driven-delivery
     source: advanced-command-center
     outcome: preserved
-    pcp: An optional capability adds specification, design, tasks, decisions, and evaluation records.
+    pcp: An optional capability creates specifications as external outcome documents under the owning project's configured documentation root.
     evidence:
       {
-        path: templates/capabilities/spec-driven-projects/capability.yaml,
-        contains: ['spec-to-plan-to-task', 'Project specification'],
+        path: templates/capabilities/spec-driven-projects/overlay/.pcp/protocol/80-spec-driven-delivery.md,
+        contains: ['external `documentation_root`', 'state/documentation.yaml'],
       }
   - id: concurrent-execution-blocks
     source: advanced-command-center

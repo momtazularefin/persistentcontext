@@ -12,6 +12,9 @@ All notable public protocol changes are documented here from the first release c
 - Turned all five generated platform adapters into automatic operating contracts for registration, synchronization, acknowledgement, and fail-closed behavior.
 - Evolved the newcomer prompt library into an adoption and recovery guide; normal managed-project use requires no pasted startup prompt.
 - Added an ownership-aware 0.1 migration for CEB assets, CEB work labels, dependency fields, and obsolete scoped checkpoints.
+- Separated agent-operational knowledge in `.pcp` from project-outcome knowledge in an established external documentation directory or default `docs/` root.
+- Added per-project documentation-root state and a validated `.pcp/state/documentation.yaml` registry covering every ordinary project document, including related source paths and misplaced/stale-entry checks.
+- Moved spec-driven project outcomes to tracked external documents and extended adoption and 0.1 migration to establish the new boundary without relocating existing documentation.
 
 ## 0.1.0-rc — release candidate
 
