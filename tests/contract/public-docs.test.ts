@@ -118,16 +118,14 @@ describe('public documentation contract', () => {
     expect(prompts).toContain('stop rather than bypass PCP');
     expect(prompts).toContain('default `docs/` folder');
     expect(prompts).toContain('`.pcp/state/documentation.yaml`');
+    expect(prompts).toContain('system `hostname` value');
+    expect(prompts).toContain('never renamed');
 
     for (const [platform, adapter, client] of [
       ['Codex', 'AGENTS.md', 'codex'],
       ['Antigravity', '.agents/rules/pcp.md', 'antigravity'],
-      ['Claude Code Desktop', 'CLAUDE.md', 'claude-code-desktop'],
-      [
-        'GitHub Copilot in Visual Studio Code',
-        '.github/copilot-instructions.md',
-        'github-copilot-vscode',
-      ],
+      ['Claude Code Desktop', 'CLAUDE.md', 'claude'],
+      ['GitHub Copilot in Visual Studio Code', '.github/copilot-instructions.md', 'copilot'],
       ['Cursor IDE', '.cursor/rules/pcp.mdc', 'cursor'],
     ]) {
       expect(prompts, platform).toContain(platform);

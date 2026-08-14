@@ -5,7 +5,7 @@
   "identity": {
     "algorithm": "sha256",
     "scope": "Git-known existing working-tree files excluding release/0.2.0-rc.json and ignored build, coverage, dependency, and runtime output.",
-    "source_tree_digest": "78fb946057bf559998015df96d53db98473970fdbd8753ae958b8a2aa1d25bdd",
+    "source_tree_digest": "dd78bc1c9bdb5d21b01bfb58a8c2b6786e19e0e2b6ebfc0a28980d31a5f64b7d",
     "file_count": 374,
     "files": [
       {
@@ -40,8 +40,8 @@
       },
       {
         "path": "CHANGELOG.md",
-        "bytes": 7885,
-        "sha256": "8535902e6e50f7914b06393ff80ee164c05e4fe161e9c51f57ab7259774db994"
+        "bytes": 8179,
+        "sha256": "e92e3a19967a6f19971c3ee87dc10c73967a2081c61aec3db9bc73d78069171e"
       },
       {
         "path": "CONTRIBUTING.md",
@@ -50,8 +50,8 @@
       },
       {
         "path": "docs/architecture.md",
-        "bytes": 7520,
-        "sha256": "40d53828e0fd5a6079432041cfd2f4b48e24d2e3bf411185bb9b5336e34006da"
+        "bytes": 8723,
+        "sha256": "b72a8875e1de84ca5b679e8ae98ffe71e15399594b1be5454ffee9fa4e3b6bd3"
       },
       {
         "path": "docs/capability-parity.md",
@@ -65,18 +65,18 @@
       },
       {
         "path": "docs/compatibility.md",
-        "bytes": 8761,
-        "sha256": "4fc7352305e20f882d7d98621be0cab5172be069e620155440fefe1bf482ff6e"
+        "bytes": 9074,
+        "sha256": "1c205808e38266600091e1989858b8ab015ec36b75d4ef7dc98feba8be18e73f"
       },
       {
         "path": "docs/getting-started.md",
-        "bytes": 6680,
-        "sha256": "3930268e6805868859b2394230d677b3fc8663051d50c259d7ef486e2496e19b"
+        "bytes": 6971,
+        "sha256": "6355d4841c8ce4363740d83b0ea1560d5ef6c49fb6d07fe78af0394b6df2ac12"
       },
       {
         "path": "docs/lifecycle.md",
-        "bytes": 8475,
-        "sha256": "93c635bf5817ff078a8efb01cb8e34910547bdbd23bb92866ffdd524afc1f634"
+        "bytes": 8933,
+        "sha256": "ae17931ad1db60ee0e6b7c643225404cda306441ab56d11dd3a96bd1c1e6d85c"
       },
       {
         "path": "docs/README.md",
@@ -85,8 +85,8 @@
       },
       {
         "path": "docs/release-candidate.md",
-        "bytes": 6471,
-        "sha256": "9579d40da9b0b17eeed3b388d80d8144c63e68e2a9c8f7826e93af22a4038666"
+        "bytes": 6574,
+        "sha256": "860653d2094591ca4f305ecb0d66818d5776d4b084836d19d340bf802963a4db"
       },
       {
         "path": "docs/release-notes.md",
@@ -100,8 +100,8 @@
       },
       {
         "path": "docs/troubleshooting.md",
-        "bytes": 21332,
-        "sha256": "ef40e0e17b05916ade4287f9d5f67750543349cc9d3323d62a9a8c118efe8992"
+        "bytes": 21524,
+        "sha256": "176f49ae6c2cb8a1b4f5447c28f64de72d5b627f4c87ae6812a1ccab206d6928"
       },
       {
         "path": "eslint.config.mjs",
@@ -290,8 +290,8 @@
       },
       {
         "path": "README.md",
-        "bytes": 11061,
-        "sha256": "a89ceaf2b47b63f6144719ba70b09af42de64b6eab4ed3e56969f41e7e235dc2"
+        "bytes": 11038,
+        "sha256": "23b3b89b9ed51f7eef2d269158d6281c3c42392caf75aede6a10cf252d04f586"
       },
       {
         "path": "release/0.1.0-rc.json",
@@ -300,8 +300,8 @@
       },
       {
         "path": "schemas/v1/actor-profile.schema.json",
-        "bytes": 1698,
-        "sha256": "0513cb36153b9a4d301a50a7286518279fce1f6bf0a61efeeb42100cdb9af044"
+        "bytes": 1935,
+        "sha256": "67a20e2a2605c70c2c8e80f78991c2479b694c6cdad0e8f8843e7f21cad03767"
       },
       {
         "path": "schemas/v1/adapter.schema.json",
@@ -430,8 +430,8 @@
       },
       {
         "path": "scripts/release-candidate.mjs",
-        "bytes": 5723,
-        "sha256": "3361ef487cd73f7d9227f717ac4ac59139f1901c3080bdd8e7004a66edc25082"
+        "bytes": 6072,
+        "sha256": "e8ec9b4abfdac9b2d3cce41d08a2989ea27d813394c27180f00a9ead4f853519"
       },
       {
         "path": "scripts/scan-package-content.mjs",
@@ -455,8 +455,8 @@
       },
       {
         "path": "scripts/verify-dist.mjs",
-        "bytes": 26252,
-        "sha256": "f47bad67b0a7381d264139cbdaae980ecf28ca53c7398c3d63d20fe7db84761c"
+        "bytes": 26201,
+        "sha256": "270b4b465958d254d1af7af49c721d9f98e0f0c632495c46c7995d45dc3dc735"
       },
       {
         "path": "SECURITY.md",
@@ -471,12 +471,12 @@
       {
         "path": "skills/build-pcp/assets/pcp-assets.sha256",
         "bytes": 8511,
-        "sha256": "6d0d45e065f077a071ed6c8c5337b59c63b35607ec48347030416ea04b5c81ed"
+        "sha256": "89bc5a7b7d37f5fa90869aed9cc7d2decc230b06e454eb0967c22b0e8e31f761"
       },
       {
         "path": "skills/build-pcp/assets/schemas/v1/actor-profile.schema.json",
-        "bytes": 1698,
-        "sha256": "0513cb36153b9a4d301a50a7286518279fce1f6bf0a61efeeb42100cdb9af044"
+        "bytes": 1935,
+        "sha256": "67a20e2a2605c70c2c8e80f78991c2479b694c6cdad0e8f8843e7f21cad03767"
       },
       {
         "path": "skills/build-pcp/assets/schemas/v1/adapter.schema.json",
@@ -645,8 +645,8 @@
       },
       {
         "path": "skills/build-pcp/assets/templates/core/.pcp/continuity/actors/00-index.md",
-        "bytes": 700,
-        "sha256": "b5327ce9714eb3d9c7c1f940e86ce36b55bac5a6b82e4cc32cc2b1967e066b6a"
+        "bytes": 1139,
+        "sha256": "f6f5d4ed7f0e52aaabe1a2ba11412b1e75e94318a17a679262c6b0594e430e89"
       },
       {
         "path": "skills/build-pcp/assets/templates/core/.pcp/continuity/archive/00-index.md",
@@ -735,8 +735,8 @@
       },
       {
         "path": "skills/build-pcp/assets/templates/core/.pcp/protocol/20-actor-continuity.md",
-        "bytes": 3004,
-        "sha256": "78e09ab39a6d462bb126ee6c82a91c0e24fedb2e8e76865f21a83d89d38a07a7"
+        "bytes": 4125,
+        "sha256": "d50a5b0abf0095cb2e238a9ae01e5464738066ff44b2c75311f4549af3f23ce4"
       },
       {
         "path": "skills/build-pcp/assets/templates/core/.pcp/protocol/30-exploration.md",
@@ -830,13 +830,13 @@
       },
       {
         "path": "skills/build-pcp/assets/templates/core/.pcp/tools/pcp.mjs",
-        "bytes": 1057394,
-        "sha256": "1590d6cb5204e525c5041f8d1e22d7c386cab3d077d18e8f67b64f315a8f5a38"
+        "bytes": 1060132,
+        "sha256": "5e4c0e579b8a23187a1f1742f50fae4ab259c466e4bb01d71cd09518f20d6612"
       },
       {
         "path": "skills/build-pcp/assets/templates/core/.pcp/tools/pcp.sha256",
         "bytes": 74,
-        "sha256": "f4af63f241ede561172c216e8dd673588f076604448b89237fabb096735103f6"
+        "sha256": "a3e63b4e0c6bf43c8487a93dfd3d2b01ee1c5a11e1db3d5fe6a884209b23ccd9"
       },
       {
         "path": "skills/build-pcp/assets/templates/core/.pcp/views/00-index.md",
@@ -870,18 +870,18 @@
       },
       {
         "path": "skills/build-pcp/references/operation.md",
-        "bytes": 6211,
-        "sha256": "6808a65b0819a844662817e6496b2cfe94d3d3b58ba9d133a85e0203238a81ef"
+        "bytes": 7090,
+        "sha256": "f3b80325fa3c2917b230100224d35f00ad4e33005d534874d2b644976b9865f7"
       },
       {
         "path": "skills/build-pcp/scripts/pcp.mjs",
-        "bytes": 1057394,
-        "sha256": "1590d6cb5204e525c5041f8d1e22d7c386cab3d077d18e8f67b64f315a8f5a38"
+        "bytes": 1060132,
+        "sha256": "5e4c0e579b8a23187a1f1742f50fae4ab259c466e4bb01d71cd09518f20d6612"
       },
       {
         "path": "skills/build-pcp/scripts/pcp.sha256",
         "bytes": 74,
-        "sha256": "f4af63f241ede561172c216e8dd673588f076604448b89237fabb096735103f6"
+        "sha256": "a3e63b4e0c6bf43c8487a93dfd3d2b01ee1c5a11e1db3d5fe6a884209b23ccd9"
       },
       {
         "path": "skills/build-pcp/SKILL.md",
@@ -920,8 +920,8 @@
       },
       {
         "path": "src/application/register-actor.ts",
-        "bytes": 13230,
-        "sha256": "46b17e309405403d9b42da3675ab0dd7cc9df3324e8d0a44a39e294c434c7078"
+        "bytes": 14441,
+        "sha256": "4ebce89af968ea4e8c33e9ffa67173cdc622c7c0d07e336b9019449c99432556"
       },
       {
         "path": "src/application/render-canonical-views.ts",
@@ -930,8 +930,8 @@
       },
       {
         "path": "src/application/render-platform-adapters.ts",
-        "bytes": 3276,
-        "sha256": "256fba7913ebe65a0e0bb40709471bf012d71a61d0f981d57a46ebcc5124c6e6"
+        "bytes": 3334,
+        "sha256": "69dc20cb9b5d69617f0ad61a749df5a97ad708fad8eb4e00bd84e7dec686d7f1"
       },
       {
         "path": "src/application/repair-project.ts",
@@ -960,13 +960,13 @@
       },
       {
         "path": "src/cli/main.ts",
-        "bytes": 22766,
-        "sha256": "1b4207dfd611c5e2b4eb8e6058992b33947365de6e6c1fc04033c48133fed958"
+        "bytes": 22647,
+        "sha256": "3370ddfe85accd0edf317dec8180502f4957bb880b7492addfc791ba5a8f9095"
       },
       {
         "path": "src/domain/adapters.ts",
-        "bytes": 2416,
-        "sha256": "898bab6525abc210fb93e8db8a79b15a5493c5d44da6dd3ddc07237a8422814c"
+        "bytes": 2656,
+        "sha256": "f2c4c81759b46ab3ed66ebed3eb5d72e191f32e0a5e2b91621c8c5ef3918fd15"
       },
       {
         "path": "src/domain/adoption.ts",
@@ -980,8 +980,8 @@
       },
       {
         "path": "src/domain/canonical-semantics.ts",
-        "bytes": 19824,
-        "sha256": "579d6a421e95a61bee90aae80d20bea77141402e33d3eec5bd7b8f39e2ab3e99"
+        "bytes": 20059,
+        "sha256": "ecfb7e00914b6ff841a1de322507b4295c8f241621be9f6717b67a19208be658"
       },
       {
         "path": "src/domain/canonical-validation.ts",
@@ -1025,8 +1025,8 @@
       },
       {
         "path": "src/domain/registration.ts",
-        "bytes": 4985,
-        "sha256": "8be37b216031b9764d0034a2388bc263e263e749992099b6daff2c67fb3fe143"
+        "bytes": 6597,
+        "sha256": "f29a62d8939184be2102bc6f1424ba8e49e740a2e451d58d88b49a5a629bc0a2"
       },
       {
         "path": "src/domain/release.ts",
@@ -1210,8 +1210,8 @@
       },
       {
         "path": "templates/core/.pcp/continuity/actors/00-index.md",
-        "bytes": 700,
-        "sha256": "b5327ce9714eb3d9c7c1f940e86ce36b55bac5a6b82e4cc32cc2b1967e066b6a"
+        "bytes": 1139,
+        "sha256": "f6f5d4ed7f0e52aaabe1a2ba11412b1e75e94318a17a679262c6b0594e430e89"
       },
       {
         "path": "templates/core/.pcp/continuity/archive/00-index.md",
@@ -1300,8 +1300,8 @@
       },
       {
         "path": "templates/core/.pcp/protocol/20-actor-continuity.md",
-        "bytes": 3004,
-        "sha256": "78e09ab39a6d462bb126ee6c82a91c0e24fedb2e8e76865f21a83d89d38a07a7"
+        "bytes": 4125,
+        "sha256": "d50a5b0abf0095cb2e238a9ae01e5464738066ff44b2c75311f4549af3f23ce4"
       },
       {
         "path": "templates/core/.pcp/protocol/30-exploration.md",
@@ -1395,13 +1395,13 @@
       },
       {
         "path": "templates/core/.pcp/tools/pcp.mjs",
-        "bytes": 1057394,
-        "sha256": "1590d6cb5204e525c5041f8d1e22d7c386cab3d077d18e8f67b64f315a8f5a38"
+        "bytes": 1060132,
+        "sha256": "5e4c0e579b8a23187a1f1742f50fae4ab259c466e4bb01d71cd09518f20d6612"
       },
       {
         "path": "templates/core/.pcp/tools/pcp.sha256",
         "bytes": 74,
-        "sha256": "f4af63f241ede561172c216e8dd673588f076604448b89237fabb096735103f6"
+        "sha256": "a3e63b4e0c6bf43c8487a93dfd3d2b01ee1c5a11e1db3d5fe6a884209b23ccd9"
       },
       {
         "path": "templates/core/.pcp/views/00-index.md",
@@ -1430,13 +1430,13 @@
       },
       {
         "path": "tests/contract/public-docs.test.ts",
-        "bytes": 7527,
-        "sha256": "90513442be6ae664d5bc7cd8d84d7296dd42fe1beb69cc16abe8c5152f6df4b0"
+        "bytes": 7573,
+        "sha256": "6e332ebbd4661118f8086bfdb5f29d6d907578e4d3cec348fc57288d9028f0e6"
       },
       {
         "path": "tests/contract/skill.test.ts",
-        "bytes": 6212,
-        "sha256": "2c47b95ad236fbd49ca1dd4add83bf575e4dd8620e5bb2a14d8495eb731ce72f"
+        "bytes": 6264,
+        "sha256": "a39b545c39bd6493e98fb35c7a14f2a7f02c61a81ae4077fd43ce4912d311067"
       },
       {
         "path": "tests/contract/templates.test.ts",
@@ -1745,13 +1745,13 @@
       },
       {
         "path": "tests/integration/platform-reconstruction.test.ts",
-        "bytes": 10326,
-        "sha256": "11f60e8361290b11324c566dbdbf0587688c4f814d67c8e9b6888e486b7dc3f7"
+        "bytes": 10388,
+        "sha256": "24a69f0ec5dc5a120a1474340269f095f208fa2a7071a449def3acab8423cbe7"
       },
       {
         "path": "tests/unit/actor-registration.test.ts",
-        "bytes": 13384,
-        "sha256": "6ec0e487c01e0e065ae44acfe4305474da9350ddc01a23cdcdbb1dce06b3413c"
+        "bytes": 16589,
+        "sha256": "4a27565657317839a281916581cff1913bef535d2cf2e571a5cd28946342ea6e"
       },
       {
         "path": "tests/unit/adoption-planner.test.ts",
@@ -1770,8 +1770,8 @@
       },
       {
         "path": "tests/unit/canonical-validator.test.ts",
-        "bytes": 22652,
-        "sha256": "03e140e073f56a20b80942dc83809eddaf4ae281e7040231adf9d51a9fed1dcf"
+        "bytes": 23220,
+        "sha256": "b0d639426069e303ea2048db1d2e692b3af984715b151a79f30e7900fc268d8a"
       },
       {
         "path": "tests/unit/event-recording.test.ts",
@@ -1825,13 +1825,13 @@
       },
       {
         "path": "tests/unit/platform-adapters.test.ts",
-        "bytes": 5084,
-        "sha256": "05b253bdf4d1d243d9a100b6ead833b3011ff873e03d78ef33596fa52240e99d"
+        "bytes": 5321,
+        "sha256": "b40e3d0c53514784bb44d8fa42efc094548b1dffd45ccc317a0cecf39b9d76b0"
       },
       {
         "path": "tests/unit/program.test.ts",
-        "bytes": 8656,
-        "sha256": "7e21800daf1d077315b459062531a80974a2fd501fa5cd9af0da237aea8d82b5"
+        "bytes": 8920,
+        "sha256": "3cb5c9bdd924da940d4331a59116bf2d56f5e396c3d959e2f39d2bc7a624497e"
       },
       {
         "path": "tests/unit/release.test.ts",
@@ -1882,7 +1882,7 @@
   },
   "artifacts": {
     "engine": {
-      "sha256": "1590d6cb5204e525c5041f8d1e22d7c386cab3d077d18e8f67b64f315a8f5a38",
+      "sha256": "5e4c0e579b8a23187a1f1742f50fae4ab259c466e4bb01d71cd09518f20d6612",
       "copies": [
         "skills/build-pcp/scripts/pcp.mjs",
         "skills/build-pcp/assets/templates/core/.pcp/tools/pcp.mjs",
@@ -1891,12 +1891,12 @@
     },
     "skill_assets_manifest": {
       "path": "skills/build-pcp/assets/pcp-assets.sha256",
-      "sha256": "6d0d45e065f077a071ed6c8c5337b59c63b35607ec48347030416ea04b5c81ed"
+      "sha256": "89bc5a7b7d37f5fa90869aed9cc7d2decc230b06e454eb0967c22b0e8e31f761"
     },
     "skill_package": {
       "path": "skills/build-pcp",
       "file_count": 85,
-      "bytes": 2258071
+      "bytes": 2266223
     }
   },
   "verification": {
@@ -1915,6 +1915,18 @@
       "github-copilot-vscode",
       "cursor"
     ],
+    "actor_identity": {
+      "canonical_labels": {
+        "antigravity": "antigravity",
+        "codex": "codex",
+        "claude": "claude",
+        "copilot": "copilot",
+        "cursor": "cursor",
+        "human": "human"
+      },
+      "custom_app_label": "one lowercase word",
+      "machine_label": "normalized system hostname"
+    },
     "freeze_rule": "Any source change requires an explicit unfreeze, regenerated manifest, full local verification, and a new green CI matrix before dogfood resumes."
   }
 }

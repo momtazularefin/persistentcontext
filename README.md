@@ -78,7 +78,7 @@ Representative development-bundle commands:
 node dist/pcp.mjs inspect path/to/project --json
 node dist/pcp.mjs adopt --candidate path/to/project --input path/to/external-adoption.yaml --json
 node dist/pcp.mjs adopt --candidate path/to/project --input path/to/external-adoption.yaml --apply <plan-digest> --json
-node dist/pcp.mjs register path/to/managed-project --client codex --machine-label laptop --json
+node dist/pcp.mjs register path/to/managed-project --client codex --json
 node dist/pcp.mjs sync path/to/managed-project --actor-id <actor-id> --execution-id <execution-id>
 node dist/pcp.mjs sync path/to/managed-project --actor-id <actor-id> --execution-id <execution-id> --acknowledge <sync-digest>
 node dist/pcp.mjs record path/to/managed-project --input path/to/external-event.yaml --json

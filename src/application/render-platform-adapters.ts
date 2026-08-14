@@ -1,5 +1,6 @@
 import { sha256 } from '../domain/adoption.js';
 import {
+  ACTOR_CLIENT_BY_ADAPTER,
   SUPPORTED_ADAPTER_IDS,
   type AdapterManifest,
   type SupportedAdapterId,
@@ -46,7 +47,8 @@ function adapterText(adapterId: SupportedAdapterId): string {
   const body = sharedBody();
   const clientLine = body.findIndex((line) => line.includes('<adapter-client>'));
   if (clientLine >= 0)
-    body[clientLine] = body[clientLine]?.replace('<adapter-client>', adapterId) ?? '';
+    body[clientLine] =
+      body[clientLine]?.replace('<adapter-client>', ACTOR_CLIENT_BY_ADAPTER[adapterId]) ?? '';
   if (adapterId === 'claude-code-desktop') {
     body.push(
       `Claude Code loads this adapter at session start; @${CANONICAL_ENTRY} is the canonical entry.`,

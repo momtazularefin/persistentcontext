@@ -55,6 +55,12 @@ Canonical records have four ownership classes:
 
 Upgrade and repair use these boundaries rather than treating every `.pcp/` file alike.
 
+## Predictable durable identity
+
+New durable IDs use `<actor-label>-<machine-label>-<10-character-Crockford-suffix>`. The actor label is the app name: `antigravity`, `codex`, `claude`, `copilot`, or `cursor`; humans use `human`, and a PCP-unknown app chooses one lowercase word. The machine label comes from the system `hostname` value and is normalized to lowercase kebab-case by registration rather than supplied as a descriptive alias. Only the collision-resistant suffix is generated, once, without a shared counter.
+
+The local project cache reuses that identity for the project lifetime and remains authoritative if its stored machine label differs from the current hostname. If such a cache is missing, an explicit actor ID is required to recover a profile carrying a different legacy machine label. A newer PCP release never renames a durable profile: legacy client labels and older machine aliases remain valid recovery forms, while all new identities follow the current predictable prefix rule. Adapter IDs such as `claude-code-desktop` and `github-copilot-vscode` continue to identify integration surfaces; they are deliberately separate from the shorter `claude` and `copilot` actor labels.
+
 ## Mandatory global synchronization
 
 Registration separates a stable `actor_id` from a fresh `execution_id`. One execution ID belongs to one conversation. The checkpoint key is therefore `(actor_id, execution_id)`, preventing two chats for the same agent from consuming each other's updates.

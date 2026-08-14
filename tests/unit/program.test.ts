@@ -1,5 +1,5 @@
 import { cp, mkdir, mkdtemp, rm } from 'node:fs/promises';
-import { tmpdir } from 'node:os';
+import { hostname, tmpdir } from 'node:os';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -7,12 +7,16 @@ import { describe, expect, it, vi } from 'vitest';
 
 import { registerActor } from '../../src/application/register-actor.js';
 import { createProgram, runCli } from '../../src/cli/main.js';
+import { normalizeMachineLabel } from '../../src/domain/registration.js';
 import { PCP_COMMANDS } from '../../src/domain/release.js';
 
 describe('pcp command surface', () => {
   it('exposes every planned lifecycle command', () => {
-    const names = createProgram().commands.map((command) => command.name());
+    const program = createProgram();
+    const names = program.commands.map((command) => command.name());
     expect(names).toEqual(PCP_COMMANDS);
+    const register = program.commands.find((command) => command.name() === 'register');
+    expect(register?.options.map((option) => option.long)).not.toContain('--machine-label');
   });
 
   it('shows help without changing the process exit code', async () => {
@@ -66,8 +70,6 @@ describe('pcp command surface', () => {
         root,
         '--client',
         'codex',
-        '--machine-label',
-        'cli-machine',
         '--json',
       ]);
       const serialized = String(output.mock.calls.at(-1)?.[0]);
@@ -75,7 +77,7 @@ describe('pcp command surface', () => {
         command: 'register',
         status: 'created',
         client: 'codex',
-        machine_label: 'cli-machine',
+        machine_label: normalizeMachineLabel(hostname()),
         event_created: false,
         mutated: true,
       });

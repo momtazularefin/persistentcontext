@@ -4,6 +4,10 @@
 
 - Register an actor when a human or agent first needs durable attribution after adoption.
 - Recover a cached stable identity when one exists; do not silently recalculate it.
+- Create new IDs as `<actor-label>-<machine-label>-<10-character-Crockford-suffix>`. Use `antigravity`, `codex`, `claude`, `copilot`, or `cursor` as a known app label, `human` for a human, and one lowercase word for an app PCP does not define. Adapter IDs are separate integration identifiers and must not leak into new actor-ID prefixes.
+- Derive the machine label automatically from the value returned by the machine's `hostname` command and normalize it to lowercase kebab-case. Do not ask the user to invent or pass a machine alias.
+- Recover cached or uniquely matching legacy identities without renaming them. Stable identity immutability is stronger than a newer prefix convention.
+- Treat a matching local cache as authoritative when its stored machine label differs from the current hostname. Without that cache, require `--actor-id` to recover a profile carrying a different legacy machine label.
 - Keep actor, execution, and event IDs distinct. An actor is project-lifetime identity; a fresh execution ULID belongs to one chat.
 - Retain the returned actor and execution IDs in conversation state.
 - Before every response to a user request and before project-tool use, run global `sync` for that actor and execution.
@@ -13,16 +17,16 @@
 
 Registration, synchronization, acknowledgement, and unchanged rendering are operational actions, not continuity events.
 
-Register an agent once per conversation with its supported client label and a stable machine slug:
+Register an agent once per conversation with its app name. The engine obtains the machine label from the system hostname:
 
 ```text
-node <pcp-engine> register <project-root> --client <client> --machine-label <machine-slug> --json
+node <pcp-engine> register <project-root> --client <app-name> --json
 ```
 
-Supported client labels are `codex`, `antigravity`, `claude-code-desktop`, `github-copilot-vscode`, `cursor`, and `other`. Register a human when durable attribution is first needed:
+Known app labels are `antigravity`, `codex`, `claude`, `copilot`, and `cursor`; an otherwise undefined app uses one lowercase word. Register a human when durable attribution is first needed:
 
 ```text
-node <pcp-engine> register <project-root> --actor-type human --machine-label <machine-slug> --json
+node <pcp-engine> register <project-root> --actor-type human --json
 ```
 
 Use `actor_id` for durable attribution and `execution_id` only for the current chat. A repeat call recovers the same matching actor and returns a new execution ID. If more than one profile matches, inspect profiles and pass the intended `--actor-id`; never guess.

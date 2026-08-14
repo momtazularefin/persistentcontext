@@ -26,14 +26,25 @@
       "enum": ["human", "agent"]
     },
     "client": {
-      "enum": [
-        "codex",
-        "antigravity",
-        "claude-code-desktop",
-        "github-copilot-vscode",
-        "cursor",
-        "human",
-        "other"
+      "anyOf": [
+        {
+          "enum": [
+            "antigravity",
+            "codex",
+            "claude",
+            "copilot",
+            "cursor",
+            "human",
+            "claude-code-desktop",
+            "github-copilot-vscode",
+            "other"
+          ]
+        },
+        {
+          "type": "string",
+          "pattern": "^[a-z0-9]+$",
+          "maxLength": 48
+        }
       ]
     },
     "machine_label": {

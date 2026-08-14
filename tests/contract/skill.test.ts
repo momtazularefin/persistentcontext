@@ -51,9 +51,9 @@ describe('build-pcp skill contract', () => {
     const operation = await readFile(new URL('references/operation.md', skillRoot), 'utf8');
 
     expect(skill).toContain('`register`');
-    expect(operation).toContain(
-      'register <project-root> --client <client> --machine-label <machine-slug> --json',
-    );
+    expect(operation).toContain('register <project-root> --client <app-name> --json');
+    expect(operation).toContain("machine's `hostname` command");
+    expect(operation).toContain('without renaming them');
     expect(operation).toContain('Use `actor_id` for durable attribution');
     expect(operation).toContain('Registration, synchronization, acknowledgement');
     expect(operation).toContain('require a stable external `change_key`');
@@ -96,7 +96,7 @@ describe('build-pcp skill contract', () => {
       'inspect <candidate-directory> --json',
       'adopt --candidate <candidate-directory> --input <temporary-input> --json',
       'adopt --candidate <candidate-directory> --input <temporary-input> --apply <plan-digest> --json',
-      'register <project-root> --client <client> --machine-label <machine-slug> --json',
+      'register <project-root> --client <app-name> --json',
       'sync <project-root> --actor-id <actor-id> --execution-id <execution-id>',
       'record <project-root> --input <external-event.yaml> --json',
       'validate <project-root> --archive-index-only --json',

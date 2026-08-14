@@ -1,6 +1,7 @@
 import type { CanonicalDiagnostic } from './canonical-validation.js';
 import { isInsideDocumentationRoot } from './project-documentation.js';
 import { eventPayloadDigest } from './recording.js';
+import { actorLabelsForStoredClient } from './registration.js';
 
 export interface CanonicalRecord {
   path: string;
@@ -260,17 +261,20 @@ function validateActors(records: CanonicalSemanticRecords): CanonicalDiagnostic[
     const actorType = stringValue(profile?.actor_type);
     const client = stringValue(profile?.client);
     const machineLabel = stringValue(profile?.machine_label);
-    const actorLabel = actorType === 'human' ? 'human' : client;
+    const actorLabels =
+      actorType === 'human' || actorType === 'agent'
+        ? actorLabelsForStoredClient(actorType, client ?? '')
+        : [];
     if (
-      actorLabel !== undefined &&
+      actorLabels.length > 0 &&
       machineLabel !== undefined &&
-      !id.startsWith(`${actorLabel}-${machineLabel}-`)
+      !actorLabels.some((actorLabel) => id.startsWith(`${actorLabel}-${machineLabel}-`))
     ) {
       diagnostics.push(
         error(
           'identity.actor-id-components',
           record.path,
-          `Actor ID must start with ${actorLabel}-${machineLabel}-.`,
+          `Actor ID must start with ${actorLabels.map((actorLabel) => `${actorLabel}-${machineLabel}-`).join(' or ')}.`,
         ),
       );
     }

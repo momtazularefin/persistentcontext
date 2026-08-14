@@ -19434,6 +19434,13 @@ var SUPPORTED_ADAPTER_IDS = [
   "github-copilot-vscode",
   "cursor"
 ];
+var ACTOR_CLIENT_BY_ADAPTER = {
+  codex: "codex",
+  antigravity: "antigravity",
+  "claude-code-desktop": "claude",
+  "github-copilot-vscode": "copilot",
+  cursor: "cursor"
+};
 var ADAPTER_BASENAMES = /* @__PURE__ */ new Set([
   ".cursorrules",
   "agents.md",
@@ -20263,14 +20270,25 @@ var actor_profile_schema_default = {
       enum: ["human", "agent"]
     },
     client: {
-      enum: [
-        "codex",
-        "antigravity",
-        "claude-code-desktop",
-        "github-copilot-vscode",
-        "cursor",
-        "human",
-        "other"
+      anyOf: [
+        {
+          enum: [
+            "antigravity",
+            "codex",
+            "claude",
+            "copilot",
+            "cursor",
+            "human",
+            "claude-code-desktop",
+            "github-copilot-vscode",
+            "other"
+          ]
+        },
+        {
+          type: "string",
+          pattern: "^[a-z0-9]+$",
+          maxLength: 48
+        }
       ]
     },
     machine_label: {
@@ -22694,7 +22712,7 @@ function adapterText(adapterId) {
   const body = sharedBody();
   const clientLine = body.findIndex((line2) => line2.includes("<adapter-client>"));
   if (clientLine >= 0)
-    body[clientLine] = body[clientLine]?.replace("<adapter-client>", adapterId) ?? "";
+    body[clientLine] = body[clientLine]?.replace("<adapter-client>", ACTOR_CLIENT_BY_ADAPTER[adapterId]) ?? "";
   if (adapterId === "claude-code-desktop") {
     body.push(
       `Claude Code loads this adapter at session start; @${CANONICAL_ENTRY} is the canonical entry.`
@@ -23144,6 +23162,129 @@ function nextEventId(existingIds, now = Date.now()) {
   return ulid(timestamp2);
 }
 
+// src/domain/registration.ts
+var ACTOR_TYPES = ["agent", "human"];
+var ACTOR_CLIENTS = [
+  "antigravity",
+  "codex",
+  "claude",
+  "copilot",
+  "cursor",
+  "human"
+];
+var RegistrationError = class extends Error {
+  constructor(code2, message, mutated = false) {
+    super(message);
+    this.code = code2;
+    this.mutated = mutated;
+    this.name = "RegistrationError";
+  }
+  code;
+  mutated;
+};
+var SLUG_PATTERN = /^[a-z0-9]+(?:-[a-z0-9]+)*$/u;
+var APP_LABEL_PATTERN = /^[a-z0-9]+$/u;
+var ACTOR_ID_PATTERN = /^[a-z0-9]+(?:-[a-z0-9]+)*-[0-9A-HJKMNP-TV-Z]{10}$/u;
+var MAX_APP_LABEL_LENGTH = 48;
+var nextExecutionId = monotonicFactory();
+var canonicalClientByLegacyClient = {
+  "claude-code-desktop": "claude",
+  "github-copilot-vscode": "copilot"
+};
+function isActorType(value) {
+  return ACTOR_TYPES.some((candidate) => candidate === value);
+}
+function isActorClient(value) {
+  return value.length <= MAX_APP_LABEL_LENGTH && APP_LABEL_PATTERN.test(value) && value !== "human" && value !== "other";
+}
+function canonicalAgentClient(value) {
+  return canonicalClientByLegacyClient[value] ?? value;
+}
+function actorLabelsForStoredClient(actorType, client) {
+  if (actorType === "human") return ["human"];
+  const canonical = canonicalAgentClient(client);
+  return canonical === client ? [canonical] : [canonical, client];
+}
+function storedClientNamesForIdentity(actorType, client) {
+  if (actorType === "human") return ["human"];
+  const legacyAliases = Object.entries(canonicalClientByLegacyClient).filter(([, canonical]) => canonical === client).map(([legacy]) => legacy);
+  return [client, ...legacyAliases];
+}
+function normalizeMachineLabel(hostname2) {
+  const label = hostname2.normalize("NFKD").toLowerCase().replaceAll(/[^a-z0-9]+/gu, "-").replaceAll(/^-+|-+$/gu, "").slice(0, 128).replaceAll(/-+$/gu, "");
+  if (label.length === 0) {
+    throw new RegistrationError(
+      "PCP_REGISTRATION_MACHINE_LABEL_INVALID",
+      "The system hostname cannot be converted to a PCP machine label."
+    );
+  }
+  return label;
+}
+function normalizeActorIdentity(input) {
+  const actorType = input.actor_type ?? "agent";
+  if (!isActorType(actorType)) {
+    throw new RegistrationError(
+      "PCP_REGISTRATION_ACTOR_TYPE_INVALID",
+      `Actor type must be one of: ${ACTOR_TYPES.join(", ")}.`
+    );
+  }
+  const requestedClient = input.client ?? (actorType === "human" ? "human" : void 0);
+  if (requestedClient === void 0) {
+    throw new RegistrationError(
+      "PCP_REGISTRATION_CLIENT_REQUIRED",
+      `Agent registration requires --client (${ACTOR_CLIENTS.filter((item) => item !== "human").join(", ")}, or a one-word app name).`
+    );
+  }
+  const client = actorType === "agent" ? canonicalAgentClient(requestedClient) : requestedClient;
+  if (actorType === "human" && requestedClient !== "human") {
+    throw new RegistrationError(
+      "PCP_REGISTRATION_CLIENT_MISMATCH",
+      "Human registration must use the human client."
+    );
+  }
+  if (actorType === "agent" && requestedClient === "human") {
+    throw new RegistrationError(
+      "PCP_REGISTRATION_CLIENT_MISMATCH",
+      "Agent registration cannot use the human client."
+    );
+  }
+  const legacyOtherRecovery = requestedClient === "other" && input.actor_id !== void 0;
+  if (actorType === "agent" && !isActorClient(client) && !legacyOtherRecovery) {
+    throw new RegistrationError(
+      "PCP_REGISTRATION_CLIENT_INVALID",
+      `Client must be one of ${ACTOR_CLIENTS.filter((item) => item !== "human").join(", ")}, or an undefined app's one-word lowercase name.`
+    );
+  }
+  if (!SLUG_PATTERN.test(input.machine_label) || input.machine_label.length > 128) {
+    throw new RegistrationError(
+      "PCP_REGISTRATION_MACHINE_LABEL_INVALID",
+      "The normalized system hostname must be a lowercase kebab-case slug with at most 128 characters."
+    );
+  }
+  if (input.actor_id !== void 0 && !ACTOR_ID_PATTERN.test(input.actor_id)) {
+    throw new RegistrationError(
+      "PCP_REGISTRATION_ACTOR_ID_INVALID",
+      "Actor ID must end in a 10-character uppercase Crockford suffix."
+    );
+  }
+  return {
+    actor_type: actorType,
+    client,
+    machine_label: input.machine_label,
+    ...input.actor_id === void 0 ? {} : { actor_id: input.actor_id }
+  };
+}
+function createActorId(identity) {
+  const actorLabel = identity.actor_type === "human" ? "human" : identity.client;
+  return `${actorLabel}-${identity.machine_label}-${ulid().slice(-10)}`;
+}
+function createExecutionId() {
+  return nextExecutionId();
+}
+function actorIdentityMatches(profile, identity) {
+  return profile.actor_type === identity.actor_type && actorLabelsForStoredClient(profile.actor_type, profile.client).includes(identity.client) && profile.machine_label === identity.machine_label;
+}
+
 // src/domain/canonical-semantics.ts
 function validateDocumentation(records) {
   if (records.documentation === void 0) return [];
@@ -23360,13 +23501,13 @@ function validateActors(records) {
     const actorType = stringValue(profile?.actor_type);
     const client = stringValue(profile?.client);
     const machineLabel = stringValue(profile?.machine_label);
-    const actorLabel = actorType === "human" ? "human" : client;
-    if (actorLabel !== void 0 && machineLabel !== void 0 && !id.startsWith(`${actorLabel}-${machineLabel}-`)) {
+    const actorLabels = actorType === "human" || actorType === "agent" ? actorLabelsForStoredClient(actorType, client ?? "") : [];
+    if (actorLabels.length > 0 && machineLabel !== void 0 && !actorLabels.some((actorLabel) => id.startsWith(`${actorLabel}-${machineLabel}-`))) {
       diagnostics.push(
         error(
           "identity.actor-id-components",
           record.path,
-          `Actor ID must start with ${actorLabel}-${machineLabel}-.`
+          `Actor ID must start with ${actorLabels.map((actorLabel) => `${actorLabel}-${machineLabel}-`).join(" or ")}.`
         )
       );
     }
@@ -23482,8 +23623,8 @@ function validateEvents(records) {
         }
       }
     }
-    const sameIdentity2 = actorType === recorderType && actorId === recorderId;
-    if (basis === "self" && !sameIdentity2) {
+    const sameIdentity = actorType === recorderType && actorId === recorderId;
+    if (basis === "self" && !sameIdentity) {
       diagnostics.push(
         error(
           "event.self-recorder-mismatch",
@@ -23492,7 +23633,7 @@ function validateEvents(records) {
         )
       );
     }
-    if ((basis === "reported" || basis === "observed") && sameIdentity2) {
+    if ((basis === "reported" || basis === "observed") && sameIdentity) {
       diagnostics.push(
         error(
           "event.external-basis-self-recorded",
@@ -27552,111 +27693,6 @@ async function mutateWorkstream(projectRoot, operation, inputPath, options = {})
 // src/application/register-actor.ts
 import { mkdir as mkdir4, open as open5, readFile as readFile15, readdir as readdir5, rm as rm5, unlink as unlink5 } from "node:fs/promises";
 import path18 from "node:path";
-
-// src/domain/registration.ts
-var ACTOR_TYPES = ["agent", "human"];
-var ACTOR_CLIENTS = [
-  "codex",
-  "antigravity",
-  "claude-code-desktop",
-  "github-copilot-vscode",
-  "cursor",
-  "human",
-  "other"
-];
-var RegistrationError = class extends Error {
-  constructor(code2, message, mutated = false) {
-    super(message);
-    this.code = code2;
-    this.mutated = mutated;
-    this.name = "RegistrationError";
-  }
-  code;
-  mutated;
-};
-var SLUG_PATTERN = /^[a-z0-9]+(?:-[a-z0-9]+)*$/u;
-var ACTOR_ID_PATTERN = /^[a-z0-9]+(?:-[a-z0-9]+)*-[0-9A-HJKMNP-TV-Z]{10}$/u;
-var nextExecutionId = monotonicFactory();
-function isActorType(value) {
-  return ACTOR_TYPES.some((candidate) => candidate === value);
-}
-function isActorClient(value) {
-  return ACTOR_CLIENTS.some((candidate) => candidate === value);
-}
-function normalizeMachineLabel(hostname2) {
-  const label = hostname2.normalize("NFKD").toLowerCase().replaceAll(/[^a-z0-9]+/gu, "-").replaceAll(/^-+|-+$/gu, "").slice(0, 128).replaceAll(/-+$/gu, "");
-  if (label.length === 0) {
-    throw new RegistrationError(
-      "PCP_REGISTRATION_MACHINE_LABEL_INVALID",
-      "The machine name cannot be converted to a PCP machine label; pass --machine-label."
-    );
-  }
-  return label;
-}
-function normalizeActorIdentity(input) {
-  const actorType = input.actor_type ?? "agent";
-  if (!isActorType(actorType)) {
-    throw new RegistrationError(
-      "PCP_REGISTRATION_ACTOR_TYPE_INVALID",
-      `Actor type must be one of: ${ACTOR_TYPES.join(", ")}.`
-    );
-  }
-  const client = input.client ?? (actorType === "human" ? "human" : void 0);
-  if (client === void 0) {
-    throw new RegistrationError(
-      "PCP_REGISTRATION_CLIENT_REQUIRED",
-      `Agent registration requires --client (${ACTOR_CLIENTS.filter((item) => item !== "human").join(", ")}).`
-    );
-  }
-  if (!isActorClient(client)) {
-    throw new RegistrationError(
-      "PCP_REGISTRATION_CLIENT_INVALID",
-      `Client must be one of: ${ACTOR_CLIENTS.join(", ")}.`
-    );
-  }
-  if (actorType === "human" && client !== "human") {
-    throw new RegistrationError(
-      "PCP_REGISTRATION_CLIENT_MISMATCH",
-      "Human registration must use the human client."
-    );
-  }
-  if (actorType === "agent" && client === "human") {
-    throw new RegistrationError(
-      "PCP_REGISTRATION_CLIENT_MISMATCH",
-      "Agent registration cannot use the human client."
-    );
-  }
-  if (!SLUG_PATTERN.test(input.machine_label) || input.machine_label.length > 128) {
-    throw new RegistrationError(
-      "PCP_REGISTRATION_MACHINE_LABEL_INVALID",
-      "Machine label must be a lowercase kebab-case slug with at most 128 characters."
-    );
-  }
-  if (input.actor_id !== void 0 && !ACTOR_ID_PATTERN.test(input.actor_id)) {
-    throw new RegistrationError(
-      "PCP_REGISTRATION_ACTOR_ID_INVALID",
-      "Actor ID must end in a 10-character uppercase Crockford suffix."
-    );
-  }
-  return {
-    actor_type: actorType,
-    client,
-    machine_label: input.machine_label,
-    ...input.actor_id === void 0 ? {} : { actor_id: input.actor_id }
-  };
-}
-function createActorId(identity) {
-  const actorLabel = identity.actor_type === "human" ? "human" : identity.client;
-  return `${actorLabel}-${identity.machine_label}-${ulid().slice(-10)}`;
-}
-function createExecutionId() {
-  return nextExecutionId();
-}
-function actorIdentityMatches(profile, identity) {
-  return profile.actor_type === identity.actor_type && profile.client === identity.client && profile.machine_label === identity.machine_label;
-}
-
-// src/application/register-actor.ts
 var ACTOR_DIRECTORY2 = ".pcp/continuity/actors";
 var CACHE_DIRECTORY = ".pcp/runtime/actors";
 function portablePath(value) {
@@ -27679,14 +27715,6 @@ async function assertValidCanonicalLayer(projectRoot) {
     "PCP_REGISTRATION_INVALID_LAYER",
     `Actor registration requires a valid installed PCP layer${detail.length === 0 ? "." : `: ${detail}`}`
   );
-}
-async function readOptionalText(file) {
-  try {
-    return await readFile15(file, "utf8");
-  } catch (error2) {
-    if (error2.code === "ENOENT") return void 0;
-    throw error2;
-  }
 }
 function actorProfile(value, relativePath) {
   const result = validateSchema("actor-profile", value);
@@ -27757,10 +27785,10 @@ function parseIdentityCache(contents, identity) {
       "The local actor identity cache contains invalid identity fields."
     );
   }
-  if (record.schema_version !== 1 || !sameIdentity(normalized, identity)) {
+  if (record.schema_version !== 1 || !sameActorApp(normalized, identity)) {
     throw new RegistrationError(
       "PCP_REGISTRATION_CACHE_MISMATCH",
-      "The local actor identity cache does not match the requested client and machine."
+      "The local actor identity cache does not match the requested actor type and app."
     );
   }
   if (normalized.actor_id === void 0) {
@@ -27777,8 +27805,31 @@ function parseIdentityCache(contents, identity) {
     machine_label: normalized.machine_label
   };
 }
-function sameIdentity(left, right) {
-  return left.actor_type === right.actor_type && left.client === right.client && left.machine_label === right.machine_label;
+function sameActorApp(left, right) {
+  return left.actor_type === right.actor_type && left.client === right.client;
+}
+async function loadCompatibleIdentityCaches(projectRoot, identity) {
+  const cacheRoot = path18.join(projectRoot, ...CACHE_DIRECTORY.split("/"));
+  let entries;
+  try {
+    entries = await readdir5(cacheRoot, { withFileTypes: true });
+  } catch (error2) {
+    if (error2.code === "ENOENT") return [];
+    throw error2;
+  }
+  const prefixes = storedClientNamesForIdentity(identity.actor_type, identity.client).map(
+    (client) => `${identity.actor_type}-${client}-`
+  );
+  const caches = [];
+  for (const entry of entries.sort((left, right) => left.name.localeCompare(right.name))) {
+    if (!entry.isFile() || !entry.name.endsWith(".json") || !prefixes.some((prefix) => entry.name.startsWith(prefix))) {
+      continue;
+    }
+    caches.push(
+      parseIdentityCache(await readFile15(path18.join(cacheRoot, entry.name), "utf8"), identity)
+    );
+  }
+  return caches;
 }
 async function createExclusiveFile(file, contents, onCreate) {
   const handle = await open5(file, "wx");
@@ -27845,10 +27896,16 @@ async function registerActor(projectRoot, input) {
       const profiles = await loadActorProfiles(root);
       const profilesById = new Map(profiles.map((profile) => [profile.actor_id, profile]));
       const cachePath = path18.join(root, ...cacheRelativePath(identity).split("/"));
-      const cachedContents = await readOptionalText(cachePath);
+      const cachedIdentities = await loadCompatibleIdentityCaches(root, identity);
+      if (new Set(cachedIdentities.map((cache) => cache.actor_id)).size > 1) {
+        throw new RegistrationError(
+          "PCP_REGISTRATION_CACHE_MISMATCH",
+          "Compatible local actor identity caches disagree about the project identity."
+        );
+      }
+      const cached = cachedIdentities[0];
       let selected;
-      if (cachedContents !== void 0) {
-        const cached = parseIdentityCache(cachedContents, identity);
+      if (cached !== void 0) {
         if (identity.actor_id !== void 0 && identity.actor_id !== cached.actor_id) {
           throw new RegistrationError(
             "PCP_REGISTRATION_CACHE_MISMATCH",
@@ -27862,10 +27919,11 @@ async function registerActor(projectRoot, input) {
             "The cached actor profile is missing; restore or explicitly repair identity state."
           );
         }
-        if (!actorIdentityMatches(selected, identity)) {
+        const cachedProfile = selected;
+        if (!cachedIdentities.some((candidate) => actorIdentityMatches(cachedProfile, candidate))) {
           throw new RegistrationError(
             "PCP_REGISTRATION_CACHE_MISMATCH",
-            "The cached actor profile no longer matches its client and machine identity."
+            "The cached actor profile no longer matches its cached app and machine identity."
           );
         }
       } else if (identity.actor_id !== void 0) {
@@ -27876,10 +27934,13 @@ async function registerActor(projectRoot, input) {
             "The requested actor profile does not exist in this project."
           );
         }
-        if (!actorIdentityMatches(selected, identity)) {
+        if (!actorIdentityMatches(selected, {
+          ...identity,
+          machine_label: selected.machine_label
+        })) {
           throw new RegistrationError(
             "PCP_REGISTRATION_ACTOR_MISMATCH",
-            "The requested actor profile belongs to a different client or machine."
+            "The requested actor profile belongs to a different actor type or app."
           );
         }
       } else {
@@ -27921,7 +27982,7 @@ async function registerActor(projectRoot, input) {
         await assertValidCanonicalLayer(root);
       }
       let cacheCreated = false;
-      if (cachedContents === void 0) {
+      if (cached === void 0) {
         const cacheDirectory = path18.dirname(cachePath);
         createdRuntimeRoot = await mkdir4(cacheDirectory, { recursive: true });
         await createExclusiveFile(
@@ -29874,10 +29935,10 @@ function addAdoptCommand(program2) {
   });
 }
 function addRegisterCommand(program2) {
-  return program2.command("register").description(commandDescriptions.register).argument("[directory]", "managed project root").option("--candidate <directory>", "managed project root").option("--actor-type <agent|human>", "durable actor type", "agent").option("--client <client>", "agent client; omit only for a human").option("--machine-label <slug>", "stable lowercase machine label").option("--actor-id <id>", "recover one known profile when matches are ambiguous").option("--json", "emit stable structured JSON").action(async (directory, options) => {
+  return program2.command("register").description(commandDescriptions.register).argument("[directory]", "managed project root").option("--candidate <directory>", "managed project root").option("--actor-type <agent|human>", "durable actor type", "agent").option("--client <client>", "agent app name; omit only for a human").option("--actor-id <id>", "recover one known profile when matches are ambiguous").option("--json", "emit stable structured JSON").action(async (directory, options) => {
     try {
       const result = await registerActor(options.candidate ?? directory ?? ".", {
-        machine_label: options.machineLabel ?? normalizeMachineLabel(hostname()),
+        machine_label: normalizeMachineLabel(hostname()),
         ...options.actorType === void 0 ? {} : { actor_type: options.actorType },
         ...options.client === void 0 ? {} : { client: options.client },
         ...options.actorId === void 0 ? {} : { actor_id: options.actorId }

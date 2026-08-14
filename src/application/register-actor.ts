@@ -1,4 +1,5 @@
 import { mkdir, open, readFile, readdir, rm, unlink } from 'node:fs/promises';
+import type { Dirent } from 'node:fs';
 import path from 'node:path';
 
 import { parse, stringify } from 'yaml';
@@ -10,6 +11,7 @@ import {
   createExecutionId,
   normalizeActorIdentity,
   RegistrationError,
+  storedClientNamesForIdentity,
   type ActorIdentityCache,
   type ActorProfile,
   type ActorRegistrationResult,
@@ -49,15 +51,6 @@ async function assertValidCanonicalLayer(projectRoot: string): Promise<void> {
     'PCP_REGISTRATION_INVALID_LAYER',
     `Actor registration requires a valid installed PCP layer${detail.length === 0 ? '.' : `: ${detail}`}`,
   );
-}
-
-async function readOptionalText(file: string): Promise<string | undefined> {
-  try {
-    return await readFile(file, 'utf8');
-  } catch (error) {
-    if ((error as NodeJS.ErrnoException).code === 'ENOENT') return undefined;
-    throw error;
-  }
 }
 
 function actorProfile(value: unknown, relativePath: string): ActorProfile {
@@ -136,10 +129,10 @@ function parseIdentityCache(
     );
   }
 
-  if (record.schema_version !== 1 || !sameIdentity(normalized, identity)) {
+  if (record.schema_version !== 1 || !sameActorApp(normalized, identity)) {
     throw new RegistrationError(
       'PCP_REGISTRATION_CACHE_MISMATCH',
-      'The local actor identity cache does not match the requested client and machine.',
+      'The local actor identity cache does not match the requested actor type and app.',
     );
   }
   if (normalized.actor_id === undefined) {
@@ -157,12 +150,39 @@ function parseIdentityCache(
   };
 }
 
-function sameIdentity(left: NormalizedActorIdentity, right: NormalizedActorIdentity): boolean {
-  return (
-    left.actor_type === right.actor_type &&
-    left.client === right.client &&
-    left.machine_label === right.machine_label
+function sameActorApp(left: NormalizedActorIdentity, right: NormalizedActorIdentity): boolean {
+  return left.actor_type === right.actor_type && left.client === right.client;
+}
+
+async function loadCompatibleIdentityCaches(
+  projectRoot: string,
+  identity: NormalizedActorIdentity,
+): Promise<ActorIdentityCache[]> {
+  const cacheRoot = path.join(projectRoot, ...CACHE_DIRECTORY.split('/'));
+  let entries: Dirent[];
+  try {
+    entries = await readdir(cacheRoot, { withFileTypes: true });
+  } catch (error) {
+    if ((error as NodeJS.ErrnoException).code === 'ENOENT') return [];
+    throw error;
+  }
+  const prefixes = storedClientNamesForIdentity(identity.actor_type, identity.client).map(
+    (client) => `${identity.actor_type}-${client}-`,
   );
+  const caches: ActorIdentityCache[] = [];
+  for (const entry of entries.sort((left, right) => left.name.localeCompare(right.name))) {
+    if (
+      !entry.isFile() ||
+      !entry.name.endsWith('.json') ||
+      !prefixes.some((prefix) => entry.name.startsWith(prefix))
+    ) {
+      continue;
+    }
+    caches.push(
+      parseIdentityCache(await readFile(path.join(cacheRoot, entry.name), 'utf8'), identity),
+    );
+  }
+  return caches;
 }
 
 async function createExclusiveFile(
@@ -248,11 +268,17 @@ export async function registerActor(
       const profiles = await loadActorProfiles(root);
       const profilesById = new Map(profiles.map((profile) => [profile.actor_id, profile]));
       const cachePath = path.join(root, ...cacheRelativePath(identity).split('/'));
-      const cachedContents = await readOptionalText(cachePath);
+      const cachedIdentities = await loadCompatibleIdentityCaches(root, identity);
+      if (new Set(cachedIdentities.map((cache) => cache.actor_id)).size > 1) {
+        throw new RegistrationError(
+          'PCP_REGISTRATION_CACHE_MISMATCH',
+          'Compatible local actor identity caches disagree about the project identity.',
+        );
+      }
+      const cached = cachedIdentities[0];
       let selected: ActorProfile | undefined;
 
-      if (cachedContents !== undefined) {
-        const cached = parseIdentityCache(cachedContents, identity);
+      if (cached !== undefined) {
         if (identity.actor_id !== undefined && identity.actor_id !== cached.actor_id) {
           throw new RegistrationError(
             'PCP_REGISTRATION_CACHE_MISMATCH',
@@ -266,10 +292,11 @@ export async function registerActor(
             'The cached actor profile is missing; restore or explicitly repair identity state.',
           );
         }
-        if (!actorIdentityMatches(selected, identity)) {
+        const cachedProfile = selected;
+        if (!cachedIdentities.some((candidate) => actorIdentityMatches(cachedProfile, candidate))) {
           throw new RegistrationError(
             'PCP_REGISTRATION_CACHE_MISMATCH',
-            'The cached actor profile no longer matches its client and machine identity.',
+            'The cached actor profile no longer matches its cached app and machine identity.',
           );
         }
       } else if (identity.actor_id !== undefined) {
@@ -280,10 +307,15 @@ export async function registerActor(
             'The requested actor profile does not exist in this project.',
           );
         }
-        if (!actorIdentityMatches(selected, identity)) {
+        if (
+          !actorIdentityMatches(selected, {
+            ...identity,
+            machine_label: selected.machine_label,
+          })
+        ) {
           throw new RegistrationError(
             'PCP_REGISTRATION_ACTOR_MISMATCH',
-            'The requested actor profile belongs to a different client or machine.',
+            'The requested actor profile belongs to a different actor type or app.',
           );
         }
       } else {
@@ -327,7 +359,7 @@ export async function registerActor(
       }
 
       let cacheCreated = false;
-      if (cachedContents === undefined) {
+      if (cached === undefined) {
         const cacheDirectory = path.dirname(cachePath);
         createdRuntimeRoot = await mkdir(cacheDirectory, { recursive: true });
         await createExclusiveFile(

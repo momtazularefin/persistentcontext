@@ -84,7 +84,6 @@ interface RegisterOptions {
   candidate?: string;
   actorType?: string;
   client?: string;
-  machineLabel?: string;
   actorId?: string;
   json?: boolean;
 }
@@ -264,14 +263,13 @@ function addRegisterCommand(program: Command): Command {
     .argument('[directory]', 'managed project root')
     .option('--candidate <directory>', 'managed project root')
     .option('--actor-type <agent|human>', 'durable actor type', 'agent')
-    .option('--client <client>', 'agent client; omit only for a human')
-    .option('--machine-label <slug>', 'stable lowercase machine label')
+    .option('--client <client>', 'agent app name; omit only for a human')
     .option('--actor-id <id>', 'recover one known profile when matches are ambiguous')
     .option('--json', 'emit stable structured JSON')
     .action(async (directory: string | undefined, options: RegisterOptions) => {
       try {
         const result = await registerActor(options.candidate ?? directory ?? '.', {
-          machine_label: options.machineLabel ?? normalizeMachineLabel(hostname()),
+          machine_label: normalizeMachineLabel(hostname()),
           ...(options.actorType === undefined ? {} : { actor_type: options.actorType }),
           ...(options.client === undefined ? {} : { client: options.client }),
           ...(options.actorId === undefined ? {} : { actor_id: options.actorId }),

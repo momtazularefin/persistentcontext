@@ -35,10 +35,12 @@ Successful adoption has zero actor profiles, zero active events, and zero archiv
 ## 3. Register a conversation
 
 ```powershell
-node dist/pcp.mjs register path/to/project --client codex --machine-label laptop --json
+node dist/pcp.mjs register path/to/project --client codex --json
 ```
 
 Registration creates or recovers one stable project-lifetime actor and returns a fresh execution ULID for the current chat. A stale cache, contradictory identity, or ambiguous recovery fails closed. The adapter retains both IDs in conversation state. Registration creates no event.
+
+The ID is `<actor-label>-<machine-label>-<10-character-Crockford-suffix>`. Registration uses `antigravity`, `codex`, `claude`, `copilot`, or `cursor` as the known app label; a PCP-unknown app supplies one lowercase word, and a human uses `human`. The engine obtains the machine component from the system `hostname` value and normalizes it to lowercase kebab-case. There is no caller-selected machine alias. Existing durable IDs from older releases are recovered without renaming.
 
 Each chat registers separately, even when it recovers the same actor. Checkpoints are keyed by execution ID so one chat cannot consume another chat's updates.
 

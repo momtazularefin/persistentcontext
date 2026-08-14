@@ -9,6 +9,14 @@ export const SUPPORTED_ADAPTER_IDS = [
 export type SupportedAdapterId = (typeof SUPPORTED_ADAPTER_IDS)[number];
 export type AdapterPlatform = SupportedAdapterId | 'custom';
 
+export const ACTOR_CLIENT_BY_ADAPTER = {
+  codex: 'codex',
+  antigravity: 'antigravity',
+  'claude-code-desktop': 'claude',
+  'github-copilot-vscode': 'copilot',
+  cursor: 'cursor',
+} as const satisfies Record<SupportedAdapterId, string>;
+
 export interface AdapterManifest {
   schema_version: 1;
   adapter_id: string;

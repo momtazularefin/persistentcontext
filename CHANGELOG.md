@@ -15,6 +15,7 @@ All notable public protocol changes are documented here from the first release c
 - Separated agent-operational knowledge in `.pcp` from project-outcome knowledge in an established external documentation directory or default `docs/` root.
 - Added per-project documentation-root state and a validated `.pcp/state/documentation.yaml` registry covering every ordinary project document, including related source paths and misplaced/stale-entry checks.
 - Moved spec-driven project outcomes to tracked external documents and extended adoption and 0.1 migration to establish the new boundary without relocating existing documentation.
+- Made new actor-ID prefixes predictable: canonical app labels use `antigravity`, `codex`, `claude`, `copilot`, `cursor`, or `human`, unknown apps use one lowercase word, and the machine label is derived automatically from the system hostname while legacy IDs remain immutable and recoverable.
 
 ## 0.1.0-rc — release candidate
 

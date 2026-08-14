@@ -118,6 +118,18 @@ async function buildManifest() {
         'github-copilot-vscode',
         'cursor',
       ],
+      actor_identity: {
+        canonical_labels: {
+          antigravity: 'antigravity',
+          codex: 'codex',
+          claude: 'claude',
+          copilot: 'copilot',
+          cursor: 'cursor',
+          human: 'human',
+        },
+        custom_app_label: 'one lowercase word',
+        machine_label: 'normalized system hostname',
+      },
       freeze_rule:
         'Any source change requires an explicit unfreeze, regenerated manifest, full local verification, and a new green CI matrix before dogfood resumes.',
     },

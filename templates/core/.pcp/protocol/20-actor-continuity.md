@@ -12,9 +12,14 @@ ownership: protocol
 ## Identity
 
 - One durable actor ID identifies an agent client on one machine for the life of the project.
+- Create the ID once as `<actor-label>-<machine-label>-<10-character-Crockford-suffix>`. Use lowercase kebab-case for the two readable components and an uppercase Crockford suffix generated without a shared counter.
+- Use the app name as the actor label: `antigravity`, `codex`, `claude`, `copilot`, or `cursor`. Use `human` for a human actor. An app PCP does not yet define must choose one lowercase word as its app label instead of using a generic `other` label.
+- Derive the machine label from the value returned by the machine's `hostname` command. Registration obtains it automatically and normalizes that value to lowercase kebab-case; callers do not invent or override a machine alias.
 - Human contributors may also have stable actor profiles for reported or observed attribution; humans do not use synchronization checkpoints.
 - One execution ULID identifies one conversation. Simultaneous conversations for the same actor must use different execution IDs.
 - Run `register` once when a conversation lacks either identity. Registration recovers or creates the actor and returns a fresh execution ID; it creates no continuity event.
+- Never rename or recalculate an installed durable identity. Profiles created by an older PCP release with legacy app or machine labels remain immutable and recoverable.
+- A matching local cache remains authoritative when its stored machine label differs from the current hostname. If that cache is missing, recovering a profile with a different legacy machine label requires its explicit actor ID; do not guess among machines.
 - Keep actor profiles free of credentials, private platform identifiers, and transcripts.
 
 ## Mandatory synchronization

@@ -1,6 +1,6 @@
 # PCP 0.1.0 release candidate
 
-The reproducible candidate identity lives in [`release/0.1.0-rc.json`](../release/0.1.0-rc.json). It records every Git-known source path and byte digest except its own generated file, the combined source-tree digest, the byte-identical engine digest, the packaged skill size, the skill-assets manifest digest, and the verification contract.
+The active reproducible candidate identity lives in [`release/0.2.0-rc.json`](../release/0.2.0-rc.json). It records every Git-known source path and byte digest except its own generated file, the combined source-tree digest, the byte-identical engine digest, the packaged skill size, the skill-assets manifest digest, canonical actor labels, and the verification contract. The published `0.1.0` candidate remains as historical release evidence.
 
 The candidate is frozen only when all of these conditions hold on the exact manifest identity:
 

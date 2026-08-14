@@ -328,6 +328,20 @@ describe('installed canonical layer validation', () => {
     );
   });
 
+  it('accepts immutable legacy adapter-labeled actor IDs', async () => {
+    const root = await createProject();
+    const actorId = 'claude-code-desktop-test-machine-0123456789';
+    await writeActor(root, actorId);
+    const file = path.join(root, '.pcp', 'continuity', 'actors', `${actorId}.yaml`);
+    const profile = await readYamlObject(file);
+    profile.client = 'claude-code-desktop';
+    await writeYamlObject(file, profile);
+
+    expect(diagnosticCodes(await validateCanonicalLayer(root))).not.toContain(
+      'identity.actor-id-components',
+    );
+  });
+
   it('rejects invalid event ULIDs before semantic processing', async () => {
     const root = await createProject();
     await writeEvent(root, { id: 'not-a-ulid' });

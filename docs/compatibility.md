@@ -20,13 +20,15 @@ The repository is private to npm and exposes no global `bin`. Development uses `
 
 Every adoption state installs the same five generated adapters. Each embeds the mandatory register-and-sync contract, delegates durable context to `.pcp/00-index.md`, and is validated against its manifest, source, target, and SHA-256 content digest.
 
-| Adapter ID              | Product surface                    | Generated target                  | Discovery contract                                                                                                   |
-| ----------------------- | ---------------------------------- | --------------------------------- | -------------------------------------------------------------------------------------------------------------------- |
-| `codex`                 | Codex project instructions         | `AGENTS.md`                       | Codex discovers repository `AGENTS.md` guidance before project work.                                                 |
-| `antigravity`           | Antigravity workspace rule         | `.agents/rules/pcp.md`            | Uses the documented workspace-rules directory; workspace rule activation still depends on product behavior/settings. |
-| `claude-code-desktop`   | Claude Code project memory         | `CLAUDE.md`                       | Claude loads project memory at conversation start; the adapter explicitly references `@.pcp/00-index.md`.            |
-| `github-copilot-vscode` | GitHub Copilot custom instructions | `.github/copilot-instructions.md` | Workspace instructions are added automatically when the setting is enabled; users can disable custom instructions.   |
-| `cursor`                | Cursor project rule                | `.cursor/rules/pcp.mdc`           | Generated frontmatter sets `alwaysApply: true`.                                                                      |
+| Adapter ID              | Registration app | Product surface                    | Generated target                  | Discovery contract                                                                                                   |
+| ----------------------- | ---------------- | ---------------------------------- | --------------------------------- | -------------------------------------------------------------------------------------------------------------------- |
+| `codex`                 | `codex`          | Codex project instructions         | `AGENTS.md`                       | Codex discovers repository `AGENTS.md` guidance before project work.                                                 |
+| `antigravity`           | `antigravity`    | Antigravity workspace rule         | `.agents/rules/pcp.md`            | Uses the documented workspace-rules directory; workspace rule activation still depends on product behavior/settings. |
+| `claude-code-desktop`   | `claude`         | Claude Code project memory         | `CLAUDE.md`                       | Claude loads project memory at conversation start; the adapter explicitly references `@.pcp/00-index.md`.            |
+| `github-copilot-vscode` | `copilot`        | GitHub Copilot custom instructions | `.github/copilot-instructions.md` | Workspace instructions are added automatically when the setting is enabled; users can disable custom instructions.   |
+| `cursor`                | `cursor`         | Cursor project rule                | `.cursor/rules/pcp.mdc`           | Generated frontmatter sets `alwaysApply: true`.                                                                      |
+
+Adapter IDs name integration surfaces; registration app names form actor-ID prefixes. The machine component is derived from the local system hostname, not configured per adapter.
 
 The conventions are grounded in the products' documentation: [Codex `AGENTS.md`](https://learn.chatgpt.com/docs/agent-configuration/agents-md), [Antigravity rules](https://antigravity.google/docs/rules-workflows), [Claude Code memory](https://code.claude.com/docs/en/memory), [GitHub Copilot repository custom instructions](https://docs.github.com/en/copilot/customizing-copilot/adding-repository-custom-instructions-for-github-copilot), and [Cursor rules](https://docs.cursor.com/context/rules).
 

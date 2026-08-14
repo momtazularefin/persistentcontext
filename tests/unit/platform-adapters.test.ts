@@ -8,9 +8,11 @@ import { stringify } from 'yaml';
 import { renderPlatformAdapters } from '../../src/application/render-platform-adapters.js';
 import { validatePlatformAdapters } from '../../src/application/validate-platform-adapters.js';
 import {
+  ACTOR_CLIENT_BY_ADAPTER,
   SUPPORTED_ADAPTER_IDS,
   isForeignAdapterSourcePath,
   supportedAdapterForSourcePath,
+  type SupportedAdapterId,
 } from '../../src/domain/adapters.js';
 import { sha256 } from '../../src/domain/adoption.js';
 import { SchemaRegistry } from '../../src/infrastructure/schema-validator.js';
@@ -67,6 +69,9 @@ describe('platform adapters', () => {
       expect(adapter.manifest.content_digest).toBe(sha256(adapter.content));
       expect(adapter.content.toString('utf8')).toContain('.pcp/00-index.md');
       expect(adapter.content.toString('utf8')).toContain('PCP: GENERATED; DO NOT EDIT');
+      expect(adapter.content.toString('utf8')).toContain(
+        `register . --client ${ACTOR_CLIENT_BY_ADAPTER[adapter.manifest.adapter_id as SupportedAdapterId]} --json`,
+      );
     }
     expect(
       first.find((adapter) => adapter.manifest.adapter_id === 'cursor')?.content.toString('utf8'),

@@ -253,17 +253,96 @@ describe('actor registration', () => {
     expect(await eventFiles(root)).toEqual([]);
   });
 
-  it.each(['github-copilot-vscode', 'cursor'])(
-    'creates a schema-valid %s actor profile',
-    async (client) => {
-      const root = await createProject();
-      const result = await registerActor(root, { client, machine_label: 'ide-machine' });
+  it.each([
+    ['claude-code-desktop', 'claude'],
+    ['github-copilot-vscode', 'copilot'],
+    ['cursor', 'cursor'],
+  ])('creates a schema-valid %s actor with the canonical %s label', async (client, actorLabel) => {
+    const root = await createProject();
+    const result = await registerActor(root, { client, machine_label: 'ide-machine' });
 
-      expect(result.client).toBe(client);
-      expect(result.actor_id.startsWith(`${client}-ide-machine-`)).toBe(true);
-      expect((await validateCanonicalLayer(root)).valid).toBe(true);
-    },
-  );
+    expect(result.client).toBe(actorLabel);
+    expect(result.actor_id.startsWith(`${actorLabel}-ide-machine-`)).toBe(true);
+    expect((await validateCanonicalLayer(root)).valid).toBe(true);
+  });
+
+  it('uses an undefined app one-word name as its actor label', async () => {
+    const root = await createProject();
+
+    const result = await registerActor(root, {
+      client: 'windsurf',
+      machine_label: 'ide-machine',
+    });
+
+    expect(result.client).toBe('windsurf');
+    expect(result.actor_id).toMatch(/^windsurf-ide-machine-[0-9A-HJKMNP-TV-Z]{10}$/u);
+    expect((await validateCanonicalLayer(root)).valid).toBe(true);
+  });
+
+  it('recovers a legacy adapter-labeled profile and cache without changing its actor ID', async () => {
+    const root = await createProject();
+    const actorId = 'github-copilot-vscode-local-windows-0123456789';
+    await writeActor(root, actorId, 'github-copilot-vscode', 'local-windows');
+    const cacheRoot = path.join(root, '.pcp', 'runtime', 'actors');
+    await mkdir(cacheRoot, { recursive: true });
+    await writeFile(
+      path.join(cacheRoot, 'agent-github-copilot-vscode-local-windows.json'),
+      `${JSON.stringify({
+        schema_version: 1,
+        actor_id: actorId,
+        actor_type: 'agent',
+        client: 'github-copilot-vscode',
+        machine_label: 'local-windows',
+      })}\n`,
+      'utf8',
+    );
+
+    const result = await registerActor(root, {
+      client: 'copilot',
+      machine_label: 'lenovo',
+    });
+
+    expect(result).toMatchObject({
+      status: 'recovered',
+      actor_id: actorId,
+      client: 'github-copilot-vscode',
+      profile_created: false,
+      cache_created: false,
+      mutated: false,
+    });
+    expect(await actorFiles(root)).toEqual([`${actorId}.yaml`]);
+  });
+
+  it('explicitly recovers an uncached legacy machine alias and then reuses its cache', async () => {
+    const root = await createProject();
+    const actorId = 'antigravity-local-windows-0123456789';
+    await writeActor(root, actorId, 'antigravity', 'local-windows');
+
+    const recovered = await registerActor(root, {
+      client: 'antigravity',
+      machine_label: 'lenovo',
+      actor_id: actorId,
+    });
+    const repeated = await registerActor(root, {
+      client: 'antigravity',
+      machine_label: 'lenovo',
+    });
+
+    expect(recovered).toMatchObject({
+      status: 'recovered',
+      actor_id: actorId,
+      machine_label: 'local-windows',
+      cache_created: true,
+      mutated: true,
+    });
+    expect(repeated).toMatchObject({
+      status: 'recovered',
+      actor_id: actorId,
+      machine_label: 'local-windows',
+      cache_created: false,
+      mutated: false,
+    });
+  });
 
   it('supports the longest schema-valid machine label for every client prefix', async () => {
     const root = await createProject();
@@ -274,7 +353,7 @@ describe('actor registration', () => {
       machine_label: machineLabel,
     });
 
-    expect(result.actor_id).toHaveLength(161);
+    expect(result.actor_id).toHaveLength(147);
     expect((await validateCanonicalLayer(root)).valid).toBe(true);
   });
 
@@ -287,6 +366,9 @@ describe('actor registration', () => {
     });
     await expect(
       registerActor(root, { client: 'mystery-client', machine_label: 'test-machine' }),
+    ).rejects.toMatchObject({ code: 'PCP_REGISTRATION_CLIENT_INVALID', mutated: false });
+    await expect(
+      registerActor(root, { client: 'other', machine_label: 'test-machine' }),
     ).rejects.toMatchObject({ code: 'PCP_REGISTRATION_CLIENT_INVALID', mutated: false });
     expect(await actorFiles(root)).toEqual([]);
     await expect(readdir(path.join(root, '.pcp', 'runtime', 'actors'))).rejects.toThrow();
@@ -334,6 +416,21 @@ describe('registration identity input', () => {
       client: 'codex',
       machine_label: 'momtaz-workstation',
     });
+  });
+
+  it('normalizes legacy adapter clients to canonical app labels', () => {
+    expect(
+      normalizeActorIdentity({
+        client: 'claude-code-desktop',
+        machine_label: 'momtaz-workstation',
+      }),
+    ).toMatchObject({ client: 'claude' });
+    expect(
+      normalizeActorIdentity({
+        client: 'github-copilot-vscode',
+        machine_label: 'momtaz-workstation',
+      }),
+    ).toMatchObject({ client: 'copilot' });
   });
 
   it.each([

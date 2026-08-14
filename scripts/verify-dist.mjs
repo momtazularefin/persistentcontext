@@ -270,8 +270,6 @@ try {
     adoptionCandidate,
     '--client',
     'codex',
-    '--machine-label',
-    'distribution-machine',
     '--json',
   ];
   const firstRegistration = spawnSync(process.execPath, registrationArguments, {

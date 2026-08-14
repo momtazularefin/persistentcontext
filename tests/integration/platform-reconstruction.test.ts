@@ -9,7 +9,7 @@ import { afterEach, describe, expect, it } from 'vitest';
 import { adoptProject } from '../../src/application/adopt-project.js';
 import { renderPlatformAdapters } from '../../src/application/render-platform-adapters.js';
 import type { AdoptionInput } from '../../src/domain/adoption.js';
-import type { SupportedAdapterId } from '../../src/domain/adapters.js';
+import { ACTOR_CLIENT_BY_ADAPTER, type SupportedAdapterId } from '../../src/domain/adapters.js';
 
 const schemaFixture = fileURLToPath(
   new URL('../fixtures/schemas/adoption-input.yaml', import.meta.url),
@@ -210,7 +210,9 @@ async function reconstructFromPlatform(
     platform,
   ).toBe(true);
   expect(
-    adapters.some((adapter) => adapter.includes(`register . --client ${platform} --json`)),
+    adapters.some((adapter) =>
+      adapter.includes(`register . --client ${ACTOR_CLIENT_BY_ADAPTER[platform]} --json`),
+    ),
     `${platform}: registration contract`,
   ).toBe(true);
   expect(

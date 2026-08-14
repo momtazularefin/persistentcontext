@@ -121,18 +121,18 @@ Full validation reads archive contents. `validate --archive-index-only` checks o
 
 ## Registration and synchronization
 
-| Code                                    | Safe response                                                                                                                                              |
-| --------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `PCP_REGISTRATION_STALE_CACHE`          | Restore the matching durable profile or deliberately remove only the ignored cache after confirming the profile is truly gone; then register again.        |
-| `PCP_REGISTRATION_CACHE_MISMATCH`       | The requested identity conflicts with the cache. Confirm client, machine label, project path, and explicit actor ID; do not overwrite the durable profile. |
-| `PCP_REGISTRATION_AMBIGUOUS`            | More than one durable profile matches. Rerun with the intended explicit `--actor-id`.                                                                      |
-| `PCP_REGISTRATION_ACTOR_NOT_FOUND`      | The explicit actor ID is absent. Use an existing profile or register without claiming that ID.                                                             |
-| `PCP_SYNC_ACTOR_NOT_FOUND`              | Sync requires a registered durable agent actor. Register once for this chat.                                                                               |
-| `PCP_SYNC_EXECUTION_ID_INVALID`         | The conversation lost or malformed its execution ULID. Register again to establish a fresh conversation checkpoint.                                        |
-| `PCP_SYNC_CHECKPOINT_IDENTITY_MISMATCH` | The deterministic checkpoint belongs to another actor or execution. Preserve it for diagnosis; do not edit or reuse it.                                    |
-| `PCP_SYNC_DIGEST_MISMATCH`              | Context changed or the acknowledgement digest is wrong. Read a fresh sync preview and absorb every returned current path before acknowledging.             |
-| `PCP_SYNC_EVENT_INTEGRITY_FAILED`       | A newer event's payload digest does not match. Stop project work, preserve the event, and investigate history rather than acknowledging past it.           |
-| `PCP_SYNC_INVALID_LAYER`                | A fast-path continuity file is missing, malformed, unsafe, or inconsistent. Run full validation and repair canonical state; do not bypass synchronization. |
+| Code                                    | Safe response                                                                                                                                                              |
+| --------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `PCP_REGISTRATION_STALE_CACHE`          | Restore the matching durable profile or deliberately remove only the ignored cache after confirming the profile is truly gone; then register again.                        |
+| `PCP_REGISTRATION_CACHE_MISMATCH`       | The requested identity conflicts with the cache. Confirm the app name, current system hostname, project path, and explicit actor ID; do not overwrite the durable profile. |
+| `PCP_REGISTRATION_AMBIGUOUS`            | More than one durable profile matches. Rerun with the intended explicit `--actor-id`.                                                                                      |
+| `PCP_REGISTRATION_ACTOR_NOT_FOUND`      | The explicit actor ID is absent. Use an existing profile or register without claiming that ID.                                                                             |
+| `PCP_SYNC_ACTOR_NOT_FOUND`              | Sync requires a registered durable agent actor. Register once for this chat.                                                                                               |
+| `PCP_SYNC_EXECUTION_ID_INVALID`         | The conversation lost or malformed its execution ULID. Register again to establish a fresh conversation checkpoint.                                                        |
+| `PCP_SYNC_CHECKPOINT_IDENTITY_MISMATCH` | The deterministic checkpoint belongs to another actor or execution. Preserve it for diagnosis; do not edit or reuse it.                                                    |
+| `PCP_SYNC_DIGEST_MISMATCH`              | Context changed or the acknowledgement digest is wrong. Read a fresh sync preview and absorb every returned current path before acknowledging.                             |
+| `PCP_SYNC_EVENT_INTEGRITY_FAILED`       | A newer event's payload digest does not match. Stop project work, preserve the event, and investigate history rather than acknowledging past it.                           |
+| `PCP_SYNC_INVALID_LAYER`                | A fast-path continuity file is missing, malformed, unsafe, or inconsistent. Run full validation and repair canonical state; do not bypass synchronization.                 |
 
 Registration and synchronization should not create continuity events. If they do, validation should fail and the behavior should be reported as a defect.
 

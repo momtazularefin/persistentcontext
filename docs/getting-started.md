@@ -39,15 +39,17 @@ Registration can create an actor profile and ignored local identity cache. Sync 
 
 ## Supported automatic adapters
 
-| Product                              | Generated project instruction     | Registration client     |
-| ------------------------------------ | --------------------------------- | ----------------------- |
-| Codex                                | `AGENTS.md`                       | `codex`                 |
-| Antigravity                          | `.agents/rules/pcp.md`            | `antigravity`           |
-| Claude Code Desktop                  | `CLAUDE.md`                       | `claude-code-desktop`   |
-| GitHub Copilot in Visual Studio Code | `.github/copilot-instructions.md` | `github-copilot-vscode` |
-| Cursor IDE                           | `.cursor/rules/pcp.mdc`           | `cursor`                |
+| Product                              | Generated project instruction     | Registration app |
+| ------------------------------------ | --------------------------------- | ---------------- |
+| Codex                                | `AGENTS.md`                       | `codex`          |
+| Antigravity                          | `.agents/rules/pcp.md`            | `antigravity`    |
+| Claude Code Desktop                  | `CLAUDE.md`                       | `claude`         |
+| GitHub Copilot in Visual Studio Code | `.github/copilot-instructions.md` | `copilot`        |
+| Cursor IDE                           | `.cursor/rules/pcp.mdc`           | `cursor`         |
 
 Codex and products that also inspect root `AGENTS.md` may share that entry point. Cursor's generated rule is always applied. Claude's adapter includes an explicit canonical-file reference. Every generated surface contains the same mandatory synchronization contract and delegates durable authority to `.pcp/00-index.md`.
+
+Registration automatically derives the machine portion of the durable actor ID from the system `hostname` value and normalizes it to lowercase kebab-case. A PCP-unknown app may register with one lowercase word as its app name. Humans use `human`. Existing IDs are recovered exactly and are never renamed to match a newer label convention.
 
 Product instruction files are the strongest portable discovery mechanism common to the five products; they are not an operating-system interceptor. A product setting, mode, or user action may disable or ignore project instructions. PCP deterministically generates, validates, repairs, and tests the adapters, but cannot truthfully guarantee model compliance outside product capabilities. Where a platform offers policy hooks, a project may add stronger enforcement without creating a competing source of project context.
 
