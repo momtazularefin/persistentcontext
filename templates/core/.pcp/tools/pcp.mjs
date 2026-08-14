@@ -327,7 +327,7 @@ var require_ignore = __commonJS({
       //   path matching.
       // - check `string` either `MODE_IGNORE` or `MODE_CHECK_IGNORE`
       // @returns {TestResult} true if a file is ignored
-      test(path22, checkUnignored, mode) {
+      test(path24, checkUnignored, mode) {
         let ignored = false;
         let unignored = false;
         let matchedRule;
@@ -336,7 +336,7 @@ var require_ignore = __commonJS({
           if (unignored === negative && ignored !== unignored || negative && !ignored && !unignored && !checkUnignored) {
             return;
           }
-          const matched = rule[mode].test(path22);
+          const matched = rule[mode].test(path24);
           if (!matched) {
             return;
           }
@@ -357,17 +357,17 @@ var require_ignore = __commonJS({
     var throwError = (message, Ctor) => {
       throw new Ctor(message);
     };
-    var checkPath = (path22, originalPath, doThrow) => {
-      if (!isString(path22)) {
+    var checkPath = (path24, originalPath, doThrow) => {
+      if (!isString(path24)) {
         return doThrow(
           `path must be a string, but got \`${originalPath}\``,
           TypeError
         );
       }
-      if (!path22) {
+      if (!path24) {
         return doThrow(`path must not be empty`, TypeError);
       }
-      if (checkPath.isNotRelative(path22)) {
+      if (checkPath.isNotRelative(path24)) {
         const r = "`path.relative()`d";
         return doThrow(
           `path should be a ${r} string, but got "${originalPath}"`,
@@ -376,7 +376,7 @@ var require_ignore = __commonJS({
       }
       return true;
     };
-    var isNotRelative = (path22) => REGEX_TEST_INVALID_PATH.test(path22);
+    var isNotRelative = (path24) => REGEX_TEST_INVALID_PATH.test(path24);
     checkPath.isNotRelative = isNotRelative;
     checkPath.convert = (p) => p;
     var Ignore = class {
@@ -406,19 +406,19 @@ var require_ignore = __commonJS({
       }
       // @returns {TestResult}
       _test(originalPath, cache, checkUnignored, slices) {
-        const path22 = originalPath && checkPath.convert(originalPath);
+        const path24 = originalPath && checkPath.convert(originalPath);
         checkPath(
-          path22,
+          path24,
           originalPath,
           this._strictPathCheck ? throwError : RETURN_FALSE
         );
-        return this._t(path22, cache, checkUnignored, slices);
+        return this._t(path24, cache, checkUnignored, slices);
       }
-      checkIgnore(path22) {
-        if (!REGEX_TEST_TRAILING_SLASH.test(path22)) {
-          return this.test(path22);
+      checkIgnore(path24) {
+        if (!REGEX_TEST_TRAILING_SLASH.test(path24)) {
+          return this.test(path24);
         }
-        const slices = path22.split(SLASH).filter(Boolean);
+        const slices = path24.split(SLASH).filter(Boolean);
         slices.pop();
         if (slices.length) {
           const parent = this._t(
@@ -431,18 +431,18 @@ var require_ignore = __commonJS({
             return parent;
           }
         }
-        return this._rules.test(path22, false, MODE_CHECK_IGNORE);
+        return this._rules.test(path24, false, MODE_CHECK_IGNORE);
       }
-      _t(path22, cache, checkUnignored, slices) {
-        if (path22 in cache) {
-          return cache[path22];
+      _t(path24, cache, checkUnignored, slices) {
+        if (path24 in cache) {
+          return cache[path24];
         }
         if (!slices) {
-          slices = path22.split(SLASH).filter(Boolean);
+          slices = path24.split(SLASH).filter(Boolean);
         }
         slices.pop();
         if (!slices.length) {
-          return cache[path22] = this._rules.test(path22, checkUnignored, MODE_IGNORE);
+          return cache[path24] = this._rules.test(path24, checkUnignored, MODE_IGNORE);
         }
         const parent = this._t(
           slices.join(SLASH) + SLASH,
@@ -450,29 +450,29 @@ var require_ignore = __commonJS({
           checkUnignored,
           slices
         );
-        return cache[path22] = parent.ignored ? parent : this._rules.test(path22, checkUnignored, MODE_IGNORE);
+        return cache[path24] = parent.ignored ? parent : this._rules.test(path24, checkUnignored, MODE_IGNORE);
       }
-      ignores(path22) {
-        return this._test(path22, this._ignoreCache, false).ignored;
+      ignores(path24) {
+        return this._test(path24, this._ignoreCache, false).ignored;
       }
       createFilter() {
-        return (path22) => !this.ignores(path22);
+        return (path24) => !this.ignores(path24);
       }
       filter(paths) {
         return makeArray(paths).filter(this.createFilter());
       }
       // @returns {TestResult}
-      test(path22) {
-        return this._test(path22, this._testCache, true);
+      test(path24) {
+        return this._test(path24, this._testCache, true);
       }
     };
     var factory = (options) => new Ignore(options);
-    var isPathValid = (path22) => checkPath(path22 && checkPath.convert(path22), path22, RETURN_FALSE);
+    var isPathValid = (path24) => checkPath(path24 && checkPath.convert(path24), path24, RETURN_FALSE);
     var setupWindows = () => {
       const makePosix = (str) => /^\\\\\?\\/.test(str) || /["<>|\u0000-\u001F]+/u.test(str) ? str : str.replace(/\\/g, "/");
       checkPath.convert = makePosix;
       const REGEX_TEST_WINDOWS_PATH_ABSOLUTE = /^[a-z]:\//i;
-      checkPath.isNotRelative = (path22) => REGEX_TEST_WINDOWS_PATH_ABSOLUTE.test(path22) || isNotRelative(path22);
+      checkPath.isNotRelative = (path24) => REGEX_TEST_WINDOWS_PATH_ABSOLUTE.test(path24) || isNotRelative(path24);
     };
     if (
       // Detect `process` so that it can run in browsers.
@@ -3683,8 +3683,8 @@ var require_utils = __commonJS({
       }
       return ind;
     }
-    function removeDotSegments(path22) {
-      let input = path22;
+    function removeDotSegments(path24) {
+      let input = path24;
       const output = [];
       let nextSlash = -1;
       let len = 0;
@@ -3936,8 +3936,8 @@ var require_schemes = __commonJS({
         wsComponent.secure = void 0;
       }
       if (wsComponent.resourceName) {
-        const [path22, query] = wsComponent.resourceName.split("?");
-        wsComponent.path = path22 && path22 !== "/" ? path22 : void 0;
+        const [path24, query] = wsComponent.resourceName.split("?");
+        wsComponent.path = path24 && path24 !== "/" ? path24 : void 0;
         wsComponent.query = query;
         wsComponent.resourceName = void 0;
       }
@@ -11282,9 +11282,9 @@ Expecting one of '${allowedValues.join("', '")}'`);
    * @param {string} [path]
    * @return {(string|null|Command)}
    */
-  executableDir(path22) {
-    if (path22 === void 0) return this._executableDir;
-    this._executableDir = path22;
+  executableDir(path24) {
+    if (path24 === void 0) return this._executableDir;
+    this._executableDir = path24;
     return this;
   }
   /**
@@ -12649,17 +12649,17 @@ function visit(node, visitor) {
 visit.BREAK = BREAK;
 visit.SKIP = SKIP;
 visit.REMOVE = REMOVE;
-function visit_(key, node, visitor, path22) {
-  const ctrl = callVisitor(key, node, visitor, path22);
+function visit_(key, node, visitor, path24) {
+  const ctrl = callVisitor(key, node, visitor, path24);
   if (isNode(ctrl) || isPair(ctrl)) {
-    replaceNode(key, path22, ctrl);
-    return visit_(key, ctrl, visitor, path22);
+    replaceNode(key, path24, ctrl);
+    return visit_(key, ctrl, visitor, path24);
   }
   if (typeof ctrl !== "symbol") {
     if (isCollection(node)) {
-      path22 = Object.freeze(path22.concat(node));
+      path24 = Object.freeze(path24.concat(node));
       for (let i = 0; i < node.items.length; ++i) {
-        const ci = visit_(i, node.items[i], visitor, path22);
+        const ci = visit_(i, node.items[i], visitor, path24);
         if (typeof ci === "number")
           i = ci - 1;
         else if (ci === BREAK)
@@ -12670,13 +12670,13 @@ function visit_(key, node, visitor, path22) {
         }
       }
     } else if (isPair(node)) {
-      path22 = Object.freeze(path22.concat(node));
-      const ck = visit_("key", node.key, visitor, path22);
+      path24 = Object.freeze(path24.concat(node));
+      const ck = visit_("key", node.key, visitor, path24);
       if (ck === BREAK)
         return BREAK;
       else if (ck === REMOVE)
         node.key = null;
-      const cv = visit_("value", node.value, visitor, path22);
+      const cv = visit_("value", node.value, visitor, path24);
       if (cv === BREAK)
         return BREAK;
       else if (cv === REMOVE)
@@ -12697,17 +12697,17 @@ async function visitAsync(node, visitor) {
 visitAsync.BREAK = BREAK;
 visitAsync.SKIP = SKIP;
 visitAsync.REMOVE = REMOVE;
-async function visitAsync_(key, node, visitor, path22) {
-  const ctrl = await callVisitor(key, node, visitor, path22);
+async function visitAsync_(key, node, visitor, path24) {
+  const ctrl = await callVisitor(key, node, visitor, path24);
   if (isNode(ctrl) || isPair(ctrl)) {
-    replaceNode(key, path22, ctrl);
-    return visitAsync_(key, ctrl, visitor, path22);
+    replaceNode(key, path24, ctrl);
+    return visitAsync_(key, ctrl, visitor, path24);
   }
   if (typeof ctrl !== "symbol") {
     if (isCollection(node)) {
-      path22 = Object.freeze(path22.concat(node));
+      path24 = Object.freeze(path24.concat(node));
       for (let i = 0; i < node.items.length; ++i) {
-        const ci = await visitAsync_(i, node.items[i], visitor, path22);
+        const ci = await visitAsync_(i, node.items[i], visitor, path24);
         if (typeof ci === "number")
           i = ci - 1;
         else if (ci === BREAK)
@@ -12718,13 +12718,13 @@ async function visitAsync_(key, node, visitor, path22) {
         }
       }
     } else if (isPair(node)) {
-      path22 = Object.freeze(path22.concat(node));
-      const ck = await visitAsync_("key", node.key, visitor, path22);
+      path24 = Object.freeze(path24.concat(node));
+      const ck = await visitAsync_("key", node.key, visitor, path24);
       if (ck === BREAK)
         return BREAK;
       else if (ck === REMOVE)
         node.key = null;
-      const cv = await visitAsync_("value", node.value, visitor, path22);
+      const cv = await visitAsync_("value", node.value, visitor, path24);
       if (cv === BREAK)
         return BREAK;
       else if (cv === REMOVE)
@@ -12751,23 +12751,23 @@ function initVisitor(visitor) {
   }
   return visitor;
 }
-function callVisitor(key, node, visitor, path22) {
+function callVisitor(key, node, visitor, path24) {
   if (typeof visitor === "function")
-    return visitor(key, node, path22);
+    return visitor(key, node, path24);
   if (isMap(node))
-    return visitor.Map?.(key, node, path22);
+    return visitor.Map?.(key, node, path24);
   if (isSeq(node))
-    return visitor.Seq?.(key, node, path22);
+    return visitor.Seq?.(key, node, path24);
   if (isPair(node))
-    return visitor.Pair?.(key, node, path22);
+    return visitor.Pair?.(key, node, path24);
   if (isScalar(node))
-    return visitor.Scalar?.(key, node, path22);
+    return visitor.Scalar?.(key, node, path24);
   if (isAlias(node))
-    return visitor.Alias?.(key, node, path22);
+    return visitor.Alias?.(key, node, path24);
   return void 0;
 }
-function replaceNode(key, path22, node) {
-  const parent = path22[path22.length - 1];
+function replaceNode(key, path24, node) {
+  const parent = path24[path24.length - 1];
   if (isCollection(parent)) {
     parent.items[key] = node;
   } else if (isPair(parent)) {
@@ -13296,10 +13296,10 @@ function createNode(value, tagName, ctx) {
 }
 
 // node_modules/yaml/browser/dist/nodes/Collection.js
-function collectionFromPath(schema4, path22, value) {
+function collectionFromPath(schema4, path24, value) {
   let v = value;
-  for (let i = path22.length - 1; i >= 0; --i) {
-    const k = path22[i];
+  for (let i = path24.length - 1; i >= 0; --i) {
+    const k = path24[i];
     if (typeof k === "number" && Number.isInteger(k) && k >= 0) {
       const a = [];
       a[k] = v;
@@ -13318,7 +13318,7 @@ function collectionFromPath(schema4, path22, value) {
     sourceObjects: /* @__PURE__ */ new Map()
   });
 }
-var isEmptyPath = (path22) => path22 == null || typeof path22 === "object" && !!path22[Symbol.iterator]().next().done;
+var isEmptyPath = (path24) => path24 == null || typeof path24 === "object" && !!path24[Symbol.iterator]().next().done;
 var Collection = class extends NodeBase {
   constructor(type, schema4) {
     super(type);
@@ -13348,11 +13348,11 @@ var Collection = class extends NodeBase {
    * be a Pair instance or a `{ key, value }` object, which may not have a key
    * that already exists in the map.
    */
-  addIn(path22, value) {
-    if (isEmptyPath(path22))
+  addIn(path24, value) {
+    if (isEmptyPath(path24))
       this.add(value);
     else {
-      const [key, ...rest] = path22;
+      const [key, ...rest] = path24;
       const node = this.get(key, true);
       if (isCollection(node))
         node.addIn(rest, value);
@@ -13366,8 +13366,8 @@ var Collection = class extends NodeBase {
    * Removes a value from the collection.
    * @returns `true` if the item was found and removed.
    */
-  deleteIn(path22) {
-    const [key, ...rest] = path22;
+  deleteIn(path24) {
+    const [key, ...rest] = path24;
     if (rest.length === 0)
       return this.delete(key);
     const node = this.get(key, true);
@@ -13381,8 +13381,8 @@ var Collection = class extends NodeBase {
    * scalar values from their surrounding node; to disable set `keepScalar` to
    * `true` (collections are always returned intact).
    */
-  getIn(path22, keepScalar) {
-    const [key, ...rest] = path22;
+  getIn(path24, keepScalar) {
+    const [key, ...rest] = path24;
     const node = this.get(key, true);
     if (rest.length === 0)
       return !keepScalar && isScalar(node) ? node.value : node;
@@ -13400,8 +13400,8 @@ var Collection = class extends NodeBase {
   /**
    * Checks if the collection includes a value with the key `key`.
    */
-  hasIn(path22) {
-    const [key, ...rest] = path22;
+  hasIn(path24) {
+    const [key, ...rest] = path24;
     if (rest.length === 0)
       return this.has(key);
     const node = this.get(key, true);
@@ -13411,8 +13411,8 @@ var Collection = class extends NodeBase {
    * Sets a value in this collection. For `!!set`, `value` needs to be a
    * boolean to add/remove the item from the set.
    */
-  setIn(path22, value) {
-    const [key, ...rest] = path22;
+  setIn(path24, value) {
+    const [key, ...rest] = path24;
     if (rest.length === 0) {
       this.set(key, value);
     } else {
@@ -15551,9 +15551,9 @@ var Document = class _Document {
       this.contents.add(value);
   }
   /** Adds a value to the document. */
-  addIn(path22, value) {
+  addIn(path24, value) {
     if (assertCollection(this.contents))
-      this.contents.addIn(path22, value);
+      this.contents.addIn(path24, value);
   }
   /**
    * Create a new `Alias` node, ensuring that the target `node` has the required anchor.
@@ -15628,14 +15628,14 @@ var Document = class _Document {
    * Removes a value from the document.
    * @returns `true` if the item was found and removed.
    */
-  deleteIn(path22) {
-    if (isEmptyPath(path22)) {
+  deleteIn(path24) {
+    if (isEmptyPath(path24)) {
       if (this.contents == null)
         return false;
       this.contents = null;
       return true;
     }
-    return assertCollection(this.contents) ? this.contents.deleteIn(path22) : false;
+    return assertCollection(this.contents) ? this.contents.deleteIn(path24) : false;
   }
   /**
    * Returns item at `key`, or `undefined` if not found. By default unwraps
@@ -15650,10 +15650,10 @@ var Document = class _Document {
    * scalar values from their surrounding node; to disable set `keepScalar` to
    * `true` (collections are always returned intact).
    */
-  getIn(path22, keepScalar) {
-    if (isEmptyPath(path22))
+  getIn(path24, keepScalar) {
+    if (isEmptyPath(path24))
       return !keepScalar && isScalar(this.contents) ? this.contents.value : this.contents;
-    return isCollection(this.contents) ? this.contents.getIn(path22, keepScalar) : void 0;
+    return isCollection(this.contents) ? this.contents.getIn(path24, keepScalar) : void 0;
   }
   /**
    * Checks if the document includes a value with the key `key`.
@@ -15664,10 +15664,10 @@ var Document = class _Document {
   /**
    * Checks if the document includes a value at `path`.
    */
-  hasIn(path22) {
-    if (isEmptyPath(path22))
+  hasIn(path24) {
+    if (isEmptyPath(path24))
       return this.contents !== void 0;
-    return isCollection(this.contents) ? this.contents.hasIn(path22) : false;
+    return isCollection(this.contents) ? this.contents.hasIn(path24) : false;
   }
   /**
    * Sets a value in this document. For `!!set`, `value` needs to be a
@@ -15684,13 +15684,13 @@ var Document = class _Document {
    * Sets a value in this document. For `!!set`, `value` needs to be a
    * boolean to add/remove the item from the set.
    */
-  setIn(path22, value) {
-    if (isEmptyPath(path22)) {
+  setIn(path24, value) {
+    if (isEmptyPath(path24)) {
       this.contents = value;
     } else if (this.contents == null) {
-      this.contents = collectionFromPath(this.schema, Array.from(path22), value);
+      this.contents = collectionFromPath(this.schema, Array.from(path24), value);
     } else if (assertCollection(this.contents)) {
-      this.contents.setIn(path22, value);
+      this.contents.setIn(path24, value);
     }
   }
   /**
@@ -17240,9 +17240,9 @@ function visit2(cst, visitor) {
 visit2.BREAK = BREAK2;
 visit2.SKIP = SKIP2;
 visit2.REMOVE = REMOVE2;
-visit2.itemAtPath = (cst, path22) => {
+visit2.itemAtPath = (cst, path24) => {
   let item = cst;
-  for (const [field, index] of path22) {
+  for (const [field, index] of path24) {
     const tok = item?.[field];
     if (tok && "items" in tok) {
       item = tok.items[index];
@@ -17251,23 +17251,23 @@ visit2.itemAtPath = (cst, path22) => {
   }
   return item;
 };
-visit2.parentCollection = (cst, path22) => {
-  const parent = visit2.itemAtPath(cst, path22.slice(0, -1));
-  const field = path22[path22.length - 1][0];
+visit2.parentCollection = (cst, path24) => {
+  const parent = visit2.itemAtPath(cst, path24.slice(0, -1));
+  const field = path24[path24.length - 1][0];
   const coll = parent?.[field];
   if (coll && "items" in coll)
     return coll;
   throw new Error("Parent collection not found");
 };
-function _visit(path22, item, visitor) {
-  let ctrl = visitor(item, path22);
+function _visit(path24, item, visitor) {
+  let ctrl = visitor(item, path24);
   if (typeof ctrl === "symbol")
     return ctrl;
   for (const field of ["key", "value"]) {
     const token = item[field];
     if (token && "items" in token) {
       for (let i = 0; i < token.items.length; ++i) {
-        const ci = _visit(Object.freeze(path22.concat([[field, i]])), token.items[i], visitor);
+        const ci = _visit(Object.freeze(path24.concat([[field, i]])), token.items[i], visitor);
         if (typeof ci === "number")
           i = ci - 1;
         else if (ci === BREAK2)
@@ -17278,10 +17278,10 @@ function _visit(path22, item, visitor) {
         }
       }
       if (typeof ctrl === "function" && field === "key")
-        ctrl = ctrl(item, path22);
+        ctrl = ctrl(item, path24);
     }
   }
-  return typeof ctrl === "function" ? ctrl(item, path22) : ctrl;
+  return typeof ctrl === "function" ? ctrl(item, path24) : ctrl;
 }
 
 // node_modules/yaml/browser/dist/parse/cst.js
@@ -21403,6 +21403,7 @@ var pcp_manifest_schema_default = {
   required: [
     "schema_version",
     "protocol",
+    "update",
     "persistence",
     "capabilities",
     "continuity",
@@ -21426,6 +21427,16 @@ var pcp_manifest_schema_default = {
         version: {
           $ref: "urn:pcp:schema:v1:common#/$defs/semver"
         }
+      }
+    },
+    update: {
+      type: "object",
+      additionalProperties: false,
+      required: ["provider", "repository", "channel"],
+      properties: {
+        provider: { const: "github" },
+        repository: { const: "momtazularefin/persistentcontext" },
+        channel: { const: "main" }
       }
     },
     persistence: {
@@ -23359,8 +23370,8 @@ function objectArray2(value) {
 function stringArray2(value) {
   return Array.isArray(value) ? value.filter((item) => typeof item === "string") : [];
 }
-function error(code2, path22, message) {
-  return { severity: "error", code: code2, path: path22, message };
+function error(code2, path24, message) {
+  return { severity: "error", code: code2, path: path24, message };
 }
 function validateProjectIdentity(records) {
   const diagnostics = [];
@@ -26445,6 +26456,279 @@ async function adoptProject(candidate = ".", options = {}) {
   };
 }
 
+// src/application/check-for-upgrade.ts
+import { readFile as readFile12 } from "node:fs/promises";
+import path15 from "node:path";
+
+// src/domain/release.ts
+var PCP_NAME = "Persistent Context Protocol";
+var PCP_VERSION = "0.2.0";
+var PCP_RELEASE_STAGE = "mandatory-global-sync";
+var PCP_UPDATE_PROVIDER = "github";
+var PCP_UPDATE_REPOSITORY = "momtazularefin/persistentcontext";
+var PCP_UPDATE_CHANNEL = "main";
+var PCP_UPDATE_MANIFEST_PATH = "templates/core/.pcp/pcp.yaml";
+var PCP_UPDATE_API_URL = `https://api.github.com/repos/${PCP_UPDATE_REPOSITORY}/commits/${PCP_UPDATE_CHANNEL}`;
+var PCP_COMMANDS = [
+  "inspect",
+  "adopt",
+  "register",
+  "sync",
+  "record",
+  "validate",
+  "render",
+  "workstream",
+  "upgrade",
+  "purge-history",
+  "repair"
+];
+
+// src/domain/update-check.ts
+var UpgradeCheckError = class extends Error {
+  constructor(code2, message) {
+    super(message);
+    this.code = code2;
+    this.name = "UpgradeCheckError";
+  }
+  code;
+};
+
+// src/domain/upgrade.ts
+var UpgradeError = class extends Error {
+  constructor(code2, message, mutated = false, recovery_root) {
+    super(message);
+    this.code = code2;
+    this.mutated = mutated;
+    this.recovery_root = recovery_root;
+    this.name = "UpgradeError";
+  }
+  code;
+  mutated;
+  recovery_root;
+};
+function parsedSemver(value) {
+  const match = /^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)(?:-([0-9A-Za-z-]+(?:\.[0-9A-Za-z-]+)*))?(?:\+[0-9A-Za-z-]+(?:\.[0-9A-Za-z-]+)*)?$/u.exec(
+    value
+  );
+  if (match === null)
+    throw new UpgradeError("PCP_UPGRADE_VERSION_INVALID", `Invalid version: ${value}`);
+  const prerelease = match[4] === void 0 ? [] : match[4].split(".").map((identifier) => {
+    if (!/^\d+$/u.test(identifier)) return identifier;
+    if (identifier.length > 1 && identifier.startsWith("0")) {
+      throw new UpgradeError("PCP_UPGRADE_VERSION_INVALID", `Invalid version: ${value}`);
+    }
+    return Number(identifier);
+  });
+  return {
+    core: [Number(match[1]), Number(match[2]), Number(match[3])],
+    prerelease
+  };
+}
+function comparePcpVersions(left, right) {
+  const leftVersion = parsedSemver(left);
+  const rightVersion = parsedSemver(right);
+  for (let index = 0; index < leftVersion.core.length; index += 1) {
+    const difference = (leftVersion.core[index] ?? 0) - (rightVersion.core[index] ?? 0);
+    if (difference !== 0) return difference;
+  }
+  if (leftVersion.prerelease.length === 0 || rightVersion.prerelease.length === 0) {
+    if (leftVersion.prerelease.length === rightVersion.prerelease.length) return 0;
+    return leftVersion.prerelease.length === 0 ? 1 : -1;
+  }
+  const length = Math.max(leftVersion.prerelease.length, rightVersion.prerelease.length);
+  for (let index = 0; index < length; index += 1) {
+    const leftIdentifier = leftVersion.prerelease[index];
+    const rightIdentifier = rightVersion.prerelease[index];
+    if (leftIdentifier === void 0 || rightIdentifier === void 0) {
+      if (leftIdentifier === rightIdentifier) return 0;
+      return leftIdentifier === void 0 ? -1 : 1;
+    }
+    if (leftIdentifier === rightIdentifier) continue;
+    if (typeof leftIdentifier === "number" && typeof rightIdentifier === "number") {
+      return leftIdentifier - rightIdentifier;
+    }
+    if (typeof leftIdentifier === "number") return -1;
+    if (typeof rightIdentifier === "number") return 1;
+    return leftIdentifier < rightIdentifier ? -1 : 1;
+  }
+  return 0;
+}
+
+// src/application/check-for-upgrade.ts
+function objectValue4(value) {
+  return typeof value === "object" && value !== null && !Array.isArray(value) ? value : void 0;
+}
+function installedVersion(value) {
+  const version = objectValue4(objectValue4(value)?.protocol)?.version;
+  if (typeof version !== "string") {
+    throw new UpgradeCheckError(
+      "PCP_UPGRADE_CHECK_MANIFEST_INVALID",
+      "The installed PCP manifest does not declare protocol.version."
+    );
+  }
+  try {
+    comparePcpVersions(version, version);
+  } catch (error2) {
+    if (error2 instanceof UpgradeError) {
+      throw new UpgradeCheckError("PCP_UPGRADE_CHECK_MANIFEST_INVALID", error2.message);
+    }
+    throw error2;
+  }
+  return version;
+}
+function assertOfficialSource(value) {
+  const update = objectValue4(objectValue4(value)?.update);
+  if (update === void 0) return;
+  if (update.provider !== PCP_UPDATE_PROVIDER || update.repository !== PCP_UPDATE_REPOSITORY || update.channel !== PCP_UPDATE_CHANNEL) {
+    throw new UpgradeCheckError(
+      "PCP_UPGRADE_CHECK_SOURCE_UNSUPPORTED",
+      "This engine checks only the canonical PCP GitHub source."
+    );
+  }
+}
+function githubCommit(value) {
+  const record = objectValue4(value);
+  if (record === void 0 || typeof record.sha !== "string" || typeof record.html_url !== "string" || !/^[a-f0-9]{40}(?:[a-f0-9]{24})?$/u.test(record.sha)) {
+    throw new UpgradeCheckError(
+      "PCP_UPGRADE_CHECK_RESPONSE_INVALID",
+      "GitHub returned an invalid canonical-branch commit response."
+    );
+  }
+  const expectedUrl = `https://github.com/${PCP_UPDATE_REPOSITORY}/commit/${record.sha}`;
+  if (record.html_url !== expectedUrl) {
+    throw new UpgradeCheckError(
+      "PCP_UPGRADE_CHECK_RESPONSE_INVALID",
+      "The canonical-branch commit URL does not match the PCP repository and revision."
+    );
+  }
+  return {
+    sha: record.sha,
+    html_url: record.html_url
+  };
+}
+function remoteManifest(value) {
+  const validation = new SchemaRegistry().validate("pcp-manifest", value);
+  if (!validation.valid) {
+    throw new UpgradeCheckError(
+      "PCP_UPGRADE_CHECK_RESPONSE_INVALID",
+      `The canonical GitHub manifest is invalid: ${validation.diagnostics.slice(0, 8).map((item) => `${item.path} ${item.message}`).join("; ")}`
+    );
+  }
+  assertOfficialSource(value);
+  return installedVersion(value);
+}
+async function checkForUpgrade(candidate = ".", options = {}) {
+  const root = await resolveCandidateRoot(candidate);
+  const inspection = await inspectRepository(root);
+  if (inspection.state !== "managed") {
+    throw new UpgradeCheckError(
+      "PCP_UPGRADE_CHECK_NOT_MANAGED",
+      `Update discovery requires a managed PCP project; found ${inspection.state}.`
+    );
+  }
+  let manifest2;
+  try {
+    manifest2 = parse(await readFile12(path15.join(root, ".pcp", "pcp.yaml"), "utf8"));
+  } catch (error2) {
+    throw new UpgradeCheckError(
+      "PCP_UPGRADE_CHECK_MANIFEST_INVALID",
+      error2 instanceof Error ? error2.message : String(error2)
+    );
+  }
+  const localVersion = installedVersion(manifest2);
+  assertOfficialSource(manifest2);
+  const fetcher = options.fetcher ?? fetch;
+  let commitResponse;
+  try {
+    commitResponse = await fetcher(PCP_UPDATE_API_URL, {
+      headers: {
+        Accept: "application/vnd.github+json",
+        "User-Agent": "persistent-context-protocol-update-check",
+        "X-GitHub-Api-Version": "2022-11-28"
+      },
+      redirect: "error",
+      cache: "no-store"
+    });
+  } catch (error2) {
+    throw new UpgradeCheckError(
+      "PCP_UPGRADE_CHECK_NETWORK_FAILED",
+      `Unable to query the canonical PCP release source: ${error2 instanceof Error ? error2.message : String(error2)}`
+    );
+  }
+  if (!commitResponse.ok) {
+    throw new UpgradeCheckError(
+      commitResponse.status === 404 ? "PCP_UPGRADE_CHECK_SOURCE_UNAVAILABLE" : "PCP_UPGRADE_CHECK_NETWORK_FAILED",
+      `GitHub canonical-branch request failed with HTTP ${commitResponse.status}.`
+    );
+  }
+  let commitValue;
+  try {
+    commitValue = await commitResponse.json();
+  } catch (error2) {
+    throw new UpgradeCheckError(
+      "PCP_UPGRADE_CHECK_RESPONSE_INVALID",
+      `GitHub canonical-branch response is not JSON: ${error2 instanceof Error ? error2.message : String(error2)}`
+    );
+  }
+  const commit = githubCommit(commitValue);
+  const sourceManifestUrl = `https://raw.githubusercontent.com/${PCP_UPDATE_REPOSITORY}/${commit.sha}/${PCP_UPDATE_MANIFEST_PATH}`;
+  let manifestResponse;
+  try {
+    manifestResponse = await fetcher(sourceManifestUrl, {
+      headers: { "User-Agent": "persistent-context-protocol-update-check" },
+      redirect: "error",
+      cache: "no-store"
+    });
+  } catch (error2) {
+    throw new UpgradeCheckError(
+      "PCP_UPGRADE_CHECK_NETWORK_FAILED",
+      `Unable to read the canonical PCP manifest at revision ${commit.sha}: ${error2 instanceof Error ? error2.message : String(error2)}`
+    );
+  }
+  if (!manifestResponse.ok) {
+    throw new UpgradeCheckError(
+      manifestResponse.status === 404 ? "PCP_UPGRADE_CHECK_SOURCE_UNAVAILABLE" : "PCP_UPGRADE_CHECK_NETWORK_FAILED",
+      `GitHub canonical-manifest request failed with HTTP ${manifestResponse.status}.`
+    );
+  }
+  let remoteManifestValue;
+  try {
+    remoteManifestValue = parse(await manifestResponse.text());
+  } catch (error2) {
+    throw new UpgradeCheckError(
+      "PCP_UPGRADE_CHECK_RESPONSE_INVALID",
+      `The canonical GitHub manifest is not YAML: ${error2 instanceof Error ? error2.message : String(error2)}`
+    );
+  }
+  const availableVersion = remoteManifest(remoteManifestValue);
+  const comparison = comparePcpVersions(localVersion, availableVersion);
+  const availability = comparison < 0 ? "update-available" : comparison === 0 ? "current" : "installed-newer";
+  const updateAvailable = availability === "update-available";
+  return {
+    schema_version: 1,
+    command: "upgrade-check",
+    candidate: ".",
+    provider: PCP_UPDATE_PROVIDER,
+    repository: PCP_UPDATE_REPOSITORY,
+    channel: PCP_UPDATE_CHANNEL,
+    source_url: PCP_UPDATE_API_URL,
+    source_revision: commit.sha,
+    source_revision_url: commit.html_url,
+    source_manifest_url: sourceManifestUrl,
+    source_bundle_url: `https://github.com/${PCP_UPDATE_REPOSITORY}/archive/${commit.sha}.tar.gz`,
+    installed_version: localVersion,
+    available_version: availableVersion,
+    availability,
+    update_available: updateAvailable,
+    next_actions: updateAvailable ? [
+      "Download the immutable source-revision bundle and verify its packaged checksums.",
+      "Run that incoming release engine's upgrade preview against this project.",
+      "Apply only the fully recomputed approved upgrade digest."
+    ] : ["Do not run upgrade apply; the canonical source manifest has no newer PCP version."],
+    mutated: false
+  };
+}
+
 // src/application/manage-workstreams.ts
 import { createHash as createHash10, randomUUID as randomUUID3 } from "node:crypto";
 import {
@@ -26452,7 +26736,7 @@ import {
   lstat as lstat8,
   mkdtemp as mkdtemp4,
   open as open4,
-  readFile as readFile14,
+  readFile as readFile15,
   realpath as realpath3,
   rename as rename3,
   rm as rm4,
@@ -26461,7 +26745,7 @@ import {
   utimes as utimes2
 } from "node:fs/promises";
 import { tmpdir as tmpdir5 } from "node:os";
-import path17 from "node:path";
+import path18 from "node:path";
 
 // src/application/record-event.ts
 import { createHash as createHash9, randomUUID as randomUUID2 } from "node:crypto";
@@ -26469,7 +26753,7 @@ import {
   lstat as lstat7,
   mkdtemp as mkdtemp3,
   open as open3,
-  readFile as readFile13,
+  readFile as readFile14,
   readdir as readdir4,
   realpath as realpath2,
   rename as rename2,
@@ -26478,13 +26762,13 @@ import {
   writeFile as writeFile4
 } from "node:fs/promises";
 import { tmpdir as tmpdir4 } from "node:os";
-import path16 from "node:path";
+import path17 from "node:path";
 
 // src/infrastructure/continuity-lock.ts
 import { createHash as createHash8, randomUUID } from "node:crypto";
-import { mkdir as mkdir3, open as open2, readFile as readFile12, stat as stat3, unlink as unlink2 } from "node:fs/promises";
+import { mkdir as mkdir3, open as open2, readFile as readFile13, stat as stat3, unlink as unlink2 } from "node:fs/promises";
 import { tmpdir as tmpdir3 } from "node:os";
-import path15 from "node:path";
+import path16 from "node:path";
 import { setTimeout as delay } from "node:timers/promises";
 var LOCK_WAIT_MS = 3e4;
 var STALE_LOCK_MS = 5 * 6e4;
@@ -26495,7 +26779,7 @@ var ContinuityLockError = class extends Error {
   }
 };
 function lockDigest(root) {
-  const resolved = path15.resolve(root);
+  const resolved = path16.resolve(root);
   const portableRoot = process.platform === "win32" ? resolved.toLowerCase() : resolved;
   return createHash8("sha256").update(portableRoot).digest("hex");
 }
@@ -26503,7 +26787,7 @@ async function removeStaleLock(lockPath) {
   try {
     const metadata = await stat3(lockPath);
     if (Date.now() - metadata.mtimeMs <= STALE_LOCK_MS) return false;
-    const contents = await readFile12(lockPath, "utf8");
+    const contents = await readFile13(lockPath, "utf8");
     let ownerPid;
     try {
       const value = JSON.parse(contents);
@@ -26529,9 +26813,9 @@ async function removeStaleLock(lockPath) {
   }
 }
 async function withContinuityLock(projectRoot, operation) {
-  const lockRoot = path15.join(tmpdir3(), "pcp-continuity-locks");
+  const lockRoot = path16.join(tmpdir3(), "pcp-continuity-locks");
   await mkdir3(lockRoot, { recursive: true });
-  const lockPath = path15.join(lockRoot, `${lockDigest(projectRoot)}.lock`);
+  const lockPath = path16.join(lockRoot, `${lockDigest(projectRoot)}.lock`);
   const token = randomUUID();
   const lockContents = `${JSON.stringify({ token, pid: process.pid, created_at: (/* @__PURE__ */ new Date()).toISOString() })}
 `;
@@ -26563,7 +26847,7 @@ async function withContinuityLock(projectRoot, operation) {
     return await operation();
   } finally {
     await handle.close();
-    const current = await readFile12(lockPath, "utf8").catch((error2) => {
+    const current = await readFile13(lockPath, "utf8").catch((error2) => {
       if (error2.code === "ENOENT") return void 0;
       throw error2;
     });
@@ -26584,14 +26868,14 @@ var ACTIVE_EVENT_LIMIT = 64;
 var ARCHIVE_BATCH_SIZE = 32;
 var MAXIMUM_EVENT_INPUT_BYTES = 64 * 1024;
 function isInside5(root, candidate) {
-  const relative = path16.relative(root, candidate);
-  return relative === "" || !relative.startsWith(`..${path16.sep}`) && relative !== ".." && !path16.isAbsolute(relative);
+  const relative = path17.relative(root, candidate);
+  return relative === "" || !relative.startsWith(`..${path17.sep}`) && relative !== ".." && !path17.isAbsolute(relative);
 }
 function digest(value) {
   return createHash9("sha256").update(value).digest("hex");
 }
 function rootDigest(root) {
-  const resolved = path16.resolve(root);
+  const resolved = path17.resolve(root);
   return digest(process.platform === "win32" ? resolved.toLowerCase() : resolved);
 }
 function validationSummary(report) {
@@ -26610,7 +26894,7 @@ function inputFailure(message) {
   return new RecordingError("PCP_RECORD_INPUT_INVALID", message);
 }
 async function loadEventInput(inputPath, projectRoot) {
-  const resolvedInput = path16.resolve(inputPath);
+  const resolvedInput = path17.resolve(inputPath);
   if (isInside5(projectRoot, resolvedInput)) {
     throw new RecordingError(
       "PCP_RECORD_INPUT_INSIDE_PROJECT",
@@ -26650,7 +26934,7 @@ async function loadEventInput(inputPath, projectRoot) {
       `Cannot resolve event input safely: ${error2 instanceof Error ? error2.message : String(error2)}`
     );
   }
-  const contents = await readFile13(resolvedInput, "utf8").catch((error2) => {
+  const contents = await readFile14(resolvedInput, "utf8").catch((error2) => {
     throw new RecordingError(
       "PCP_RECORD_INPUT_UNREADABLE",
       `Cannot read event input: ${error2 instanceof Error ? error2.message : String(error2)}`
@@ -26686,12 +26970,12 @@ async function listYamlNames(directory) {
   return entries.filter((entry) => entry.isFile() && entry.name.endsWith(".yaml")).map((entry) => entry.name).sort((left, right) => left.localeCompare(right));
 }
 async function loadActiveEvents(root) {
-  const directory = path16.join(root, ...ACTIVE_EVENT_DIRECTORY.split("/"));
+  const directory = path17.join(root, ...ACTIVE_EVENT_DIRECTORY.split("/"));
   const names = await listYamlNames(directory);
   const events = [];
   for (const name of names) {
-    const absolutePath = path16.join(directory, name);
-    const contents = await readFile13(absolutePath);
+    const absolutePath = path17.join(directory, name);
+    const contents = await readFile14(absolutePath);
     events.push({
       event_id: name.slice(0, -".yaml".length),
       absolute_path: absolutePath,
@@ -26703,23 +26987,23 @@ async function loadActiveEvents(root) {
   return events;
 }
 async function loadArchiveIds(root) {
-  const directory = path16.join(root, ...ARCHIVE_EVENT_DIRECTORY.split("/"));
+  const directory = path17.join(root, ...ARCHIVE_EVENT_DIRECTORY.split("/"));
   return (await listYamlNames(directory)).map((name) => name.slice(0, -".yaml".length));
 }
 async function loadSemanticRecords(root) {
-  const actorRoot = path16.join(root, ...ACTOR_DIRECTORY.split("/"));
+  const actorRoot = path17.join(root, ...ACTOR_DIRECTORY.split("/"));
   const actorNames = await listYamlNames(actorRoot);
   const actors = await Promise.all(
     actorNames.map(async (name) => ({
       path: `continuity/actors/${name}`,
-      value: parse(await readFile13(path16.join(actorRoot, name), "utf8"))
+      value: parse(await readFile14(path17.join(actorRoot, name), "utf8"))
     }))
   );
   return {
     actors,
     workstreams: {
       path: "state/workstreams.yaml",
-      value: parse(await readFile13(path16.join(root, ...WORKSTREAM_PATH.split("/")), "utf8"))
+      value: parse(await readFile14(path17.join(root, ...WORKSTREAM_PATH.split("/")), "utf8"))
     }
   };
 }
@@ -26815,10 +27099,10 @@ async function executeEventTransaction(root, event, activeEvents, archiveIds, op
       `Cannot rotate ${archiveCollision.event_id} because that identity already exists in the archive.`
     );
   }
-  const eventRoot = path16.join(root, ...ACTIVE_EVENT_DIRECTORY.split("/"));
-  const archiveRoot = path16.join(root, ...ARCHIVE_EVENT_DIRECTORY.split("/"));
-  const eventPath = path16.join(eventRoot, `${event.event_id}.yaml`);
-  const temporaryEventPath = path16.join(eventRoot, `.${event.event_id}.${randomUUID2()}.tmp`);
+  const eventRoot = path17.join(root, ...ACTIVE_EVENT_DIRECTORY.split("/"));
+  const archiveRoot = path17.join(root, ...ARCHIVE_EVENT_DIRECTORY.split("/"));
+  const eventPath = path17.join(eventRoot, `${event.event_id}.yaml`);
+  const temporaryEventPath = path17.join(eventRoot, `.${event.event_id}.${randomUUID2()}.tmp`);
   const moved = [];
   let eventInstalled = false;
   let operation = 0;
@@ -26826,15 +27110,15 @@ async function executeEventTransaction(root, event, activeEvents, archiveIds, op
   let walPath;
   try {
     recoveryRoot = await mkdtemp3(
-      path16.join(tmpdir4(), `pcp-event-transaction-${rootDigest(root).slice(0, 12)}-`)
+      path17.join(tmpdir4(), `pcp-event-transaction-${rootDigest(root).slice(0, 12)}-`)
     );
-    walPath = path16.join(recoveryRoot, "operations.jsonl");
+    walPath = path17.join(recoveryRoot, "operations.jsonl");
     await writeFile4(walPath, "", { flag: "wx" });
     await writeDurableFile(temporaryEventPath, stringify3(event));
     for (const source of rotation) {
       operation += 1;
       await appendWal2(walPath, operation, "archive", source.event_id, "prepared");
-      await rename2(source.absolute_path, path16.join(archiveRoot, `${source.event_id}.yaml`));
+      await rename2(source.absolute_path, path17.join(archiveRoot, `${source.event_id}.yaml`));
       moved.push(source);
       await appendWal2(walPath, operation, "archive", source.event_id, "applied");
       injectedFailure(operation, options);
@@ -26901,7 +27185,7 @@ async function executeEventTransaction(root, event, activeEvents, archiveIds, op
     });
     for (const source of [...moved].reverse()) {
       try {
-        await rename2(path16.join(archiveRoot, `${source.event_id}.yaml`), source.absolute_path);
+        await rename2(path17.join(archiveRoot, `${source.event_id}.yaml`), source.absolute_path);
         if (walPath !== void 0) {
           await appendWal2(
             walPath,
@@ -26985,7 +27269,7 @@ async function recordEventUnderLock(root, input, options) {
   return executeEventTransaction(root, event, activeEvents, archiveIds, options);
 }
 async function recordEvent(projectRoot, inputPath, options = {}) {
-  const root = path16.resolve(projectRoot);
+  const root = path17.resolve(projectRoot);
   try {
     const input = await loadEventInput(inputPath, root);
     return await withContinuityLock(root, () => recordEventUnderLock(root, input, options));
@@ -27190,12 +27474,12 @@ function sha2562(value) {
   return createHash10("sha256").update(value).digest("hex");
 }
 function rootDigest2(root) {
-  const resolved = path17.resolve(root);
+  const resolved = path18.resolve(root);
   return sha2562(process.platform === "win32" ? resolved.toLowerCase() : resolved);
 }
 function isInside6(root, candidate) {
-  const relative = path17.relative(root, candidate);
-  return relative === "" || !relative.startsWith(`..${path17.sep}`) && relative !== ".." && !path17.isAbsolute(relative);
+  const relative = path18.relative(root, candidate);
+  return relative === "" || !relative.startsWith(`..${path18.sep}`) && relative !== ".." && !path18.isAbsolute(relative);
 }
 function layerSummary(report) {
   return report.diagnostics.slice(0, 4).map((diagnostic2) => `${diagnostic2.path}: ${diagnostic2.message}`).join("; ");
@@ -27213,7 +27497,7 @@ function inputFailure2(message) {
   return new WorkstreamError("PCP_WORKSTREAM_INPUT_INVALID", message);
 }
 async function loadWorkstreamInput(inputPath, projectRoot, expectedOperation) {
-  const resolvedInput = path17.resolve(inputPath);
+  const resolvedInput = path18.resolve(inputPath);
   if (isInside6(projectRoot, resolvedInput)) {
     throw new WorkstreamError(
       "PCP_WORKSTREAM_INPUT_INSIDE_PROJECT",
@@ -27253,7 +27537,7 @@ async function loadWorkstreamInput(inputPath, projectRoot, expectedOperation) {
       `Cannot resolve workstream input safely: ${error2 instanceof Error ? error2.message : String(error2)}`
     );
   }
-  const contents = await readFile14(resolvedInput, "utf8").catch((error2) => {
+  const contents = await readFile15(resolvedInput, "utf8").catch((error2) => {
     throw new WorkstreamError(
       "PCP_WORKSTREAM_INPUT_UNREADABLE",
       `Cannot read workstream input: ${error2 instanceof Error ? error2.message : String(error2)}`
@@ -27334,11 +27618,11 @@ function parseSource(contents, relativePath) {
   return value;
 }
 async function desiredStatusView(root, workstreamContents, registry) {
-  const layerRoot = path17.join(root, ".pcp");
+  const layerRoot = path18.join(root, ".pcp");
   const contents = await Promise.all(
     STATUS_SOURCES.map(async (relativePath) => ({
       path: relativePath,
-      contents: relativePath === "state/workstreams.yaml" ? workstreamContents : await readFile14(path17.join(layerRoot, ...relativePath.split("/")), "utf8")
+      contents: relativePath === "state/workstreams.yaml" ? workstreamContents : await readFile15(path18.join(layerRoot, ...relativePath.split("/")), "utf8")
     }))
   );
   const values = /* @__PURE__ */ new Map();
@@ -27352,7 +27636,7 @@ async function desiredStatusView(root, workstreamContents, registry) {
   return Buffer.from(renderCanonicalStatusView(values, sourceDigest), "utf8");
 }
 async function loadRegistry(root) {
-  const absolutePath = path17.join(root, ...WORKSTREAM_PATH2.split("/"));
+  const absolutePath = path18.join(root, ...WORKSTREAM_PATH2.split("/"));
   const metadata = await lstat8(absolutePath).catch((error2) => {
     throw new WorkstreamError(
       "PCP_WORKSTREAM_REGISTRY_UNREADABLE",
@@ -27365,7 +27649,7 @@ async function loadRegistry(root) {
       "The canonical workstream registry must be a regular non-symlink file."
     );
   }
-  const bytes = await readFile14(absolutePath);
+  const bytes = await readFile15(absolutePath);
   return {
     absolute_path: absolutePath,
     bytes,
@@ -27424,9 +27708,9 @@ async function replaceWithTemporary(target, temporary) {
   }
 }
 async function installBytes(target, bytes) {
-  const temporary = path17.join(
-    path17.dirname(target),
-    `.${path17.basename(target)}.${randomUUID3()}.tmp`
+  const temporary = path18.join(
+    path18.dirname(target),
+    `.${path18.basename(target)}.${randomUUID3()}.tmp`
   );
   try {
     await writeDurableExclusive(temporary, bytes);
@@ -27468,11 +27752,11 @@ function injectedFailure2(operation, options) {
 async function executeMutation(root, loaded, input, nextRegistry, workstreamId, options) {
   const nextBytes = Buffer.from(stringify3(nextRegistry), "utf8");
   const nextDigest = sha2562(nextBytes);
-  const statusViewPath = path17.join(root, ...STATUS_VIEW_PATH.split("/"));
+  const statusViewPath = path18.join(root, ...STATUS_VIEW_PATH.split("/"));
   const [metadata, viewMetadata, viewBytes, nextViewBytes] = await Promise.all([
     stat4(loaded.absolute_path),
     stat4(statusViewPath),
-    readFile14(statusViewPath),
+    readFile15(statusViewPath),
     desiredStatusView(root, nextBytes.toString("utf8"), nextRegistry)
   ]);
   const registryMetadata = {
@@ -27490,12 +27774,12 @@ async function executeMutation(root, loaded, input, nextRegistry, workstreamId, 
   let statusViewInstalled = false;
   try {
     recoveryRoot = await mkdtemp4(
-      path17.join(tmpdir5(), `pcp-workstream-transaction-${rootDigest2(root).slice(0, 12)}-`)
+      path18.join(tmpdir5(), `pcp-workstream-transaction-${rootDigest2(root).slice(0, 12)}-`)
     );
-    await writeDurableExclusive(path17.join(recoveryRoot, "workstreams.preimage"), loaded.bytes);
-    await writeDurableExclusive(path17.join(recoveryRoot, "status-view.preimage"), viewBytes);
+    await writeDurableExclusive(path18.join(recoveryRoot, "workstreams.preimage"), loaded.bytes);
+    await writeDurableExclusive(path18.join(recoveryRoot, "status-view.preimage"), viewBytes);
     await writeDurableExclusive(
-      path17.join(recoveryRoot, "transaction.json"),
+      path18.join(recoveryRoot, "transaction.json"),
       Buffer.from(
         `${JSON.stringify({
           schema_version: 1,
@@ -27565,7 +27849,7 @@ async function executeMutation(root, loaded, input, nextRegistry, workstreamId, 
       }
     }
     try {
-      const restored = await readFile14(loaded.absolute_path);
+      const restored = await readFile15(loaded.absolute_path);
       if (!restored.equals(loaded.bytes)) {
         rollbackFailures.push("workstream registry bytes differ from the preimage");
       }
@@ -27575,7 +27859,7 @@ async function executeMutation(root, loaded, input, nextRegistry, workstreamId, 
       );
     }
     try {
-      const restoredView = await readFile14(statusViewPath);
+      const restoredView = await readFile15(statusViewPath);
       if (!restoredView.equals(viewBytes)) {
         rollbackFailures.push("generated status view bytes differ from the preimage");
       }
@@ -27632,7 +27916,7 @@ async function underLock(root, operation) {
   }
 }
 async function validateWorkstreamRegistry(projectRoot, workstreamId) {
-  const root = path17.resolve(projectRoot);
+  const root = path18.resolve(projectRoot);
   return underLock(root, async () => {
     await assertValidOperationalLayer2(root);
     const loaded = await loadRegistry(root);
@@ -27659,7 +27943,7 @@ async function validateWorkstreamRegistry(projectRoot, workstreamId) {
   });
 }
 async function mutateWorkstream(projectRoot, operation, inputPath, options = {}) {
-  const root = path17.resolve(projectRoot);
+  const root = path18.resolve(projectRoot);
   const input = await loadWorkstreamInput(inputPath, root, operation);
   return underLock(root, async () => {
     await assertValidOperationalLayer2(root);
@@ -27690,13 +27974,277 @@ async function mutateWorkstream(projectRoot, operation, inputPath, options = {})
   });
 }
 
+// src/application/purge-history.ts
+import { timingSafeEqual as timingSafeEqual2 } from "node:crypto";
+import { lstat as lstat9, readFile as readFile16, readdir as readdir5 } from "node:fs/promises";
+import path19 from "node:path";
+
+// src/domain/purge-history.ts
+var PurgeHistoryError = class extends Error {
+  constructor(code2, message, mutated = false, recovery_root) {
+    super(message);
+    this.code = code2;
+    this.mutated = mutated;
+    this.recovery_root = recovery_root;
+    this.name = "PurgeHistoryError";
+  }
+  code;
+  mutated;
+  recovery_root;
+};
+
+// src/application/purge-history.ts
+var WARNING = "This permanently removes PCP actor identities, continuity events, archived events, checkpoints, and local actor identity caches. It does not rewrite Git history.";
+function digestMatches2(expected, supplied) {
+  if (!/^[a-f0-9]{64}$/u.test(supplied)) return false;
+  return timingSafeEqual2(Buffer.from(expected, "hex"), Buffer.from(supplied, "hex"));
+}
+function emptyCounts() {
+  return {
+    actor_profiles: 0,
+    active_events: 0,
+    archived_events: 0,
+    checkpoints: 0,
+    identity_caches: 0
+  };
+}
+async function collectRegularFiles(root, relativeDirectory, requiredDirectory) {
+  const directory = path19.join(root, ...relativeDirectory.split("/"));
+  let entries;
+  try {
+    entries = await readdir5(directory, { withFileTypes: true });
+  } catch (error2) {
+    if (!requiredDirectory && error2.code === "ENOENT") return [];
+    throw error2;
+  }
+  const files = [];
+  for (const entry of entries.sort((left, right) => left.name.localeCompare(right.name))) {
+    const relativePath = `${relativeDirectory}/${entry.name}`;
+    const target = path19.join(directory, entry.name);
+    const metadata = await lstat9(target);
+    if (metadata.isSymbolicLink()) {
+      throw new PurgeHistoryError(
+        "PCP_PURGE_HISTORY_PATH_UNSAFE",
+        `History purge does not follow symbolic links: ${relativePath}`
+      );
+    }
+    if (metadata.isDirectory()) {
+      files.push(...await collectRegularFiles(root, relativePath, true));
+    } else if (metadata.isFile()) {
+      files.push(relativePath);
+    } else {
+      throw new PurgeHistoryError(
+        "PCP_PURGE_HISTORY_PATH_UNSAFE",
+        `History purge supports only regular files: ${relativePath}`
+      );
+    }
+  }
+  return files;
+}
+function historyCategory(portablePath2) {
+  if (/^\.pcp\/continuity\/actors\/[^/]+\.yaml$/u.test(portablePath2)) {
+    return "actor_profiles";
+  }
+  if (/^\.pcp\/continuity\/events\/[^/]+\.yaml$/u.test(portablePath2)) {
+    return "active_events";
+  }
+  if (/^\.pcp\/continuity\/archive\/[^/]+\.yaml$/u.test(portablePath2)) {
+    return "archived_events";
+  }
+  if (/^\.pcp\/continuity\/checkpoints\/[^/]+\.yaml$/u.test(portablePath2)) {
+    return "checkpoints";
+  }
+  if (portablePath2.startsWith(".pcp/runtime/actors/")) return "identity_caches";
+  return void 0;
+}
+async function purgeTargets(root) {
+  const candidates = (await Promise.all([
+    collectRegularFiles(root, ".pcp/continuity/actors", true),
+    collectRegularFiles(root, ".pcp/continuity/events", true),
+    collectRegularFiles(root, ".pcp/continuity/archive", true),
+    collectRegularFiles(root, ".pcp/continuity/checkpoints", true),
+    collectRegularFiles(root, ".pcp/runtime/actors", false)
+  ])).flat();
+  const counts = emptyCounts();
+  const paths = [];
+  for (const candidate of candidates.sort((left, right) => left.localeCompare(right))) {
+    if (candidate.endsWith("/00-index.md")) continue;
+    const category = historyCategory(candidate);
+    if (category === void 0) {
+      throw new PurgeHistoryError(
+        "PCP_PURGE_HISTORY_UNEXPECTED_FILE",
+        `Refusing to purge an unrecognized file from a history location: ${candidate}`
+      );
+    }
+    counts[category] += 1;
+    paths.push(candidate);
+  }
+  return { paths, counts };
+}
+function expectedInventory(original, operations) {
+  const removed = new Set(
+    operations.filter((operation) => operation.action === "remove").map((operation) => operation.path)
+  );
+  return {
+    directories: original.directories,
+    files: original.files.filter((file) => !removed.has(file.path)),
+    symlinks: original.symlinks,
+    nested_repositories: original.nestedRepositories
+  };
+}
+function comparableInventory2(inventory) {
+  return {
+    directories: inventory.directories,
+    files: inventory.files,
+    symlinks: inventory.symlinks,
+    nested_repositories: inventory.nestedRepositories
+  };
+}
+async function planPurgeHistory(candidate) {
+  const root = await resolveCandidateRoot(candidate);
+  const inspection = await inspectRepository(root);
+  if (inspection.state !== "managed") {
+    throw new PurgeHistoryError(
+      "PCP_PURGE_HISTORY_NOT_MANAGED",
+      `History purge requires a managed PCP project; found ${inspection.state}.`
+    );
+  }
+  const validation = await validateCanonicalLayer(root, { archive_content: "filenames-only" });
+  if (!validation.valid) {
+    throw new PurgeHistoryError(
+      "PCP_PURGE_HISTORY_SOURCE_INVALID",
+      `Validate or repair the current layer before purging history: ${validation.diagnostics.slice(0, 8).map((item) => `${item.code} ${item.path}`).join("; ")}`
+    );
+  }
+  const { paths, counts } = await purgeTargets(root);
+  const base = {
+    schema_version: 1,
+    command: "purge-history",
+    candidate: ".",
+    purge_paths: paths,
+    counts,
+    warning: WARNING,
+    event_created: false,
+    mutated: false
+  };
+  if (paths.length === 0) return { ...base, applicable: false };
+  const operations = [];
+  for (const portablePath2 of paths) {
+    operations.push({
+      action: "remove",
+      path: portablePath2,
+      preimage_digest: sha256(await readFile16(path19.join(root, ...portablePath2.split("/"))))
+    });
+  }
+  const plan = createMutationPlan({
+    inventory: inspection.inventory,
+    classification: "managed",
+    operations,
+    validations: ["clean-genesis", "history-targets-empty", "rollback"]
+  });
+  const preview = { ...base, applicable: true, plan };
+  return { preview };
+}
+function isPurgePlan(value) {
+  return "preview" in value;
+}
+async function purgeHistory(candidate = ".", options = {}) {
+  const planned = await planPurgeHistory(candidate);
+  if (!isPurgePlan(planned)) {
+    if (options.apply !== void 0) {
+      throw new PurgeHistoryError(
+        "PCP_PURGE_HISTORY_NOT_APPLICABLE",
+        "PCP actor and continuity history is already empty."
+      );
+    }
+    return planned;
+  }
+  if (options.apply === void 0) return planned.preview;
+  if (!digestMatches2(planned.preview.plan.plan_digest, options.apply)) {
+    throw new PurgeHistoryError(
+      "PCP_PLAN_DIGEST_MISMATCH",
+      "The approved digest does not match the fully recomputed current history-purge plan."
+    );
+  }
+  const root = await resolveCandidateRoot(candidate);
+  const initialInventory = await inventoryRepository(root);
+  const expected = expectedInventory(initialInventory, planned.preview.plan.operations);
+  let checkedFiles = 0;
+  try {
+    return await withContinuityLock(root, async () => {
+      const transaction = await executeFilesystemTransaction(
+        root,
+        planned.preview.plan,
+        /* @__PURE__ */ new Map(),
+        {
+          ...options.fail_after_operation === void 0 ? {} : { fail_after_operation: options.fail_after_operation },
+          verify_source_stability: async () => {
+            const current = await inventoryRepository(root);
+            if (canonicalJson(comparableInventory2(current)) !== canonicalJson(expected)) {
+              throw new PurgeHistoryError(
+                "PCP_SOURCE_CHANGED",
+                "Project content changed while the history-purge transaction was running.",
+                true
+              );
+            }
+          },
+          validate_live: async () => {
+            const canonical = await validateCanonicalLayer(root, {
+              archive_content: "filenames-only",
+              clean_genesis: true
+            });
+            if (!canonical.valid) {
+              throw new PurgeHistoryError(
+                "PCP_PURGE_HISTORY_LIVE_INVALID",
+                `Purged project failed clean-genesis validation: ${canonical.diagnostics.slice(0, 8).map((item) => `${item.code} ${item.path}`).join("; ")}`,
+                true
+              );
+            }
+            const remaining = await purgeTargets(root);
+            if (remaining.paths.length !== 0) {
+              throw new PurgeHistoryError(
+                "PCP_PURGE_HISTORY_LIVE_INVALID",
+                "One or more actor, event, archive, checkpoint, or identity-cache files remain.",
+                true
+              );
+            }
+            checkedFiles = canonical.checked_files;
+          }
+        }
+      );
+      return {
+        schema_version: 1,
+        command: "purge-history",
+        candidate: ".",
+        status: "purged",
+        plan_digest: planned.preview.plan.plan_digest,
+        purged_paths: planned.preview.purge_paths,
+        counts: planned.preview.counts,
+        applied_operations: transaction.applied_operations,
+        validation: { valid: true, checked_files: checkedFiles },
+        recovery_cleaned: transaction.recovery_cleaned,
+        identity_reset: true,
+        next_action: "Register a fresh project actor identity before the next project operation.",
+        event_created: false,
+        mutated: true
+      };
+    });
+  } catch (error2) {
+    if (error2 instanceof PurgeHistoryError) throw error2;
+    if (error2 instanceof AdoptionError) {
+      throw new PurgeHistoryError(error2.code, error2.message, error2.mutated, error2.recoveryRoot);
+    }
+    throw error2;
+  }
+}
+
 // src/application/register-actor.ts
-import { mkdir as mkdir4, open as open5, readFile as readFile15, readdir as readdir5, rm as rm5, unlink as unlink5 } from "node:fs/promises";
-import path18 from "node:path";
+import { mkdir as mkdir4, open as open5, readFile as readFile17, readdir as readdir6, rm as rm5, unlink as unlink5 } from "node:fs/promises";
+import path20 from "node:path";
 var ACTOR_DIRECTORY2 = ".pcp/continuity/actors";
 var CACHE_DIRECTORY = ".pcp/runtime/actors";
 function portablePath(value) {
-  return value.split(path18.sep).join("/");
+  return value.split(path20.sep).join("/");
 }
 function profileRelativePath(actorId) {
   return `${ACTOR_DIRECTORY2}/${actorId}.yaml`;
@@ -27727,13 +28275,13 @@ function actorProfile(value, relativePath) {
   return value;
 }
 async function loadActorProfiles(projectRoot) {
-  const actorRoot = path18.join(projectRoot, ...ACTOR_DIRECTORY2.split("/"));
-  const entries = await readdir5(actorRoot, { withFileTypes: true });
+  const actorRoot = path20.join(projectRoot, ...ACTOR_DIRECTORY2.split("/"));
+  const entries = await readdir6(actorRoot, { withFileTypes: true });
   const profiles = [];
   for (const entry of entries.sort((left, right) => left.name.localeCompare(right.name))) {
     if (!entry.isFile() || !entry.name.endsWith(".yaml")) continue;
     const relativePath = `${ACTOR_DIRECTORY2}/${entry.name}`;
-    const contents = await readFile15(path18.join(actorRoot, entry.name), "utf8");
+    const contents = await readFile17(path20.join(actorRoot, entry.name), "utf8");
     let value;
     try {
       value = parse(contents);
@@ -27809,10 +28357,10 @@ function sameActorApp(left, right) {
   return left.actor_type === right.actor_type && left.client === right.client;
 }
 async function loadCompatibleIdentityCaches(projectRoot, identity) {
-  const cacheRoot = path18.join(projectRoot, ...CACHE_DIRECTORY.split("/"));
+  const cacheRoot = path20.join(projectRoot, ...CACHE_DIRECTORY.split("/"));
   let entries;
   try {
-    entries = await readdir5(cacheRoot, { withFileTypes: true });
+    entries = await readdir6(cacheRoot, { withFileTypes: true });
   } catch (error2) {
     if (error2.code === "ENOENT") return [];
     throw error2;
@@ -27826,7 +28374,7 @@ async function loadCompatibleIdentityCaches(projectRoot, identity) {
       continue;
     }
     caches.push(
-      parseIdentityCache(await readFile15(path18.join(cacheRoot, entry.name), "utf8"), identity)
+      parseIdentityCache(await readFile17(path20.join(cacheRoot, entry.name), "utf8"), identity)
     );
   }
   return caches;
@@ -27884,7 +28432,7 @@ async function withActorRegistrationLock(root, operation) {
   }
 }
 async function registerActor(projectRoot, input) {
-  const root = path18.resolve(projectRoot);
+  const root = path20.resolve(projectRoot);
   const identity = normalizeActorIdentity(input);
   const executionId = createExecutionId();
   return withActorRegistrationLock(root, async () => {
@@ -27895,7 +28443,7 @@ async function registerActor(projectRoot, input) {
       await assertValidCanonicalLayer(root);
       const profiles = await loadActorProfiles(root);
       const profilesById = new Map(profiles.map((profile) => [profile.actor_id, profile]));
-      const cachePath = path18.join(root, ...cacheRelativePath(identity).split("/"));
+      const cachePath = path20.join(root, ...cacheRelativePath(identity).split("/"));
       const cachedIdentities = await loadCompatibleIdentityCaches(root, identity);
       if (new Set(cachedIdentities.map((cache) => cache.actor_id)).size > 1) {
         throw new RegistrationError(
@@ -27971,7 +28519,7 @@ async function registerActor(projectRoot, input) {
             "The generated actor profile did not satisfy the release schema."
           );
         }
-        const newProfilePath = path18.join(
+        const newProfilePath = path20.join(
           root,
           ...profileRelativePath(selected.actor_id).split("/")
         );
@@ -27983,7 +28531,7 @@ async function registerActor(projectRoot, input) {
       }
       let cacheCreated = false;
       if (cached === void 0) {
-        const cacheDirectory = path18.dirname(cachePath);
+        const cacheDirectory = path20.dirname(cachePath);
         createdRuntimeRoot = await mkdir4(cacheDirectory, { recursive: true });
         await createExclusiveFile(
           cachePath,
@@ -28037,9 +28585,9 @@ async function registerActor(projectRoot, input) {
 }
 
 // src/application/repair-project.ts
-import { timingSafeEqual as timingSafeEqual2 } from "node:crypto";
-import { lstat as lstat9, readFile as readFile16 } from "node:fs/promises";
-import path19 from "node:path";
+import { timingSafeEqual as timingSafeEqual3 } from "node:crypto";
+import { lstat as lstat10, readFile as readFile18 } from "node:fs/promises";
+import path21 from "node:path";
 
 // src/domain/repair.ts
 var RepairError = class extends Error {
@@ -28057,27 +28605,27 @@ var RepairError = class extends Error {
 
 // src/application/repair-project.ts
 var REPAIRABLE_CODES = /* @__PURE__ */ new Set(["adapter.digest", "adapter.target.read"]);
-function digestMatches2(expected, supplied) {
+function digestMatches3(expected, supplied) {
   if (!/^[a-f0-9]{64}$/u.test(supplied)) return false;
-  return timingSafeEqual2(Buffer.from(expected, "hex"), Buffer.from(supplied, "hex"));
+  return timingSafeEqual3(Buffer.from(expected, "hex"), Buffer.from(supplied, "hex"));
 }
 async function metadataOrUndefined3(target) {
   try {
-    return await lstat9(target);
+    return await lstat10(target);
   } catch (error2) {
     if (error2.code === "ENOENT") return void 0;
     throw error2;
   }
 }
 function portableParent(portablePath2) {
-  const parent = path19.posix.dirname(portablePath2);
+  const parent = path21.posix.dirname(portablePath2);
   return parent === "." ? void 0 : parent;
 }
 async function missingParents(root, portablePath2) {
   const missing = [];
   let parent = portableParent(portablePath2);
   while (parent !== void 0) {
-    const absolute = path19.join(root, ...parent.split("/"));
+    const absolute = path21.join(root, ...parent.split("/"));
     const metadata = await metadataOrUndefined3(absolute);
     if (metadata === void 0) {
       missing.push(parent);
@@ -28091,7 +28639,7 @@ async function missingParents(root, portablePath2) {
   }
   return missing.reverse();
 }
-function expectedInventory(original, operations, contentByPath) {
+function expectedInventory2(original, operations, contentByPath) {
   const directories = new Set(original.directories);
   const files = new Map(original.files.map((file) => [file.path, { ...file }]));
   for (const operation of operations) {
@@ -28119,7 +28667,7 @@ function expectedInventory(original, operations, contentByPath) {
     nested_repositories: original.nestedRepositories
   };
 }
-function comparableInventory2(inventory) {
+function comparableInventory3(inventory) {
   return {
     directories: inventory.directories,
     files: inventory.files,
@@ -28151,7 +28699,7 @@ async function planRepairMaterial(candidate = ".") {
   const plannedDirectories = /* @__PURE__ */ new Set();
   for (const adapter of adapters) {
     const targetPath = adapter.manifest.target_path;
-    const absolute = path19.join(root, ...targetPath.split("/"));
+    const absolute = path21.join(root, ...targetPath.split("/"));
     const metadata = await metadataOrUndefined3(absolute);
     if (metadata === void 0) {
       for (const directory of await missingParents(root, targetPath)) {
@@ -28174,7 +28722,7 @@ async function planRepairMaterial(candidate = ".") {
         `Adapter target is not a regular file: ${targetPath}`
       );
     }
-    const current = await readFile16(absolute);
+    const current = await readFile18(absolute);
     if (sha256(current) === adapter.manifest.content_digest) continue;
     operations.push({
       action: "replace",
@@ -28222,14 +28770,14 @@ async function repairProject(candidate = ".", options = {}) {
     return planned;
   }
   if (options.apply === void 0) return planned.preview;
-  if (!digestMatches2(planned.preview.plan.plan_digest, options.apply)) {
+  if (!digestMatches3(planned.preview.plan.plan_digest, options.apply)) {
     throw new RepairError(
       "PCP_PLAN_DIGEST_MISMATCH",
       "The approved digest does not match the fully recomputed current repair plan."
     );
   }
   const root = await resolveCandidateRoot(candidate);
-  const expected = expectedInventory(
+  const expected = expectedInventory2(
     planned.inspection.inventory,
     planned.preview.plan.operations,
     planned.content_by_path
@@ -28245,7 +28793,7 @@ async function repairProject(candidate = ".", options = {}) {
         ...options.fail_after_operation === void 0 ? {} : { fail_after_operation: options.fail_after_operation },
         verify_source_stability: async () => {
           const current = await inventoryRepository(root);
-          if (canonicalJson(comparableInventory2(current)) !== canonicalJson(expected)) {
+          if (canonicalJson(comparableInventory3(current)) !== canonicalJson(expected)) {
             throw new RepairError(
               "PCP_SOURCE_CHANGED",
               "Project content changed while the repair transaction was running.",
@@ -28299,8 +28847,8 @@ async function repairProject(candidate = ".", options = {}) {
 
 // src/application/synchronize-project.ts
 import { randomUUID as randomUUID4 } from "node:crypto";
-import { lstat as lstat10, mkdir as mkdir5, open as open6, readFile as readFile17, readdir as readdir6, rename as rename4, unlink as unlink6 } from "node:fs/promises";
-import path20 from "node:path";
+import { lstat as lstat11, mkdir as mkdir5, open as open6, readFile as readFile19, readdir as readdir7, rename as rename4, unlink as unlink6 } from "node:fs/promises";
+import path22 from "node:path";
 
 // src/domain/synchronization.ts
 var SynchronizationError = class extends Error {
@@ -28332,10 +28880,10 @@ function syncError(code2, message) {
   return new SynchronizationError(code2, message);
 }
 async function readRegularFile(layerRoot, relativePath) {
-  const target = path20.join(layerRoot, ...relativePath.split("/"));
+  const target = path22.join(layerRoot, ...relativePath.split("/"));
   let metadata;
   try {
-    metadata = await lstat10(target);
+    metadata = await lstat11(target);
   } catch (error2) {
     throw syncError(
       "PCP_SYNC_INVALID_LAYER",
@@ -28345,7 +28893,7 @@ async function readRegularFile(layerRoot, relativePath) {
   if (!metadata.isFile() || metadata.isSymbolicLink()) {
     throw syncError("PCP_SYNC_INVALID_LAYER", `${layerPath(relativePath)} must be a regular file.`);
   }
-  return readFile17(target, "utf8");
+  return readFile19(target, "utf8");
 }
 function parseYaml(contents, relativePath, schema4) {
   let value;
@@ -28397,10 +28945,10 @@ async function loadCheckpoint(layerRoot, actorId, executionId) {
     throw syncError("PCP_SYNC_EXECUTION_ID_INVALID", "Execution ID must be a 26-character ULID.");
   }
   const relativePath = checkpointRelativePath(executionId);
-  const target = path20.join(layerRoot, ...relativePath.split("/"));
+  const target = path22.join(layerRoot, ...relativePath.split("/"));
   let metadata;
   try {
-    metadata = await lstat10(target);
+    metadata = await lstat11(target);
   } catch (error2) {
     if (error2.code === "ENOENT") return void 0;
     throw syncError(
@@ -28411,7 +28959,7 @@ async function loadCheckpoint(layerRoot, actorId, executionId) {
   if (!metadata.isFile() || metadata.isSymbolicLink()) {
     throw syncError("PCP_SYNC_INVALID_LAYER", `${layerPath(relativePath)} must be a regular file.`);
   }
-  const contents = await readFile17(target, "utf8");
+  const contents = await readFile19(target, "utf8");
   const checkpoint = parseYaml(contents, relativePath, "checkpoint");
   if (checkpoint.checkpoint_id !== executionId || checkpoint.execution_id !== executionId || checkpoint.actor_id !== actorId) {
     throw syncError(
@@ -28423,14 +28971,14 @@ async function loadCheckpoint(layerRoot, actorId, executionId) {
 }
 async function listActiveEventIds(layerRoot) {
   const relativePath = ACTIVE_EVENT_DIRECTORY2;
-  const target = path20.join(layerRoot, ...relativePath.split("/"));
+  const target = path22.join(layerRoot, ...relativePath.split("/"));
   let entries;
   try {
-    const metadata = await lstat10(target);
+    const metadata = await lstat11(target);
     if (!metadata.isDirectory() || metadata.isSymbolicLink()) {
       throw new Error("path is not a regular directory");
     }
-    entries = await readdir6(target, { withFileTypes: true });
+    entries = await readdir7(target, { withFileTypes: true });
   } catch (error2) {
     throw syncError(
       "PCP_SYNC_INVALID_LAYER",
@@ -28465,14 +29013,14 @@ async function listActiveEventIds(layerRoot) {
   return ids;
 }
 async function archiveHasEvents(layerRoot) {
-  const target = path20.join(layerRoot, ...ARCHIVE_EVENT_DIRECTORY2.split("/"));
+  const target = path22.join(layerRoot, ...ARCHIVE_EVENT_DIRECTORY2.split("/"));
   let entries;
   try {
-    const metadata = await lstat10(target);
+    const metadata = await lstat11(target);
     if (!metadata.isDirectory() || metadata.isSymbolicLink()) {
       throw new Error("path is not a regular directory");
     }
-    entries = await readdir6(target, { withFileTypes: true });
+    entries = await readdir7(target, { withFileTypes: true });
   } catch (error2) {
     throw syncError(
       "PCP_SYNC_INVALID_LAYER",
@@ -28615,7 +29163,7 @@ async function previewSync(layerRoot, input) {
 }
 async function fileContentsOrUndefined(file) {
   try {
-    return await readFile17(file, "utf8");
+    return await readFile19(file, "utf8");
   } catch (error2) {
     if (error2.code === "ENOENT") return void 0;
     throw error2;
@@ -28636,8 +29184,8 @@ async function writeCheckpoint(layerRoot, checkpoint, existing) {
     throw syncError("PCP_SYNC_CHECKPOINT_INVALID", "Generated sync checkpoint is invalid.");
   }
   const relativePath = checkpointRelativePath(checkpoint.execution_id);
-  const directory = path20.join(layerRoot, ...CHECKPOINT_DIRECTORY.split("/"));
-  const target = path20.join(layerRoot, ...relativePath.split("/"));
+  const directory = path22.join(layerRoot, ...CHECKPOINT_DIRECTORY.split("/"));
+  const target = path22.join(layerRoot, ...relativePath.split("/"));
   await mkdir5(directory, { recursive: true });
   const current = await fileContentsOrUndefined(target);
   if (existing === void 0 ? current !== void 0 : current !== existing.contents) {
@@ -28647,7 +29195,7 @@ async function writeCheckpoint(layerRoot, checkpoint, existing) {
     );
   }
   const contents = stringify3(checkpoint);
-  const temporary = path20.join(directory, `.${checkpoint.execution_id}.${randomUUID4()}.tmp`);
+  const temporary = path22.join(directory, `.${checkpoint.execution_id}.${randomUUID4()}.tmp`);
   const previous = `${temporary}.previous`;
   await writeDurableFile2(temporary, contents);
   let previousHeld = false;
@@ -28695,7 +29243,7 @@ async function writeCheckpoint(layerRoot, checkpoint, existing) {
   }
 }
 async function synchronizeLocked(root, input) {
-  const layerRoot = path20.join(root, ".pcp");
+  const layerRoot = path22.join(root, ".pcp");
   const preview = await previewSync(layerRoot, input);
   if (input.acknowledge === void 0) return preview.result;
   if (input.acknowledge !== preview.result.sync_digest) {
@@ -28738,7 +29286,7 @@ async function synchronizeLocked(root, input) {
   };
 }
 async function synchronizeProject(projectRoot, input) {
-  const root = path20.resolve(projectRoot);
+  const root = path22.resolve(projectRoot);
   try {
     return await withContinuityLock(root, () => synchronizeLocked(root, input));
   } catch (error2) {
@@ -28754,60 +29302,12 @@ async function synchronizeProject(projectRoot, input) {
 }
 
 // src/application/upgrade-project.ts
-import { timingSafeEqual as timingSafeEqual3 } from "node:crypto";
-import { lstat as lstat11, readFile as readFile18, readdir as readdir7 } from "node:fs/promises";
-import path21 from "node:path";
-
-// src/domain/release.ts
-var PCP_NAME = "Persistent Context Protocol";
-var PCP_VERSION = "0.2.0";
-var PCP_RELEASE_STAGE = "mandatory-global-sync";
-var PCP_COMMANDS = [
-  "inspect",
-  "adopt",
-  "register",
-  "sync",
-  "record",
-  "validate",
-  "render",
-  "workstream",
-  "upgrade",
-  "repair"
-];
-
-// src/domain/upgrade.ts
-var UpgradeError = class extends Error {
-  constructor(code2, message, mutated = false, recovery_root) {
-    super(message);
-    this.code = code2;
-    this.mutated = mutated;
-    this.recovery_root = recovery_root;
-    this.name = "UpgradeError";
-  }
-  code;
-  mutated;
-  recovery_root;
-};
-
-// src/application/upgrade-project.ts
-function digestMatches3(expected, supplied) {
+import { timingSafeEqual as timingSafeEqual4 } from "node:crypto";
+import { lstat as lstat12, readFile as readFile20, readdir as readdir8 } from "node:fs/promises";
+import path23 from "node:path";
+function digestMatches4(expected, supplied) {
   if (!/^[a-f0-9]{64}$/u.test(supplied)) return false;
-  return timingSafeEqual3(Buffer.from(expected, "hex"), Buffer.from(supplied, "hex"));
-}
-function semverParts(value) {
-  const match = /^(\d+)\.(\d+)\.(\d+)(?:-[0-9A-Za-z.-]+)?(?:\+[0-9A-Za-z.-]+)?$/u.exec(value);
-  if (match === null)
-    throw new UpgradeError("PCP_UPGRADE_VERSION_INVALID", `Invalid version: ${value}`);
-  return [Number(match[1]), Number(match[2]), Number(match[3])];
-}
-function compareVersions(left, right) {
-  const leftParts = semverParts(left);
-  const rightParts = semverParts(right);
-  for (let index = 0; index < leftParts.length; index += 1) {
-    const difference = (leftParts[index] ?? 0) - (rightParts[index] ?? 0);
-    if (difference !== 0) return difference;
-  }
-  return 0;
+  return timingSafeEqual4(Buffer.from(expected, "hex"), Buffer.from(supplied, "hex"));
 }
 function manifest(value, source, legacy01 = false) {
   const result = new SchemaRegistry().validate(
@@ -28827,21 +29327,21 @@ function yamlBuffer2(value) {
 }
 async function metadataOrUndefined4(target) {
   try {
-    return await lstat11(target);
+    return await lstat12(target);
   } catch (error2) {
     if (error2.code === "ENOENT") return void 0;
     throw error2;
   }
 }
 function portableParent2(portablePath2) {
-  const parent = path21.posix.dirname(portablePath2);
+  const parent = path23.posix.dirname(portablePath2);
   return parent === "." ? void 0 : parent;
 }
 async function missingParents2(root, portablePath2) {
   const missing = [];
   let parent = portableParent2(portablePath2);
   while (parent !== void 0) {
-    const metadata = await metadataOrUndefined4(path21.join(root, ...parent.split("/")));
+    const metadata = await metadataOrUndefined4(path23.join(root, ...parent.split("/")));
     if (metadata === void 0) missing.push(parent);
     else if (!metadata.isDirectory() || metadata.isSymbolicLink()) {
       throw new UpgradeError("PCP_UPGRADE_COLLISION", `Upgrade parent is unsafe: ${parent}`);
@@ -28851,12 +29351,12 @@ async function missingParents2(root, portablePath2) {
   return missing.reverse();
 }
 async function collectLayerFiles(directory, layerRoot, result) {
-  const entries = await readdir7(directory, { withFileTypes: true });
+  const entries = await readdir8(directory, { withFileTypes: true });
   entries.sort((left, right) => comparePortablePaths(left.name, right.name));
   for (const entry of entries) {
-    const target = path21.join(directory, entry.name);
-    const metadata = await lstat11(target);
-    const relative = path21.relative(layerRoot, target).split(path21.sep).join("/");
+    const target = path23.join(directory, entry.name);
+    const metadata = await lstat12(target);
+    const relative = path23.relative(layerRoot, target).split(path23.sep).join("/");
     if (metadata.isSymbolicLink()) {
       throw new UpgradeError(
         "PCP_UPGRADE_SYMLINK",
@@ -28865,7 +29365,7 @@ async function collectLayerFiles(directory, layerRoot, result) {
     }
     if (metadata.isDirectory()) await collectLayerFiles(target, layerRoot, result);
     else if (metadata.isFile())
-      result.push({ path: `.pcp/${relative}`, digest: sha256(await readFile18(target)) });
+      result.push({ path: `.pcp/${relative}`, digest: sha256(await readFile20(target)) });
   }
 }
 async function preservationSnapshot(root, inventory, targetedPaths, liveOwnership) {
@@ -28874,7 +29374,7 @@ async function preservationSnapshot(root, inventory, targetedPaths, liveOwnershi
     if (!targetedPaths.has(file.path)) preserved.set(file.path, file.sha256);
   }
   const layerFiles = [];
-  await collectLayerFiles(path21.join(root, ".pcp"), path21.join(root, ".pcp"), layerFiles);
+  await collectLayerFiles(path23.join(root, ".pcp"), path23.join(root, ".pcp"), layerFiles);
   for (const file of layerFiles) {
     if (targetedPaths.has(file.path)) continue;
     const relative = file.path.slice(".pcp/".length);
@@ -28890,9 +29390,64 @@ function preservationDigest(preserved) {
     canonicalJson([...preserved].map(([filePath, digest2]) => ({ path: filePath, digest: digest2 })))
   );
 }
+function documentationRegistryPaths(value) {
+  if (typeof value !== "object" || value === null || Array.isArray(value)) return [];
+  const documents = value.documents;
+  if (!Array.isArray(documents)) return [];
+  return documents.map(
+    (item) => typeof item === "object" && item !== null && !Array.isArray(item) ? item.path : void 0
+  ).filter((item) => typeof item === "string");
+}
+async function buildAgentMigration(root, ownership, required, additionalReviewPaths) {
+  if (!required) {
+    return {
+      required: false,
+      instruction_path: ".pcp/protocol/120-updates-and-reset.md",
+      review_paths: [],
+      instructions: [
+        "No project-derived semantic migration is required for this same-version projection."
+      ],
+      completion_commands: []
+    };
+  }
+  const layerFiles = [];
+  await collectLayerFiles(path23.join(root, ".pcp"), path23.join(root, ".pcp"), layerFiles);
+  const projectOwned = layerFiles.map((file) => file.path).filter((portablePath2) => {
+    const relative = portablePath2.slice(".pcp/".length);
+    if (/^continuity\/(?:actors|events|archive|checkpoints)\//u.test(relative)) return false;
+    return matchingOwnershipClasses(relative, ownership).includes("project");
+  });
+  let externalDocuments = [];
+  try {
+    externalDocuments = documentationRegistryPaths(
+      parse(await readFile20(path23.join(root, ".pcp", "state", "documentation.yaml"), "utf8"))
+    );
+  } catch (error2) {
+    if (error2.code !== "ENOENT") throw error2;
+  }
+  const reviewPaths = [
+    .../* @__PURE__ */ new Set([...projectOwned, ...externalDocuments, ...additionalReviewPaths])
+  ].sort(comparePortablePaths);
+  return {
+    required: true,
+    instruction_path: ".pcp/protocol/120-updates-and-reset.md",
+    review_paths: reviewPaths,
+    instructions: [
+      "Read the installed update protocol and the incoming release notes.",
+      "Inspect current source code and ordinary project documentation, then review every listed project-derived path against the updated protocol.",
+      "Rewrite only project-owned records whose semantics or current project truth require a change; do not copy release templates over them.",
+      "Render generated views and validate the complete installed layer after semantic review.",
+      "After the update is complete, ask the human actor whether PCP actor and continuity history should be purged; do not purge without an explicit affirmative reply."
+    ],
+    completion_commands: [
+      "node .pcp/tools/pcp.mjs render . --json",
+      "node .pcp/tools/pcp.mjs validate . --archive-index-only --json"
+    ]
+  };
+}
 async function verifyPreserved(root, preserved) {
   for (const [portablePath2, digest2] of preserved) {
-    const target = path21.join(root, ...portablePath2.split("/"));
+    const target = path23.join(root, ...portablePath2.split("/"));
     const metadata = await metadataOrUndefined4(target);
     if (metadata === void 0 || !metadata.isFile() || metadata.isSymbolicLink()) {
       throw new UpgradeError(
@@ -28901,7 +29456,7 @@ async function verifyPreserved(root, preserved) {
         true
       );
     }
-    if (sha256(await readFile18(target)) !== digest2) {
+    if (sha256(await readFile20(target)) !== digest2) {
       throw new UpgradeError(
         "PCP_UPGRADE_PRESERVATION_FAILED",
         `Preserved file changed: ${portablePath2}`,
@@ -28910,7 +29465,7 @@ async function verifyPreserved(root, preserved) {
     }
   }
 }
-function expectedInventory2(original, operations, contentByPath) {
+function expectedInventory3(original, operations, contentByPath) {
   const directories = new Set(original.directories);
   const files = new Map(original.files.map((file) => [file.path, { ...file }]));
   for (const operation of operations) {
@@ -28939,7 +29494,7 @@ function expectedInventory2(original, operations, contentByPath) {
     nested_repositories: original.nestedRepositories
   };
 }
-function comparableInventory3(inventory) {
+function comparableInventory4(inventory) {
   return {
     directories: inventory.directories,
     files: inventory.files,
@@ -29133,10 +29688,10 @@ async function planUpgradeMaterial(candidate = ".") {
     );
   }
   const installedManifestValue = parse(
-    await readFile18(path21.join(root, ".pcp", "pcp.yaml"), "utf8")
+    await readFile20(path23.join(root, ".pcp", "pcp.yaml"), "utf8")
   );
-  const installedVersion = typeof installedManifestValue === "object" && installedManifestValue !== null && !Array.isArray(installedManifestValue) && typeof installedManifestValue.protocol === "object" && installedManifestValue.protocol !== null ? installedManifestValue.protocol.version : void 0;
-  const legacy01 = typeof installedVersion === "string" && installedVersion.startsWith("0.1.");
+  const installedVersion2 = typeof installedManifestValue === "object" && installedManifestValue !== null && !Array.isArray(installedManifestValue) && typeof installedManifestValue.protocol === "object" && installedManifestValue.protocol !== null ? installedManifestValue.protocol.version : void 0;
+  const legacy01 = typeof installedVersion2 === "string" && installedVersion2.startsWith("0.1.");
   const currentValidation = await validateCanonicalLayer(root, {
     archive_content: "filenames-only",
     ...legacy01 ? { legacy_upgrade_source: "0.1" } : {}
@@ -29177,7 +29732,7 @@ async function planUpgradeMaterial(candidate = ".") {
       `Release assets are ${toVersion}, but the engine is ${PCP_VERSION}.`
     );
   }
-  if (compareVersions(fromVersion, toVersion) > 0) {
+  if (comparePcpVersions(fromVersion, toVersion) > 0) {
     throw new UpgradeError(
       "PCP_UPGRADE_DOWNGRADE_FORBIDDEN",
       `Installed PCP ${fromVersion} is newer than engine ${toVersion}.`
@@ -29206,22 +29761,24 @@ async function planUpgradeMaterial(candidate = ".") {
   let migratedProjects;
   let migratedDocumentation;
   let initialOutcomeDocuments = [];
+  let migrationReviewPaths = [];
   if (legacy01) {
     const migrated = migrateLegacyProjects(
-      parse(await readFile18(path21.join(root, ".pcp", "state", "project.yaml"), "utf8")),
-      parse(await readFile18(path21.join(root, ".pcp", "state", "projects.yaml"), "utf8")),
+      parse(await readFile20(path23.join(root, ".pcp", "state", "project.yaml"), "utf8")),
+      parse(await readFile20(path23.join(root, ".pcp", "state", "projects.yaml"), "utf8")),
       inspection
     );
     migratedProject = yamlBuffer2(migrated.project);
     migratedProjects = yamlBuffer2(migrated.projects);
     migratedDocumentation = yamlBuffer2(migrated.documentation);
     initialOutcomeDocuments = migrated.initialOutcomeDocuments;
+    migrationReviewPaths = documentationRegistryPaths(migrated.documentation);
     renderOverrides.set("state/project.yaml", migratedProject);
     renderOverrides.set("state/projects.yaml", migratedProjects);
     renderOverrides.set("state/documentation.yaml", migratedDocumentation);
     migratedWorkstreams = yamlBuffer2(
       migrateLegacyWorkstreams(
-        parse(await readFile18(path21.join(root, ".pcp", "state", "workstreams.yaml"), "utf8"))
+        parse(await readFile20(path23.join(root, ".pcp", "state", "workstreams.yaml"), "utf8"))
       )
     );
     renderOverrides.set("state/workstreams.yaml", migratedWorkstreams);
@@ -29236,7 +29793,7 @@ async function planUpgradeMaterial(candidate = ".") {
   desired.set(".pcp/views/10-status.generated.md", Buffer.from(view.content, "utf8"));
   for (const adapter of adapters) desired.set(adapter.manifest.target_path, adapter.content);
   for (const initialOutcomeDocument of initialOutcomeDocuments) {
-    const documentationRoot = path21.posix.dirname(initialOutcomeDocument.path);
+    const documentationRoot = path23.posix.dirname(initialOutcomeDocument.path);
     if (await isMutationDirectoryIgnored(root, documentationRoot)) {
       throw new UpgradeError(
         "PCP_UPGRADE_DOCUMENTATION_ROOT_BLOCKED",
@@ -29247,13 +29804,14 @@ async function planUpgradeMaterial(candidate = ".") {
   }
   const contentByPath = /* @__PURE__ */ new Map();
   const operations = [];
+  const mechanicalMigrationPaths = /* @__PURE__ */ new Set();
   const plannedDirectories = /* @__PURE__ */ new Set();
   if (legacy01 && migratedProject !== void 0 && migratedProjects !== void 0 && migratedDocumentation !== void 0) {
     for (const [portablePath2, content] of [
       [".pcp/state/project.yaml", migratedProject],
       [".pcp/state/projects.yaml", migratedProjects]
     ]) {
-      const current = await readFile18(path21.join(root, ...portablePath2.split("/")));
+      const current = await readFile20(path23.join(root, ...portablePath2.split("/")));
       operations.push({
         action: "replace",
         path: portablePath2,
@@ -29261,6 +29819,7 @@ async function planUpgradeMaterial(candidate = ".") {
         preimage_digest: sha256(current)
       });
       contentByPath.set(portablePath2, content);
+      mechanicalMigrationPaths.add(portablePath2);
     }
     const documentationPath = ".pcp/state/documentation.yaml";
     for (const directory of await missingParents2(root, documentationPath)) {
@@ -29275,10 +29834,11 @@ async function planUpgradeMaterial(candidate = ".") {
       content_digest: sha256(migratedDocumentation)
     });
     contentByPath.set(documentationPath, migratedDocumentation);
+    mechanicalMigrationPaths.add(documentationPath);
   }
   if (legacy01 && migratedWorkstreams !== void 0) {
     const legacyWorkstreamsPath = ".pcp/state/workstreams.yaml";
-    const current = await readFile18(path21.join(root, ...legacyWorkstreamsPath.split("/")));
+    const current = await readFile20(path23.join(root, ...legacyWorkstreamsPath.split("/")));
     operations.push({
       action: "replace",
       path: legacyWorkstreamsPath,
@@ -29286,9 +29846,10 @@ async function planUpgradeMaterial(candidate = ".") {
       preimage_digest: sha256(current)
     });
     contentByPath.set(legacyWorkstreamsPath, migratedWorkstreams);
+    mechanicalMigrationPaths.add(legacyWorkstreamsPath);
     const templateIndexPath = ".pcp/templates/00-index.md";
-    const templateIndexTarget = path21.join(root, ...templateIndexPath.split("/"));
-    const templateIndexCurrent = await readFile18(templateIndexTarget);
+    const templateIndexTarget = path23.join(root, ...templateIndexPath.split("/"));
+    const templateIndexCurrent = await readFile20(templateIndexTarget);
     const templateIndexMigrated = migrateLegacyTemplateIndex(templateIndexCurrent.toString("utf8"));
     if (!templateIndexCurrent.equals(templateIndexMigrated)) {
       operations.push({
@@ -29298,15 +29859,16 @@ async function planUpgradeMaterial(candidate = ".") {
         preimage_digest: sha256(templateIndexCurrent)
       });
       contentByPath.set(templateIndexPath, templateIndexMigrated);
+      mechanicalMigrationPaths.add(templateIndexPath);
     }
     for (const legacyPath of [LEGACY_CEB_PROTOCOL_PATH, LEGACY_CEB_TEMPLATE_PATH]) {
-      const target = path21.join(root, ...legacyPath.split("/"));
+      const target = path23.join(root, ...legacyPath.split("/"));
       const metadata = await metadataOrUndefined4(target);
       if (metadata === void 0) continue;
       if (!metadata.isFile() || metadata.isSymbolicLink()) {
         throw new UpgradeError("PCP_UPGRADE_COLLISION", `Legacy CEB path is unsafe: ${legacyPath}`);
       }
-      const current2 = await readFile18(target);
+      const current2 = await readFile20(target);
       if (legacyPath === LEGACY_CEB_TEMPLATE_PATH && normalizeText(current2.toString("utf8")) !== LEGACY_CEB_TEMPLATE) {
         throw new UpgradeError(
           "PCP_UPGRADE_LEGACY_TEMPLATE_CHANGED",
@@ -29314,20 +29876,22 @@ async function planUpgradeMaterial(candidate = ".") {
         );
       }
       operations.push({ action: "remove", path: legacyPath, preimage_digest: sha256(current2) });
+      if (legacyPath === LEGACY_CEB_TEMPLATE_PATH) mechanicalMigrationPaths.add(legacyPath);
     }
-    const checkpointRoot = path21.join(root, ".pcp", "continuity", "checkpoints");
-    const checkpointEntries = await readdir7(checkpointRoot, { withFileTypes: true });
+    const checkpointRoot = path23.join(root, ".pcp", "continuity", "checkpoints");
+    const checkpointEntries = await readdir8(checkpointRoot, { withFileTypes: true });
     for (const entry of checkpointEntries.sort(
       (left, right) => left.name.localeCompare(right.name)
     )) {
       if (!entry.isFile() || !entry.name.endsWith(".yaml")) continue;
       const checkpointPath = `.pcp/continuity/checkpoints/${entry.name}`;
-      const current2 = await readFile18(path21.join(checkpointRoot, entry.name));
+      const current2 = await readFile20(path23.join(checkpointRoot, entry.name));
       operations.push({ action: "remove", path: checkpointPath, preimage_digest: sha256(current2) });
+      mechanicalMigrationPaths.add(checkpointPath);
     }
   }
   for (const [portablePath2, content] of desired) {
-    const absolute = path21.join(root, ...portablePath2.split("/"));
+    const absolute = path23.join(root, ...portablePath2.split("/"));
     const metadata = await metadataOrUndefined4(absolute);
     if (metadata === void 0) {
       for (const directory of await missingParents2(root, portablePath2)) {
@@ -29356,7 +29920,7 @@ async function planUpgradeMaterial(candidate = ".") {
         );
       }
     }
-    const current = await readFile18(absolute);
+    const current = await readFile20(absolute);
     if (current.equals(content)) continue;
     operations.push({
       action: "replace",
@@ -29377,6 +29941,16 @@ async function planUpgradeMaterial(candidate = ".") {
   );
   const digest2 = preservationDigest(preserved);
   const upgradePaths = [...targetPaths];
+  for (const document of initialOutcomeDocuments) mechanicalMigrationPaths.add(document.path);
+  const mechanicalPaths = upgradePaths.filter((item) => mechanicalMigrationPaths.has(item));
+  const releaseOwnedPaths = upgradePaths.filter((item) => !mechanicalMigrationPaths.has(item));
+  const semanticMigrationRequired = comparePcpVersions(fromVersion, toVersion) !== 0;
+  const agentMigration = await buildAgentMigration(
+    root,
+    liveManifest.ownership,
+    semanticMigrationRequired,
+    migrationReviewPaths
+  );
   const base = {
     schema_version: 1,
     command: "upgrade",
@@ -29384,6 +29958,15 @@ async function planUpgradeMaterial(candidate = ".") {
     from_version: fromVersion,
     to_version: toVersion,
     upgrade_paths: upgradePaths,
+    release_owned_paths: releaseOwnedPaths,
+    mechanical_migration_paths: mechanicalPaths,
+    agent_migration: agentMigration,
+    history_purge: {
+      prompt_after_completion: semanticMigrationRequired,
+      requires_explicit_human_confirmation: true,
+      preview_command: "node .pcp/tools/pcp.mjs purge-history . --json",
+      apply_command: "node .pcp/tools/pcp.mjs purge-history . --apply <plan-digest> --json"
+    },
     preserved_files: preserved.size,
     preservation_digest: digest2,
     adapters: adapters.map((adapter) => adapter.manifest),
@@ -29424,14 +30007,14 @@ async function upgradeProject(candidate = ".", options = {}) {
     return planned;
   }
   if (options.apply === void 0) return planned.preview;
-  if (!digestMatches3(planned.preview.plan.plan_digest, options.apply)) {
+  if (!digestMatches4(planned.preview.plan.plan_digest, options.apply)) {
     throw new UpgradeError(
       "PCP_PLAN_DIGEST_MISMATCH",
       "The approved digest does not match the fully recomputed current upgrade plan."
     );
   }
   const root = await resolveCandidateRoot(candidate);
-  const expected = expectedInventory2(
+  const expected = expectedInventory3(
     planned.inspection.inventory,
     planned.preview.plan.operations,
     planned.content_by_path
@@ -29448,7 +30031,7 @@ async function upgradeProject(candidate = ".", options = {}) {
           ...options.fail_after_operation === void 0 ? {} : { fail_after_operation: options.fail_after_operation },
           verify_source_stability: async () => {
             const current = await inventoryRepository(root);
-            if (canonicalJson(comparableInventory3(current)) !== canonicalJson(expected)) {
+            if (canonicalJson(comparableInventory4(current)) !== canonicalJson(expected)) {
               throw new UpgradeError(
                 "PCP_SOURCE_CHANGED",
                 "Project content changed while the upgrade transaction was running.",
@@ -29492,6 +30075,10 @@ async function upgradeProject(candidate = ".", options = {}) {
         to_version: planned.preview.to_version,
         plan_digest: planned.preview.plan.plan_digest,
         upgraded_paths: planned.preview.upgrade_paths,
+        release_owned_paths: planned.preview.release_owned_paths,
+        mechanical_migration_paths: planned.preview.mechanical_migration_paths,
+        agent_migration: planned.preview.agent_migration,
+        history_purge: planned.preview.history_purge,
         preserved_files: planned.preview.preserved_files,
         preservation_digest: planned.preview.preservation_digest,
         applied_operations: transaction.applied_operations,
@@ -29663,6 +30250,28 @@ function formatInspection(result) {
 `;
 }
 
+// src/presentation/format-purge-history.ts
+function formatPurgeHistory(result) {
+  if (result.mutated) {
+    return `${[
+      "PCP actor and continuity history purged.",
+      `Plan digest: ${result.plan_digest}`,
+      `Purged files: ${result.purged_paths.length}`,
+      result.next_action
+    ].join("\n")}
+`;
+  }
+  const lines = [
+    `PCP history purge preview: ${result.applicable ? "explicit approval required" : "already empty"}`,
+    `Purge files: ${result.purge_paths.length}`,
+    result.warning,
+    ...result.purge_paths.map((purgePath) => `- ${purgePath}`)
+  ];
+  if (result.plan !== void 0) lines.push(`Plan digest: ${result.plan.plan_digest}`);
+  return `${lines.join("\n")}
+`;
+}
+
 // src/presentation/format-recording.ts
 function formatRecording(result) {
   return [
@@ -29763,8 +30372,14 @@ function formatUpgrade(result) {
       `PCP upgrade applied: ${result.from_version} -> ${result.to_version}`,
       `Plan digest: ${result.plan_digest}`,
       `Upgraded paths: ${result.upgraded_paths.length}`,
+      `Release-owned paths: ${result.release_owned_paths.length}`,
+      `Mechanical migration paths: ${result.mechanical_migration_paths.length}`,
       `Preserved files: ${result.preserved_files}`,
-      ...result.upgraded_paths.map((upgradePath) => `- ${upgradePath}`)
+      `Agent semantic review: ${result.agent_migration.required ? "required" : "not required"}`,
+      ...result.upgraded_paths.map((upgradePath) => `- ${upgradePath}`),
+      ...result.history_purge.prompt_after_completion ? [
+        "Ask the human whether to purge PCP actor and continuity history after semantic review and validation."
+      ] : []
     ].join("\n")}
 `;
   }
@@ -29772,11 +30387,26 @@ function formatUpgrade(result) {
     `PCP upgrade preview: ${result.applicable ? "approval required" : "current"}`,
     `Version: ${result.from_version} -> ${result.to_version}`,
     `Upgrade paths: ${result.upgrade_paths.length}`,
+    `Release-owned paths: ${result.release_owned_paths.length}`,
+    `Mechanical migration paths: ${result.mechanical_migration_paths.length}`,
     `Preserved files: ${result.preserved_files}`,
+    `Agent semantic review: ${result.agent_migration.required ? "required" : "not required"}`,
     ...result.upgrade_paths.map((upgradePath) => `- ${upgradePath}`)
   ];
   if (result.plan !== void 0) lines.push(`Plan digest: ${result.plan.plan_digest}`);
   return `${lines.join("\n")}
+`;
+}
+
+// src/presentation/format-update-check.ts
+function formatUpgradeCheck(result) {
+  return `${[
+    `PCP canonical-source update check: ${result.availability}`,
+    `Installed version: ${result.installed_version}`,
+    `Available version: ${result.available_version}`,
+    `Source revision: ${result.source_revision_url}`,
+    ...result.next_actions.map((action) => `- ${action}`)
+  ].join("\n")}
 `;
 }
 
@@ -29813,6 +30443,7 @@ var commandDescriptions = {
   render: "Render generated canonical views",
   workstream: "Create, update, validate, or complete a workstream",
   upgrade: "Preview or apply an ownership-aware PCP upgrade",
+  "purge-history": "Preview or apply removal of PCP actor and continuity history",
   repair: "Preview or apply a mechanically safe PCP repair"
 };
 function reportUnavailable(commandName) {
@@ -29899,6 +30530,24 @@ function reportUpgradeError(error2) {
   const message = error2 instanceof Error ? error2.message : String(error2);
   const mutated = error2 instanceof UpgradeError ? error2.mutated : false;
   const recoveryPaths = error2 instanceof UpgradeError && error2.recovery_root !== void 0 ? [error2.recovery_root] : [];
+  process.stderr.write(
+    `${JSON.stringify({ code: code2, message, mutated, ...formatRecoveryDetails(recoveryPaths) })}
+`
+  );
+  process.exitCode = 2;
+}
+function reportUpgradeCheckError(error2) {
+  const code2 = error2 instanceof UpgradeCheckError ? error2.code : "PCP_UPGRADE_CHECK_FAILED";
+  const message = error2 instanceof Error ? error2.message : String(error2);
+  process.stderr.write(`${JSON.stringify({ code: code2, message, mutated: false })}
+`);
+  process.exitCode = 2;
+}
+function reportPurgeHistoryError(error2) {
+  const code2 = error2 instanceof PurgeHistoryError ? error2.code : "PCP_PURGE_HISTORY_FAILED";
+  const message = error2 instanceof Error ? error2.message : String(error2);
+  const mutated = error2 instanceof PurgeHistoryError ? error2.mutated : false;
+  const recoveryPaths = error2 instanceof PurgeHistoryError && error2.recovery_root !== void 0 ? [error2.recovery_root] : [];
   process.stderr.write(
     `${JSON.stringify({ code: code2, message, mutated, ...formatRecoveryDetails(recoveryPaths) })}
 `
@@ -30098,9 +30747,27 @@ function addRepairCommand(program2) {
   });
 }
 function addUpgradeCommand(program2) {
-  return program2.command("upgrade").description(commandDescriptions.upgrade).argument("[directory]", "managed project root").option("--candidate <directory>", "managed project root").option("--apply <digest>", "apply only the matching fully recomputed preview digest").option("--json", "emit stable structured JSON").action(async (directory, options) => {
+  return program2.command("upgrade").description(commandDescriptions.upgrade).argument("[directory]", "managed project root").option("--candidate <directory>", "managed project root").option("--check", "compare the installed version with the canonical GitHub source manifest").option("--apply <digest>", "apply only the matching fully recomputed preview digest").option("--json", "emit stable structured JSON").action(async (directory, options) => {
+    const candidate = options.candidate ?? directory ?? ".";
+    if (options.check === true && options.apply !== void 0) {
+      reportUpgradeCheckError(
+        new UpgradeCheckError(
+          "PCP_UPGRADE_CHECK_OPTION_CONFLICT",
+          "--check and --apply cannot be used together."
+        )
+      );
+      return;
+    }
     try {
-      const result = await upgradeProject(options.candidate ?? directory ?? ".", {
+      if (options.check === true) {
+        const result2 = await checkForUpgrade(candidate);
+        process.stdout.write(
+          options.json === true ? `${JSON.stringify(result2, null, 2)}
+` : formatUpgradeCheck(result2)
+        );
+        return;
+      }
+      const result = await upgradeProject(candidate, {
         ...options.apply === void 0 ? {} : { apply: options.apply }
       });
       process.stdout.write(
@@ -30108,7 +30775,23 @@ function addUpgradeCommand(program2) {
 ` : formatUpgrade(result)
       );
     } catch (error2) {
-      reportUpgradeError(error2);
+      if (options.check === true) reportUpgradeCheckError(error2);
+      else reportUpgradeError(error2);
+    }
+  });
+}
+function addPurgeHistoryCommand(program2) {
+  return program2.command("purge-history").description(commandDescriptions["purge-history"]).argument("[directory]", "managed project root").option("--candidate <directory>", "managed project root").option("--apply <digest>", "apply only the matching fully recomputed preview digest").option("--json", "emit stable structured JSON").action(async (directory, options) => {
+    try {
+      const result = await purgeHistory(options.candidate ?? directory ?? ".", {
+        ...options.apply === void 0 ? {} : { apply: options.apply }
+      });
+      process.stdout.write(
+        options.json === true ? `${JSON.stringify(result, null, 2)}
+` : formatPurgeHistory(result)
+      );
+    } catch (error2) {
+      reportPurgeHistoryError(error2);
     }
   });
 }
@@ -30149,6 +30832,8 @@ function createProgram() {
       addRepairCommand(program2);
     } else if (commandName === "upgrade") {
       addUpgradeCommand(program2);
+    } else if (commandName === "purge-history") {
+      addPurgeHistoryCommand(program2);
     } else {
       addUnavailableCommand(program2, commandName);
     }

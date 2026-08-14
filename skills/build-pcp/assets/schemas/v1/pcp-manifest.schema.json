@@ -7,6 +7,7 @@
   "required": [
     "schema_version",
     "protocol",
+    "update",
     "persistence",
     "capabilities",
     "continuity",
@@ -30,6 +31,16 @@
         "version": {
           "$ref": "urn:pcp:schema:v1:common#/$defs/semver"
         }
+      }
+    },
+    "update": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["provider", "repository", "channel"],
+      "properties": {
+        "provider": { "const": "github" },
+        "repository": { "const": "momtazularefin/persistentcontext" },
+        "channel": { "const": "main" }
       }
     },
     "persistence": {

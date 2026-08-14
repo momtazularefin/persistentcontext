@@ -120,6 +120,7 @@ async function legacy01ManagedProject(): Promise<string> {
   const manifestPath = path.join(root, '.pcp', 'pcp.yaml');
   const manifest = parse(await readFile(manifestPath, 'utf8')) as Record<string, unknown>;
   (manifest.protocol as Record<string, unknown>).version = '0.1.0';
+  delete manifest.update;
   manifest.capabilities = ['concurrent-execution-blocks'];
   manifest.adapter_ids = renderPlatformAdapters().map((adapter) => adapter.manifest.adapter_id);
   await writeFile(manifestPath, stringify(manifest), 'utf8');
@@ -264,6 +265,13 @@ describe('ownership-aware upgrade', () => {
         '.pcp/continuity/checkpoints/01ARZ3NDEKTSV4RRFFQ69G5FAV.yaml',
       ]),
     );
+    expect(preview.agent_migration).toMatchObject({
+      required: true,
+      instruction_path: '.pcp/protocol/120-updates-and-reset.md',
+    });
+    expect(preview.agent_migration.review_paths).toEqual(
+      expect.arrayContaining(['.pcp/state/project.yaml', 'docs/README.md']),
+    );
 
     await upgradeProject(root, { apply: preview.plan.plan_digest });
     const manifest = parse(await readFile(path.join(root, '.pcp', 'pcp.yaml'), 'utf8')) as {
@@ -323,8 +331,15 @@ describe('ownership-aware upgrade', () => {
       from_version: '0.0.9',
       to_version: '0.2.0',
       applicable: true,
+      mechanical_migration_paths: [],
+      agent_migration: { required: true },
+      history_purge: {
+        prompt_after_completion: true,
+        requires_explicit_human_confirmation: true,
+      },
       mutated: false,
     });
+    expect(first.release_owned_paths).toContain('.pcp/pcp.yaml');
     expect(first.upgrade_paths).toEqual(
       expect.arrayContaining([
         '.pcp/.gitignore',
@@ -344,6 +359,7 @@ describe('ownership-aware upgrade', () => {
       preservation_digest: first.preservation_digest,
       validation: { valid: true, checked_adapters: 5 },
       recovery_cleaned: true,
+      agent_migration: { required: true },
       mutated: true,
     });
     await expectPreserved(root, preserved);
@@ -361,6 +377,8 @@ describe('ownership-aware upgrade', () => {
       to_version: '0.2.0',
       applicable: false,
       upgrade_paths: [],
+      agent_migration: { required: false },
+      history_purge: { prompt_after_completion: false },
       mutated: false,
     });
   });

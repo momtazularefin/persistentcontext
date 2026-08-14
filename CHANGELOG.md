@@ -16,6 +16,9 @@ All notable public protocol changes are documented here from the first release c
 - Added per-project documentation-root state and a validated `.pcp/state/documentation.yaml` registry covering every ordinary project document, including related source paths and misplaced/stale-entry checks.
 - Moved spec-driven project outcomes to tracked external documents and extended adoption and 0.1 migration to establish the new boundary without relocating existing documentation.
 - Made new actor-ID prefixes predictable: canonical app labels use `antigravity`, `codex`, `claude`, `copilot`, `cursor`, or `human`, unknown apps use one lowercase word, and the machine label is derived automatically from the system hostname while legacy IDs remain immutable and recoverable.
+- Added deterministic `upgrade --check` discovery that snapshots the canonical GitHub `main` revision, compares installed and remote manifest versions, and returns an immutable source bundle for available updates.
+- Extended upgrade results to separate release-owned replacements, explicit mechanical migrations, and project-derived paths requiring agent semantic review against current source and documentation.
+- Added separately confirmed, preview-first `purge-history` with exact rollback; it clears actor profiles, active and archived events, checkpoints, and identity caches while preserving current project truth and Git history.
 
 ## 0.1.0-rc — release candidate
 

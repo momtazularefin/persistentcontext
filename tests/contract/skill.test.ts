@@ -82,7 +82,11 @@ describe('build-pcp skill contract', () => {
     expect(migration).toContain('repair <project-root> --apply <plan-digest> --json');
     expect(migration).toContain('Use `render` for generated status-view drift');
     expect(migration).toContain('upgrade <project-root> --json');
+    expect(migration).toContain('upgrade <project-root> --check --json');
     expect(migration).toContain('every project/runtime-owned canonical file');
+    expect(migration).toContain('agent_migration.review_paths');
+    expect(migration).toContain('purge-history <project-root> --json');
+    expect(migration).toContain('explicitly agrees');
   });
 
   it('documents every executable lifecycle command without an improvised mutation path', async () => {
@@ -107,6 +111,9 @@ describe('build-pcp skill contract', () => {
       'workstream complete <project-root> --input <external-workstream.yaml> --json',
       'repair <project-root> --apply <plan-digest> --json',
       'upgrade <project-root> --apply <plan-digest> --json',
+      'upgrade <project-root> --check --json',
+      'purge-history <project-root> --json',
+      'purge-history <project-root> --apply <plan-digest> --json',
     ]) {
       expect(documented, command).toContain(command);
     }

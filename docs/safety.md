@@ -33,7 +33,7 @@ VCS signing, branch protection, operating-system permissions, backups, credentia
 
 ## Adoption and mutation safety
 
-Structural adoption, repair, and upgrade share the following controls:
+Structural adoption, repair, upgrade, and explicitly confirmed PCP history purge share the following controls:
 
 1. read-only inventory and explainable classification;
 2. schema-valid external semantic input where required;
@@ -49,6 +49,8 @@ Structural adoption, repair, and upgrade share the following controls:
 12. reverse exact rollback after any caught failure.
 
 Recovery evidence is retained when rollback or cleanup cannot be proven. Temporary recovery material is removed only after successful live acceptance. Structured mutation failures expose the absolute local `recovery_path` (and `recovery_paths` when nested transactions retain more than one location) only as ephemeral diagnostic output; machine-specific paths are never persisted in canonical state or continuity events.
+
+An update request authorizes only read-only canonical-source version discovery until the usual upgrade digest is separately approved. After a completed upgrade, history purge requires a new, explicit human choice and its own preview digest. Silence or ambiguous agreement is not confirmation. Purge cannot target current project or protocol truth and does not rewrite Git history.
 
 State C requires an evidence-backed disposition for every detected foreign root before file coverage. Only roots marked `translate` are expanded; roots identified as embedded examples, archives, or ordinary project material are marked `project-owned` and preserved intact. Every selected foreign file and parsed history or registry entry then requires complete coverage. Encrypted, binary, invalid UTF-8, unreadable, malformed, unrecognized structured, oversized, excluded, and symbolic-link sources inside translated roots are blocking issues. An unsupported adapter surface also blocks destructive translation. `project-owned` files caught inside a translated root are preserved without a canonical target. `relocated` is narrower: it applies only to a regular file whose exact bytes must survive at one reviewed, absent, project-owned destination outside canonical and translated roots. The plan rejects target collisions, ignored or excluded paths, symlink and nested-repository boundaries, duplicate targets, and source/target identity.
 

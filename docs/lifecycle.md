@@ -90,20 +90,27 @@ Validation covers schemas, required structure, numbered and indexed internal Mar
 
 `render --check` is non-mutating. Write mode replaces only the declared generated status view from canonical YAML sources.
 
-## 8. Repair or upgrade
+## 8. Repair, upgrade, or reset PCP history
 
 ```powershell
 node dist/pcp.mjs repair path/to/project --json
 node dist/pcp.mjs repair path/to/project --apply <plan-digest> --json
+node dist/pcp.mjs upgrade path/to/project --check --json
 node dist/pcp.mjs upgrade path/to/project --json
 node dist/pcp.mjs upgrade path/to/project --apply <plan-digest> --json
+node dist/pcp.mjs purge-history path/to/project --json
+node dist/pcp.mjs purge-history path/to/project --apply <plan-digest> --json
 ```
 
-Repair plans only missing or changed generated adapters. Upgrade projects current release-owned protocol and generated assets onto a managed installation while preserving project and runtime ownership. The 0.1 migration adds documentation-root metadata and a complete documentation registry without relocating existing documents; when no established root exists it adds `docs/README.md` as the initial outcome document. Both are preview-first, preimage-bound, inventory-stable transactions with live validation and rollback.
+Repair plans only missing or changed generated adapters. The update check reads `protocol.version` from the installed manifest and compares it with the canonical template manifest at a snapshot of GitHub `main`. It returns the exact source revision and immutable archive URL, never mutates, and ignores branch movement without a version change. Upgrade runs from the incoming verified engine, projects current release-owned protocol and generated assets onto a managed installation, identifies explicit mechanical migration paths, and preserves other project and runtime ownership. The 0.1 migration adds documentation-root metadata and a complete documentation registry without relocating existing documents; when no established root exists it adds `docs/README.md` as the initial outcome document. These mutations are preview-first, preimage-bound, inventory-stable transactions with live validation and rollback.
 
 The 0.1-to-0.2 upgrade removes the CEB capability and its pristine release assets, maps `kind: ceb` labels to `kind: concurrent`, removes workstream dependency fields, and discards obsolete scoped checkpoints. Existing actors and events remain; each post-upgrade conversation establishes a new per-execution baseline. A customized CEB scaffold blocks automatic removal so useful project-owned content is not silently lost.
 
 Downgrades are rejected. Every untargeted inventory file and every project/runtime-owned canonical file is fingerprinted before and after apply.
+
+Upgrade output includes `agent_migration.review_paths`. The agent reads the newly installed update protocol and release notes, inspects current source and ordinary project documents, rewrites only project-owned records that semantically require change, then renders and validates. Only then is the version update complete.
+
+After completion the agent asks the human whether to purge PCP history. The original update request is not consent. On an explicit affirmative answer, `purge-history` removes actor profiles, active events, archived events, per-execution checkpoints, and identity caches under its own reviewed digest. It creates no event and preserves protocol, project knowledge and state, outcome documentation, source code, VCS policy, and Git history. The next project request registers a fresh actor identity.
 
 ## Version-control boundary
 

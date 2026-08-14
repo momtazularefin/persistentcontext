@@ -60,6 +60,7 @@ describe('public documentation contract', () => {
       'workstream',
       'repair',
       'upgrade',
+      'purge-history',
     ]) {
       expect(lifecycle, command).toContain(`pcp.mjs ${command}`);
     }
@@ -188,6 +189,8 @@ describe('public documentation contract', () => {
       'PCP_WORKSTREAM_REGISTRY_CHANGED',
       'PCP_REPAIR_NOT_APPLICABLE',
       'PCP_UPGRADE_PRESERVATION_FAILED',
+      'PCP_UPGRADE_CHECK_RESPONSE_INVALID',
+      'PCP_PURGE_HISTORY_NOT_APPLICABLE',
     ]) {
       expect(troubleshooting, code).toContain(code);
     }

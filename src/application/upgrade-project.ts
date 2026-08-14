@@ -16,7 +16,9 @@ import { comparePortablePaths, type RepositoryInventory } from '../domain/inspec
 import { isInsideDocumentationRoot } from '../domain/project-documentation.js';
 import { PCP_VERSION } from '../domain/release.js';
 import {
+  comparePcpVersions,
   UpgradeError,
+  type UpgradeAgentMigration,
   type UpgradeApplyResult,
   type UpgradePlanMaterial,
   type UpgradePreview,
@@ -57,23 +59,6 @@ interface ManifestShape extends Record<string, unknown> {
 function digestMatches(expected: string, supplied: string): boolean {
   if (!/^[a-f0-9]{64}$/u.test(supplied)) return false;
   return timingSafeEqual(Buffer.from(expected, 'hex'), Buffer.from(supplied, 'hex'));
-}
-
-function semverParts(value: string): [number, number, number] {
-  const match = /^(\d+)\.(\d+)\.(\d+)(?:-[0-9A-Za-z.-]+)?(?:\+[0-9A-Za-z.-]+)?$/u.exec(value);
-  if (match === null)
-    throw new UpgradeError('PCP_UPGRADE_VERSION_INVALID', `Invalid version: ${value}`);
-  return [Number(match[1]), Number(match[2]), Number(match[3])];
-}
-
-function compareVersions(left: string, right: string): number {
-  const leftParts = semverParts(left);
-  const rightParts = semverParts(right);
-  for (let index = 0; index < leftParts.length; index += 1) {
-    const difference = (leftParts[index] ?? 0) - (rightParts[index] ?? 0);
-    if (difference !== 0) return difference;
-  }
-  return 0;
 }
 
 function manifest(value: unknown, source: string, legacy01 = false): ManifestShape {
@@ -177,6 +162,74 @@ function preservationDigest(preserved: ReadonlyMap<string, string>): string {
   return sha256(
     canonicalJson([...preserved].map(([filePath, digest]) => ({ path: filePath, digest }))),
   );
+}
+
+function documentationRegistryPaths(value: unknown): string[] {
+  if (typeof value !== 'object' || value === null || Array.isArray(value)) return [];
+  const documents = (value as Record<string, unknown>).documents;
+  if (!Array.isArray(documents)) return [];
+  return documents
+    .map((item) =>
+      typeof item === 'object' && item !== null && !Array.isArray(item)
+        ? (item as Record<string, unknown>).path
+        : undefined,
+    )
+    .filter((item): item is string => typeof item === 'string');
+}
+
+async function buildAgentMigration(
+  root: string,
+  ownership: OwnershipPatterns,
+  required: boolean,
+  additionalReviewPaths: readonly string[],
+): Promise<UpgradeAgentMigration> {
+  if (!required) {
+    return {
+      required: false,
+      instruction_path: '.pcp/protocol/120-updates-and-reset.md',
+      review_paths: [],
+      instructions: [
+        'No project-derived semantic migration is required for this same-version projection.',
+      ],
+      completion_commands: [],
+    };
+  }
+  const layerFiles: Array<{ path: string; digest: string }> = [];
+  await collectLayerFiles(path.join(root, '.pcp'), path.join(root, '.pcp'), layerFiles);
+  const projectOwned = layerFiles
+    .map((file) => file.path)
+    .filter((portablePath) => {
+      const relative = portablePath.slice('.pcp/'.length);
+      if (/^continuity\/(?:actors|events|archive|checkpoints)\//u.test(relative)) return false;
+      return matchingOwnershipClasses(relative, ownership).includes('project');
+    });
+  let externalDocuments: string[] = [];
+  try {
+    externalDocuments = documentationRegistryPaths(
+      parse(await readFile(path.join(root, '.pcp', 'state', 'documentation.yaml'), 'utf8')),
+    );
+  } catch (error) {
+    if ((error as NodeJS.ErrnoException).code !== 'ENOENT') throw error;
+  }
+  const reviewPaths = [
+    ...new Set([...projectOwned, ...externalDocuments, ...additionalReviewPaths]),
+  ].sort(comparePortablePaths);
+  return {
+    required: true,
+    instruction_path: '.pcp/protocol/120-updates-and-reset.md',
+    review_paths: reviewPaths,
+    instructions: [
+      'Read the installed update protocol and the incoming release notes.',
+      'Inspect current source code and ordinary project documentation, then review every listed project-derived path against the updated protocol.',
+      'Rewrite only project-owned records whose semantics or current project truth require a change; do not copy release templates over them.',
+      'Render generated views and validate the complete installed layer after semantic review.',
+      'After the update is complete, ask the human actor whether PCP actor and continuity history should be purged; do not purge without an explicit affirmative reply.',
+    ],
+    completion_commands: [
+      'node .pcp/tools/pcp.mjs render . --json',
+      'node .pcp/tools/pcp.mjs validate . --archive-index-only --json',
+    ],
+  };
 }
 
 async function verifyPreserved(
@@ -532,7 +585,7 @@ async function planUpgradeMaterial(candidate = '.'): Promise<UpgradePreview | Up
       `Release assets are ${toVersion}, but the engine is ${PCP_VERSION}.`,
     );
   }
-  if (compareVersions(fromVersion, toVersion) > 0) {
+  if (comparePcpVersions(fromVersion, toVersion) > 0) {
     throw new UpgradeError(
       'PCP_UPGRADE_DOWNGRADE_FORBIDDEN',
       `Installed PCP ${fromVersion} is newer than engine ${toVersion}.`,
@@ -565,6 +618,7 @@ async function planUpgradeMaterial(candidate = '.'): Promise<UpgradePreview | Up
   let migratedProjects: Buffer | undefined;
   let migratedDocumentation: Buffer | undefined;
   let initialOutcomeDocuments: Array<{ path: string; content: Buffer }> = [];
+  let migrationReviewPaths: string[] = [];
   if (legacy01) {
     const migrated = migrateLegacyProjects(
       parse(await readFile(path.join(root, '.pcp', 'state', 'project.yaml'), 'utf8')),
@@ -575,6 +629,7 @@ async function planUpgradeMaterial(candidate = '.'): Promise<UpgradePreview | Up
     migratedProjects = yamlBuffer(migrated.projects);
     migratedDocumentation = yamlBuffer(migrated.documentation);
     initialOutcomeDocuments = migrated.initialOutcomeDocuments;
+    migrationReviewPaths = documentationRegistryPaths(migrated.documentation);
     renderOverrides.set('state/project.yaml', migratedProject);
     renderOverrides.set('state/projects.yaml', migratedProjects);
     renderOverrides.set('state/documentation.yaml', migratedDocumentation);
@@ -607,6 +662,7 @@ async function planUpgradeMaterial(candidate = '.'): Promise<UpgradePreview | Up
 
   const contentByPath = new Map<string, Buffer>();
   const operations: Array<Omit<MutationOperation, 'operation_id'>> = [];
+  const mechanicalMigrationPaths = new Set<string>();
   const plannedDirectories = new Set<string>();
   if (
     legacy01 &&
@@ -626,6 +682,7 @@ async function planUpgradeMaterial(candidate = '.'): Promise<UpgradePreview | Up
         preimage_digest: sha256(current),
       });
       contentByPath.set(portablePath, content);
+      mechanicalMigrationPaths.add(portablePath);
     }
     const documentationPath = '.pcp/state/documentation.yaml';
     for (const directory of await missingParents(root, documentationPath)) {
@@ -640,6 +697,7 @@ async function planUpgradeMaterial(candidate = '.'): Promise<UpgradePreview | Up
       content_digest: sha256(migratedDocumentation),
     });
     contentByPath.set(documentationPath, migratedDocumentation);
+    mechanicalMigrationPaths.add(documentationPath);
   }
   if (legacy01 && migratedWorkstreams !== undefined) {
     const legacyWorkstreamsPath = '.pcp/state/workstreams.yaml';
@@ -651,6 +709,7 @@ async function planUpgradeMaterial(candidate = '.'): Promise<UpgradePreview | Up
       preimage_digest: sha256(current),
     });
     contentByPath.set(legacyWorkstreamsPath, migratedWorkstreams);
+    mechanicalMigrationPaths.add(legacyWorkstreamsPath);
 
     const templateIndexPath = '.pcp/templates/00-index.md';
     const templateIndexTarget = path.join(root, ...templateIndexPath.split('/'));
@@ -664,6 +723,7 @@ async function planUpgradeMaterial(candidate = '.'): Promise<UpgradePreview | Up
         preimage_digest: sha256(templateIndexCurrent),
       });
       contentByPath.set(templateIndexPath, templateIndexMigrated);
+      mechanicalMigrationPaths.add(templateIndexPath);
     }
 
     for (const legacyPath of [LEGACY_CEB_PROTOCOL_PATH, LEGACY_CEB_TEMPLATE_PATH]) {
@@ -684,6 +744,7 @@ async function planUpgradeMaterial(candidate = '.'): Promise<UpgradePreview | Up
         );
       }
       operations.push({ action: 'remove', path: legacyPath, preimage_digest: sha256(current) });
+      if (legacyPath === LEGACY_CEB_TEMPLATE_PATH) mechanicalMigrationPaths.add(legacyPath);
     }
 
     const checkpointRoot = path.join(root, '.pcp', 'continuity', 'checkpoints');
@@ -695,6 +756,7 @@ async function planUpgradeMaterial(candidate = '.'): Promise<UpgradePreview | Up
       const checkpointPath = `.pcp/continuity/checkpoints/${entry.name}`;
       const current = await readFile(path.join(checkpointRoot, entry.name));
       operations.push({ action: 'remove', path: checkpointPath, preimage_digest: sha256(current) });
+      mechanicalMigrationPaths.add(checkpointPath);
     }
   }
   for (const [portablePath, content] of desired) {
@@ -749,6 +811,16 @@ async function planUpgradeMaterial(candidate = '.'): Promise<UpgradePreview | Up
   );
   const digest = preservationDigest(preserved);
   const upgradePaths = [...targetPaths];
+  for (const document of initialOutcomeDocuments) mechanicalMigrationPaths.add(document.path);
+  const mechanicalPaths = upgradePaths.filter((item) => mechanicalMigrationPaths.has(item));
+  const releaseOwnedPaths = upgradePaths.filter((item) => !mechanicalMigrationPaths.has(item));
+  const semanticMigrationRequired = comparePcpVersions(fromVersion, toVersion) !== 0;
+  const agentMigration = await buildAgentMigration(
+    root,
+    liveManifest.ownership,
+    semanticMigrationRequired,
+    migrationReviewPaths,
+  );
   const base = {
     schema_version: 1 as const,
     command: 'upgrade' as const,
@@ -756,6 +828,16 @@ async function planUpgradeMaterial(candidate = '.'): Promise<UpgradePreview | Up
     from_version: fromVersion,
     to_version: toVersion,
     upgrade_paths: upgradePaths,
+    release_owned_paths: releaseOwnedPaths,
+    mechanical_migration_paths: mechanicalPaths,
+    agent_migration: agentMigration,
+    history_purge: {
+      prompt_after_completion: semanticMigrationRequired,
+      requires_explicit_human_confirmation: true as const,
+      preview_command: 'node .pcp/tools/pcp.mjs purge-history . --json' as const,
+      apply_command:
+        'node .pcp/tools/pcp.mjs purge-history . --apply <plan-digest> --json' as const,
+    },
     preserved_files: preserved.size,
     preservation_digest: digest,
     adapters: adapters.map((adapter) => adapter.manifest),
@@ -878,6 +960,10 @@ export async function upgradeProject(
         to_version: planned.preview.to_version,
         plan_digest: planned.preview.plan.plan_digest,
         upgraded_paths: planned.preview.upgrade_paths,
+        release_owned_paths: planned.preview.release_owned_paths,
+        mechanical_migration_paths: planned.preview.mechanical_migration_paths,
+        agent_migration: planned.preview.agent_migration,
+        history_purge: planned.preview.history_purge,
         preserved_files: planned.preview.preserved_files,
         preservation_digest: planned.preview.preservation_digest,
         applied_operations: transaction.applied_operations,

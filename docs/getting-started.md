@@ -63,6 +63,14 @@ This is a PCP-managed repository. Before project work, read the platform adapter
 
 The recovery prompt diagnoses discovery failure; it is not the expected day-to-day workflow. A missing or changed generated adapter should be repaired through digest-bound `pcp repair`, not maintained manually.
 
+## Update PCP later
+
+Ask an agent in ordinary language to check or update PCP from its original GitHub source. A clear update request authorizes the agent to run `node .pcp/tools/pcp.mjs upgrade . --check --json`; it does not authorize mutation. The command snapshots the canonical repository's GitHub `main` revision and deterministically compares its template manifest version with installed `.pcp/pcp.yaml`.
+
+When an update exists, the agent downloads and verifies the returned immutable source-revision bundle, previews upgrade with its incoming engine, and applies only an approved recomputed digest. The command replaces release-owned assets, identifies explicit mechanical migrations, and returns the project-owned paths that the agent must review against current source and ordinary documentation. After semantic review, rendering, and validation complete, the agent asks separately whether to purge PCP actor and continuity history.
+
+Only an explicit affirmative answer authorizes the separate `purge-history` preview and digest. Purging clears actor profiles, active and archived events, checkpoints, and identity caches; it leaves current project knowledge, outcome documents, source, policy, and Git history intact. The next request registers a fresh actor identity.
+
 ## Meaningful changes
 
 Synchronization consumes continuity; it does not create it. After accepting a meaningful durable project change, update the relevant internal PCP sources and every affected external project document, maintain `.pcp/state/documentation.yaml` when document paths or purposes change, and record one minimal attributed event. Do not record routine reads, registration, synchronization, acknowledgements, no-op validation, or discussion that changed no durable project fact.

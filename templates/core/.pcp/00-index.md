@@ -2,8 +2,8 @@
 doc: 00-index.md
 type: index
 status: living
-version: 2.0.0
-last_updated: 2026-08-13T21:20:38+06:00
+version: 2.1.0
+last_updated: 2026-08-15T02:38:23+06:00
 ownership: protocol
 ---
 
@@ -30,6 +30,8 @@ This is the canonical project context entry point. Root convention files are thi
 6. [Continuity](continuity/00-index.md) — actor identity, bounded active events, archive, and per-conversation checkpoints.
 7. [Views](views/00-index.md), [references](references/00-index.md), and [templates](templates/00-index.md) — projections and reusable guidance.
 8. [Schemas](schemas/00-index.md) and [tools](tools/00-index.md) — local protocol validation and execution.
+
+When a human clearly asks to update or upgrade PCP from its original source, follow [protocol/120-updates-and-reset.md](protocol/120-updates-and-reset.md): compare the installed version with the canonical GitHub source manifest first, apply with the incoming verified engine, review project-derived records, validate, and only then offer the separate optional history purge.
 
 Project-outcome knowledge lives under each project's external documentation root, not in `.pcp`. Use `state/documentation.yaml` to find every tracked project document and the source paths it relates to.
 

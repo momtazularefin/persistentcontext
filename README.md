@@ -70,6 +70,7 @@ pcp render
 pcp workstream
 pcp repair
 pcp upgrade
+pcp purge-history
 ```
 
 Representative development-bundle commands:
@@ -87,7 +88,9 @@ node dist/pcp.mjs render path/to/managed-project --check --json
 node dist/pcp.mjs workstream validate path/to/managed-project --json
 node dist/pcp.mjs workstream complete path/to/managed-project --input path/to/external-workstream.yaml --json
 node dist/pcp.mjs repair path/to/managed-project --json
+node dist/pcp.mjs upgrade path/to/managed-project --check --json
 node dist/pcp.mjs upgrade path/to/managed-project --json
+node dist/pcp.mjs purge-history path/to/managed-project --json
 ```
 
 `inspect` is non-mutating. `register` recovers or creates a stable profile and returns a fresh execution ULID; it creates no event. Every successful invocation returns a fresh execution ULID.
@@ -100,7 +103,9 @@ Workstreams are optional flat descriptive records. Create and update replace one
 
 Full `validate` checks schemas, structure, indexed canonical Markdown, external documentation roots and registry coverage, links, portability, secrets, ownership, generated views and adapters, identity, event payload digests and duplicate change keys, execution checkpoints, VCS authority, and optional clean genesis. Normal operations inspect archive IDs by filename without replaying archive bodies. `render --check` is non-mutating.
 
-`repair` plans only missing or changed generated adapters. `upgrade` merges project-specific manifest fields and replaces approved protocol/generated targets. Both bind exact preimages and complete inventory, reject downgrades and unsafe collisions, and prove untargeted and project/runtime-owned bytes remain unchanged.
+`repair` plans only missing or changed generated adapters. `upgrade --check` snapshots the canonical GitHub `main` revision and compares its template manifest version with the installed manifest version without mutation. `upgrade` merges project-specific manifest fields, distinguishes release-owned replacement from explicit versioned mechanical migration, and returns the project-derived paths that require agent semantic review against current source and documents. These operations bind exact preimages and complete inventory, reject downgrades and unsafe collisions, and prove untargeted and project/runtime-owned bytes remain unchanged.
+
+After a completed version upgrade, the agent asks separately whether the human wants to purge PCP actor and continuity history. `purge-history` never follows from the update request alone: it requires its own preview and approved digest, removes profiles, active and archived events, checkpoints, and identity caches, creates no event, and preserves current project truth and Git history.
 
 ## Canonical layer and optional capabilities
 

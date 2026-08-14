@@ -210,7 +210,7 @@ capabilities:
     evidence:
       {
         path: README.md,
-        contains: ['replaces approved protocol/generated targets', 'bytes remain unchanged'],
+        contains: ['distinguishes release-owned replacement', 'bytes remain unchanged'],
       }
   - id: optional-capability-overlays
     source: advanced-command-center

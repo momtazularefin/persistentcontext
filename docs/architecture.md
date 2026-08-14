@@ -19,7 +19,7 @@ The skill decides what project context means. The engine decides whether bytes, 
 ```text
 .pcp/
 ├── 00-index.md             # canonical entry and returning-task contract
-├── pcp.yaml                # installation manifest and release identity
+├── pcp.yaml                # installed version and canonical GitHub update source
 ├── protocol/               # portable rules
 ├── knowledge/              # grounded agent-operational understanding
 ├── operations/             # working agreements, plans, and decisions
@@ -54,6 +54,10 @@ Canonical records have four ownership classes:
 - **Runtime** files contain local operational state and are not portable authority.
 
 Upgrade and repair use these boundaries rather than treating every `.pcp/` file alike.
+
+Update discovery snapshots the canonical repository's GitHub `main` revision and compares its template manifest version with the installed manifest version. The returned archive is pinned to that exact revision. Upgrade mechanically replaces release-owned assets and reports explicit versioned schema migrations separately. Project-derived knowledge and outcome documents are never refreshed by copying a release template: the agent reviews the command's path list against current source and documentation, then performs any needed semantic rewrite.
+
+History reset is an independent lifecycle transaction. With separate explicit human confirmation and digest approval it can remove actor profiles, active and archived events, checkpoints, and identity caches. Current documents remain authoritative, so the operation preserves all protocol, project, outcome, source, policy, and Git history bytes outside those exact continuity targets.
 
 ## Predictable durable identity
 

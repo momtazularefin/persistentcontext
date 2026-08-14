@@ -638,6 +638,10 @@ try {
     upgradePreviewResult?.from_version !== '0.0.9' ||
     upgradePreviewResult?.to_version !== '0.2.0' ||
     upgradePreviewResult?.applicable !== true ||
+    upgradePreviewResult?.agent_migration?.required !== true ||
+    upgradePreviewResult?.history_purge?.prompt_after_completion !== true ||
+    !Array.isArray(upgradePreviewResult?.release_owned_paths) ||
+    upgradePreviewResult?.mechanical_migration_paths?.length !== 0 ||
     !/^[a-f0-9]{64}$/.test(upgradePreviewResult?.plan?.plan_digest ?? '') ||
     upgradePreviewResult?.mutated !== false
   ) {
@@ -667,6 +671,60 @@ try {
     throw new Error(
       `Bundled pcp upgrade apply failed: ${upgradeApply.stderr || upgradeApply.stdout}`,
     );
+  }
+
+  const purgePreview = spawnSync(
+    process.execPath,
+    [fileURLToPath(skillBundle), 'purge-history', adoptionCandidate, '--json'],
+    { encoding: 'utf8', windowsHide: true },
+  );
+  const purgePreviewResult =
+    purgePreview.status === 0 ? JSON.parse(purgePreview.stdout) : undefined;
+  if (
+    purgePreviewResult?.applicable !== true ||
+    !(purgePreviewResult?.counts?.actor_profiles >= 1) ||
+    purgePreviewResult?.counts?.active_events !== 3 ||
+    purgePreviewResult?.counts?.checkpoints !== 1 ||
+    purgePreviewResult?.event_created !== false ||
+    !/^[a-f0-9]{64}$/.test(purgePreviewResult?.plan?.plan_digest ?? '') ||
+    purgePreviewResult?.mutated !== false
+  ) {
+    throw new Error(
+      `Bundled pcp history-purge preview failed: ${purgePreview.stderr || purgePreview.stdout}`,
+    );
+  }
+  const purgeApply = spawnSync(
+    process.execPath,
+    [
+      fileURLToPath(skillBundle),
+      'purge-history',
+      adoptionCandidate,
+      '--apply',
+      purgePreviewResult.plan.plan_digest,
+      '--json',
+    ],
+    { encoding: 'utf8', windowsHide: true },
+  );
+  const purgeApplyResult = purgeApply.status === 0 ? JSON.parse(purgeApply.stdout) : undefined;
+  if (
+    purgeApplyResult?.status !== 'purged' ||
+    purgeApplyResult?.identity_reset !== true ||
+    purgeApplyResult?.event_created !== false ||
+    purgeApplyResult?.validation?.valid !== true ||
+    purgeApplyResult?.recovery_cleaned !== true ||
+    purgeApplyResult?.mutated !== true
+  ) {
+    throw new Error(
+      `Bundled pcp history-purge apply failed: ${purgeApply.stderr || purgeApply.stdout}`,
+    );
+  }
+  for (const historyDirectory of ['actors', 'events', 'archive', 'checkpoints']) {
+    const remaining = (
+      await readdir(join(adoptionCandidate, '.pcp', 'continuity', historyDirectory))
+    ).filter((entry) => entry.endsWith('.yaml'));
+    if (remaining.length !== 0) {
+      throw new Error(`Bundled pcp history purge left ${historyDirectory} records.`);
+    }
   }
 } finally {
   await rm(adoptionRoot, { recursive: true, force: true });

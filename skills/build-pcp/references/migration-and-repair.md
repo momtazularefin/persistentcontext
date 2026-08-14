@@ -31,7 +31,7 @@ Abort on source drift, unsafe symlinks, nested-boundary violations, insufficient
 
 State C becomes applicable only after the engine accepts complete reviewed coverage and presents the normalized plan, including the five generated platform adapters, every collision, reviewed external reference replacement, reviewed relocation, and derived empty-directory cleanup. External rewrites may replace only named existing project-owned UTF-8 files with matching preimages; an explicitly reviewed file inside a detected nested repository does not authorize any other nested content. Apply the approved digest only through the engine; never reproduce its replacement or removal operations manually, and never reproduce its `move` or `rmdir` operations separately. The transaction rechecks source fingerprints, validates the live canonical layer and adapters, verifies rewritten nested files, and restores exact preimages and directory inventory in reverse on failure. If the engine reports an unsupported adapter surface, preserve it and add an explicit implementation rather than treating another platform's adapter as equivalent.
 
-## Repair and upgrade
+## Repair, upgrade, and optional history purge
 
 Repair only mechanically recoverable generated-adapter drift. Preview without mutation:
 
@@ -47,7 +47,15 @@ node <pcp-engine> repair <project-root> --apply <plan-digest> --json
 
 The engine refuses unrelated canonical damage, manifest/source drift, symbolic links, and file/directory collisions. It binds replacements to exact preimages, writes missing adapters only through the structural transaction, validates the complete live layer, and restores every byte after a caught failure. Use `render` for generated status-view drift.
 
-Run upgrade with the incoming release's verified bundled engine, which carries the matching release template and capability assets. The engine already installed under the managed project's `.pcp/tools/` is for that installed release and cannot supply a newer release's assets. Preview the ownership-aware upgrade, review its target paths and preservation digest, then apply only the exact plan:
+When a human clearly asks in ordinary language to update, upgrade, refresh, or check PCP against its original GitHub source, first run the read-only canonical-source check:
+
+```text
+node <pcp-engine> upgrade <project-root> --check --json
+```
+
+The installed authority is `.pcp/pcp.yaml` `protocol.version`. The remote authority is `protocol.version` in the canonical template manifest at a snapshot of `momtazularefin/persistentcontext` `main`. The command returns that exact source revision and its immutable archive URL. Branch movement without a version change is not an update. Network or response failure means availability is unknown. The check does not authorize apply.
+
+When `update_available` is true, download the immutable source-revision bundle returned by the check and verify its packaged checksums. Run upgrade with that incoming version's bundled engine, which carries the matching release template and capability assets. The engine already installed under the managed project's `.pcp/tools/` is for that installed version and cannot supply newer assets. Preview the ownership-aware upgrade, review its release-owned paths, mechanical migration paths, preservation digest, and `agent_migration` instructions, then apply only the exact plan:
 
 ```text
 node <pcp-engine> upgrade <project-root> --json
@@ -56,6 +64,20 @@ node <pcp-engine> upgrade <project-root> --apply <plan-digest> --json
 
 Upgrade merges the installed persistence mode, capabilities, adapter contract, and VCS-policy path into the release manifest. The explicit 0.1-to-0.2 migration also adds `documentation_root` metadata to primary and related project state, creates `.pcp/state/documentation.yaml`, catalogs existing ordinary project documents, and creates `docs/README.md` only when no established documentation directory exists. This is a narrow schema migration: it does not move or rewrite existing project documents.
 
-Outside explicit versioned migrations, upgrade may replace only release protocol files, generated views, and generated adapters. It rejects a newer installed version, invalid source state, project/runtime ownership collisions, unsafe paths, or stale approval. Apply holds continuity and structural locks, validates the live result, and verifies the precomputed hash of every untargeted inventory file plus every project/runtime-owned canonical file. Never use upgrade to rewrite agent knowledge, policies, projects, workstreams, profiles, events, checkpoints, runtime caches, or ordinary project assets beyond the declared migration operations.
+Outside explicit versioned mechanical migrations, upgrade may replace only release protocol files, generated views, and generated adapters. It rejects a newer installed version, invalid source state, project/runtime ownership collisions, unsafe paths, or stale approval. Apply holds continuity and structural locks, validates the live result, and verifies the precomputed hash of every untargeted inventory file plus every project/runtime-owned canonical file. Never copy release templates over agent knowledge, policies, projects, workstreams, profiles, events, checkpoints, runtime caches, ordinary project documents, or source assets. Instead, read the installed update protocol and incoming release notes, inspect current source and ordinary documentation, review every `agent_migration.review_paths` entry, and rewrite only project-owned records whose meaning must change under the new protocol. Run the returned render and validation completion commands.
+
+After deterministic apply, required semantic review, render, and validation are complete, ask the human actor whether to purge PCP actor and continuity history. Do not infer consent from the update request or an ambiguous reply. If and only if the human explicitly agrees, preview and show the exact destructive plan:
+
+```text
+node .pcp/tools/pcp.mjs purge-history <project-root> --json
+```
+
+Apply only the separately approved recomputed digest:
+
+```text
+node .pcp/tools/pcp.mjs purge-history <project-root> --apply <plan-digest> --json
+```
+
+The purge removes durable actor profiles, active events, archived events, per-execution checkpoints, and local actor identity caches. It creates no event and preserves protocol files, agent-operational knowledge, project state, outcome documents, source code, VCS policy, and Git history. Discard the conversation-cached actor ID; registration on the next project request creates a fresh identity.
 
 When the installed and bundled release versions and bytes already match, preview returns `applicable: false` with no plan digest. Treat that as a successful current-state check; do not fabricate an older version or force an apply.

@@ -53,6 +53,56 @@ describe('pcp command surface', () => {
     }
   });
 
+  it('keeps remote update checking separate from upgrade apply', async () => {
+    const errorOutput = vi.spyOn(process.stderr, 'write').mockImplementation(() => true);
+    const previousExitCode = process.exitCode;
+    process.exitCode = undefined;
+
+    try {
+      await createProgram().parseAsync([
+        'node',
+        'pcp',
+        'upgrade',
+        '--check',
+        '--apply',
+        'a'.repeat(64),
+      ]);
+      expect(process.exitCode).toBe(2);
+      expect(errorOutput).toHaveBeenCalledWith(
+        expect.stringContaining('"code":"PCP_UPGRADE_CHECK_OPTION_CONFLICT"'),
+      );
+      expect(errorOutput).toHaveBeenCalledWith(expect.stringContaining('"mutated":false'));
+    } finally {
+      process.exitCode = previousExitCode;
+      errorOutput.mockRestore();
+    }
+  });
+
+  it('previews an already empty history repository without mutation', async () => {
+    const output = vi.spyOn(process.stdout, 'write').mockImplementation(() => true);
+    const previousExitCode = process.exitCode;
+    process.exitCode = undefined;
+    const root = await mkdtemp(path.join(tmpdir(), 'pcp-program-purge-'));
+    const template = fileURLToPath(new URL('../../templates/core/.pcp/', import.meta.url));
+    await cp(template, path.join(root, '.pcp'), { recursive: true });
+    await mkdir(path.join(root, 'docs'));
+
+    try {
+      await createProgram().parseAsync(['node', 'pcp', 'purge-history', root, '--json']);
+      expect(JSON.parse(String(output.mock.calls.at(-1)?.[0]))).toMatchObject({
+        command: 'purge-history',
+        applicable: false,
+        event_created: false,
+        mutated: false,
+      });
+      expect(process.exitCode).toBeUndefined();
+    } finally {
+      process.exitCode = previousExitCode;
+      output.mockRestore();
+      await rm(root, { recursive: true, force: true });
+    }
+  });
+
   it('registers an actor with structured JSON output', async () => {
     const output = vi.spyOn(process.stdout, 'write').mockImplementation(() => true);
     const previousExitCode = process.exitCode;

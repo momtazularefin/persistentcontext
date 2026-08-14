@@ -68,7 +68,9 @@ PCP does not require Git or GitHub. The canonical policy supports `none`, `human
 
 `0.2.0` installations contain their exact checked engine and checksum. Build synchronizes byte-identical copies into distribution, skill, and installation assets; distribution verification executes the bundled and installed copies independently.
 
-Upgrade accepts a valid managed installation only when its version does not exceed the running release and the desired projection has no unsafe ownership collision. The explicit 0.1 migration removes obsolete CEB and scoped-checkpoint structures while preserving actors, events, project-owned state, policy, and untargeted files. Downgrades are rejected.
+The update check snapshots `momtazularefin/persistentcontext` `main`, reads the canonical template manifest at that exact commit, and compares its version with the installed manifest. Upgrade accepts a valid managed installation only when its version does not exceed the incoming verified engine version and the desired projection has no unsafe ownership collision. The explicit 0.1 migration removes obsolete CEB and scoped-checkpoint structures while preserving actors, events, project-owned state, policy, and untargeted files. Downgrades are rejected. Project-derived semantic rewrites remain agent work guided by the upgrade result.
+
+History purge is supported only as a separate post-upgrade human choice. It removes PCP identities and continuity history transactionally, not source, current documentation, project state, or Git history.
 
 PCP remains pre-`1.0.0`. Compatibility promises are limited to implemented upgrade paths and current checked release assets.
 

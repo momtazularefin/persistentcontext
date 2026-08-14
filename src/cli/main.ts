@@ -4,9 +4,11 @@ import { hostname } from 'node:os';
 import { Command } from 'commander';
 
 import { adoptProject } from '../application/adopt-project.js';
+import { checkForUpgrade } from '../application/check-for-upgrade.js';
 import { inspectRepository } from '../application/inspect-repository.js';
 import { mutateWorkstream, validateWorkstreamRegistry } from '../application/manage-workstreams.js';
 import { recordEvent } from '../application/record-event.js';
+import { purgeHistory } from '../application/purge-history.js';
 import { registerActor } from '../application/register-actor.js';
 import { repairProject } from '../application/repair-project.js';
 import { renderCanonicalViews } from '../application/render-canonical-views.js';
@@ -26,6 +28,8 @@ import { RecordingError } from '../domain/recording.js';
 import { normalizeMachineLabel, RegistrationError } from '../domain/registration.js';
 import { RepairError } from '../domain/repair.js';
 import { SynchronizationError } from '../domain/synchronization.js';
+import { PurgeHistoryError } from '../domain/purge-history.js';
+import { UpgradeCheckError } from '../domain/update-check.js';
 import { UpgradeError } from '../domain/upgrade.js';
 import { WorkstreamError } from '../domain/workstreams.js';
 import { formatAdoption } from '../presentation/format-adoption.js';
@@ -34,12 +38,14 @@ import {
   formatCanonicalValidation,
 } from '../presentation/format-canonical.js';
 import { formatInspection } from '../presentation/format-inspection.js';
+import { formatPurgeHistory } from '../presentation/format-purge-history.js';
 import { formatRecording } from '../presentation/format-recording.js';
 import { formatRecoveryDetails } from '../presentation/format-recovery.js';
 import { formatRegistration } from '../presentation/format-registration.js';
 import { formatRepair } from '../presentation/format-repair.js';
 import { formatSync } from '../presentation/format-sync.js';
 import { formatUpgrade } from '../presentation/format-upgrade.js';
+import { formatUpgradeCheck } from '../presentation/format-update-check.js';
 import { formatWorkstream } from '../presentation/format-workstream.js';
 
 const commandDescriptions: Record<PcpCommandName, string> = {
@@ -52,6 +58,7 @@ const commandDescriptions: Record<PcpCommandName, string> = {
   render: 'Render generated canonical views',
   workstream: 'Create, update, validate, or complete a workstream',
   upgrade: 'Preview or apply an ownership-aware PCP upgrade',
+  'purge-history': 'Preview or apply removal of PCP actor and continuity history',
   repair: 'Preview or apply a mechanically safe PCP repair',
 };
 
@@ -120,6 +127,13 @@ interface RepairOptions {
 }
 
 interface UpgradeOptions {
+  candidate?: string;
+  apply?: string;
+  check?: boolean;
+  json?: boolean;
+}
+
+interface PurgeHistoryOptions {
   candidate?: string;
   apply?: string;
   json?: boolean;
@@ -207,6 +221,27 @@ function reportUpgradeError(error: unknown): void {
   const mutated = error instanceof UpgradeError ? error.mutated : false;
   const recoveryPaths =
     error instanceof UpgradeError && error.recovery_root !== undefined ? [error.recovery_root] : [];
+  process.stderr.write(
+    `${JSON.stringify({ code, message, mutated, ...formatRecoveryDetails(recoveryPaths) })}\n`,
+  );
+  process.exitCode = 2;
+}
+
+function reportUpgradeCheckError(error: unknown): void {
+  const code = error instanceof UpgradeCheckError ? error.code : 'PCP_UPGRADE_CHECK_FAILED';
+  const message = error instanceof Error ? error.message : String(error);
+  process.stderr.write(`${JSON.stringify({ code, message, mutated: false })}\n`);
+  process.exitCode = 2;
+}
+
+function reportPurgeHistoryError(error: unknown): void {
+  const code = error instanceof PurgeHistoryError ? error.code : 'PCP_PURGE_HISTORY_FAILED';
+  const message = error instanceof Error ? error.message : String(error);
+  const mutated = error instanceof PurgeHistoryError ? error.mutated : false;
+  const recoveryPaths =
+    error instanceof PurgeHistoryError && error.recovery_root !== undefined
+      ? [error.recovery_root]
+      : [];
   process.stderr.write(
     `${JSON.stringify({ code, message, mutated, ...formatRecoveryDetails(recoveryPaths) })}\n`,
   );
@@ -506,18 +541,63 @@ function addUpgradeCommand(program: Command): Command {
     .description(commandDescriptions.upgrade)
     .argument('[directory]', 'managed project root')
     .option('--candidate <directory>', 'managed project root')
+    .option('--check', 'compare the installed version with the canonical GitHub source manifest')
     .option('--apply <digest>', 'apply only the matching fully recomputed preview digest')
     .option('--json', 'emit stable structured JSON')
     .action(async (directory: string | undefined, options: UpgradeOptions) => {
+      const candidate = options.candidate ?? directory ?? '.';
+      if (options.check === true && options.apply !== undefined) {
+        reportUpgradeCheckError(
+          new UpgradeCheckError(
+            'PCP_UPGRADE_CHECK_OPTION_CONFLICT',
+            '--check and --apply cannot be used together.',
+          ),
+        );
+        return;
+      }
       try {
-        const result = await upgradeProject(options.candidate ?? directory ?? '.', {
+        if (options.check === true) {
+          const result = await checkForUpgrade(candidate);
+          process.stdout.write(
+            options.json === true
+              ? `${JSON.stringify(result, null, 2)}\n`
+              : formatUpgradeCheck(result),
+          );
+          return;
+        }
+        const result = await upgradeProject(candidate, {
           ...(options.apply === undefined ? {} : { apply: options.apply }),
         });
         process.stdout.write(
           options.json === true ? `${JSON.stringify(result, null, 2)}\n` : formatUpgrade(result),
         );
       } catch (error) {
-        reportUpgradeError(error);
+        if (options.check === true) reportUpgradeCheckError(error);
+        else reportUpgradeError(error);
+      }
+    });
+}
+
+function addPurgeHistoryCommand(program: Command): Command {
+  return program
+    .command('purge-history')
+    .description(commandDescriptions['purge-history'])
+    .argument('[directory]', 'managed project root')
+    .option('--candidate <directory>', 'managed project root')
+    .option('--apply <digest>', 'apply only the matching fully recomputed preview digest')
+    .option('--json', 'emit stable structured JSON')
+    .action(async (directory: string | undefined, options: PurgeHistoryOptions) => {
+      try {
+        const result = await purgeHistory(options.candidate ?? directory ?? '.', {
+          ...(options.apply === undefined ? {} : { apply: options.apply }),
+        });
+        process.stdout.write(
+          options.json === true
+            ? `${JSON.stringify(result, null, 2)}\n`
+            : formatPurgeHistory(result),
+        );
+      } catch (error) {
+        reportPurgeHistoryError(error);
       }
     });
 }
@@ -567,6 +647,8 @@ export function createProgram(): Command {
       addRepairCommand(program);
     } else if (commandName === 'upgrade') {
       addUpgradeCommand(program);
+    } else if (commandName === 'purge-history') {
+      addPurgeHistoryCommand(program);
     } else {
       addUnavailableCommand(program, commandName);
     }

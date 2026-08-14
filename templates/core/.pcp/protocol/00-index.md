@@ -2,8 +2,8 @@
 doc: protocol/00-index.md
 type: index
 status: static
-version: 2.0.0
-last_updated: 2026-08-13T21:20:38+06:00
+version: 2.1.0
+last_updated: 2026-08-15T02:38:23+06:00
 ownership: protocol
 ---
 
@@ -18,5 +18,6 @@ Read only as much as the current operation requires:
 5. [50-portability-and-safety.md](50-portability-and-safety.md) — path, privacy, and mutation boundaries.
 6. [60-version-control.md](60-version-control.md) — configurable Git responsibility and the reference flow.
 7. [70-workstreams.md](70-workstreams.md) — optional work labels, evidence, and atomic lifecycle updates.
+8. [120-updates-and-reset.md](120-updates-and-reset.md) — canonical-source update discovery, ownership-aware upgrades, semantic review, and optional history purge.
 
 Optional capabilities add later numbered protocol documents and update this index when installed.

@@ -14,7 +14,7 @@ b2b37f7a2229dae25d463b78df8a3357b86a874c03e197a22e8cb26b5a84d652  schemas/v1/fro
 479f69f3fd60f6ebc54c5c30740a9c689787aebcde14b06fbaf3dd79383a9bb6  schemas/v1/legacy-0.1-project.schema.json
 f1313684b30fa5ea4d44d0eabeb06f13c3a7e920f4fdad66cdbe1113e1fbc193  schemas/v1/legacy-0.1-workstreams.schema.json
 c078e405203165e4a39f51c690b49856e2613e931296d1b4ab93dc4663f89321  schemas/v1/mutation-plan.schema.json
-65c197e424780297b6af1e0d8a563b22434a78394977f4e95f52379e84a338f2  schemas/v1/pcp-manifest.schema.json
+e756802d9735eab553dd93b92f0ae8eccf28a99b09a97625b67c2caf59cfbc5f  schemas/v1/pcp-manifest.schema.json
 d3200c12e747ea57d84f6057b78a541060904b69a8838cff507a9c8c3a834604  schemas/v1/project-registry.schema.json
 d112ed125750cfd81568bcf1eaf0a4849fc708a2c98887077be71900d8a7f5e7  schemas/v1/project.schema.json
 ec0cd219299397481b9e2f2bf9cc0a691f37203a199d94a3db34c7e9244aff10  schemas/v1/vcs-policy.schema.json
@@ -30,7 +30,7 @@ a4ff708e35c700b321d0e678b96d0bc4a7eb2c1f770c1bd8e35acd9c0ccbfc19  templates/capa
 2bb66c5e741553d16286c514f5f6f755ce516f76b134e68329e45c7f99e6e3fd  templates/capabilities/walkthroughs/overlay/.pcp/protocol/110-walkthrough-creation.md
 e8cb06fafbd5a392ce12ac150ea79d5cb4fff620bce542b7bbb00c6ad326c37e  templates/capabilities/walkthroughs/overlay/.pcp/templates/50-walkthrough.md
 579cc58c48feedbcee1a0412029d9a4eb0289d3f9f091b52ff1ff996a426e5e5  templates/core/.pcp/.gitignore
-d25b1ee19aa2fd536a84efbb582ac07e83dd5699c65bae547d542ae67b61c5c1  templates/core/.pcp/00-index.md
+29aac34181e5d6773cffec2cf1ed2d54f98348c3b47d878dd39a826ee139de47  templates/core/.pcp/00-index.md
 827892b5a1b778e2a5b41bf460971146a5445bf89bb1479e5483e117c051e47f  templates/core/.pcp/continuity/00-index.md
 f6f5d4ed7f0e52aaabe1a2ba11412b1e75e94318a17a679262c6b0594e430e89  templates/core/.pcp/continuity/actors/00-index.md
 8ff5a80eab2dafb1656aab132889f1669f2639cf37a51cec3cc548260f7b6d52  templates/core/.pcp/continuity/archive/00-index.md
@@ -46,10 +46,11 @@ e1e86743e7010a4c8b150493d1efbfb50ba3aab34f30e50bc3e54fab99888c69  templates/core
 fde5765c27259796ea92cd97a4beab37c8a9cba969e363d38ee2cf9e8b027b42  templates/core/.pcp/operations/10-working-agreement.md
 cb36c33f6f4885977526e8e11e5c6572f7f80217fce82559e9a5cddc6c23654a  templates/core/.pcp/operations/20-plan.md
 4704705905a7eb06bfe4ae9d088e2df12a8fe49c1b6bbdfb47a7a63d61c82c63  templates/core/.pcp/operations/30-decisions.md
-750144c3f5c28dbdb6c454255cc18399360d8657e4eda5f1691f798c2c08ba55  templates/core/.pcp/pcp.yaml
+b44f9d0c093aafa843aacd52916c627d94d049696b5badc7e3832d407ec18780  templates/core/.pcp/pcp.yaml
 2f42ce15717117ecb6fc9954300d08d1bbe3ab252f7b002d18c1969c7a776009  templates/core/.pcp/projects/00-index.md
-de8267dd65988b7617b86b53873dda49547a9fec2d184b46edc51d686669fe18  templates/core/.pcp/protocol/00-index.md
+96243aceb726cd814a161164c78bc8995a36c4529ea6fa5aa4f41ecdde0a7062  templates/core/.pcp/protocol/00-index.md
 cc3786d1704be0877feb1de9d28ab22721e0efaa254737ba29d883d4bff36ade  templates/core/.pcp/protocol/10-context-contract.md
+dd6ab4e73f0fddf1d22577ecbd78b2822121da994191d8a4aa04b8ef7ed51e19  templates/core/.pcp/protocol/120-updates-and-reset.md
 d50a5b0abf0095cb2e238a9ae01e5464738066ff44b2c75311f4549af3f23ce4  templates/core/.pcp/protocol/20-actor-continuity.md
 bb00c935aa832cb0c464a9ed4d40dffa70c22122eda2b52d36315828bbe7f7b9  templates/core/.pcp/protocol/30-exploration.md
 4529596d3b984e16d68d4ce5d8a4f6a18af829d50d896cbb6bbd372796839926  templates/core/.pcp/protocol/40-documentation.md
@@ -69,8 +70,8 @@ c8fc3eb74d99203f7a05023682cf50fb0a025418c30eaa7cd183ecc2dcccbc8f  templates/core
 777fff192b3446969c6fb31cf981495dc3b6bcbb9a507aeef1b0490929cc4560  templates/core/.pcp/templates/10-project-record.md
 78aa5426b208e0caa362834922147d192d458ab38a27bc0cfddb5c03f1df8d85  templates/core/.pcp/templates/20-decision-record.md
 3eb03fc427c7ba44eaf568778b0d52abe09172786fddf0bf05e5806d118bd210  templates/core/.pcp/tools/00-index.md
-5e4c0e579b8a23187a1f1742f50fae4ab259c466e4bb01d71cd09518f20d6612  templates/core/.pcp/tools/pcp.mjs
-a3e63b4e0c6bf43c8487a93dfd3d2b01ee1c5a11e1db3d5fe6a884209b23ccd9  templates/core/.pcp/tools/pcp.sha256
+a7fa56e75c031024ac27a743f9f9c0f7268f5e179007509a566c6a78887da9a8  templates/core/.pcp/tools/pcp.mjs
+7efea3f73805caba3c6065cf255df8980e63e8ec23ec1dac2b1aaba358dd4cba  templates/core/.pcp/tools/pcp.sha256
 0b988b9acb2676c0462ab0ce4baed703e82a4539218e6a46006d9d8f8e26907c  templates/core/.pcp/views/00-index.md
 f3532b1a01d560c19d73430cbc4f0ed74d3fe35ef9530407d4fa5be14afd6481  templates/core/.pcp/views/10-status.generated.md
 1eddd35af245fc1ed16b1a38ddd3bf0a838a348c42dd5bbfc498a005bcaec4ef  templates/README.md

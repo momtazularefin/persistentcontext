@@ -167,6 +167,10 @@ Do not patch one field in place after a failed operation. Workstream mutations r
 
 ### Upgrade
 
+- `PCP_UPGRADE_CHECK_SOURCE_UNAVAILABLE`: the canonical branch or version manifest is unavailable; availability is unknown, so do not apply.
+- `PCP_UPGRADE_CHECK_NETWORK_FAILED` or `PCP_UPGRADE_CHECK_RESPONSE_INVALID`: retry the read-only check after network/source integrity is restored; do not infer that the installation is current.
+- `PCP_UPGRADE_CHECK_SOURCE_UNSUPPORTED`: the installed update source is not the canonical PCP source supported by this engine; do not silently redirect update authority.
+
 - `PCP_UPGRADE_NOT_APPLICABLE`: the installation already matches the running release.
 - `PCP_UPGRADE_DOWNGRADE_FORBIDDEN`: use a release at least as new as the installed protocol; PCP does not downgrade.
 - `PCP_UPGRADE_CAPABILITY_UNSUPPORTED`: the incoming release cannot preserve an installed capability; do not remove it manually to force upgrade.
@@ -176,6 +180,15 @@ Do not patch one field in place after a failed operation. Workstream mutations r
 - `PCP_UPGRADE_PRESERVATION_FAILED`: an untargeted or project/runtime-owned file changed. Preserve recovery evidence and investigate before retrying.
 
 Repair and upgrade are preview-first. A no-op preview is success, not a reason to fabricate version drift.
+
+### History purge
+
+- `PCP_PURGE_HISTORY_SOURCE_INVALID`: validate or repair the installed layer before destructive reset.
+- `PCP_PURGE_HISTORY_UNEXPECTED_FILE` or `PCP_PURGE_HISTORY_PATH_UNSAFE`: preserve the unexpected path and inspect it; never broaden the purge target.
+- `PCP_PURGE_HISTORY_NOT_APPLICABLE`: identities and continuity history are already empty.
+- `PCP_PLAN_DIGEST_MISMATCH`: state changed after preview; show a fresh purge preview and obtain fresh explicit approval.
+
+Do not run history purge unless the human explicitly confirmed it after the update was completed. The purge has its own preview and approval digest and never rewrites Git history.
 
 ## Platform adapter does not load
 
