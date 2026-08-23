@@ -2,6 +2,16 @@
 
 Persistent Context Protocol (PCP) gives AI coding agents repository-native project context and fast continuity across tools, machines, and simultaneous chats.
 
+## The problem
+
+Agent memory is stored per installation, so three ordinary events destroy what an agent has learned about a project:
+
+- **Machine boundary** — the same subscription on a work machine and a home machine shares nothing; work resumed elsewhere starts cold.
+- **Product boundary** — moving a task between agent products means restating intent, conventions, and prior decisions. Restatement is lossy, and a partially informed agent introduces new defects while repairing old ones.
+- **Environment loss** — an OS reinstall, a replaced laptop, or a new teammate discards the accumulated understanding entirely, silently, and forces rediscovery.
+
+PCP keeps that understanding in the repository, which already survives cloning, machine replacement, and tool changes. The layer stays separable from the source tree: exclude it and sources remain untangled, or track it and understanding travels with every checkout. See [why PCP exists](docs/motivation.md) for the full rationale.
+
 PCP 0.2 changes the operating model in three ways:
 
 - synchronization is mandatory before every agent response or project-tool use;
