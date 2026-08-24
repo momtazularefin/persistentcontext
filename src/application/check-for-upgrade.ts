@@ -4,11 +4,12 @@ import path from 'node:path';
 import { parse } from 'yaml';
 
 import {
-  PCP_UPDATE_API_URL,
+  PCP_RELEASE_API_URL,
   PCP_UPDATE_CHANNEL,
   PCP_UPDATE_MANIFEST_PATH,
   PCP_UPDATE_PROVIDER,
   PCP_UPDATE_REPOSITORY,
+  pcpCommitApiUrl,
 } from '../domain/release.js';
 import { UpgradeCheckError, type UpgradeCheckResult } from '../domain/update-check.js';
 import { comparePcpVersions, UpgradeError } from '../domain/upgrade.js';
@@ -63,6 +64,33 @@ function assertOfficialSource(value: unknown): void {
       'This engine checks only the canonical PCP GitHub source.',
     );
   }
+}
+
+/**
+ * Extracts the tag of the newest published release.
+ *
+ * GitHub's `releases/latest` already excludes drafts and prereleases, but the
+ * response is still remote input: the tag is rejected unless it is a plain
+ * `vMAJOR.MINOR.PATCH` reference, so a malformed or hostile value can never be
+ * spliced into a later request path.
+ */
+function githubReleaseTag(value: unknown): string {
+  const record = objectValue(value);
+  if (
+    record === undefined ||
+    typeof record.tag_name !== 'string' ||
+    !/^v(?:0|[1-9]\d*)\.(?:0|[1-9]\d*)\.(?:0|[1-9]\d*)(?:-[0-9A-Za-z.-]+)?$/u.test(
+      record.tag_name,
+    ) ||
+    record.draft === true ||
+    record.prerelease === true
+  ) {
+    throw new UpgradeCheckError(
+      'PCP_UPGRADE_CHECK_RESPONSE_INVALID',
+      'GitHub returned an invalid latest-release response.',
+    );
+  }
+  return record.tag_name;
 }
 
 function githubCommit(value: unknown): GithubCommit {
@@ -131,41 +159,56 @@ export async function checkForUpgrade(
   assertOfficialSource(manifest);
 
   const fetcher = options.fetcher ?? fetch;
-  let commitResponse: Response;
-  try {
-    commitResponse = await fetcher(PCP_UPDATE_API_URL, {
-      headers: {
-        Accept: 'application/vnd.github+json',
-        'User-Agent': 'persistent-context-protocol-update-check',
-        'X-GitHub-Api-Version': '2022-11-28',
-      },
-      redirect: 'error',
-      cache: 'no-store',
-    });
-  } catch (error) {
-    throw new UpgradeCheckError(
-      'PCP_UPGRADE_CHECK_NETWORK_FAILED',
-      `Unable to query the canonical PCP release source: ${error instanceof Error ? error.message : String(error)}`,
-    );
-  }
-  if (!commitResponse.ok) {
-    throw new UpgradeCheckError(
-      commitResponse.status === 404
-        ? 'PCP_UPGRADE_CHECK_SOURCE_UNAVAILABLE'
-        : 'PCP_UPGRADE_CHECK_NETWORK_FAILED',
-      `GitHub canonical-branch request failed with HTTP ${commitResponse.status}.`,
-    );
-  }
-  let commitValue: unknown;
-  try {
-    commitValue = await commitResponse.json();
-  } catch (error) {
-    throw new UpgradeCheckError(
-      'PCP_UPGRADE_CHECK_RESPONSE_INVALID',
-      `GitHub canonical-branch response is not JSON: ${error instanceof Error ? error.message : String(error)}`,
-    );
-  }
-  const commit = githubCommit(commitValue);
+  const githubJson = async (
+    url: string,
+    subject: string,
+    missingCode: string,
+  ): Promise<unknown> => {
+    let response: Response;
+    try {
+      response = await fetcher(url, {
+        headers: {
+          Accept: 'application/vnd.github+json',
+          'User-Agent': 'persistent-context-protocol-update-check',
+          'X-GitHub-Api-Version': '2022-11-28',
+        },
+        redirect: 'error',
+        cache: 'no-store',
+      });
+    } catch (error) {
+      throw new UpgradeCheckError(
+        'PCP_UPGRADE_CHECK_NETWORK_FAILED',
+        `Unable to query the canonical PCP ${subject}: ${error instanceof Error ? error.message : String(error)}`,
+      );
+    }
+    if (!response.ok) {
+      throw new UpgradeCheckError(
+        response.status === 404 ? missingCode : 'PCP_UPGRADE_CHECK_NETWORK_FAILED',
+        response.status === 404 && missingCode === 'PCP_UPGRADE_CHECK_NO_RELEASE'
+          ? `The canonical PCP repository has published no release yet; there is nothing to upgrade to.`
+          : `GitHub ${subject} request failed with HTTP ${response.status}.`,
+      );
+    }
+    try {
+      return await response.json();
+    } catch (error) {
+      throw new UpgradeCheckError(
+        'PCP_UPGRADE_CHECK_RESPONSE_INVALID',
+        `GitHub ${subject} response is not JSON: ${error instanceof Error ? error.message : String(error)}`,
+      );
+    }
+  };
+
+  const releaseTag = githubReleaseTag(
+    await githubJson(PCP_RELEASE_API_URL, 'latest release', 'PCP_UPGRADE_CHECK_NO_RELEASE'),
+  );
+  const commit = githubCommit(
+    await githubJson(
+      pcpCommitApiUrl(releaseTag),
+      'release revision',
+      'PCP_UPGRADE_CHECK_SOURCE_UNAVAILABLE',
+    ),
+  );
   const sourceManifestUrl = `https://raw.githubusercontent.com/${PCP_UPDATE_REPOSITORY}/${commit.sha}/${PCP_UPDATE_MANIFEST_PATH}`;
   let manifestResponse: Response;
   try {
@@ -209,7 +252,7 @@ export async function checkForUpgrade(
     provider: PCP_UPDATE_PROVIDER,
     repository: PCP_UPDATE_REPOSITORY,
     channel: PCP_UPDATE_CHANNEL,
-    source_url: PCP_UPDATE_API_URL,
+    source_url: PCP_RELEASE_API_URL,
     source_revision: commit.sha,
     source_revision_url: commit.html_url,
     source_manifest_url: sourceManifestUrl,

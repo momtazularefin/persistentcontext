@@ -18,6 +18,7 @@ import {
 } from '../domain/synchronization.js';
 import { ContinuityLockError, withContinuityLock } from '../infrastructure/continuity-lock.js';
 import { validateSchema } from '../infrastructure/schema-validator.js';
+import { byCodeUnits, compareCodeUnits } from '../domain/ordering.js';
 
 const ACTIVE_EVENT_DIRECTORY = 'continuity/events';
 const ARCHIVE_EVENT_DIRECTORY = 'continuity/archive';
@@ -26,6 +27,7 @@ const CHECKPOINT_DIRECTORY = 'continuity/checkpoints';
 const ULID_PATTERN = /^[0-9A-HJKMNP-TV-Z]{26}$/u;
 const ACTOR_ID_PATTERN = /^[a-z0-9]+(?:-[a-z0-9]+)*-[0-9A-HJKMNP-TV-Z]{10}$/u;
 const BASELINE_CONTEXT_PATHS = ['.pcp/00-index.md'];
+const DOCUMENTATION_REGISTRY = 'state/documentation.yaml';
 
 interface LoadedCheckpoint {
   path: string;
@@ -171,7 +173,7 @@ async function listActiveEventIds(layerRoot: string): Promise<string[]> {
     );
   }
   const ids: string[] = [];
-  for (const entry of entries.sort((left, right) => left.name.localeCompare(right.name))) {
+  for (const entry of entries.sort(byCodeUnits((entry) => entry.name))) {
     if (entry.isSymbolicLink()) {
       throw syncError(
         'PCP_SYNC_INVALID_LAYER',
@@ -289,10 +291,72 @@ function checkpointState(
 }
 
 function uniquePaths(values: Iterable<string>): string[] {
-  return [...new Set(values)].sort((left, right) => left.localeCompare(right));
+  return [...new Set(values)].sort(compareCodeUnits);
 }
 
-async function previewSync(layerRoot: string, input: SyncInput): Promise<SyncPreview> {
+/**
+ * Reads the paths of the project documents PCP catalogs.
+ *
+ * A missing or unreadable registry degrades to "no catalogued documents" rather
+ * than failing the sync. Synchronization reports continuity; `validate` is the
+ * command that judges whether the canonical layer is well formed, and a broken
+ * registry must not also block an agent from learning what changed.
+ */
+async function loadDocumentPaths(layerRoot: string): Promise<Set<string>> {
+  let value: unknown;
+  try {
+    value = parse(
+      await readFile(path.join(layerRoot, ...DOCUMENTATION_REGISTRY.split('/')), 'utf8'),
+    ) as unknown;
+  } catch {
+    return new Set();
+  }
+  if (typeof value !== 'object' || value === null || Array.isArray(value)) return new Set();
+  const documents = (value as Record<string, unknown>).documents;
+  if (!Array.isArray(documents)) return new Set();
+  const paths = new Set<string>();
+  for (const entry of documents) {
+    if (typeof entry !== 'object' || entry === null || Array.isArray(entry)) continue;
+    const documentPath = (entry as Record<string, unknown>).path;
+    if (typeof documentPath === 'string' && documentPath.length > 0) paths.add(documentPath);
+  }
+  return paths;
+}
+
+/**
+ * Decides whether a changed path is context an agent must read, or the output of
+ * work that the event already describes.
+ *
+ * An event's `affected_paths` answer "what changed"; they are not an answer to
+ * "what must I read now". Treating them as the same thing made a first sync on a
+ * mature project demand every source file any past increment had ever touched -
+ * hundreds of paths, including files inside nested repositories and paths that no
+ * longer exist. That buries the canonical entry point the agent actually needs.
+ *
+ * Required context is therefore what PCP itself governs: its own layer, and the
+ * project documents it catalogs. Everything else stays visible per event, where a
+ * reader can judge whether the change is relevant to the task in hand.
+ */
+function isContextPath(candidate: string, documentPaths: ReadonlySet<string>): boolean {
+  return candidate === '.pcp' || candidate.startsWith('.pcp/') || documentPaths.has(candidate);
+}
+
+async function existingPaths(root: string, candidates: readonly string[]): Promise<string[]> {
+  const present = await Promise.all(
+    candidates.map(async (candidate) => {
+      try {
+        await lstat(path.join(root, ...candidate.split('/')));
+        return true;
+      } catch {
+        return false;
+      }
+    }),
+  );
+  return candidates.filter((_, index) => present[index] === true);
+}
+
+async function previewSync(root: string, input: SyncInput): Promise<SyncPreview> {
+  const layerRoot = path.join(root, '.pcp');
   await loadActor(layerRoot, input.actor_id);
   const [checkpoint, eventIds] = await Promise.all([
     loadCheckpoint(layerRoot, input.actor_id, input.execution_id),
@@ -318,10 +382,16 @@ async function previewSync(layerRoot: string, input: SyncInput): Promise<SyncPre
     : eventIds.filter((eventId) => checkpointLast === null || eventId > checkpointLast);
   const changes = await loadChanges(layerRoot, newerIds);
   const baselinePaths = baselineRequired ? BASELINE_CONTEXT_PATHS : [];
-  const requiredContextPaths = uniquePaths([
-    ...baselinePaths,
-    ...changes.flatMap((change) => change.affected_paths),
-  ]);
+  const documentPaths = await loadDocumentPaths(layerRoot);
+  const requiredContextPaths = await existingPaths(
+    root,
+    uniquePaths([
+      ...baselinePaths,
+      ...changes
+        .flatMap((change) => change.affected_paths)
+        .filter((candidate) => isContextPath(candidate, documentPaths)),
+    ]),
+  );
   const acknowledgementRequired = baselineRequired || changes.length > 0;
   const digestPayload = {
     schema_version: 1,
@@ -468,7 +538,7 @@ async function writeCheckpoint(
 
 async function synchronizeLocked(root: string, input: SyncInput): Promise<SyncResult> {
   const layerRoot = path.join(root, '.pcp');
-  const preview = await previewSync(layerRoot, input);
+  const preview = await previewSync(root, input);
   if (input.acknowledge === undefined) return preview.result;
   if (input.acknowledge !== preview.result.sync_digest) {
     throw syncError(

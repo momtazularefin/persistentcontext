@@ -3,6 +3,16 @@ import { lstat, readFile, readdir } from 'node:fs/promises';
 import { basename, relative, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
+// Order by UTF-16 code unit, never by locale. ICU collation is host-dependent
+// (Czech collation alone reorders CHANGELOG.md against CONTRIBUTING.md), and
+// these orderings feed reproducible content digests that must agree on every
+// machine that verifies them.
+function compareCodeUnits(left, right) {
+  if (left < right) return -1;
+  if (left > right) return 1;
+  return 0;
+}
+
 const defaultSkillRoot = fileURLToPath(new URL('../skills/build-pcp/', import.meta.url));
 const arguments_ = process.argv.slice(2);
 if (
@@ -35,7 +45,7 @@ const maximumPackageBytes = 3_000_000;
 async function collectFiles(directory) {
   const entries = await readdir(directory, { withFileTypes: true });
   const files = [];
-  for (const entry of entries.sort((left, right) => left.name.localeCompare(right.name))) {
+  for (const entry of entries.sort((left, right) => compareCodeUnits(left.name, right.name))) {
     const absolutePath = resolve(directory, entry.name);
     const metadata = await lstat(absolutePath);
     if (metadata.isSymbolicLink()) {

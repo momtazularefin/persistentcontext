@@ -41,6 +41,7 @@ import { buildCanonicalStatusView } from './render-canonical-views.js';
 import { renderPlatformAdapters } from './render-platform-adapters.js';
 import { validateCanonicalLayer } from './validate-canonical-layer.js';
 import { validatePlatformAdapters } from './validate-platform-adapters.js';
+import { byCodeUnits } from '../domain/ordering.js';
 
 export interface UpgradeProjectOptions {
   apply?: string;
@@ -749,9 +750,7 @@ async function planUpgradeMaterial(candidate = '.'): Promise<UpgradePreview | Up
 
     const checkpointRoot = path.join(root, '.pcp', 'continuity', 'checkpoints');
     const checkpointEntries = await readdir(checkpointRoot, { withFileTypes: true });
-    for (const entry of checkpointEntries.sort((left, right) =>
-      left.name.localeCompare(right.name),
-    )) {
+    for (const entry of checkpointEntries.sort(byCodeUnits((entry) => entry.name))) {
       if (!entry.isFile() || !entry.name.endsWith('.yaml')) continue;
       const checkpointPath = `.pcp/continuity/checkpoints/${entry.name}`;
       const current = await readFile(path.join(checkpointRoot, entry.name));

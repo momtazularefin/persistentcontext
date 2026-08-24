@@ -9,6 +9,7 @@ import { parse, stringify } from 'yaml';
 import { renderPlatformAdapters } from '../../src/application/render-platform-adapters.js';
 import { upgradeProject } from '../../src/application/upgrade-project.js';
 import { validateCanonicalLayer } from '../../src/application/validate-canonical-layer.js';
+import { PCP_VERSION } from '../../src/domain/release.js';
 import type { UpgradeApplyResult, UpgradePreview } from '../../src/domain/upgrade.js';
 import { loadReleaseTemplateFiles } from '../../src/infrastructure/adoption-assets.js';
 import { canonicalSourceDigest } from '../../src/infrastructure/canonical-source-digest.js';
@@ -281,7 +282,7 @@ describe('ownership-aware upgrade', () => {
     const workstreams = parse(
       await readFile(path.join(root, '.pcp', 'state', 'workstreams.yaml'), 'utf8'),
     ) as { workstreams: Array<Record<string, unknown>> };
-    expect(manifest).toMatchObject({ protocol: { version: '0.2.0' }, capabilities: [] });
+    expect(manifest).toMatchObject({ protocol: { version: PCP_VERSION }, capabilities: [] });
     expect(workstreams.workstreams[0]).not.toHaveProperty('dependencies');
     expect(workstreams.workstreams.find((item) => item.workstream_id === 'delivery')).toMatchObject(
       {
@@ -329,7 +330,7 @@ describe('ownership-aware upgrade', () => {
     applicable(first);
     expect(first).toMatchObject({
       from_version: '0.0.9',
-      to_version: '0.2.0',
+      to_version: PCP_VERSION,
       applicable: true,
       mechanical_migration_paths: [],
       agent_migration: { required: true },
@@ -354,7 +355,7 @@ describe('ownership-aware upgrade', () => {
     expect(result).toMatchObject({
       command: 'upgrade',
       from_version: '0.0.9',
-      to_version: '0.2.0',
+      to_version: PCP_VERSION,
       preserved_files: first.preserved_files,
       preservation_digest: first.preservation_digest,
       validation: { valid: true, checked_adapters: 5 },
@@ -371,10 +372,10 @@ describe('ownership-aware upgrade', () => {
     const upgradedManifest = parse(await readFile(path.join(root, '.pcp', 'pcp.yaml'), 'utf8')) as {
       protocol: { version: string };
     };
-    expect(upgradedManifest.protocol.version).toBe('0.2.0');
+    expect(upgradedManifest.protocol.version).toBe(PCP_VERSION);
     expect(await upgradeProject(root)).toMatchObject({
-      from_version: '0.2.0',
-      to_version: '0.2.0',
+      from_version: PCP_VERSION,
+      to_version: PCP_VERSION,
       applicable: false,
       upgrade_paths: [],
       agent_migration: { required: false },

@@ -35,6 +35,7 @@ async function writeEvent(
   actorId: string,
   eventId: string,
   affectedPath: string,
+  additionalPaths: readonly string[] = [],
 ): Promise<void> {
   const payload = {
     schema_version: 1 as const,
@@ -47,7 +48,7 @@ async function writeEvent(
     scopes: ['implementation'],
     workstreams: [],
     summary: `Updated ${affectedPath}.`,
-    affected_paths: [affectedPath],
+    affected_paths: [affectedPath, ...additionalPaths].sort(),
   };
   const event: ContinuityEvent = {
     ...payload,
@@ -141,7 +142,7 @@ describe('pcp sync', () => {
 
     expect(pending.checkpoint.state).toBe('changes-pending');
     expect(pending.changes.map((change) => change.event_id)).toEqual(eventIds);
-    expect(pending.required_context_paths).toEqual(['docs/feature.md', 'src/feature.ts']);
+    expect(pending.required_context_paths).toEqual([]);
     expect(pending.changes[0]).toMatchObject({
       actor: { type: 'agent', id: registration.actor_id },
       recorded_by: { type: 'agent', id: registration.actor_id },
@@ -151,6 +152,59 @@ describe('pcp sync', () => {
     expect(text).toContain(`Event ${eventIds[0]}`);
     expect(text).toContain('Affected paths: src/feature.ts');
     expect(text).toContain(`acknowledge digest ${pending.sync_digest}`);
+  });
+
+  it('requires reading governed context only, not every path a past increment touched', async () => {
+    const root = await createProject();
+    const registration = await registerActor(root, {
+      client: 'codex',
+      machine_label: 'context-machine',
+    });
+    const input = {
+      actor_id: registration.actor_id,
+      execution_id: registration.execution_id,
+    };
+    const baseline = await synchronizeProject(root, input);
+    await synchronizeProject(root, { ...input, acknowledge: baseline.sync_digest });
+
+    await writeFile(
+      path.join(root, '.pcp', 'state', 'documentation.yaml'),
+      stringify({
+        schema_version: 1,
+        documents: [
+          {
+            path: 'docs/specification.md',
+            project_id: 'demo',
+            category: 'outcome',
+            status: 'living',
+            summary: 'Demo specification.',
+            related_paths: [],
+          },
+        ],
+      }),
+      'utf8',
+    );
+    await writeFile(path.join(root, 'docs', 'specification.md'), '# Spec', 'utf8');
+    await writeFile(path.join(root, 'docs', 'untracked.md'), '# Untracked', 'utf8');
+    await mkdir(path.join(root, 'src'));
+    await writeFile(path.join(root, 'src', 'feature.ts'), 'export const feature = 1;', 'utf8');
+
+    await writeEvent(root, registration.actor_id, eventIds[0], 'src/feature.ts', [
+      '.pcp/operations/30-decisions.md',
+      'docs/specification.md',
+      'docs/untracked.md',
+      '.pcp/deleted-record.md',
+    ]);
+    const pending = await synchronizeProject(root, input);
+
+    // The canonical record and the catalogued document are context. The source
+    // file and the untracked document are outputs the event already names, and
+    // the deleted record cannot be read at all.
+    expect(pending.required_context_paths).toEqual([
+      '.pcp/operations/30-decisions.md',
+      'docs/specification.md',
+    ]);
+    expect(pending.changes[0]?.affected_paths).toContain('src/feature.ts');
   });
 
   it('keeps simultaneous conversations for one actor independent', async () => {

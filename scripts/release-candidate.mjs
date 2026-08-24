@@ -4,6 +4,16 @@ import { lstat, mkdir, readFile, writeFile } from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
+// Order by UTF-16 code unit, never by locale. ICU collation is host-dependent
+// (Czech collation alone reorders CHANGELOG.md against CONTRIBUTING.md), and
+// these orderings feed reproducible content digests that must agree on every
+// machine that verifies them.
+function compareCodeUnits(left, right) {
+  if (left < right) return -1;
+  if (left > right) return 1;
+  return 0;
+}
+
 const projectRoot = fileURLToPath(new URL('../', import.meta.url));
 const packageMetadata = JSON.parse(await readFile(path.join(projectRoot, 'package.json'), 'utf8'));
 const releaseVersion = packageMetadata.version;
@@ -51,7 +61,7 @@ function sourcePaths() {
         candidatePath !== manifestPath &&
         !deletedPaths.has(candidatePath),
     )
-    .sort((left, right) => left.localeCompare(right));
+    .sort(compareCodeUnits);
 }
 
 async function buildManifest() {

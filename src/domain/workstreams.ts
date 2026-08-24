@@ -1,5 +1,6 @@
 import { canonicalJson } from './adoption.js';
 import type { ActorReference, WorkstreamState } from './reconciliation.js';
+import { byCodeUnits, compareCodeUnits } from './ordering.js';
 
 export interface WorkstreamRegistry {
   schema_version: 1;
@@ -95,7 +96,7 @@ export class WorkstreamError extends Error {
 }
 
 function sorted(values: readonly string[]): string[] {
-  return [...values].sort((left, right) => left.localeCompare(right));
+  return [...values].sort(compareCodeUnits);
 }
 
 function normalizeEvidence(
@@ -105,7 +106,8 @@ function normalizeEvidence(
     .map((item) => ({ criterion: item.criterion.trim(), proof: item.proof.trim() }))
     .sort(
       (left, right) =>
-        left.criterion.localeCompare(right.criterion) || left.proof.localeCompare(right.proof),
+        compareCodeUnits(left.criterion, right.criterion) ||
+        compareCodeUnits(left.proof, right.proof),
     );
 }
 
@@ -136,7 +138,7 @@ function replaceWorkstream(
     workstreams: [
       ...registry.workstreams.filter((item) => item.workstream_id !== workstream.workstream_id),
       workstream,
-    ].sort((left, right) => left.workstream_id.localeCompare(right.workstream_id)),
+    ].sort(byCodeUnits((workstream) => workstream.workstream_id)),
   };
 }
 

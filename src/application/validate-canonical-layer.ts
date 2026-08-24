@@ -31,6 +31,7 @@ import { inventoryRepository } from '../infrastructure/filesystem-inventory.js';
 import { documentationPaths, isProjectDocumentationPath } from '../domain/project-documentation.js';
 import { renderPlatformAdapters } from './render-platform-adapters.js';
 import { validatePlatformAdapters } from './validate-platform-adapters.js';
+import { byCodeUnits, compareCodeUnits } from '../domain/ordering.js';
 
 interface CanonicalFile {
   absolute_path: string;
@@ -141,7 +142,7 @@ async function collectFiles(
     return files;
   }
 
-  for (const entry of entries.sort((left, right) => left.name.localeCompare(right.name))) {
+  for (const entry of entries.sort(byCodeUnits((entry) => entry.name))) {
     const absolutePath = path.join(directory, entry.name);
     const relativePath = relativeFrom(layerRoot, absolutePath);
     if (entry.isSymbolicLink()) {
@@ -622,7 +623,7 @@ async function validateProjectDocumentation(
   const catalogPaths = entries
     .map((entry) => entry.path)
     .filter((entryPath): entryPath is string => typeof entryPath === 'string')
-    .sort((left, right) => left.localeCompare(right));
+    .sort(compareCodeUnits);
   const actualSet = new Set(actualPaths);
   const catalogSet = new Set(catalogPaths);
   for (const actualPath of actualPaths) {

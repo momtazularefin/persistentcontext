@@ -20,6 +20,7 @@ import {
 } from '../domain/registration.js';
 import { ContinuityLockError, withContinuityLock } from '../infrastructure/continuity-lock.js';
 import { validateSchema } from '../infrastructure/schema-validator.js';
+import { byCodeUnits } from '../domain/ordering.js';
 
 const ACTOR_DIRECTORY = '.pcp/continuity/actors';
 const CACHE_DIRECTORY = '.pcp/runtime/actors';
@@ -68,7 +69,7 @@ async function loadActorProfiles(projectRoot: string): Promise<ActorProfile[]> {
   const actorRoot = path.join(projectRoot, ...ACTOR_DIRECTORY.split('/'));
   const entries = await readdir(actorRoot, { withFileTypes: true });
   const profiles: ActorProfile[] = [];
-  for (const entry of entries.sort((left, right) => left.name.localeCompare(right.name))) {
+  for (const entry of entries.sort(byCodeUnits((entry) => entry.name))) {
     if (!entry.isFile() || !entry.name.endsWith('.yaml')) continue;
     const relativePath = `${ACTOR_DIRECTORY}/${entry.name}`;
     const contents = await readFile(path.join(actorRoot, entry.name), 'utf8');
@@ -170,7 +171,7 @@ async function loadCompatibleIdentityCaches(
     (client) => `${identity.actor_type}-${client}-`,
   );
   const caches: ActorIdentityCache[] = [];
-  for (const entry of entries.sort((left, right) => left.name.localeCompare(right.name))) {
+  for (const entry of entries.sort(byCodeUnits((entry) => entry.name))) {
     if (
       !entry.isFile() ||
       !entry.name.endsWith('.json') ||

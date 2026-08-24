@@ -2,6 +2,7 @@ import type { CanonicalDiagnostic } from './canonical-validation.js';
 import { isInsideDocumentationRoot } from './project-documentation.js';
 import { eventPayloadDigest } from './recording.js';
 import { actorLabelsForStoredClient } from './registration.js';
+import { byCodeUnits, compareCodeUnits } from './ordering.js';
 
 export interface CanonicalRecord {
   path: string;
@@ -448,14 +449,12 @@ function validateEvents(records: CanonicalSemanticRecords): CanonicalDiagnostic[
       }
     }
   }
-  const oldestActive = activeEvents.sort((left, right) => left.id.localeCompare(right.id))[0];
-  const newestArchive = archivedEvents
-    .sort((left, right) => left.id.localeCompare(right.id))
-    .at(-1);
+  const oldestActive = activeEvents.sort(byCodeUnits((event) => event.id))[0];
+  const newestArchive = archivedEvents.sort(byCodeUnits((event) => event.id)).at(-1);
   if (
     oldestActive !== undefined &&
     newestArchive !== undefined &&
-    newestArchive.id.localeCompare(oldestActive.id) >= 0
+    compareCodeUnits(newestArchive.id, oldestActive.id) >= 0
   ) {
     diagnostics.push(
       error(

@@ -22776,6 +22776,18 @@ function compareCanonicalDiagnostics(left, right) {
 import { createHash as createHash5 } from "node:crypto";
 import { readFile as readFile6 } from "node:fs/promises";
 import path9 from "node:path";
+
+// src/domain/ordering.ts
+function compareCodeUnits(left, right) {
+  if (left < right) return -1;
+  if (left > right) return 1;
+  return 0;
+}
+function byCodeUnits(key) {
+  return (left, right) => compareCodeUnits(key(left), key(right));
+}
+
+// src/infrastructure/canonical-source-digest.ts
 function normalizeSource(contents) {
   return contents.replace(/\r\n?/g, "\n");
 }
@@ -22789,7 +22801,7 @@ function resolveContained(root, relativePath) {
 }
 function canonicalSourceDigestFromContents(sources) {
   const hash = createHash5("sha256");
-  for (const source of [...sources].sort((left, right) => left.path.localeCompare(right.path))) {
+  for (const source of [...sources].sort(byCodeUnits((source2) => source2.path))) {
     const contents = normalizeSource(source.contents);
     hash.update(source.path);
     hash.update("\0");
@@ -23168,7 +23180,7 @@ var RecordingError = class extends Error {
   }
 };
 function nextEventId(existingIds, now = Date.now()) {
-  const newest = [...existingIds].sort((left, right) => left.localeCompare(right)).at(-1);
+  const newest = [...existingIds].sort(compareCodeUnits).at(-1);
   const timestamp2 = newest === void 0 ? now : Math.max(now, decodeTime(newest) + 1);
   return ulid(timestamp2);
 }
@@ -23683,9 +23695,9 @@ function validateEvents(records) {
       }
     }
   }
-  const oldestActive = activeEvents.sort((left, right) => left.id.localeCompare(right.id))[0];
-  const newestArchive = archivedEvents.sort((left, right) => left.id.localeCompare(right.id)).at(-1);
-  if (oldestActive !== void 0 && newestArchive !== void 0 && newestArchive.id.localeCompare(oldestActive.id) >= 0) {
+  const oldestActive = activeEvents.sort(byCodeUnits((event) => event.id))[0];
+  const newestArchive = archivedEvents.sort(byCodeUnits((event) => event.id)).at(-1);
+  if (oldestActive !== void 0 && newestArchive !== void 0 && compareCodeUnits(newestArchive.id, oldestActive.id) >= 0) {
     diagnostics.push(
       error(
         "event.archive-order",
@@ -24087,7 +24099,7 @@ async function collectFiles2(directory, layerRoot, diagnostics) {
     );
     return files;
   }
-  for (const entry of entries.sort((left, right) => left.name.localeCompare(right.name))) {
+  for (const entry of entries.sort(byCodeUnits((entry2) => entry2.name))) {
     const absolutePath = path12.join(directory, entry.name);
     const relativePath = relativeFrom(layerRoot, absolutePath);
     if (entry.isSymbolicLink()) {
@@ -24498,7 +24510,7 @@ async function validateProjectDocumentation(projectRoot, loaded, diagnostics) {
   }
   const actualPaths = documentationPaths(inventory);
   const entries = objectArray3(documentation.documents);
-  const catalogPaths = entries.map((entry) => entry.path).filter((entryPath2) => typeof entryPath2 === "string").sort((left, right) => left.localeCompare(right));
+  const catalogPaths = entries.map((entry) => entry.path).filter((entryPath2) => typeof entryPath2 === "string").sort(compareCodeUnits);
   const actualSet = new Set(actualPaths);
   const catalogSet = new Set(catalogPaths);
   for (const actualPath of actualPaths) {
@@ -26462,13 +26474,14 @@ import path15 from "node:path";
 
 // src/domain/release.ts
 var PCP_NAME = "Persistent Context Protocol";
-var PCP_VERSION = "0.2.0";
-var PCP_RELEASE_STAGE = "mandatory-global-sync";
+var PCP_VERSION = "0.3.0";
+var PCP_RELEASE_STAGE = "deterministic-identity";
 var PCP_UPDATE_PROVIDER = "github";
 var PCP_UPDATE_REPOSITORY = "momtazularefin/persistentcontext";
 var PCP_UPDATE_CHANNEL = "main";
 var PCP_UPDATE_MANIFEST_PATH = "templates/core/.pcp/pcp.yaml";
-var PCP_UPDATE_API_URL = `https://api.github.com/repos/${PCP_UPDATE_REPOSITORY}/commits/${PCP_UPDATE_CHANNEL}`;
+var PCP_RELEASE_API_URL = `https://api.github.com/repos/${PCP_UPDATE_REPOSITORY}/releases/latest`;
+var pcpCommitApiUrl = (ref) => `https://api.github.com/repos/${PCP_UPDATE_REPOSITORY}/commits/${ref}`;
 var PCP_COMMANDS = [
   "inspect",
   "adopt",
@@ -26586,6 +26599,18 @@ function assertOfficialSource(value) {
     );
   }
 }
+function githubReleaseTag(value) {
+  const record = objectValue4(value);
+  if (record === void 0 || typeof record.tag_name !== "string" || !/^v(?:0|[1-9]\d*)\.(?:0|[1-9]\d*)\.(?:0|[1-9]\d*)(?:-[0-9A-Za-z.-]+)?$/u.test(
+    record.tag_name
+  ) || record.draft === true || record.prerelease === true) {
+    throw new UpgradeCheckError(
+      "PCP_UPGRADE_CHECK_RESPONSE_INVALID",
+      "GitHub returned an invalid latest-release response."
+    );
+  }
+  return record.tag_name;
+}
 function githubCommit(value) {
   const record = objectValue4(value);
   if (record === void 0 || typeof record.sha !== "string" || typeof record.html_url !== "string" || !/^[a-f0-9]{40}(?:[a-f0-9]{24})?$/u.test(record.sha)) {
@@ -26638,39 +26663,49 @@ async function checkForUpgrade(candidate = ".", options = {}) {
   const localVersion = installedVersion(manifest2);
   assertOfficialSource(manifest2);
   const fetcher = options.fetcher ?? fetch;
-  let commitResponse;
-  try {
-    commitResponse = await fetcher(PCP_UPDATE_API_URL, {
-      headers: {
-        Accept: "application/vnd.github+json",
-        "User-Agent": "persistent-context-protocol-update-check",
-        "X-GitHub-Api-Version": "2022-11-28"
-      },
-      redirect: "error",
-      cache: "no-store"
-    });
-  } catch (error2) {
-    throw new UpgradeCheckError(
-      "PCP_UPGRADE_CHECK_NETWORK_FAILED",
-      `Unable to query the canonical PCP release source: ${error2 instanceof Error ? error2.message : String(error2)}`
-    );
-  }
-  if (!commitResponse.ok) {
-    throw new UpgradeCheckError(
-      commitResponse.status === 404 ? "PCP_UPGRADE_CHECK_SOURCE_UNAVAILABLE" : "PCP_UPGRADE_CHECK_NETWORK_FAILED",
-      `GitHub canonical-branch request failed with HTTP ${commitResponse.status}.`
-    );
-  }
-  let commitValue;
-  try {
-    commitValue = await commitResponse.json();
-  } catch (error2) {
-    throw new UpgradeCheckError(
-      "PCP_UPGRADE_CHECK_RESPONSE_INVALID",
-      `GitHub canonical-branch response is not JSON: ${error2 instanceof Error ? error2.message : String(error2)}`
-    );
-  }
-  const commit = githubCommit(commitValue);
+  const githubJson = async (url, subject, missingCode) => {
+    let response;
+    try {
+      response = await fetcher(url, {
+        headers: {
+          Accept: "application/vnd.github+json",
+          "User-Agent": "persistent-context-protocol-update-check",
+          "X-GitHub-Api-Version": "2022-11-28"
+        },
+        redirect: "error",
+        cache: "no-store"
+      });
+    } catch (error2) {
+      throw new UpgradeCheckError(
+        "PCP_UPGRADE_CHECK_NETWORK_FAILED",
+        `Unable to query the canonical PCP ${subject}: ${error2 instanceof Error ? error2.message : String(error2)}`
+      );
+    }
+    if (!response.ok) {
+      throw new UpgradeCheckError(
+        response.status === 404 ? missingCode : "PCP_UPGRADE_CHECK_NETWORK_FAILED",
+        response.status === 404 && missingCode === "PCP_UPGRADE_CHECK_NO_RELEASE" ? `The canonical PCP repository has published no release yet; there is nothing to upgrade to.` : `GitHub ${subject} request failed with HTTP ${response.status}.`
+      );
+    }
+    try {
+      return await response.json();
+    } catch (error2) {
+      throw new UpgradeCheckError(
+        "PCP_UPGRADE_CHECK_RESPONSE_INVALID",
+        `GitHub ${subject} response is not JSON: ${error2 instanceof Error ? error2.message : String(error2)}`
+      );
+    }
+  };
+  const releaseTag = githubReleaseTag(
+    await githubJson(PCP_RELEASE_API_URL, "latest release", "PCP_UPGRADE_CHECK_NO_RELEASE")
+  );
+  const commit = githubCommit(
+    await githubJson(
+      pcpCommitApiUrl(releaseTag),
+      "release revision",
+      "PCP_UPGRADE_CHECK_SOURCE_UNAVAILABLE"
+    )
+  );
   const sourceManifestUrl = `https://raw.githubusercontent.com/${PCP_UPDATE_REPOSITORY}/${commit.sha}/${PCP_UPDATE_MANIFEST_PATH}`;
   let manifestResponse;
   try {
@@ -26711,7 +26746,7 @@ async function checkForUpgrade(candidate = ".", options = {}) {
     provider: PCP_UPDATE_PROVIDER,
     repository: PCP_UPDATE_REPOSITORY,
     channel: PCP_UPDATE_CHANNEL,
-    source_url: PCP_UPDATE_API_URL,
+    source_url: PCP_RELEASE_API_URL,
     source_revision: commit.sha,
     source_revision_url: commit.html_url,
     source_manifest_url: sourceManifestUrl,
@@ -26967,7 +27002,7 @@ async function loadEventInput(inputPath, projectRoot) {
 }
 async function listYamlNames(directory) {
   const entries = await readdir4(directory, { withFileTypes: true });
-  return entries.filter((entry) => entry.isFile() && entry.name.endsWith(".yaml")).map((entry) => entry.name).sort((left, right) => left.localeCompare(right));
+  return entries.filter((entry) => entry.isFile() && entry.name.endsWith(".yaml")).map((entry) => entry.name).sort(compareCodeUnits);
 }
 async function loadActiveEvents(root) {
   const directory = path17.join(root, ...ACTIVE_EVENT_DIRECTORY.split("/"));
@@ -27007,6 +27042,15 @@ async function loadSemanticRecords(root) {
     }
   };
 }
+function normalizeRelativePath(value) {
+  let normalized = value.trim();
+  while (normalized.startsWith("./")) normalized = normalized.slice(2);
+  while (normalized.endsWith("/")) normalized = normalized.slice(0, -1);
+  return normalized.length === 0 ? value.trim() : normalized;
+}
+function normalizedAffectedPaths(paths) {
+  return [...new Set(paths.map(normalizeRelativePath))].sort(compareCodeUnits);
+}
 function normalizeEventInput(input, eventId) {
   const payload = {
     schema_version: 1,
@@ -27017,11 +27061,11 @@ function normalizeEventInput(input, eventId) {
     basis: input.basis,
     ...input.change_key === void 0 ? {} : { change_key: input.change_key.trim() },
     kind: input.kind,
-    scopes: [...input.scopes].sort((left, right) => left.localeCompare(right)),
-    workstreams: [...input.workstreams].sort((left, right) => left.localeCompare(right)),
+    scopes: [...input.scopes].sort(compareCodeUnits),
+    workstreams: [...input.workstreams].sort(compareCodeUnits),
     summary: input.summary.trim(),
     ...input.rationale === void 0 ? {} : { rationale: input.rationale.trim() },
-    affected_paths: [...input.affected_paths].sort((left, right) => left.localeCompare(right))
+    affected_paths: normalizedAffectedPaths(input.affected_paths)
   };
   return { ...payload, payload_digest: eventPayloadDigest(payload) };
 }
@@ -27139,7 +27183,7 @@ async function executeEventTransaction(root, event, activeEvents, archiveIds, op
     }
     operation += 1;
     injectedFailure(operation, options);
-    await rm3(recoveryRoot, { recursive: true, force: false });
+    await rm3(recoveryRoot, { recursive: true, force: true }).catch(() => void 0);
     return {
       schema_version: 1,
       command: "record",
@@ -27305,11 +27349,11 @@ var WorkstreamError = class extends Error {
   }
 };
 function sorted(values) {
-  return [...values].sort((left, right) => left.localeCompare(right));
+  return [...values].sort(compareCodeUnits);
 }
 function normalizeEvidence(evidence) {
   return evidence.map((item) => ({ criterion: item.criterion.trim(), proof: item.proof.trim() })).sort(
-    (left, right) => left.criterion.localeCompare(right.criterion) || left.proof.localeCompare(right.proof)
+    (left, right) => compareCodeUnits(left.criterion, right.criterion) || compareCodeUnits(left.proof, right.proof)
   );
 }
 function normalizeWorkstream(workstream) {
@@ -27333,7 +27377,7 @@ function replaceWorkstream(registry, workstream) {
     workstreams: [
       ...registry.workstreams.filter((item) => item.workstream_id !== workstream.workstream_id),
       workstream
-    ].sort((left, right) => left.workstream_id.localeCompare(right.workstream_id))
+    ].sort(byCodeUnits((workstream2) => workstream2.workstream_id))
   };
 }
 function existingWorkstream(registry, workstreamId) {
@@ -28018,7 +28062,7 @@ async function collectRegularFiles(root, relativeDirectory, requiredDirectory) {
     throw error2;
   }
   const files = [];
-  for (const entry of entries.sort((left, right) => left.name.localeCompare(right.name))) {
+  for (const entry of entries.sort(byCodeUnits((entry2) => entry2.name))) {
     const relativePath = `${relativeDirectory}/${entry.name}`;
     const target = path19.join(directory, entry.name);
     const metadata = await lstat9(target);
@@ -28067,7 +28111,7 @@ async function purgeTargets(root) {
   ])).flat();
   const counts = emptyCounts();
   const paths = [];
-  for (const candidate of candidates.sort((left, right) => left.localeCompare(right))) {
+  for (const candidate of candidates.sort(compareCodeUnits)) {
     if (candidate.endsWith("/00-index.md")) continue;
     const category = historyCategory(candidate);
     if (category === void 0) {
@@ -28278,7 +28322,7 @@ async function loadActorProfiles(projectRoot) {
   const actorRoot = path20.join(projectRoot, ...ACTOR_DIRECTORY2.split("/"));
   const entries = await readdir6(actorRoot, { withFileTypes: true });
   const profiles = [];
-  for (const entry of entries.sort((left, right) => left.name.localeCompare(right.name))) {
+  for (const entry of entries.sort(byCodeUnits((entry2) => entry2.name))) {
     if (!entry.isFile() || !entry.name.endsWith(".yaml")) continue;
     const relativePath = `${ACTOR_DIRECTORY2}/${entry.name}`;
     const contents = await readFile17(path20.join(actorRoot, entry.name), "utf8");
@@ -28369,7 +28413,7 @@ async function loadCompatibleIdentityCaches(projectRoot, identity) {
     (client) => `${identity.actor_type}-${client}-`
   );
   const caches = [];
-  for (const entry of entries.sort((left, right) => left.name.localeCompare(right.name))) {
+  for (const entry of entries.sort(byCodeUnits((entry2) => entry2.name))) {
     if (!entry.isFile() || !entry.name.endsWith(".json") || !prefixes.some((prefix) => entry.name.startsWith(prefix))) {
       continue;
     }
@@ -28873,6 +28917,7 @@ var CHECKPOINT_DIRECTORY = "continuity/checkpoints";
 var ULID_PATTERN = /^[0-9A-HJKMNP-TV-Z]{26}$/u;
 var ACTOR_ID_PATTERN2 = /^[a-z0-9]+(?:-[a-z0-9]+)*-[0-9A-HJKMNP-TV-Z]{10}$/u;
 var BASELINE_CONTEXT_PATHS = [".pcp/00-index.md"];
+var DOCUMENTATION_REGISTRY = "state/documentation.yaml";
 function layerPath(relativePath) {
   return `.pcp/${relativePath}`;
 }
@@ -28986,7 +29031,7 @@ async function listActiveEventIds(layerRoot) {
     );
   }
   const ids = [];
-  for (const entry of entries.sort((left, right) => left.name.localeCompare(right.name))) {
+  for (const entry of entries.sort(byCodeUnits((entry2) => entry2.name))) {
     if (entry.isSymbolicLink()) {
       throw syncError(
         "PCP_SYNC_INVALID_LAYER",
@@ -29088,9 +29133,46 @@ function checkpointState(checkpoint, activeFloor, newestActive, hasArchivedEvent
   return last === newestActive ? "current" : "changes-pending";
 }
 function uniquePaths(values) {
-  return [...new Set(values)].sort((left, right) => left.localeCompare(right));
+  return [...new Set(values)].sort(compareCodeUnits);
 }
-async function previewSync(layerRoot, input) {
+async function loadDocumentPaths(layerRoot) {
+  let value;
+  try {
+    value = parse(
+      await readFile19(path22.join(layerRoot, ...DOCUMENTATION_REGISTRY.split("/")), "utf8")
+    );
+  } catch {
+    return /* @__PURE__ */ new Set();
+  }
+  if (typeof value !== "object" || value === null || Array.isArray(value)) return /* @__PURE__ */ new Set();
+  const documents = value.documents;
+  if (!Array.isArray(documents)) return /* @__PURE__ */ new Set();
+  const paths = /* @__PURE__ */ new Set();
+  for (const entry of documents) {
+    if (typeof entry !== "object" || entry === null || Array.isArray(entry)) continue;
+    const documentPath = entry.path;
+    if (typeof documentPath === "string" && documentPath.length > 0) paths.add(documentPath);
+  }
+  return paths;
+}
+function isContextPath(candidate, documentPaths) {
+  return candidate === ".pcp" || candidate.startsWith(".pcp/") || documentPaths.has(candidate);
+}
+async function existingPaths(root, candidates) {
+  const present = await Promise.all(
+    candidates.map(async (candidate) => {
+      try {
+        await lstat11(path22.join(root, ...candidate.split("/")));
+        return true;
+      } catch {
+        return false;
+      }
+    })
+  );
+  return candidates.filter((_, index) => present[index] === true);
+}
+async function previewSync(root, input) {
+  const layerRoot = path22.join(root, ".pcp");
   await loadActor(layerRoot, input.actor_id);
   const [checkpoint, eventIds] = await Promise.all([
     loadCheckpoint(layerRoot, input.actor_id, input.execution_id),
@@ -29106,10 +29188,14 @@ async function previewSync(layerRoot, input) {
   const newerIds = baselineRequired ? eventIds : eventIds.filter((eventId) => checkpointLast === null || eventId > checkpointLast);
   const changes = await loadChanges(layerRoot, newerIds);
   const baselinePaths = baselineRequired ? BASELINE_CONTEXT_PATHS : [];
-  const requiredContextPaths = uniquePaths([
-    ...baselinePaths,
-    ...changes.flatMap((change) => change.affected_paths)
-  ]);
+  const documentPaths = await loadDocumentPaths(layerRoot);
+  const requiredContextPaths = await existingPaths(
+    root,
+    uniquePaths([
+      ...baselinePaths,
+      ...changes.flatMap((change) => change.affected_paths).filter((candidate) => isContextPath(candidate, documentPaths))
+    ])
+  );
   const acknowledgementRequired = baselineRequired || changes.length > 0;
   const digestPayload = {
     schema_version: 1,
@@ -29244,7 +29330,7 @@ async function writeCheckpoint(layerRoot, checkpoint, existing) {
 }
 async function synchronizeLocked(root, input) {
   const layerRoot = path22.join(root, ".pcp");
-  const preview = await previewSync(layerRoot, input);
+  const preview = await previewSync(root, input);
   if (input.acknowledge === void 0) return preview.result;
   if (input.acknowledge !== preview.result.sync_digest) {
     throw syncError(
@@ -29880,9 +29966,7 @@ async function planUpgradeMaterial(candidate = ".") {
     }
     const checkpointRoot = path23.join(root, ".pcp", "continuity", "checkpoints");
     const checkpointEntries = await readdir8(checkpointRoot, { withFileTypes: true });
-    for (const entry of checkpointEntries.sort(
-      (left, right) => left.name.localeCompare(right.name)
-    )) {
+    for (const entry of checkpointEntries.sort(byCodeUnits((entry2) => entry2.name))) {
       if (!entry.isFile() || !entry.name.endsWith(".yaml")) continue;
       const checkpointPath = `.pcp/continuity/checkpoints/${entry.name}`;
       const current2 = await readFile20(path23.join(checkpointRoot, entry.name));

@@ -25,6 +25,7 @@ import {
 import { executeFilesystemTransaction } from '../infrastructure/filesystem-transaction.js';
 import { inspectRepository } from './inspect-repository.js';
 import { validateCanonicalLayer } from './validate-canonical-layer.js';
+import { byCodeUnits, compareCodeUnits } from '../domain/ordering.js';
 
 export interface PurgeHistoryOptions {
   apply?: string;
@@ -63,7 +64,7 @@ async function collectRegularFiles(
     throw error;
   }
   const files: string[] = [];
-  for (const entry of entries.sort((left, right) => left.name.localeCompare(right.name))) {
+  for (const entry of entries.sort(byCodeUnits((entry) => entry.name))) {
     const relativePath = `${relativeDirectory}/${entry.name}`;
     const target = path.join(directory, entry.name);
     const metadata = await lstat(target);
@@ -119,7 +120,7 @@ async function purgeTargets(root: string): Promise<{
   ).flat();
   const counts = emptyCounts();
   const paths: string[] = [];
-  for (const candidate of candidates.sort((left, right) => left.localeCompare(right))) {
+  for (const candidate of candidates.sort(compareCodeUnits)) {
     if (candidate.endsWith('/00-index.md')) continue;
     const category = historyCategory(candidate);
     if (category === undefined) {

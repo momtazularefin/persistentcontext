@@ -171,6 +171,26 @@ describe('continuity event recording', () => {
     expect((await validateCanonicalLayer(root)).valid).toBe(true);
   });
 
+  it('records one spelling for a path the schema accepts in several forms', async () => {
+    const root = await createProject();
+    const actor = await registerActor(root, { client: 'codex', machine_label: 'normalize' });
+    const inputPath = await writeInput(
+      eventInput(actor.actor_id, {
+        // `standards`, `standards/`, and `./standards` name one directory, but
+        // `uniqueItems` compares strings and cannot tell. Recording them verbatim
+        // makes one place look like three to every later reader.
+        affected_paths: ['standards/', 'standards', './standards', 'docs/guide.md'],
+      }),
+    );
+
+    const result = await recordEvent(root, inputPath);
+    const event = await readEvent(root, result.event_id);
+
+    expect(event.affected_paths).toEqual(['docs/guide.md', 'standards']);
+    expect(event.payload_digest).toBe(result.payload_digest);
+    expect((await validateCanonicalLayer(root)).valid).toBe(true);
+  });
+
   it('preserves human performance and agent attribution for a reported action', async () => {
     const root = await createProject();
     const agent = await registerActor(root, { client: 'codex', machine_label: 'agent-machine' });

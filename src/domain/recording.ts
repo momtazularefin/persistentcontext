@@ -4,6 +4,7 @@ import { decodeTime, ulid } from 'ulid';
 
 import { canonicalJson } from './adoption.js';
 import type { ActorReference, ContinuityEvent } from './reconciliation.js';
+import { compareCodeUnits } from './ordering.js';
 
 export interface RecordEventInput {
   schema_version: 1;
@@ -56,7 +57,7 @@ export class RecordingError extends Error {
 }
 
 export function nextEventId(existingIds: readonly string[], now = Date.now()): string {
-  const newest = [...existingIds].sort((left, right) => left.localeCompare(right)).at(-1);
+  const newest = [...existingIds].sort(compareCodeUnits).at(-1);
   const timestamp = newest === undefined ? now : Math.max(now, decodeTime(newest) + 1);
   return ulid(timestamp);
 }

@@ -20,6 +20,7 @@ d112ed125750cfd81568bcf1eaf0a4849fc708a2c98887077be71900d8a7f5e7  schemas/v1/pro
 ec0cd219299397481b9e2f2bf9cc0a691f37203a199d94a3db34c7e9244aff10  schemas/v1/vcs-policy.schema.json
 6d24a52783253275e2b06569dfb213904ed11697a37af9a9cca3ad7e423461d6  schemas/v1/workstream-operation-input.schema.json
 fa5767f002eb777febdd5192a54ed90219ca78e98679e99ff813f341ac8655f4  schemas/v1/workstreams.schema.json
+1eddd35af245fc1ed16b1a38ddd3bf0a838a348c42dd5bbfc498a005bcaec4ef  templates/README.md
 b22a093c330bbc8d650f8acfff3d7ed4c41eca0e9ff3b91cdb3814a8bfec25bd  templates/capabilities/scratch-space/capability.yaml
 8113c5a9259f28fc93de30db4752cf8a9cac08e98f01753719423ea1535eb2d3  templates/capabilities/scratch-space/overlay/.pcp/protocol/100-scratch-space.md
 97b937a56412496f7c113b5c7c47380ed90fd4a0564edf94d7299bc6aefd2a45  templates/capabilities/scratch-space/overlay/scratch/README.md
@@ -46,7 +47,7 @@ e1e86743e7010a4c8b150493d1efbfb50ba3aab34f30e50bc3e54fab99888c69  templates/core
 fde5765c27259796ea92cd97a4beab37c8a9cba969e363d38ee2cf9e8b027b42  templates/core/.pcp/operations/10-working-agreement.md
 cb36c33f6f4885977526e8e11e5c6572f7f80217fce82559e9a5cddc6c23654a  templates/core/.pcp/operations/20-plan.md
 4704705905a7eb06bfe4ae9d088e2df12a8fe49c1b6bbdfb47a7a63d61c82c63  templates/core/.pcp/operations/30-decisions.md
-b44f9d0c093aafa843aacd52916c627d94d049696b5badc7e3832d407ec18780  templates/core/.pcp/pcp.yaml
+4e05f623897346e87a55e3a04378028a8e034a3dd942b785ec49fc6d8db8976e  templates/core/.pcp/pcp.yaml
 2f42ce15717117ecb6fc9954300d08d1bbe3ab252f7b002d18c1969c7a776009  templates/core/.pcp/projects/00-index.md
 96243aceb726cd814a161164c78bc8995a36c4529ea6fa5aa4f41ecdde0a7062  templates/core/.pcp/protocol/00-index.md
 cc3786d1704be0877feb1de9d28ab22721e0efaa254737ba29d883d4bff36ade  templates/core/.pcp/protocol/10-context-contract.md
@@ -70,8 +71,7 @@ c8fc3eb74d99203f7a05023682cf50fb0a025418c30eaa7cd183ecc2dcccbc8f  templates/core
 777fff192b3446969c6fb31cf981495dc3b6bcbb9a507aeef1b0490929cc4560  templates/core/.pcp/templates/10-project-record.md
 78aa5426b208e0caa362834922147d192d458ab38a27bc0cfddb5c03f1df8d85  templates/core/.pcp/templates/20-decision-record.md
 3eb03fc427c7ba44eaf568778b0d52abe09172786fddf0bf05e5806d118bd210  templates/core/.pcp/tools/00-index.md
-a7fa56e75c031024ac27a743f9f9c0f7268f5e179007509a566c6a78887da9a8  templates/core/.pcp/tools/pcp.mjs
-7efea3f73805caba3c6065cf255df8980e63e8ec23ec1dac2b1aaba358dd4cba  templates/core/.pcp/tools/pcp.sha256
+eddb7abb351933fcafbb299620e294b65486190dd53286a5efa89411f839466d  templates/core/.pcp/tools/pcp.mjs
+64aac864d0d746d71fd56b3eb1901d5c9d9b0c97e65ea18f4bf2fc58a3d26906  templates/core/.pcp/tools/pcp.sha256
 0b988b9acb2676c0462ab0ce4baed703e82a4539218e6a46006d9d8f8e26907c  templates/core/.pcp/views/00-index.md
 f3532b1a01d560c19d73430cbc4f0ed74d3fe35ef9530407d4fa5be14afd6481  templates/core/.pcp/views/10-status.generated.md
-1eddd35af245fc1ed16b1a38ddd3bf0a838a348c42dd5bbfc498a005bcaec4ef  templates/README.md

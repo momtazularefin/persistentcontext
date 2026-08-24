@@ -1,6 +1,7 @@
 import { createHash } from 'node:crypto';
 import { readFile } from 'node:fs/promises';
 import path from 'node:path';
+import { byCodeUnits } from '../domain/ordering.js';
 
 function normalizeSource(contents: string): string {
   return contents.replace(/\r\n?/g, '\n');
@@ -22,7 +23,7 @@ export interface CanonicalSourceContent {
 
 export function canonicalSourceDigestFromContents(sources: CanonicalSourceContent[]): string {
   const hash = createHash('sha256');
-  for (const source of [...sources].sort((left, right) => left.path.localeCompare(right.path))) {
+  for (const source of [...sources].sort(byCodeUnits((source) => source.path))) {
     const contents = normalizeSource(source.contents);
     hash.update(source.path);
     hash.update('\0');

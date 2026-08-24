@@ -3,6 +3,16 @@ import { copyFile, cp, mkdir, readFile, readdir, rm, writeFile } from 'node:fs/p
 import { relative, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
+// Order by UTF-16 code unit, never by locale. ICU collation is host-dependent
+// (Czech collation alone reorders CHANGELOG.md against CONTRIBUTING.md), and
+// these orderings feed reproducible content digests that must agree on every
+// machine that verifies them.
+function compareCodeUnits(left, right) {
+  if (left < right) return -1;
+  if (left > right) return 1;
+  return 0;
+}
+
 const projectRoot = new URL('../', import.meta.url);
 const bundlePath = new URL('dist/pcp.mjs', projectRoot);
 const skillScripts = new URL('skills/build-pcp/scripts/', projectRoot);
@@ -14,7 +24,7 @@ const installedChecksum = new URL('templates/core/.pcp/tools/pcp.sha256', projec
 async function collectFiles(directory) {
   const entries = await readdir(directory, { withFileTypes: true });
   const files = [];
-  for (const entry of entries.sort((left, right) => left.name.localeCompare(right.name))) {
+  for (const entry of entries.sort((left, right) => compareCodeUnits(left.name, right.name))) {
     const target = resolve(directory, entry.name);
     if (entry.isDirectory()) files.push(...(await collectFiles(target)));
     if (entry.isFile()) files.push(target);

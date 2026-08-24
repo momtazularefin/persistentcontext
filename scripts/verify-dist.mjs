@@ -7,7 +7,23 @@ import { fileURLToPath } from 'node:url';
 
 import { parse, stringify } from 'yaml';
 
+// Order by UTF-16 code unit, never by locale. ICU collation is host-dependent
+// (Czech collation alone reorders CHANGELOG.md against CONTRIBUTING.md), and
+// these orderings feed reproducible content digests that must agree on every
+// machine that verifies them.
+function compareCodeUnits(left, right) {
+  if (left < right) return -1;
+  if (left > right) return 1;
+  return 0;
+}
+
 const projectRoot = new URL('../', import.meta.url);
+// The release version has exactly one authority. Reading it here keeps the
+// golden lifecycle from asserting a version literal that a bump would silently
+// leave behind.
+const releaseVersion = JSON.parse(
+  await readFile(new URL('package.json', projectRoot), 'utf8'),
+).version;
 const distBundle = new URL('dist/pcp.mjs', projectRoot);
 const skillBundle = new URL('skills/build-pcp/scripts/pcp.mjs', projectRoot);
 const checksumPath = new URL('skills/build-pcp/scripts/pcp.sha256', projectRoot);
@@ -19,7 +35,7 @@ const assetManifestPath = new URL('pcp-assets.sha256', assetRoot);
 async function collectFiles(directory) {
   const entries = await readdir(directory, { withFileTypes: true });
   const files = [];
-  for (const entry of entries.sort((left, right) => left.name.localeCompare(right.name))) {
+  for (const entry of entries.sort((left, right) => compareCodeUnits(left.name, right.name))) {
     const target = resolve(directory, entry.name);
     if (entry.isDirectory()) files.push(...(await collectFiles(target)));
     if (entry.isFile()) files.push(target);
@@ -67,11 +83,11 @@ for (const [prefix, sourceRoot] of sourceRoots) {
     expectedAssets.push(`${createHash('sha256').update(sourceBytes).digest('hex')}  ${assetPath}`);
   }
 }
-expectedAssets.sort((left, right) => left.localeCompare(right));
+expectedAssets.sort(compareCodeUnits);
 const assetManifest = (await readFile(assetManifestPath, 'utf8'))
   .trim()
   .split(/\r?\n/u)
-  .sort((left, right) => left.localeCompare(right));
+  .sort(compareCodeUnits);
 if (JSON.stringify(assetManifest) !== JSON.stringify(expectedAssets)) {
   throw new Error('Skill asset checksum manifest is stale or incomplete.');
 }
@@ -232,7 +248,7 @@ try {
     encoding: 'utf8',
     windowsHide: true,
   });
-  if (installedVersion.status !== 0 || installedVersion.stdout.trim() !== '0.2.0') {
+  if (installedVersion.status !== 0 || installedVersion.stdout.trim() !== releaseVersion) {
     throw new Error(
       `Installed PCP engine did not execute independently: ${installedVersion.stderr || installedVersion.stdout}`,
     );
@@ -636,7 +652,7 @@ try {
     upgradePreview.status === 0 ? JSON.parse(upgradePreview.stdout) : undefined;
   if (
     upgradePreviewResult?.from_version !== '0.0.9' ||
-    upgradePreviewResult?.to_version !== '0.2.0' ||
+    upgradePreviewResult?.to_version !== releaseVersion ||
     upgradePreviewResult?.applicable !== true ||
     upgradePreviewResult?.agent_migration?.required !== true ||
     upgradePreviewResult?.history_purge?.prompt_after_completion !== true ||
