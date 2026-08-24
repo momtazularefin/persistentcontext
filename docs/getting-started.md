@@ -65,7 +65,7 @@ The recovery prompt diagnoses discovery failure; it is not the expected day-to-d
 
 ## Update PCP later
 
-Ask an agent in ordinary language to check or update PCP from its original GitHub source. A clear update request authorizes the agent to run `node .pcp/tools/pcp.mjs upgrade . --check --json`; it does not authorize mutation. The command snapshots the canonical repository's GitHub `main` revision and deterministically compares its template manifest version with installed `.pcp/pcp.yaml`.
+Ask an agent in ordinary language to check or update PCP from its original GitHub source. A clear update request authorizes the agent to run `node .pcp/tools/pcp.mjs upgrade . --check --json`; it does not authorize mutation. The command resolves the canonical repository's newest published GitHub release, pins its tag to an immutable commit, and deterministically compares the template manifest version there with installed `.pcp/pcp.yaml`. Work still in development on `main` is never reported as available.
 
 When an update exists, the agent downloads and verifies the returned immutable source-revision bundle, previews upgrade with its incoming engine, and applies only an approved recomputed digest. The command replaces release-owned assets, identifies explicit mechanical migrations, and returns the project-owned paths that the agent must review against current source and ordinary documentation. After semantic review, rendering, and validation complete, the agent asks separately whether to purge PCP actor and continuity history.
 

@@ -51,8 +51,8 @@ cb36c33f6f4885977526e8e11e5c6572f7f80217fce82559e9a5cddc6c23654a  templates/core
 2f42ce15717117ecb6fc9954300d08d1bbe3ab252f7b002d18c1969c7a776009  templates/core/.pcp/projects/00-index.md
 96243aceb726cd814a161164c78bc8995a36c4529ea6fa5aa4f41ecdde0a7062  templates/core/.pcp/protocol/00-index.md
 cc3786d1704be0877feb1de9d28ab22721e0efaa254737ba29d883d4bff36ade  templates/core/.pcp/protocol/10-context-contract.md
-dd6ab4e73f0fddf1d22577ecbd78b2822121da994191d8a4aa04b8ef7ed51e19  templates/core/.pcp/protocol/120-updates-and-reset.md
-d50a5b0abf0095cb2e238a9ae01e5464738066ff44b2c75311f4549af3f23ce4  templates/core/.pcp/protocol/20-actor-continuity.md
+30f903d8b182c1d3abeca78bfe699948e0517ed28b255bc124ac9e08730fd9c1  templates/core/.pcp/protocol/120-updates-and-reset.md
+2972224645148ea36042882fe682c6e5592934ad55255a532c3778bb0eff2477  templates/core/.pcp/protocol/20-actor-continuity.md
 bb00c935aa832cb0c464a9ed4d40dffa70c22122eda2b52d36315828bbe7f7b9  templates/core/.pcp/protocol/30-exploration.md
 4529596d3b984e16d68d4ce5d8a4f6a18af829d50d896cbb6bbd372796839926  templates/core/.pcp/protocol/40-documentation.md
 7329741ddcff076bd5e144d17a8a9b394da219ece9ce3071fbe4e8e9c14a6e4c  templates/core/.pcp/protocol/50-portability-and-safety.md

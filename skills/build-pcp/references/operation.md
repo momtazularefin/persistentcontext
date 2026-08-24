@@ -37,7 +37,7 @@ Run the mandatory fast-path preview:
 node <pcp-engine> sync <project-root> --actor-id <actor-id> --execution-id <execution-id>
 ```
 
-Plain output says immediately when no project update exists. Otherwise it returns every globally newer active event, attribution, rationale, affected paths, and current paths to absorb. A new execution receives `.pcp/00-index.md` as its baseline. Use events as locators and current canonical files as truth.
+Plain output says immediately when no project update exists. Otherwise it returns every globally newer active event with attribution, rationale, and the paths it affected, followed by the canonical context to absorb: the `.pcp` layer and the project documents `.pcp/state/documentation.yaml` catalogs, limited to paths that still exist. A new execution receives `.pcp/00-index.md` as its baseline. Use events as locators and current canonical files as truth; an event's affected paths tell you what moved, not what you must read.
 
 After absorbing every path, acknowledge the exact digest:
 

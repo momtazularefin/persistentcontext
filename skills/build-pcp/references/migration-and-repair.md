@@ -53,7 +53,7 @@ When a human clearly asks in ordinary language to update, upgrade, refresh, or c
 node <pcp-engine> upgrade <project-root> --check --json
 ```
 
-The installed authority is `.pcp/pcp.yaml` `protocol.version`. The remote authority is `protocol.version` in the canonical template manifest at a snapshot of `momtazularefin/persistentcontext` `main`. The command returns that exact source revision and its immutable archive URL. Branch movement without a version change is not an update. Network or response failure means availability is unknown. The check does not authorize apply.
+The installed authority is `.pcp/pcp.yaml` `protocol.version`. The remote authority is `protocol.version` in the canonical template manifest at the newest published release of `momtazularefin/persistentcontext`. The command pins that release's tag to an immutable commit and returns that exact source revision and its immutable archive URL. A draft, a prerelease, or branch movement without a released version change is not an update. Network or response failure means availability is unknown. The check does not authorize apply.
 
 When `update_available` is true, download the immutable source-revision bundle returned by the check and verify its packaged checksums. Run upgrade with that incoming version's bundled engine, which carries the matching release template and capability assets. The engine already installed under the managed project's `.pcp/tools/` is for that installed version and cannot supply newer assets. Preview the ownership-aware upgrade, review its release-owned paths, mechanical migration paths, preservation digest, and `agent_migration` instructions, then apply only the exact plan:
 

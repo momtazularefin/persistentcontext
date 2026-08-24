@@ -14,9 +14,9 @@ ownership: protocol
 A human actor may initiate PCP update discovery in ordinary language. Treat any clear request to update, upgrade, refresh, or check the installed PCP layer against its original GitHub source as authorization for a read-only update check, not as authorization to mutate the layer.
 
 - The installed version authority is `protocol.version` in `.pcp/pcp.yaml`.
-- The remote version authority is `protocol.version` in the canonical template manifest at a snapshot of the configured GitHub `main` source.
+- The remote version authority is `protocol.version` in the canonical template manifest at the newest published GitHub release of the configured source. The mainline channel names a release line, not a branch tip; work still in development is not an available update.
 - Run `node .pcp/tools/pcp.mjs upgrade . --check --json`. Report `update_available` deterministically from semantic-version comparison.
-- The check returns the exact immutable source revision and bundle URL. Branch movement, commit date, package cache, or agent memory without a manifest version change is not an update.
+- The check resolves that release's tag to an immutable commit and returns the exact source revision and bundle URL. A draft, a prerelease, a commit date, a package cache, or agent memory without a manifest version change is not an update.
 - Network failure, an invalid response, or a source mismatch is unknown availability, never evidence that the layer is current.
 
 ## Apply an available release

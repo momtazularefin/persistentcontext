@@ -27,6 +27,6 @@ The release bundles capability metadata in the executable so an installed engine
 
 ## Compatibility
 
-The `0.2.0` adapter contract supports Codex, Antigravity, Claude Code Desktop, GitHub Copilot in Visual Studio Code, and Cursor through product-native project instruction conventions. Each generated surface mandates per-request global sync and delegates durable authority to `.pcp/00-index.md`. Cursor receives an always-applied rule; Claude receives an explicit canonical-file reference; Copilot receives workspace custom instructions; Codex uses `AGENTS.md`; Antigravity uses a workspace rule.
+The adapter contract supports Codex, Antigravity, Claude Code Desktop, GitHub Copilot in Visual Studio Code, and Cursor through product-native project instruction conventions. Each generated surface mandates per-request global sync and delegates durable authority to `.pcp/00-index.md`. Cursor receives an always-applied rule; Claude receives an explicit canonical-file reference; Copilot receives workspace custom instructions; Codex uses `AGENTS.md`; Antigravity uses a workspace rule.
 
 The reconstruction gate proves that every declared surface reaches the same canonical state. This does not imply interactive certification, an unbypassable runtime hook, or guaranteed model obedience. Never let an adapter or optional platform hook become a second context authority.

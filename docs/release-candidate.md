@@ -1,6 +1,19 @@
-# PCP 0.1.0 release candidate
+# Release candidate identity and freeze
 
-The active reproducible candidate identity lives in [`release/0.2.0-rc.json`](../release/0.2.0-rc.json). It records every Git-known source path and byte digest except its own generated file, the combined source-tree digest, the byte-identical engine digest, the packaged skill size, the skill-assets manifest digest, canonical actor labels, and the verification contract. The published `0.1.0` candidate remains as historical release evidence.
+A release candidate is a reproducible content identity for the exact tree a release will publish. The manifest records every Git-known source path and byte digest except its own generated file, the combined source-tree digest, the byte-identical engine digest, the packaged skill size, the skill-assets manifest digest, canonical actor labels, and the verification contract. It exists so reviewers can name the candidate before a commit identity for it exists.
+
+Ordering inside the manifest is by UTF-16 code unit, never by locale. ICU collation is host-dependent, and a manifest whose file order changes with the verifier's locale is not an identity.
+
+## Which manifests exist
+
+| Manifest                                            | Identifies | Status                                            |
+| --------------------------------------------------- | ---------- | ------------------------------------------------- |
+| [`release/0.1.0-rc.json`](../release/0.1.0-rc.json) | `v0.1.0`   | Historical release evidence.                      |
+| [`release/0.2.0-rc.json`](../release/0.2.0-rc.json) | `v0.2.0`   | Frozen identity of the current published release. |
+
+`main` currently carries `0.3.0` development and no candidate is frozen for it. `npm run verify:candidate` reports that and passes: a development branch is not a frozen tree, and a gate that demanded otherwise would force a re-freeze on every ordinary commit, which would make the freeze meaningless. Freezing is a deliberate act at a release boundary, not a side effect of editing a file.
+
+## Freezing a candidate
 
 The candidate is frozen only when all of these conditions hold on the exact manifest identity:
 
@@ -10,9 +23,11 @@ The candidate is frozen only when all of these conditions hold on the exact mani
 4. GitHub passes `verify` and `golden` on both Ubuntu and Windows plus aggregate `test`.
 5. The candidate working tree contains no further planned public source change.
 
-The merge commit supplies the VCS identity after review. The manifest supplies a reproducible content identity before that commit exists and avoids a self-referential commit hash.
+The merge commit supplies the VCS identity after review. The manifest supplies a reproducible content identity before that commit exists and avoids a self-referential commit hash. Once the release is tagged, the tag is the identity and the manifest becomes that release's frozen evidence.
 
-## Public acceptance audit
+## Public acceptance audit — `0.1.0`
+
+The table below is the acceptance evidence recorded for the `0.1.0` release. It is retained as historical record; later releases are described in the [changelog](../CHANGELOG.md).
 
 | Contract             | Current evidence                                                                                                                                                                                                                                |
 | -------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -27,7 +42,7 @@ The merge commit supplies the VCS identity after review. The manifest supplies a
 | FlowForge            | `examples/flowforge/` and its integration contract prove source-only State B adoption without copied history, identities, build output, or private data.                                                                                        |
 | Publication privacy  | The repository scan, allowlisted package audit, synthetic fixtures, CI matrix, and private-data contract cover the public source and generated package boundary.                                                                                |
 
-## State C dogfood acceptance
+## State C dogfood acceptance — `0.1.0`
 
 The private conversion is complete; only sanitized structural evidence is published here. The adopted target was an established multi-repository workspace with a working foreign agent-context layer, detailed project records, bounded and malformed historical cases, nested-repository inbound references, and project-owned material that could not enter the translation boundary.
 
@@ -35,7 +50,7 @@ Dogfood repeatedly exercised the unfreeze rule. Each generic defect was correcte
 
 The final source review resolved 365 legacy records. An exact isolated clone then applied the same 166-operation plan used for cutover. A post-apply injected failure restored the complete root inventory and all explicitly rewritten nested-file preimages before the live transaction was allowed. Live adoption validated 77 canonical files, removed the foreign layer, began with empty actor and event history, retained no recovery material, and preserved the reviewed reference file byte-for-byte. The installed project-local engine validated independently without source or skill assets.
 
-All five generated adapters reconstructed the same six-project, 13-workstream current state and its dependency and VCS boundaries. This is repository-level adapter evidence; it does not expand the interactive-product claims in [compatibility.md](compatibility.md).
+All five generated adapters reconstructed the same six-project, 13-workstream current state and its VCS boundaries, as that project stood at `0.1.0`. This is repository-level adapter evidence; it does not expand the interactive-product claims in [compatibility.md](compatibility.md). Work labels carried dependency semantics at `0.1.0`; `0.2.0` removed them.
 
 ## Reproduce or invalidate the identity
 

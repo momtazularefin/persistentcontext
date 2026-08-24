@@ -167,8 +167,9 @@ Do not patch one field in place after a failed operation. Workstream mutations r
 
 ### Upgrade
 
-- `PCP_UPGRADE_CHECK_SOURCE_UNAVAILABLE`: the canonical branch or version manifest is unavailable; availability is unknown, so do not apply.
-- `PCP_UPGRADE_CHECK_NETWORK_FAILED` or `PCP_UPGRADE_CHECK_RESPONSE_INVALID`: retry the read-only check after network/source integrity is restored; do not infer that the installation is current.
+- `PCP_UPGRADE_CHECK_NO_RELEASE`: the canonical repository has published no release, so there is no version to upgrade to. This is a complete answer, not a failure to investigate; do not fall back to reading a branch.
+- `PCP_UPGRADE_CHECK_SOURCE_UNAVAILABLE`: the release revision or version manifest is unavailable; availability is unknown, so do not apply.
+- `PCP_UPGRADE_CHECK_NETWORK_FAILED` or `PCP_UPGRADE_CHECK_RESPONSE_INVALID`: retry the read-only check after network/source integrity is restored; do not infer that the installation is current. `RESPONSE_INVALID` also covers a latest release whose tag is not a plain `vMAJOR.MINOR.PATCH` reference, or one marked draft or prerelease.
 - `PCP_UPGRADE_CHECK_SOURCE_UNSUPPORTED`: the installed update source is not the canonical PCP source supported by this engine; do not silently redirect update authority.
 
 - `PCP_UPGRADE_NOT_APPLICABLE`: the installation already matches the running release.

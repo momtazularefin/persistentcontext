@@ -55,7 +55,7 @@ Canonical records have four ownership classes:
 
 Upgrade and repair use these boundaries rather than treating every `.pcp/` file alike.
 
-Update discovery snapshots the canonical repository's GitHub `main` revision and compares its template manifest version with the installed manifest version. The returned archive is pinned to that exact revision. Upgrade mechanically replaces release-owned assets and reports explicit versioned schema migrations separately. Project-derived knowledge and outcome documents are never refreshed by copying a release template: the agent reviews the command's path list against current source and documentation, then performs any needed semantic rewrite.
+Update discovery resolves the canonical repository's newest published GitHub release, pins that release's tag to an immutable commit, and compares the template manifest version at that commit with the installed manifest version. The returned archive is pinned to that exact revision. The mainline channel names the release line, not a branch tip: `main` carries development between releases, so reading its tip would advertise unreleased work to every installation. Upgrade mechanically replaces release-owned assets and reports explicit versioned schema migrations separately. Project-derived knowledge and outcome documents are never refreshed by copying a release template: the agent reviews the command's path list against current source and documentation, then performs any needed semantic rewrite.
 
 History reset is an independent lifecycle transaction. With separate explicit human confirmation and digest approval it can remove actor profiles, active and archived events, checkpoints, and identity caches. Current documents remain authoritative, so the operation preserves all protocol, project, outcome, source, policy, and Git history bytes outside those exact continuity targets.
 
@@ -76,8 +76,8 @@ generated adapter
   -> register once if conversation identity is missing
   -> sync(actor_id, execution_id)
        -> no newer event: return immediately
-       -> newer events: return all changes and current paths
-  -> read returned current paths
+       -> newer events: return all changes, then governed context paths
+  -> read returned context paths
   -> acknowledge the exact sync digest
   -> continue with the request
 ```

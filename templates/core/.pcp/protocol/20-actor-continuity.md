@@ -26,7 +26,7 @@ ownership: protocol
 
 - At the start of every user request, before answering or using project tools, run `node .pcp/tools/pcp.mjs sync . --actor-id <actor-id> --execution-id <execution-id>`.
 - A current checkpoint returns a concise no-change result. Continue without rereading PCP state.
-- A stale checkpoint returns every newer active event in globally ordered ULID order, with attribution, summary, and affected current paths.
+- A stale checkpoint returns every newer active event in globally ordered ULID order, with attribution, summary, and the paths each event affected, followed by the canonical context to read: this layer and the project documents `state/documentation.yaml` catalogs, limited to paths that still exist. Affected paths record what changed; they are not a reading list.
 - If a baseline is required, begin at `.pcp/00-index.md`. If changes are returned, read every named current path. Current documents remain authoritative; event prose is not replayed as state.
 - Advance only the matching recomputed digest by adding `--acknowledge <sync-digest>` after absorbing the result. Preview is read-only; acknowledgement writes only the ignored per-execution checkpoint and creates no event.
 - If a checkpoint predates the active window, rebuild from current canonical context instead of routinely reading the archive.

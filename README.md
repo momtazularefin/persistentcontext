@@ -12,7 +12,7 @@ Agent memory is stored per installation, so three ordinary events destroy what a
 
 PCP keeps that understanding in the repository, which already survives cloning, machine replacement, and tool changes. The layer stays separable from the source tree: exclude it and sources remain untangled, or track it and understanding travels with every checkout. See [why PCP exists](docs/motivation.md) for the full rationale.
 
-PCP 0.2 changes the operating model in three ways:
+PCP 0.2 changed the operating model in four ways:
 
 - synchronization is mandatory before every agent response or project-tool use;
 - every conversation receives every newer continuity event, without workstream, dependency, scope, or path filtering; and
@@ -23,13 +23,15 @@ The project-local engine optimizes the common no-change path and emits agent-fri
 
 See [Getting started](docs/getting-started.md) for adoption, automatic adapter behavior, and the recovery prompt. The [public documentation](docs/README.md) covers architecture, lifecycle, safety, compatibility, and capability lineage.
 
-## 0.2 development status
+## Release status
 
-PCP `0.2.0` is the current development contract. It replaces 0.1's scoped `status` operation with mandatory global `sync`, removes the Concurrent Execution Block capability and all dependency-sensitive workstream semantics, and retains optional flat work labels for lifecycle and completion evidence only.
+[`0.2.0`](https://github.com/momtazularefin/persistentcontext/releases/tag/v0.2.0) is the current published release and the contract an installation receives today. It replaced 0.1's scoped `status` operation with mandatory global `sync`, removed the Concurrent Execution Block capability and all dependency-sensitive workstream semantics, and kept optional flat work labels for lifecycle and completion evidence only.
+
+`0.3.0` is in development on `main` and is not yet released. It makes every ordering that decides identity or event recency independent of the host locale, resolves update discovery against the newest published release rather than the tip of `main`, and narrows the context a sync demands to what PCP governs. See the [changelog](CHANGELOG.md) for the current unreleased set.
 
 An explicit 0.1 migration maps `kind: ceb` to `kind: concurrent`, removes dependency fields, deletes pristine CEB release assets, and discards obsolete scoped checkpoints. Existing actors, events, project-owned state, policy, and untargeted files are preserved. A customized project-owned CEB scaffold blocks automatic removal rather than losing useful content.
 
-The historical [0.1.0 release notes](docs/release-notes.md) and [release-candidate audit](docs/release-candidate.md) remain evidence for that release. They do not describe the current 0.2 command contract.
+The historical [0.1.0 release notes](docs/release-notes.md) and [release-candidate audit](docs/release-candidate.md) remain evidence for that release. They do not describe the current command contract.
 
 ## Intended model
 
@@ -105,7 +107,7 @@ node dist/pcp.mjs purge-history path/to/managed-project --json
 
 `inspect` is non-mutating. `register` recovers or creates a stable profile and returns a fresh execution ULID; it creates no event. Every successful invocation returns a fresh execution ULID.
 
-`sync` reads the actor, deterministic per-execution checkpoint, and active event filenames. It reads event bodies only when their ULIDs are newer. A new execution gets `.pcp/00-index.md` as its baseline. Plain output immediately reports no change or returns all newer events and current paths. Exact digest acknowledgement recomputes under the continuity lock and advances only that execution's ignored checkpoint without creating an event.
+`sync` reads the actor, deterministic per-execution checkpoint, and active event filenames. It reads event bodies only when their ULIDs are newer. A new execution gets `.pcp/00-index.md` as its baseline. Plain output immediately reports no change or returns every newer event. The context an agent is required to read is what PCP governs -- its own layer and the documents `.pcp/state/documentation.yaml` catalogs -- not the union of every path past work has touched; each event still names its own affected paths. Exact digest acknowledgement recomputes under the continuity lock and advances only that execution's ignored checkpoint without creating an event.
 
 `record` accepts external schema-valid input, assigns an ordered event ULID and payload digest, validates performer/recorder attribution and stable caller-supplied `change_key` values, and writes one immutable event transactionally. Event 65 rotates the oldest 32 records from the at most 64-event active window.
 
@@ -113,7 +115,7 @@ Workstreams are optional flat descriptive records. Create and update replace one
 
 Full `validate` checks schemas, structure, indexed canonical Markdown, external documentation roots and registry coverage, links, portability, secrets, ownership, generated views and adapters, identity, event payload digests and duplicate change keys, execution checkpoints, VCS authority, and optional clean genesis. Normal operations inspect archive IDs by filename without replaying archive bodies. `render --check` is non-mutating.
 
-`repair` plans only missing or changed generated adapters. `upgrade --check` snapshots the canonical GitHub `main` revision and compares its template manifest version with the installed manifest version without mutation. `upgrade` merges project-specific manifest fields, distinguishes release-owned replacement from explicit versioned mechanical migration, and returns the project-derived paths that require agent semantic review against current source and documents. These operations bind exact preimages and complete inventory, reject downgrades and unsafe collisions, and prove untargeted and project/runtime-owned bytes remain unchanged.
+`repair` plans only missing or changed generated adapters. `upgrade --check` resolves the newest published GitHub release on the mainline channel, pins that release's tag to an immutable commit, and compares the template manifest version at that commit with the installed manifest version without mutation. Drafts and prereleases are refused, so development on `main` is never advertised as an available update. `upgrade` merges project-specific manifest fields, distinguishes release-owned replacement from explicit versioned mechanical migration, and returns the project-derived paths that require agent semantic review against current source and documents. These operations bind exact preimages and complete inventory, reject downgrades and unsafe collisions, and prove untargeted and project/runtime-owned bytes remain unchanged.
 
 After a completed version upgrade, the agent asks separately whether the human wants to purge PCP actor and continuity history. `purge-history` never follows from the update request alone: it requires its own preview and approved digest, removes profiles, active and archived events, checkpoints, and identity caches, creates no event, and preserves current project truth and Git history.
 

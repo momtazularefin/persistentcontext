@@ -1,6 +1,6 @@
 # Compatibility
 
-This matrix describes the implemented PCP `0.2.0` contract. It separates verified repository behavior from product-runtime behavior and does not treat an instruction-file convention as certification of an entire editor, model, or mode.
+This matrix describes the implemented PCP contract as it stands on `main`, currently `0.3.0` in development; `0.2.0` is the newest published release and differs only where the [changelog](../CHANGELOG.md) says so. It separates verified repository behavior from product-runtime behavior and does not treat an instruction-file convention as certification of an entire editor, model, or mode.
 
 ## Runtime and operating systems
 
@@ -66,9 +66,9 @@ PCP does not require Git or GitHub. The canonical policy supports `none`, `human
 
 ## Release compatibility
 
-`0.2.0` installations contain their exact checked engine and checksum. Build synchronizes byte-identical copies into distribution, skill, and installation assets; distribution verification executes the bundled and installed copies independently.
+Every installation contains its exact checked engine and checksum. Build synchronizes byte-identical copies into distribution, skill, and installation assets; distribution verification executes the bundled and installed copies independently.
 
-The update check snapshots `momtazularefin/persistentcontext` `main`, reads the canonical template manifest at that exact commit, and compares its version with the installed manifest. Upgrade accepts a valid managed installation only when its version does not exceed the incoming verified engine version and the desired projection has no unsafe ownership collision. The explicit 0.1 migration removes obsolete CEB and scoped-checkpoint structures while preserving actors, events, project-owned state, policy, and untargeted files. Downgrades are rejected. Project-derived semantic rewrites remain agent work guided by the upgrade result.
+The update check resolves the newest published release of `momtazularefin/persistentcontext`, pins its tag to an immutable commit, reads the canonical template manifest at that exact commit, and compares its version with the installed manifest. Drafts and prereleases are refused. Upgrade accepts a valid managed installation only when its version does not exceed the incoming verified engine version and the desired projection has no unsafe ownership collision. The explicit 0.1 migration removes obsolete CEB and scoped-checkpoint structures while preserving actors, events, project-owned state, policy, and untargeted files. Downgrades are rejected. Project-derived semantic rewrites remain agent work guided by the upgrade result.
 
 History purge is supported only as a separate post-upgrade human choice. It removes PCP identities and continuity history transactionally, not source, current documentation, project state, or Git history.
 

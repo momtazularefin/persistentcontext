@@ -2,7 +2,16 @@
 
 All notable public protocol changes are documented here from the first release candidate onward.
 
-## Unreleased — 0.2.0 mandatory global synchronization
+## Unreleased — 0.3.0 deterministic identity
+
+- Replaced every locale-sensitive ordering with a single code-unit comparator. ICU collation is host-dependent, so orderings that feed reproducible content digests or decide event recency previously gave one unchanged tree different identities on different machines.
+- Made update discovery resolve the newest published GitHub release and pin its tag to an immutable commit, instead of reading the tip of `main`. Drafts, prereleases, and malformed tags are refused, so development is never advertised as an available update.
+- Narrowed the context a sync requires an agent to read to what PCP governs: its own layer and the documents its registry catalogs. Each event continues to name its own affected paths, and paths that no longer exist are dropped.
+- Normalized recorded event paths so `docs`, `./docs`, and `docs/` cannot appear as three separate places in one event.
+- Stopped a failure while removing a completed transaction's write-ahead log from rolling back the event that transaction had already installed and validated.
+- Gave the release version one authority, with a test that the package, engine constant, and installed manifest agree.
+
+## 0.2.0 — 2026-08-15 — mandatory global synchronization
 
 - Replaced scoped `status` with mandatory `sync` before every agent response or project-tool use.
 - Keyed checkpoints by actor plus per-chat execution ID so simultaneous chats cannot consume one another's updates.

@@ -49,7 +49,8 @@ describe('public project contract', () => {
     expect(readme).toContain('stable caller-supplied `change_key`');
     expect(readme).toContain('event payload digests and duplicate change keys');
     expect(readme).toContain('reject downgrades and unsafe collisions');
-    expect(readme).toContain('canonical GitHub `main` revision');
+    expect(readme).toContain('newest published GitHub release');
+    expect(readme).toContain('pins that release');
     expect(readme).toContain('separately whether the human wants to purge');
     expect(readme).toContain('Workstreams contain no dependencies');
     expect(readme).toContain('per-execution checkpoint');
@@ -80,7 +81,8 @@ describe('public project contract', () => {
     ]);
     const manifest = JSON.parse(manifestText) as unknown;
 
-    expect(readme).toContain('current development contract');
+    expect(readme).toContain('is the current published release');
+    expect(readme).toContain('in development on `main` and is not yet released');
     expect(readme).toContain('historical');
     expect(documentation).toContain('## State C dogfood acceptance');
     expect(documentation).toContain('The private conversion is complete');
