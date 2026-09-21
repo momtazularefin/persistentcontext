@@ -542,9 +542,15 @@ async function planUpgradeMaterial(candidate = '.'): Promise<UpgradePreview | Up
           .version
       : undefined;
   const legacy01 = typeof installedVersion === 'string' && installedVersion.startsWith('0.1.');
+  // An older installation's adapters were rendered by an older release, so their
+  // bytes cannot match what this engine renders. Judge their structure only; the
+  // upgrade regenerates them and post-upgrade validation checks the new bytes.
+  const olderInstallation =
+    typeof installedVersion === 'string' && installedVersion !== PCP_VERSION;
   const currentValidation = await validateCanonicalLayer(root, {
     archive_content: 'filenames-only',
     ...(legacy01 ? { legacy_upgrade_source: '0.1' as const } : {}),
+    ...(olderInstallation ? { adapter_content: 'structure' as const } : {}),
   });
   if (!currentValidation.valid) {
     throw new UpgradeError(

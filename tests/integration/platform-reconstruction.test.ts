@@ -9,20 +9,38 @@ import { afterEach, describe, expect, it } from 'vitest';
 import { adoptProject } from '../../src/application/adopt-project.js';
 import { renderPlatformAdapters } from '../../src/application/render-platform-adapters.js';
 import type { AdoptionInput } from '../../src/domain/adoption.js';
-import { ACTOR_CLIENT_BY_ADAPTER, type SupportedAdapterId } from '../../src/domain/adapters.js';
+import {
+  ACTOR_CLIENT_BY_ADAPTER,
+  adaptersLoadedBy,
+  SUPPORTED_ADAPTER_IDS,
+  type SupportedAdapterId,
+} from '../../src/domain/adapters.js';
 
 const schemaFixture = fileURLToPath(
   new URL('../fixtures/schemas/adoption-input.yaml', import.meta.url),
 );
 const temporaryRoots: string[] = [];
 
-const startupPaths: Record<SupportedAdapterId, string[]> = {
-  codex: ['AGENTS.md'],
-  antigravity: ['.agents/rules/pcp.md'],
-  'claude-code-desktop': ['CLAUDE.md'],
-  'github-copilot-vscode': ['AGENTS.md', '.github/copilot-instructions.md'],
-  cursor: ['AGENTS.md', '.cursor/rules/pcp.mdc'],
-};
+// Derived from the reader model rather than restated, so the files this test
+// loads for a product are the files the product actually loads. A hand-kept copy
+// is how Antigravity's `AGENTS.md` read went unmodelled while the product was
+// registering under another product's label.
+const targetByAdapter = new Map(
+  renderPlatformAdapters().map((adapter) => [
+    adapter.manifest.adapter_id as SupportedAdapterId,
+    adapter.manifest.target_path,
+  ]),
+);
+const startupPaths = Object.fromEntries(
+  SUPPORTED_ADAPTER_IDS.map((platform) => [
+    platform,
+    adaptersLoadedBy(ACTOR_CLIENT_BY_ADAPTER[platform]).map(
+      (adapterId) => targetByAdapter.get(adapterId) ?? adapterId,
+    ),
+  ]),
+) as Record<SupportedAdapterId, string[]>;
+
+const concreteRegistration = /register \. --client ([a-z0-9]+) --json/gu;
 
 interface Reconstruction {
   canonical_entry: string;
@@ -209,9 +227,23 @@ async function reconstructFromPlatform(
     adapters.every((adapter) => adapter.includes('.pcp/00-index.md')),
     platform,
   ).toBe(true);
+  // Every file a product loads must agree on who that product is. Checking only
+  // that one loaded file names the right label passed while `AGENTS.md` told
+  // Cursor, Copilot, and Antigravity to register as Codex.
+  const label = ACTOR_CLIENT_BY_ADAPTER[platform];
+  const namedLabels = adapters.flatMap((adapter) =>
+    [...adapter.matchAll(concreteRegistration)].map((match) => match[1]),
+  );
   expect(
-    adapters.some((adapter) =>
-      adapter.includes(`register . --client ${ACTOR_CLIENT_BY_ADAPTER[platform]} --json`),
+    namedLabels.filter((named) => named !== label),
+    `${platform}: no loaded adapter names another product's label`,
+  ).toEqual([]);
+  expect(
+    adapters.some(
+      (adapter) =>
+        adapter.includes(`register . --client ${label} --json`) ||
+        (adapter.includes('register . --client <product-label> --json') &&
+          adapter.includes(`\`${label}\` for`)),
     ),
     `${platform}: registration contract`,
   ).toBe(true);

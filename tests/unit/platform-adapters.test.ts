@@ -9,6 +9,7 @@ import { renderPlatformAdapters } from '../../src/application/render-platform-ad
 import { validatePlatformAdapters } from '../../src/application/validate-platform-adapters.js';
 import {
   ACTOR_CLIENT_BY_ADAPTER,
+  adapterIdentifiesReader,
   SUPPORTED_ADAPTER_IDS,
   isForeignAdapterSourcePath,
   supportedAdapterForSourcePath,
@@ -69,10 +70,30 @@ describe('platform adapters', () => {
       expect(adapter.manifest.content_digest).toBe(sha256(adapter.content));
       expect(adapter.content.toString('utf8')).toContain('.pcp/00-index.md');
       expect(adapter.content.toString('utf8')).toContain('PCP: GENERATED; DO NOT EDIT');
-      expect(adapter.content.toString('utf8')).toContain(
-        `register . --client ${ACTOR_CLIENT_BY_ADAPTER[adapter.manifest.adapter_id as SupportedAdapterId]} --json`,
-      );
+      const text = adapter.content.toString('utf8');
+      const adapterId = adapter.manifest.adapter_id as SupportedAdapterId;
+      const identified = adapterIdentifiesReader(adapterId);
+      if (identified === undefined) {
+        // A file several products load cannot name one of them.
+        expect(text, adapterId).toContain('register . --client <product-label> --json');
+        expect(text, adapterId).not.toMatch(/register \. --client [a-z0-9]+ --json/u);
+        for (const client of Object.values(ACTOR_CLIENT_BY_ADAPTER)) {
+          expect(text, `${adapterId} lists ${client}`).toContain(`\`${client}\` for`);
+        }
+        expect(text, adapterId).toContain('Never reuse another product');
+      } else {
+        expect(identified).toBe(ACTOR_CLIENT_BY_ADAPTER[adapterId]);
+        expect(text, adapterId).toContain(`register . --client ${identified} --json`);
+        expect(text, adapterId).toContain(
+          `so \`${identified}\` is this conversation's actor label`,
+        );
+      }
     }
+    expect(
+      first.find((adapter) => adapter.manifest.target_path === 'AGENTS.md')?.manifest.adapter_id,
+      'AGENTS.md is the shared surface',
+    ).toBe('codex');
+    expect(adapterIdentifiesReader('codex')).toBeUndefined();
     expect(
       first.find((adapter) => adapter.manifest.adapter_id === 'cursor')?.content.toString('utf8'),
     ).toContain('alwaysApply: true');

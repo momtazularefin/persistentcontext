@@ -25,9 +25,9 @@ See [Getting started](docs/getting-started.md) for adoption, automatic adapter b
 
 ## Release status
 
-[`0.2.0`](https://github.com/momtazularefin/persistentcontext/releases/tag/v0.2.0) is the current published release and the contract an installation receives today. It replaced 0.1's scoped `status` operation with mandatory global `sync`, removed the Concurrent Execution Block capability and all dependency-sensitive workstream semantics, and kept optional flat work labels for lifecycle and completion evidence only.
+[`0.3.0`](https://github.com/momtazularefin/persistentcontext/releases/tag/v0.3.0) is the current published release and the contract an installation receives today. It stops the shared `AGENTS.md` adapter from telling every product that loads it to register as Codex, makes every ordering that decides identity or event recency independent of the host locale, resolves update discovery against the newest published release rather than the tip of `main`, and narrows the context a sync demands to what PCP governs. See the [changelog](CHANGELOG.md) for the full set.
 
-`0.3.0` is in development on `main` and is not yet released. It makes every ordering that decides identity or event recency independent of the host locale, resolves update discovery against the newest published release rather than the tip of `main`, and narrows the context a sync demands to what PCP governs. See the [changelog](CHANGELOG.md) for the current unreleased set.
+[`0.2.0`](https://github.com/momtazularefin/persistentcontext/releases/tag/v0.2.0) replaced 0.1's scoped `status` operation with mandatory global `sync`, removed the Concurrent Execution Block capability and all dependency-sensitive workstream semantics, and kept optional flat work labels for lifecycle and completion evidence only.
 
 An explicit 0.1 migration maps `kind: ceb` to `kind: concurrent`, removes dependency fields, deletes pristine CEB release assets, and discards obsolete scoped checkpoints. Existing actors, events, project-owned state, policy, and untargeted files are preserved. A customized project-owned CEB scaffold blocks automatic removal rather than losing useful content.
 

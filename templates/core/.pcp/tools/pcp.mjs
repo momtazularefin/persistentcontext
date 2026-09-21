@@ -19434,13 +19434,24 @@ var SUPPORTED_ADAPTER_IDS = [
   "github-copilot-vscode",
   "cursor"
 ];
-var ACTOR_CLIENT_BY_ADAPTER = {
-  codex: "codex",
-  antigravity: "antigravity",
-  "claude-code-desktop": "claude",
-  "github-copilot-vscode": "copilot",
-  cursor: "cursor"
+var PRODUCT_NAME_BY_CLIENT = {
+  codex: "Codex",
+  antigravity: "Antigravity",
+  claude: "Claude Code",
+  copilot: "GitHub Copilot",
+  cursor: "Cursor"
 };
+var ADAPTER_READERS = {
+  codex: ["codex", "antigravity", "copilot", "cursor"],
+  antigravity: ["antigravity"],
+  "claude-code-desktop": ["claude"],
+  "github-copilot-vscode": ["copilot"],
+  cursor: ["cursor"]
+};
+function adapterIdentifiesReader(adapterId) {
+  const readers = ADAPTER_READERS[adapterId];
+  return readers.length === 1 ? readers[0] : void 0;
+}
 var ADAPTER_BASENAMES = /* @__PURE__ */ new Set([
   ".cursorrules",
   "agents.md",
@@ -22699,7 +22710,20 @@ var targetByAdapter = {
   "github-copilot-vscode": ".github/copilot-instructions.md",
   cursor: ".cursor/rules/pcp.mdc"
 };
-function sharedBody() {
+var SHARED_ADAPTER_LABEL_PLACEHOLDER = "<product-label>";
+function registrationStep(adapterId) {
+  const label = adapterIdentifiesReader(adapterId);
+  return label === void 0 ? `1. Keep one project-lifetime actor ID and one execution ID for this conversation. If either is unavailable, run \`node .pcp/tools/pcp.mjs register . --client ${SHARED_ADAPTER_LABEL_PLACEHOLDER} --json\` once, using the label of the product running this conversation, and retain both returned IDs.` : `1. Keep one project-lifetime actor ID and one execution ID for this conversation. If either is unavailable, run \`node .pcp/tools/pcp.mjs register . --client ${label} --json\` once and retain both returned IDs.`;
+}
+function identityParagraph(adapterId) {
+  const label = adapterIdentifiesReader(adapterId);
+  if (label !== void 0) {
+    return `Only ${PRODUCT_NAME_BY_CLIENT[label]} loads this file, so \`${label}\` is this conversation's actor label. A shared \`AGENTS.md\`, another product's adapter, or an actor ID another product registered never changes it.`;
+  }
+  const labels = Object.entries(PRODUCT_NAME_BY_CLIENT).map(([client, product]) => `\`${client}\` for ${product}`).join(", ");
+  return `Several agent products load this file, so it cannot tell you which one you are. Register with the label of the product actually running this conversation: ${labels}, or one lowercase word naming any other product. If your product also loads its own PCP adapter, that adapter states your label. Never reuse another product's label or actor ID.`;
+}
+function sharedBody(adapterId) {
   return [
     GENERATED_MARKER,
     "",
@@ -22709,21 +22733,20 @@ function sharedBody() {
     "",
     "For every user request in this project, before answering or using project tools:",
     "",
-    "1. Keep one project-lifetime actor ID and one execution ID for this conversation. If either is unavailable, run `node .pcp/tools/pcp.mjs register . --client <adapter-client> --json` once and retain both returned IDs.",
+    registrationStep(adapterId),
     "2. Run `node .pcp/tools/pcp.mjs sync . --actor-id <actor-id> --execution-id <execution-id>`.",
     "3. If sync reports no project updates, continue immediately.",
     `4. If sync reports changes or a baseline, read every returned current path, beginning with \`${CANONICAL_ENTRY}\` when named; then acknowledge the exact digest with the same sync command plus \`--acknowledge <sync-digest>\`.`,
     "5. If the local engine is missing, fails, or reports invalid context, stop project work and tell the user; do not bypass synchronization.",
+    "",
+    identityParagraph(adapterId),
     "",
     "After a meaningful durable change, update canonical PCP sources and record one continuity event. Do not record routine reads, syncs, acknowledgements, or no-op checks. Never create independent authority in this adapter.",
     ""
   ];
 }
 function adapterText(adapterId) {
-  const body = sharedBody();
-  const clientLine = body.findIndex((line2) => line2.includes("<adapter-client>"));
-  if (clientLine >= 0)
-    body[clientLine] = body[clientLine]?.replace("<adapter-client>", ACTOR_CLIENT_BY_ADAPTER[adapterId]) ?? "";
+  const body = sharedBody(adapterId);
   if (adapterId === "claude-code-desktop") {
     body.push(
       `Claude Code loads this adapter at session start; @${CANONICAL_ENTRY} is the canonical entry.`
@@ -24775,9 +24798,9 @@ async function validateCanonicalLayer(projectRoot, options = {}) {
     const expectedAdapters = renderPlatformAdapters().map((adapter) => adapter.manifest);
     const adapterValidation = await validatePlatformAdapters(resolvedProjectRoot, expectedAdapters);
     diagnostics.push(
-      ...adapterValidation.diagnostics.map(
-        (diagnostic2) => issue2(diagnostic2.code, diagnostic2.path, diagnostic2.message)
-      )
+      ...adapterValidation.diagnostics.filter(
+        (diagnostic2) => options.adapter_content !== "structure" || diagnostic2.code !== "adapter.digest"
+      ).map((diagnostic2) => issue2(diagnostic2.code, diagnostic2.path, diagnostic2.message))
     );
   }
   const patterns = ownershipPatterns(manifest2);
@@ -29778,9 +29801,11 @@ async function planUpgradeMaterial(candidate = ".") {
   );
   const installedVersion2 = typeof installedManifestValue === "object" && installedManifestValue !== null && !Array.isArray(installedManifestValue) && typeof installedManifestValue.protocol === "object" && installedManifestValue.protocol !== null ? installedManifestValue.protocol.version : void 0;
   const legacy01 = typeof installedVersion2 === "string" && installedVersion2.startsWith("0.1.");
+  const olderInstallation = typeof installedVersion2 === "string" && installedVersion2 !== PCP_VERSION;
   const currentValidation = await validateCanonicalLayer(root, {
     archive_content: "filenames-only",
-    ...legacy01 ? { legacy_upgrade_source: "0.1" } : {}
+    ...legacy01 ? { legacy_upgrade_source: "0.1" } : {},
+    ...olderInstallation ? { adapter_content: "structure" } : {}
   });
   if (!currentValidation.valid) {
     throw new UpgradeError(

@@ -905,9 +905,12 @@ export async function validateCanonicalLayer(
     const expectedAdapters = renderPlatformAdapters().map((adapter) => adapter.manifest);
     const adapterValidation = await validatePlatformAdapters(resolvedProjectRoot, expectedAdapters);
     diagnostics.push(
-      ...adapterValidation.diagnostics.map((diagnostic) =>
-        issue(diagnostic.code, diagnostic.path, diagnostic.message),
-      ),
+      ...adapterValidation.diagnostics
+        .filter(
+          (diagnostic) =>
+            options.adapter_content !== 'structure' || diagnostic.code !== 'adapter.digest',
+        )
+        .map((diagnostic) => issue(diagnostic.code, diagnostic.path, diagnostic.message)),
     );
   }
   const patterns = ownershipPatterns(manifest);

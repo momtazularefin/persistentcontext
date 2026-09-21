@@ -384,6 +384,63 @@ describe('ownership-aware upgrade', () => {
     });
   });
 
+  it('upgrades adapters a previous release rendered, and still refuses a broken adapter set', async () => {
+    // Every other upgrade fixture writes the current release's adapters and only
+    // lowers the version number, so no test ever met the adapter bytes an older
+    // release actually rendered. The first upgrade to change adapter text then
+    // refused every real installation: the incoming engine judged the old
+    // adapters against its own rendering and called all five corrupt.
+    const fixture = JSON.parse(
+      await readFile(
+        fileURLToPath(new URL('../fixtures/adapters/0.2.0-adapters.json', import.meta.url)),
+        'utf8',
+      ),
+    ) as { adapters: Array<{ target_path: string; content: string }> };
+    const installPriorAdapters = async (root: string): Promise<void> => {
+      for (const adapter of fixture.adapters) {
+        await writeFile(
+          path.join(root, ...adapter.target_path.split('/')),
+          adapter.content,
+          'utf8',
+        );
+      }
+    };
+
+    const { root, preserved } = await olderManagedProject('0.2.0');
+    await installPriorAdapters(root);
+    const preview = await upgradeProject(root);
+    applicable(preview);
+    expect(preview.from_version).toBe('0.2.0');
+    expect(preview.upgrade_paths).toEqual(
+      expect.arrayContaining(fixture.adapters.map((adapter) => adapter.target_path)),
+    );
+
+    await upgradeProject(root, { apply: preview.plan.plan_digest });
+    await expectPreserved(root, preserved);
+    // Post-upgrade validation compares content strictly again.
+    expect(await validateCanonicalLayer(root, { archive_content: 'filenames-only' })).toMatchObject(
+      { valid: true },
+    );
+    const shared = await readFile(path.join(root, 'AGENTS.md'), 'utf8');
+    expect(shared).toContain('register . --client <product-label> --json');
+    expect(shared).not.toContain('--client codex');
+
+    // Structure is still enforced for an older installation.
+    const missing = await olderManagedProject('0.2.0');
+    await installPriorAdapters(missing.root);
+    await rm(path.join(missing.root, '.agents', 'rules', 'pcp.md'));
+    await expect(upgradeProject(missing.root)).rejects.toMatchObject({
+      code: 'PCP_UPGRADE_SOURCE_INVALID',
+    });
+
+    // Content is still enforced when the installation claims the current release.
+    const current = await olderManagedProject(PCP_VERSION);
+    await installPriorAdapters(current.root);
+    await expect(upgradeProject(current.root)).rejects.toMatchObject({
+      code: 'PCP_UPGRADE_SOURCE_INVALID',
+    });
+  });
+
   it('rejects stale approvals, invalid sources, and downgrade attempts without mutation', async () => {
     const { root } = await olderManagedProject();
     const preview = await upgradeProject(root);

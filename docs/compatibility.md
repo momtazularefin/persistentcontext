@@ -1,6 +1,6 @@
 # Compatibility
 
-This matrix describes the implemented PCP contract as it stands on `main`, currently `0.3.0` in development; `0.2.0` is the newest published release and differs only where the [changelog](../CHANGELOG.md) says so. It separates verified repository behavior from product-runtime behavior and does not treat an instruction-file convention as certification of an entire editor, model, or mode.
+This matrix describes the implemented PCP `0.3.0` contract, the current published release. Earlier releases differ where the [changelog](../CHANGELOG.md) says so. It separates verified repository behavior from product-runtime behavior and does not treat an instruction-file convention as certification of an entire editor, model, or mode.
 
 ## Runtime and operating systems
 
@@ -20,15 +20,21 @@ The repository is private to npm and exposes no global `bin`. Development uses `
 
 Every adoption state installs the same five generated adapters. Each embeds the mandatory register-and-sync contract, delegates durable context to `.pcp/00-index.md`, and is validated against its manifest, source, target, and SHA-256 content digest.
 
-| Adapter ID              | Registration app | Product surface                    | Generated target                  | Discovery contract                                                                                                   |
-| ----------------------- | ---------------- | ---------------------------------- | --------------------------------- | -------------------------------------------------------------------------------------------------------------------- |
-| `codex`                 | `codex`          | Codex project instructions         | `AGENTS.md`                       | Codex discovers repository `AGENTS.md` guidance before project work.                                                 |
-| `antigravity`           | `antigravity`    | Antigravity workspace rule         | `.agents/rules/pcp.md`            | Uses the documented workspace-rules directory; workspace rule activation still depends on product behavior/settings. |
-| `claude-code-desktop`   | `claude`         | Claude Code project memory         | `CLAUDE.md`                       | Claude loads project memory at conversation start; the adapter explicitly references `@.pcp/00-index.md`.            |
-| `github-copilot-vscode` | `copilot`        | GitHub Copilot custom instructions | `.github/copilot-instructions.md` | Workspace instructions are added automatically when the setting is enabled; users can disable custom instructions.   |
-| `cursor`                | `cursor`         | Cursor project rule                | `.cursor/rules/pcp.mdc`           | Generated frontmatter sets `alwaysApply: true`.                                                                      |
+| Adapter ID              | Registration app                | Product surface                    | Generated target                  | Discovery contract                                                                                                                                                  |
+| ----------------------- | ------------------------------- | ---------------------------------- | --------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `codex`                 | declared by the running product | Shared project instructions        | `AGENTS.md`                       | Codex discovers repository `AGENTS.md` guidance before project work. Antigravity, Cursor, and Copilot in VS Code load it too, so it names no label.                 |
+| `antigravity`           | `antigravity`                   | Antigravity workspace rule         | `.agents/rules/pcp.md`            | Uses the documented workspace-rules directory; workspace rule activation still depends on product behavior/settings. Antigravity also loads the shared `AGENTS.md`. |
+| `claude-code-desktop`   | `claude`                        | Claude Code project memory         | `CLAUDE.md`                       | Claude loads project memory at conversation start; the adapter explicitly references `@.pcp/00-index.md`.                                                           |
+| `github-copilot-vscode` | `copilot`                       | GitHub Copilot custom instructions | `.github/copilot-instructions.md` | Workspace instructions are added automatically when the setting is enabled; users can disable custom instructions.                                                  |
+| `cursor`                | `cursor`                        | Cursor project rule                | `.cursor/rules/pcp.mdc`           | Generated frontmatter sets `alwaysApply: true`.                                                                                                                     |
 
 Adapter IDs name integration surfaces; registration app names form actor-ID prefixes. The machine component is derived from the local system hostname, not configured per adapter.
+
+### Shared surfaces cannot identify their reader
+
+An adapter can tell an agent which product it is only if exactly one product loads it. `CLAUDE.md`, `.cursor/rules/pcp.mdc`, `.github/copilot-instructions.md`, and `.agents/rules/pcp.md` each have one reader, so each names its product's label and says that a shared file never changes it. `AGENTS.md` has four: Codex relies on it, Antigravity has loaded it since v1.20.3, and Cursor and Copilot in VS Code load it alongside their own files. It therefore names no label and tells the running product to register as itself.
+
+Before `0.3.0`, `AGENTS.md` carried `--client codex`. Every product that loaded it received two PCP instructions disagreeing about its identity, and Antigravity, whose workspace-rule activation is not documented, followed the shared file and registered as Codex. The actor then attributed Antigravity's work to Codex without any validation failure, because a declared label is the only identity signal PCP has. The reconstruction test now loads every file each product loads and fails if any of them names a different product's label. Actor IDs registered under the wrong label before `0.3.0` stay as they are; history is immutable, so the fix applies to identities registered from here on.
 
 The conventions are grounded in the products' documentation: [Codex `AGENTS.md`](https://learn.chatgpt.com/docs/agent-configuration/agents-md), [Antigravity rules](https://antigravity.google/docs/rules-workflows), [Claude Code memory](https://code.claude.com/docs/en/memory), [GitHub Copilot repository custom instructions](https://docs.github.com/en/copilot/customizing-copilot/adding-repository-custom-instructions-for-github-copilot), and [Cursor rules](https://docs.cursor.com/context/rules).
 

@@ -2,8 +2,10 @@
 
 All notable public protocol changes are documented here from the first release candidate onward.
 
-## Unreleased — 0.3.0 deterministic identity
+## 0.3.0 — 2026-09-21 — deterministic identity
 
+- Stopped the shared `AGENTS.md` adapter from assigning an identity. It carried `--client codex`, but Antigravity, Cursor, and GitHub Copilot in VS Code load it alongside their own adapters, so each received two PCP instructions that disagreed about who it was. Antigravity followed the shared file and registered as Codex. `AGENTS.md` now tells the running product to register with its own app label; each product-specific adapter names exactly one label and states that a shared file never overrides it. The reconstruction test now loads every file each product loads and fails if any of them names another product's label. It previously checked only that one of them was right.
+- Fixed upgrades from an older release refusing to start whenever the incoming release changed adapter text. Pre-upgrade validation compared the installed adapters with what the incoming engine renders, which an older installation can never match, so every one of those upgrades failed on the files it existed to replace. An installation from an older release now has its adapters checked for set, targets, canonical source, and manifest IDs, and not content. Post-upgrade validation still compares content exactly, and a same-version installation is still checked exactly. Upgrade tests had only ever lowered the version number on current-release adapters; a new test upgrades the adapter bytes `0.2.0` actually rendered.
 - Replaced every locale-sensitive ordering with a single code-unit comparator. ICU collation is host-dependent, so orderings that feed reproducible content digests or decide event recency previously gave one unchanged tree different identities on different machines.
 - Made update discovery resolve the newest published GitHub release and pin its tag to an immutable commit, instead of reading the tip of `main`. Drafts, prereleases, and malformed tags are refused, so development is never advertised as an available update.
 - Narrowed the context a sync requires an agent to read to what PCP governs: its own layer and the documents its registry catalogs. Each event continues to name its own affected paths, and paths that no longer exist are dropped.

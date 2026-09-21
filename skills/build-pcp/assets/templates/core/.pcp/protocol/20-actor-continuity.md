@@ -14,6 +14,7 @@ ownership: protocol
 - One durable actor ID identifies an agent client on one machine for the life of the project.
 - Create the ID once as `<actor-label>-<machine-label>-<10-character-Crockford-suffix>`. Use lowercase kebab-case for the two readable components and an uppercase Crockford suffix generated without a shared counter.
 - Use the app name as the actor label: `antigravity`, `codex`, `claude`, `copilot`, or `cursor`. Use `human` for a human actor. An app PCP does not yet define must choose one lowercase word as its app label instead of using a generic `other` label.
+- The actor label names the product running the conversation, never the instruction file that product happened to read. A file several products load, such as `AGENTS.md`, names no label and cannot identify its reader; a product-specific adapter names exactly one. Never register under, or reuse the actor ID of, another product.
 - Derive the machine label from the value returned by the machine's `hostname` command. Registration obtains it automatically and normalizes that value to lowercase kebab-case; callers do not invent or override a machine alias.
 - Human contributors may also have stable actor profiles for reported or observed attribution; humans do not use synchronization checkpoints.
 - One execution ULID identifies one conversation. Simultaneous conversations for the same actor must use different execution IDs.

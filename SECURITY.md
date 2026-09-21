@@ -2,7 +2,7 @@
 
 ## Supported versions
 
-PCP is pre-`1.0.0` and has not declared a stable compatibility window. `0.2.0` is the current published release; `0.3.0` is in development on `main`. Security fixes target the latest `main` source and the newest published release line. Older releases and development snapshots are not maintained separately.
+PCP is pre-`1.0.0` and has not declared a stable compatibility window. `0.3.0` is the current published release. Security fixes target the latest `main` source and the newest published release line. Older releases and development snapshots are not maintained separately.
 
 ## Report privately
 

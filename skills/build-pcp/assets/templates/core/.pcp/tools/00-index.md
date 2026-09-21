@@ -13,3 +13,5 @@ Use the project-local engine so validation, rendering, planning, and lifecycle b
 
 - [pcp.mjs](pcp.mjs) — self-contained deterministic engine installed with this protocol version.
 - [pcp.sha256](pcp.sha256) — exact SHA-256 identity of the adjacent engine.
+
+Never edit either file. Both are release-owned, and changing the engine and regenerating its checksum makes this installation an unrecorded fork that local verification cannot detect and that still reports its release version. When validation blocks legitimate work, fix the reported records, or change the protocol in PCP source and release it. An upgrade replaces both files with verified release bytes.

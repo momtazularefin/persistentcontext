@@ -1,6 +1,7 @@
 import { sha256 } from '../domain/adoption.js';
 import {
-  ACTOR_CLIENT_BY_ADAPTER,
+  adapterIdentifiesReader,
+  PRODUCT_NAME_BY_CLIENT,
   SUPPORTED_ADAPTER_IDS,
   type AdapterManifest,
   type SupportedAdapterId,
@@ -22,7 +23,27 @@ const targetByAdapter = {
   cursor: '.cursor/rules/pcp.mdc',
 } as const satisfies Record<SupportedAdapterId, string>;
 
-function sharedBody(): string[] {
+export const SHARED_ADAPTER_LABEL_PLACEHOLDER = '<product-label>';
+
+function registrationStep(adapterId: SupportedAdapterId): string {
+  const label = adapterIdentifiesReader(adapterId);
+  return label === undefined
+    ? `1. Keep one project-lifetime actor ID and one execution ID for this conversation. If either is unavailable, run \`node .pcp/tools/pcp.mjs register . --client ${SHARED_ADAPTER_LABEL_PLACEHOLDER} --json\` once, using the label of the product running this conversation, and retain both returned IDs.`
+    : `1. Keep one project-lifetime actor ID and one execution ID for this conversation. If either is unavailable, run \`node .pcp/tools/pcp.mjs register . --client ${label} --json\` once and retain both returned IDs.`;
+}
+
+function identityParagraph(adapterId: SupportedAdapterId): string {
+  const label = adapterIdentifiesReader(adapterId);
+  if (label !== undefined) {
+    return `Only ${PRODUCT_NAME_BY_CLIENT[label]} loads this file, so \`${label}\` is this conversation's actor label. A shared \`AGENTS.md\`, another product's adapter, or an actor ID another product registered never changes it.`;
+  }
+  const labels = Object.entries(PRODUCT_NAME_BY_CLIENT)
+    .map(([client, product]) => `\`${client}\` for ${product}`)
+    .join(', ');
+  return `Several agent products load this file, so it cannot tell you which one you are. Register with the label of the product actually running this conversation: ${labels}, or one lowercase word naming any other product. If your product also loads its own PCP adapter, that adapter states your label. Never reuse another product's label or actor ID.`;
+}
+
+function sharedBody(adapterId: SupportedAdapterId): string[] {
   return [
     GENERATED_MARKER,
     '',
@@ -32,11 +53,13 @@ function sharedBody(): string[] {
     '',
     'For every user request in this project, before answering or using project tools:',
     '',
-    '1. Keep one project-lifetime actor ID and one execution ID for this conversation. If either is unavailable, run `node .pcp/tools/pcp.mjs register . --client <adapter-client> --json` once and retain both returned IDs.',
+    registrationStep(adapterId),
     '2. Run `node .pcp/tools/pcp.mjs sync . --actor-id <actor-id> --execution-id <execution-id>`.',
     '3. If sync reports no project updates, continue immediately.',
     `4. If sync reports changes or a baseline, read every returned current path, beginning with \`${CANONICAL_ENTRY}\` when named; then acknowledge the exact digest with the same sync command plus \`--acknowledge <sync-digest>\`.`,
     '5. If the local engine is missing, fails, or reports invalid context, stop project work and tell the user; do not bypass synchronization.',
+    '',
+    identityParagraph(adapterId),
     '',
     'After a meaningful durable change, update canonical PCP sources and record one continuity event. Do not record routine reads, syncs, acknowledgements, or no-op checks. Never create independent authority in this adapter.',
     '',
@@ -44,11 +67,7 @@ function sharedBody(): string[] {
 }
 
 function adapterText(adapterId: SupportedAdapterId): string {
-  const body = sharedBody();
-  const clientLine = body.findIndex((line) => line.includes('<adapter-client>'));
-  if (clientLine >= 0)
-    body[clientLine] =
-      body[clientLine]?.replace('<adapter-client>', ACTOR_CLIENT_BY_ADAPTER[adapterId]) ?? '';
+  const body = sharedBody(adapterId);
   if (adapterId === 'claude-code-desktop') {
     body.push(
       `Claude Code loads this adapter at session start; @${CANONICAL_ENTRY} is the canonical entry.`,

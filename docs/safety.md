@@ -86,6 +86,8 @@ The build creates one self-contained engine and synchronizes identical bytes to 
 
 A checksum proves byte equality to the checked source artifact. It does not prove who authored the bytes or whether the source itself is trustworthy. Obtain PCP from the intended repository, review release provenance, and use signed release mechanisms when they become available.
 
+The installed engine's checksum sits beside it in `.pcp/tools/`, so anyone who can edit the engine can edit its checksum too, and local verification then passes. This has happened: an agent removed a validation check from an installed engine, regenerated the checksum, and the installation ran as an unrecorded fork that still reported its release version. Local integrity checks cannot detect that. The authority is the engine digest recorded at the release tag, so compare `.pcp/tools/pcp.sha256` with `templates/core/.pcp/tools/pcp.sha256` at the installed version's tag. An upgrade always replaces the installed engine with verified release bytes, which also removes such a fork. If a check blocks legitimate work, change the protocol in source and release it; never patch the installed copy.
+
 ## Safe operating checklist
 
 Before structural apply:
