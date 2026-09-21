@@ -570,6 +570,16 @@ async function planUpgradeMaterial(candidate = '.'): Promise<UpgradePreview | Up
   try {
     release = await loadReleaseTemplateFiles(selectedCapabilities);
   } catch (error) {
+    // An installed project engine ships without release assets, because it only
+    // has to run the version it belongs to. Reporting that as an unsupported
+    // capability sent readers looking at their capability selection when the
+    // actual fix is to run the incoming release engine.
+    if (error instanceof AdoptionError && error.code === 'PCP_ADOPTION_ASSETS_MISSING') {
+      throw new UpgradeError(
+        'PCP_UPGRADE_ASSETS_MISSING',
+        'This engine has no release assets beside it, so it is an installed project engine. Run upgrade with the incoming release engine from the build-pcp skill, as .pcp/protocol/120-updates-and-reset.md describes.',
+      );
+    }
     if (error instanceof AdoptionError) {
       throw new UpgradeError(
         'PCP_UPGRADE_CAPABILITY_UNSUPPORTED',

@@ -191,6 +191,73 @@ describe('continuity event recording', () => {
     expect((await validateCanonicalLayer(root)).valid).toBe(true);
   });
 
+  it('keeps portability on active events but not on immutable archived history', async () => {
+    // An event admitted under a weaker engine cannot be edited once archived. If
+    // full validation still demanded portability from it, the layer could never
+    // validate again without purging all history or editing the archive, which
+    // is how an installed engine came to be patched in place.
+    const writeEvent = async (
+      root: string,
+      directory: 'events' | 'archive',
+      eventId: string,
+      actorId: string,
+      rationale: string,
+    ): Promise<void> => {
+      const payload = {
+        schema_version: 1,
+        event_id: eventId,
+        occurred_at: '2024-07-03T09:46:40Z',
+        actor: { type: 'agent', id: actorId },
+        recorded_by: { type: 'agent', id: actorId },
+        basis: 'self',
+        kind: 'code',
+        scopes: ['implementation'],
+        workstreams: [],
+        summary: 'Reported a machine-local link defect.',
+        rationale,
+        affected_paths: ['README.md'],
+      } satisfies Omit<ContinuityEvent, 'payload_digest'>;
+      await writeFile(
+        path.join(root, '.pcp', 'continuity', directory, `${eventId}.yaml`),
+        stringify({ ...payload, payload_digest: eventPayloadDigest(payload) }),
+        'utf8',
+      );
+    };
+    const drivePath = 'Fourteen links pointed at c:/data/projects/example on one workstation.';
+    const archivedId = '01ARZ3NDEKTSV4RRFFQ69G5FAA';
+
+    const archived = await createProject();
+    const archivedActor = await registerActor(archived, { client: 'codex', machine_label: 'a' });
+    await writeEvent(archived, 'archive', archivedId, archivedActor.actor_id, drivePath);
+    expect(await validateCanonicalLayer(archived, { archive_content: 'full' })).toMatchObject({
+      valid: true,
+    });
+
+    const secret = await createProject();
+    const secretActor = await registerActor(secret, { client: 'codex', machine_label: 'b' });
+    await writeEvent(
+      secret,
+      'archive',
+      archivedId,
+      secretActor.actor_id,
+      'A leaked key AKIAABCDEFGHIJKLMNOP stays an error even in history.',
+    );
+    const secretReport = await validateCanonicalLayer(secret, { archive_content: 'full' });
+    expect(secretReport.valid).toBe(false);
+    expect(secretReport.diagnostics.map((diagnostic) => diagnostic.code)).toContain(
+      'secret.aws-access-key',
+    );
+
+    const active = await createProject();
+    const activeActor = await registerActor(active, { client: 'codex', machine_label: 'c' });
+    await writeEvent(active, 'events', archivedId, activeActor.actor_id, drivePath);
+    const activeReport = await validateCanonicalLayer(active, { archive_content: 'full' });
+    expect(activeReport.valid).toBe(false);
+    expect(activeReport.diagnostics.map((diagnostic) => diagnostic.code)).toEqual(
+      expect.arrayContaining(['path.absolute-text']),
+    );
+  });
+
   it('preserves human performance and agent attribution for a reported action', async () => {
     const root = await createProject();
     const agent = await registerActor(root, { client: 'codex', machine_label: 'agent-machine' });

@@ -2,6 +2,12 @@
 
 All notable public protocol changes are documented here from the first release candidate onward.
 
+## 0.3.1 — 2026-09-21 — immutable history and upgrade guidance
+
+- Full validation no longer demands portability from archived events. An event admitted under a weaker engine could never be corrected once archived, so full validation failed permanently, and the only ways out were purging all history or editing the archive or engine. Portability is still enforced on every active event and every current record. Because events reach the archive only by rotating out of the active window, the change admits nothing new. Archived events are still checked for schema, integrity, duplicate change keys, and secrets.
+- Running `upgrade` with an installed project engine now fails as `PCP_UPGRADE_ASSETS_MISSING` and says to run the incoming release engine. It previously reported `PCP_UPGRADE_CAPABILITY_UNSUPPORTED`, which pointed at the project's capability selection instead of the actual cause. The golden lifecycle test now asserts this.
+- `package-lock.json` had kept the root version `0.2.0` through the whole `0.3.0` release, because npm tolerates the mismatch. The single-version test now covers the lockfile.
+
 ## 0.3.0 — 2026-09-21 — deterministic identity
 
 - Stopped the shared `AGENTS.md` adapter from assigning an identity. It carried `--client codex`, but Antigravity, Cursor, and GitHub Copilot in VS Code load it alongside their own adapters, so each received two PCP instructions that disagreed about who it was. Antigravity followed the shared file and registered as Codex. `AGENTS.md` now tells the running product to register with its own app label; each product-specific adapter names exactly one label and states that a shared file never overrides it. The reconstruction test now loads every file each product loads and fails if any of them names another product's label. It previously checked only that one of them was right.

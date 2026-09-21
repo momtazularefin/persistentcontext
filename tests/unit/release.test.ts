@@ -30,5 +30,14 @@ describe('release identity', () => {
 
     expect(packageMetadata.version).toBe(PCP_VERSION);
     expect(manifest.protocol.version).toBe(PCP_VERSION);
+
+    // npm tolerates a stale root version in the lockfile, so nothing else would
+    // notice; the lockfile said 0.2.0 through the whole 0.3.0 release.
+    const lock = JSON.parse(await readFile(new URL('package-lock.json', projectRoot), 'utf8')) as {
+      version: string;
+      packages: Record<string, { version?: string }>;
+    };
+    expect(lock.version).toBe(PCP_VERSION);
+    expect(lock.packages['']?.version).toBe(PCP_VERSION);
   });
 });

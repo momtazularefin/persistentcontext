@@ -10,7 +10,8 @@ Ordering inside the manifest is by UTF-16 code unit, never by locale. ICU collat
 | --------------------------------------------------- | ---------- | ------------------------------------------------- |
 | [`release/0.1.0-rc.json`](../release/0.1.0-rc.json) | `v0.1.0`   | Historical release evidence.                      |
 | [`release/0.2.0-rc.json`](../release/0.2.0-rc.json) | `v0.2.0`   | Historical release evidence.                      |
-| [`release/0.3.0-rc.json`](../release/0.3.0-rc.json) | `v0.3.0`   | Frozen identity of the current published release. |
+| [`release/0.3.0-rc.json`](../release/0.3.0-rc.json) | `v0.3.0`   | Historical release evidence.                      |
+| [`release/0.3.1-rc.json`](../release/0.3.1-rc.json) | `v0.3.1`   | Frozen identity of the current published release. |
 
 When `main` carries a development version, no candidate is frozen for it and `npm run verify:candidate` reports that and passes: a development branch is not a frozen tree, and a gate that demanded otherwise would force a re-freeze on every ordinary commit, which would make the freeze meaningless. Freezing is a deliberate act at a release boundary, not a side effect of editing a file.
 

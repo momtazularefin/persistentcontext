@@ -437,12 +437,28 @@ function validatePortableYamlStrings(
   }
 }
 
+/**
+ * Archived events are immutable history, so portability is not enforced on them.
+ *
+ * Portability rules exist so that current context works on any machine. Every
+ * event is checked in full while it is active: `record` validates the live layer
+ * before committing, and an event reaches the archive only by rotating out of the
+ * active window. Exempting the archive therefore admits nothing new. What it does
+ * is stop full validation from demanding an edit that immutability forbids. An
+ * event admitted under a weaker engine could otherwise never be fixed, leaving
+ * only a history purge or an edit to the archive or engine as ways out. Integrity,
+ * schema, and secret checks still apply to archived events.
+ */
+function isArchivedEvent(relativePath: string): boolean {
+  return /^continuity\/archive\/[^/]+\.yaml$/u.test(relativePath);
+}
+
 function validateTextSafety(
   relativePath: string,
   contents: string,
   diagnostics: CanonicalDiagnostic[],
 ): void {
-  if (WINDOWS_ABSOLUTE_PATH.test(contents)) {
+  if (!isArchivedEvent(relativePath) && WINDOWS_ABSOLUTE_PATH.test(contents)) {
     diagnostics.push(
       issue(
         'path.absolute-text',
@@ -779,7 +795,9 @@ export async function validateCanonicalLayer(
       );
       continue;
     }
-    validatePortableYamlStrings(value, file.relative_path, diagnostics);
+    if (!isArchivedEvent(file.relative_path)) {
+      validatePortableYamlStrings(value, file.relative_path, diagnostics);
+    }
     const result = schemaRegistry.validate(schema, value);
     if (!result.valid) {
       for (const schemaDiagnostic of result.diagnostics) {

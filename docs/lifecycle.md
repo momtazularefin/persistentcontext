@@ -88,7 +88,7 @@ node dist/pcp.mjs render path/to/project --check --json
 node dist/pcp.mjs render path/to/project --json
 ```
 
-Validation covers schemas, required structure, numbered and indexed internal Markdown, configured documentation roots, complete external-document registry coverage, related paths, links, portability, secret patterns, ownership, generated views and adapters, identities, event integrity, per-execution checkpoints, VCS authority, and optional clean genesis. Uncataloged, missing, misplaced outcome, or stale registry entries fail validation. Normal operations inspect archive IDs by filename; full validation is the explicit archive-content audit.
+Validation covers schemas, required structure, numbered and indexed internal Markdown, configured documentation roots, complete external-document registry coverage, related paths, links, portability, secret patterns, ownership, generated views and adapters, identities, event integrity, per-execution checkpoints, VCS authority, and optional clean genesis. Uncataloged, missing, misplaced outcome, or stale registry entries fail validation. Normal operations inspect archive IDs by filename; full validation is the explicit archive-content audit. That audit checks archived events for schema, integrity, duplicate change keys, and secrets, and not for portability. Portability is enforced on every event while it is active, and an archived record can never be edited, so demanding portability from it would make a failure that no legitimate action could clear.
 
 `render --check` is non-mutating. Write mode replaces only the declared generated status view from canonical YAML sources.
 

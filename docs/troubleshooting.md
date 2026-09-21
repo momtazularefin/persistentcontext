@@ -117,7 +117,7 @@ When no recovery material remains, `recovery_path` is `null`. The path is epheme
 - event payload or duplicate-key errors: do not edit history in place; preserve evidence and record a later correction after resolving corruption;
 - checkpoint, workstream, or VCS-policy errors: repair the authoritative state record and revalidate before continuing.
 
-Full validation reads archive contents. `validate --archive-index-only` checks operational archive identities without treating archived prose as routine startup context.
+Full validation reads archive contents. `validate --archive-index-only` checks operational archive identities without treating archived prose as routine startup context. Archived events are checked for schema, integrity, and secrets but not for portability, because they are immutable and were already checked in full while active. A portability error on an archived event therefore means an engine older than `0.3.1` is doing the checking. Never edit an archived event to clear a diagnostic.
 
 ## Registration and synchronization
 
@@ -177,6 +177,7 @@ Do not patch one field in place after a failed operation. Workstream mutations r
 - `PCP_UPGRADE_CAPABILITY_UNSUPPORTED`: the incoming release cannot preserve an installed capability; do not remove it manually to force upgrade.
 - `PCP_UPGRADE_OWNERSHIP_COLLISION` or `PCP_UPGRADE_COLLISION`: a desired release target conflicts with non-replaceable state; inspect ownership and preserve project data.
 - `PCP_UPGRADE_ASSETS_MISMATCH`: rebuild or obtain a coherent release bundle; do not edit checksums.
+- `PCP_UPGRADE_ASSETS_MISSING`: the engine that ran has no release assets beside it, which almost always means it is the installed `.pcp/tools/pcp.mjs`. An installed engine only runs the version it belongs to. Run `upgrade` with the incoming release engine from the `build-pcp` skill.
 - `PCP_UPGRADE_SOURCE_INVALID`: the installed layer fails validation under the incoming engine, so the upgrade has no sound starting point. Run `validate` and fix the reported records. An installation from an older release is not expected to match the new release's adapter text, and that difference alone no longer causes this error. Never make the check pass by editing the installed engine: the upgrade replaces it with release bytes, and the patched check returns.
 - `PCP_UPGRADE_DOCUMENTATION_ROOT_BLOCKED`: the migration would need to establish a default documentation root that ignore policy excludes; resolve the policy or directory deliberately before retrying.
 - `PCP_UPGRADE_PRESERVATION_FAILED`: an untargeted or project/runtime-owned file changed. Preserve recovery evidence and investigate before retrying.

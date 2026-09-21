@@ -253,6 +253,30 @@ try {
       `Installed PCP engine did not execute independently: ${installedVersion.stderr || installedVersion.stdout}`,
     );
   }
+  // An installed engine carries no release assets, so it cannot run an upgrade.
+  // It must say so and point at the incoming engine rather than blame the
+  // project's capability selection.
+  const installedUpgrade = spawnSync(
+    process.execPath,
+    [installedEnginePath, 'upgrade', adoptionCandidate, '--json'],
+    { encoding: 'utf8', windowsHide: true },
+  );
+  const installedUpgradeError = (() => {
+    try {
+      return JSON.parse(installedUpgrade.stdout || installedUpgrade.stderr);
+    } catch {
+      return undefined;
+    }
+  })();
+  if (
+    installedUpgrade.status === 0 ||
+    installedUpgradeError?.code !== 'PCP_UPGRADE_ASSETS_MISSING' ||
+    installedUpgradeError?.mutated !== false
+  ) {
+    throw new Error(
+      `Installed engine upgrade must fail as PCP_UPGRADE_ASSETS_MISSING without mutation: ${installedUpgrade.stderr || installedUpgrade.stdout}`,
+    );
+  }
 
   const expectedAdapterPaths = [
     'AGENTS.md',

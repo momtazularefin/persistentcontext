@@ -1,6 +1,6 @@
 {
   "name": "persistentcontext",
-  "version": "0.3.0",
+  "version": "0.3.1",
   "private": true,
   "description": "Persistent Context Protocol (PCP): repository-native context, safe handoffs, and multi-agent continuity for AI coding agents across tools and machines.",
   "type": "module",

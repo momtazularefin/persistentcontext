@@ -24381,8 +24381,11 @@ function validatePortableYamlStrings(value, relativePath, diagnostics, pointer =
     }
   }
 }
+function isArchivedEvent(relativePath) {
+  return /^continuity\/archive\/[^/]+\.yaml$/u.test(relativePath);
+}
 function validateTextSafety(relativePath, contents, diagnostics) {
-  if (WINDOWS_ABSOLUTE_PATH.test(contents)) {
+  if (!isArchivedEvent(relativePath) && WINDOWS_ABSOLUTE_PATH.test(contents)) {
     diagnostics.push(
       issue2(
         "path.absolute-text",
@@ -24679,7 +24682,9 @@ async function validateCanonicalLayer(projectRoot, options = {}) {
       );
       continue;
     }
-    validatePortableYamlStrings(value, file.relative_path, diagnostics);
+    if (!isArchivedEvent(file.relative_path)) {
+      validatePortableYamlStrings(value, file.relative_path, diagnostics);
+    }
     const result = schemaRegistry.validate(schema4, value);
     if (!result.valid) {
       for (const schemaDiagnostic of result.diagnostics) {
@@ -26497,7 +26502,7 @@ import path15 from "node:path";
 
 // src/domain/release.ts
 var PCP_NAME = "Persistent Context Protocol";
-var PCP_VERSION = "0.3.0";
+var PCP_VERSION = "0.3.1";
 var PCP_RELEASE_STAGE = "deterministic-identity";
 var PCP_UPDATE_PROVIDER = "github";
 var PCP_UPDATE_REPOSITORY = "momtazularefin/persistentcontext";
@@ -29821,6 +29826,12 @@ async function planUpgradeMaterial(candidate = ".") {
   try {
     release = await loadReleaseTemplateFiles(selectedCapabilities);
   } catch (error2) {
+    if (error2 instanceof AdoptionError && error2.code === "PCP_ADOPTION_ASSETS_MISSING") {
+      throw new UpgradeError(
+        "PCP_UPGRADE_ASSETS_MISSING",
+        "This engine has no release assets beside it, so it is an installed project engine. Run upgrade with the incoming release engine from the build-pcp skill, as .pcp/protocol/120-updates-and-reset.md describes."
+      );
+    }
     if (error2 instanceof AdoptionError) {
       throw new UpgradeError(
         "PCP_UPGRADE_CAPABILITY_UNSUPPORTED",
