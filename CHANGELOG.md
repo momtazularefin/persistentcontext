@@ -2,6 +2,12 @@
 
 All notable public protocol changes are documented here from the first release candidate onward.
 
+## 0.3.2 — 2026-09-22 — Antigravity always-on rule
+
+- The Antigravity adapter `.agents/rules/pcp.md` now opens with `trigger: always_on` frontmatter. Antigravity loads a workspace rule unconditionally only when it sets that trigger, according to its built-in customization documentation. Without it, the adapter had never been loaded, and Antigravity confirmed that the shared `AGENTS.md` was the only PCP instruction it received. That is why, before `0.3.0`, it registered as Codex. The adapter now reaches Antigravity directly, and both files it loads agree on its identity.
+- The adapter unit test and the reconstruction test require the frontmatter to open the file; both fail if it is removed.
+- An installation from `0.3.1` upgrades by regenerating this one adapter. This is the first release whose upgrade changes adapter text, and pre-upgrade validation now judges older installations' adapters by structure (`0.3.0`), so the upgrade proceeds.
+
 ## 0.3.1 — 2026-09-21 — immutable history and upgrade guidance
 
 - Full validation no longer demands portability from archived events. An event admitted under a weaker engine could never be corrected once archived, so full validation failed permanently, and the only ways out were purging all history or editing the archive or engine. Portability is still enforced on every active event and every current record. Because events reach the archive only by rotating out of the active window, the change admits nothing new. Archived events are still checked for schema, integrity, duplicate change keys, and secrets.

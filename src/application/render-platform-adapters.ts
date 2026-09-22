@@ -84,6 +84,14 @@ function adapterText(adapterId: SupportedAdapterId): string {
       ...body,
     ].join('\n');
   }
+  if (adapterId === 'antigravity') {
+    // Antigravity loads `.agents/rules/*.md` by progressive disclosure: only a
+    // rule whose frontmatter sets `trigger: always_on` is loaded unconditionally,
+    // per its built-in customization documentation. Rendered without it, this
+    // adapter was never loaded, so the only PCP instruction Antigravity saw was
+    // the shared `AGENTS.md`.
+    return ['---', 'trigger: always_on', '---', '', ...body].join('\n');
+  }
   return body.join('\n');
 }
 

@@ -22763,6 +22763,9 @@ function adapterText(adapterId) {
       ...body
     ].join("\n");
   }
+  if (adapterId === "antigravity") {
+    return ["---", "trigger: always_on", "---", "", ...body].join("\n");
+  }
   return body.join("\n");
 }
 function renderPlatformAdapters() {
@@ -26502,7 +26505,7 @@ import path15 from "node:path";
 
 // src/domain/release.ts
 var PCP_NAME = "Persistent Context Protocol";
-var PCP_VERSION = "0.3.1";
+var PCP_VERSION = "0.3.2";
 var PCP_RELEASE_STAGE = "deterministic-identity";
 var PCP_UPDATE_PROVIDER = "github";
 var PCP_UPDATE_REPOSITORY = "momtazularefin/persistentcontext";

@@ -258,6 +258,12 @@ async function reconstructFromPlatform(
   if (platform === 'cursor') {
     expect(adapters.some((adapter) => adapter.includes('alwaysApply: true'))).toBe(true);
   }
+  if (platform === 'antigravity') {
+    expect(
+      adapters.some((adapter) => adapter.startsWith('---\ntrigger: always_on\n---\n')),
+      'antigravity: workspace rule is always on',
+    ).toBe(true);
+  }
   if (platform === 'claude-code-desktop') {
     expect(adapters[0]).toContain('@.pcp/00-index.md');
   }

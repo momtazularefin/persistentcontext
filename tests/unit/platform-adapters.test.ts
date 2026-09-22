@@ -97,6 +97,14 @@ describe('platform adapters', () => {
     expect(
       first.find((adapter) => adapter.manifest.adapter_id === 'cursor')?.content.toString('utf8'),
     ).toContain('alwaysApply: true');
+    // Without this frontmatter Antigravity never loads the rule; it must open the
+    // file so the product sees it before any other content.
+    expect(
+      first
+        .find((adapter) => adapter.manifest.adapter_id === 'antigravity')
+        ?.content.toString('utf8')
+        .startsWith('---\ntrigger: always_on\n---\n'),
+    ).toBe(true);
     expect(
       first
         .find((adapter) => adapter.manifest.adapter_id === 'claude-code-desktop')
