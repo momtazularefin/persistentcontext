@@ -81,23 +81,32 @@ describe('public project contract', () => {
     ]);
     const manifest = JSON.parse(manifestText) as unknown;
 
-    // The landing page must say what the release state says. A frozen candidate
-    // for the package version means that version is the release; without one,
-    // the version is unreleased development. Checking fixed phrases instead is how
-    // the README kept calling a tagged release "the current development contract".
+    // A candidate proves content identity, not GitHub publication. The explicit
+    // published-release record advances only after publication is confirmed.
     const { version } = JSON.parse(
       await readFile(new URL('package.json', projectRoot), 'utf8'),
     ) as { version: string };
-    const frozen = await readFile(new URL(`release/${version}-rc.json`, projectRoot), 'utf8').then(
+    const published = JSON.parse(
+      await readFile(new URL('release/latest-published.json', projectRoot), 'utf8'),
+    ) as { schema_version: number; version: string; tag: string; source_commit: string };
+    expect(published.schema_version).toBe(1);
+    expect(published.tag).toBe(`v${published.version}`);
+    expect(published.source_commit).toMatch(/^[0-9a-f]{40}$/);
+    expect(readme).toContain(
+      `[\`${published.version}\`](https://github.com/momtazularefin/persistentcontext/releases/tag/${published.tag}) is the latest published release`,
+    );
+
+    const candidateExists = await readFile(
+      new URL(`release/${version}-rc.json`, projectRoot),
+      'utf8',
+    ).then(
       () => true,
       () => false,
     );
-    if (frozen) {
-      expect(readme).toContain(
-        `[\`${version}\`](https://github.com/momtazularefin/persistentcontext/releases/tag/v${version}) is the current published release`,
-      );
-      expect(readme).not.toContain(`\`${version}\` is in development`);
-    } else {
+    if (version !== published.version && candidateExists) {
+      expect(readme).toContain(`\`${version}\` is a prepared release candidate, not yet published`);
+      expect(readme).not.toContain(`releases/tag/v${version}`);
+    } else if (version !== published.version) {
       expect(readme).toContain(
         `\`${version}\` is in development on \`main\` and is not yet released`,
       );

@@ -15,8 +15,8 @@ PCP keeps that understanding in the repository, which already survives cloning, 
 PCP 0.2 changed the operating model in four ways:
 
 - synchronization is mandatory before every agent response or project-tool use;
-- every conversation receives every newer continuity event, without workstream, dependency, scope, or path filtering; and
-- adoption generates product-native instruction adapters, so normal use does not depend on copying a startup prompt into each chat.
+- every conversation receives every newer continuity event, without workstream, dependency, scope, or path filtering;
+- adoption generates product-native instruction adapters, so normal use does not depend on copying a startup prompt into each chat; and
 - agent-operational knowledge remains in `.pcp`, while project-outcome knowledge lives in the project's established documentation directory or the default `docs/` directory and is tracked by path from `.pcp`.
 
 The project-local engine optimizes the common no-change path and emits agent-friendly plain text. Separate execution IDs keep two chats for the same durable actor from acknowledging one another's updates.
@@ -25,9 +25,9 @@ See [Getting started](docs/getting-started.md) for adoption, automatic adapter b
 
 ## Release status
 
-[`0.3.2`](https://github.com/momtazularefin/persistentcontext/releases/tag/v0.3.2) is the current published release and the contract an installation receives today. It makes the Antigravity adapter an always-on workspace rule; before it, Antigravity never loaded that rule and received PCP only through the shared `AGENTS.md`.
+`0.3.2` is a prepared release candidate, not yet published. The update makes the Antigravity adapter an always-on workspace rule; before it, Antigravity never loaded that rule and received PCP only through the shared `AGENTS.md`.
 
-[`0.3.1`](https://github.com/momtazularefin/persistentcontext/releases/tag/v0.3.1) is a patch on `0.3.0`: full validation no longer demands portability from immutable archived history, and running `upgrade` with an installed engine now names the real cause.
+[`0.3.1`](https://github.com/momtazularefin/persistentcontext/releases/tag/v0.3.1) is the latest published release. It is a patch on `0.3.0`: full validation no longer demands portability from immutable archived history, and running `upgrade` with an installed engine now names the real cause.
 
 [`0.3.0`](https://github.com/momtazularefin/persistentcontext/releases/tag/v0.3.0) stops the shared `AGENTS.md` adapter from telling every product that loads it to register as Codex, makes every ordering that decides identity or event recency independent of the host locale, resolves update discovery against the newest published release rather than the tip of `main`, and narrows the context a sync demands to what PCP governs. See the [changelog](CHANGELOG.md) for the full set.
 

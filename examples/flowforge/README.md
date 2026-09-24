@@ -6,6 +6,6 @@ This example is a sanitized source-only project used to prove PCP adoption of an
 - [`adoption-input.yaml`](adoption-input.yaml) is the reviewed semantic baseline grounded in those source files.
 - [`expected.yaml`](expected.yaml) records stable observable outcomes rather than duplicating generated PCP release files.
 
-The integration contract copies `before/` to a temporary directory, confirms State B classification, previews and applies the reviewed plan, proves every original byte survives, validates clean genesis and all five adapters, and checks that a newly registered agent can obtain current context through scoped status.
+The integration contract copies `before/` to a temporary directory, confirms State B classification, previews and applies the reviewed plan, proves every original byte survives, validates clean genesis and all five adapters, and checks that a newly registered agent can obtain current context through global synchronization.
 
 FlowForge is intentionally small: it is a dependency-aware .NET task runner with a library, CLI, JSON run storage, an example pipeline, and a self-contained test runner. It is a reference fixture, not a second PCP implementation.

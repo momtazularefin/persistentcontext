@@ -6,15 +6,15 @@ Ordering inside the manifest is by UTF-16 code unit, never by locale. ICU collat
 
 ## Which manifests exist
 
-| Manifest                                            | Identifies | Status                                            |
-| --------------------------------------------------- | ---------- | ------------------------------------------------- |
-| [`release/0.1.0-rc.json`](../release/0.1.0-rc.json) | `v0.1.0`   | Historical release evidence.                      |
-| [`release/0.2.0-rc.json`](../release/0.2.0-rc.json) | `v0.2.0`   | Historical release evidence.                      |
-| [`release/0.3.0-rc.json`](../release/0.3.0-rc.json) | `v0.3.0`   | Historical release evidence.                      |
-| [`release/0.3.1-rc.json`](../release/0.3.1-rc.json) | `v0.3.1`   | Historical release evidence.                      |
-| [`release/0.3.2-rc.json`](../release/0.3.2-rc.json) | `v0.3.2`   | Frozen identity of the current published release. |
+| Manifest                                            | Identifies | Status                                                                         |
+| --------------------------------------------------- | ---------- | ------------------------------------------------------------------------------ |
+| [`release/0.1.0-rc.json`](../release/0.1.0-rc.json) | `v0.1.0`   | Historical release evidence.                                                   |
+| [`release/0.2.0-rc.json`](../release/0.2.0-rc.json) | `v0.2.0`   | Historical release evidence.                                                   |
+| [`release/0.3.0-rc.json`](../release/0.3.0-rc.json) | `v0.3.0`   | Historical release evidence.                                                   |
+| [`release/0.3.1-rc.json`](../release/0.3.1-rc.json) | `v0.3.1`   | Historical release evidence.                                                   |
+| [`release/0.3.2-rc.json`](../release/0.3.2-rc.json) | `v0.3.2`   | Local candidate; human commit, protected CI, tag, and publication are pending. |
 
-When `main` carries a development version, no candidate is frozen for it and `npm run verify:candidate` reports that and passes: a development branch is not a frozen tree, and a gate that demanded otherwise would force a re-freeze on every ordinary commit, which would make the freeze meaningless. Freezing is a deliberate act at a release boundary, not a side effect of editing a file.
+Before a release candidate is prepared, `main` may carry an unreleased development version with no matching manifest; `npm run verify:candidate` reports that and passes. Once a candidate manifest exists, the command verifies its exact source identity and fails on drift. Preparing a candidate is a deliberate release-boundary action, not a side effect of every development edit.
 
 ## Freezing a candidate
 
@@ -27,6 +27,8 @@ The candidate is frozen only when all of these conditions hold on the exact mani
 5. The candidate working tree contains no further planned public source change.
 
 The merge commit supplies the VCS identity after review. The manifest supplies a reproducible content identity before that commit exists and avoids a self-referential commit hash. Once the release is tagged, the tag is the identity and the manifest becomes that release's frozen evidence.
+
+`release/latest-published.json` is a human-updated record of the latest GitHub release. Advance it only after the GitHub release is actually published, not when a candidate is prepared, committed, or tagged. A candidate manifest identifies reviewed source bytes; its existence does not establish publication.
 
 ## Public acceptance audit — `0.1.0`
 
