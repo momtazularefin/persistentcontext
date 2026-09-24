@@ -2,8 +2,11 @@
 
 All notable public protocol changes are documented here from the first release candidate onward.
 
-## 0.3.2 — 2026-09-22 — Antigravity always-on rule
+## Unreleased — 0.3.2 — Antigravity always-on rule
 
+- Adapter validation now rejects a symlink or junction in any parent directory of a generated adapter. Previously a matching adapter file reached through an out-of-project parent could pass direct adapter validation; a regression test covers the boundary.
+- Public release status no longer treats a candidate manifest as proof of GitHub publication. The separate `release/latest-published.json` record identifies the latest confirmed published release, while the candidate manifest remains a source-content identity.
+- The adoption capability question no longer offers Concurrent Execution Blocks. `0.2.0` removed that capability and the input schema rejects it, but the question was prose and kept advertising it, so `adopt` solicited a selection the engine would refuse. The prompt is now generated from the same list the schema enum mirrors, names the capability IDs a caller must actually supply, and a test reads the list back out of the prompt and requires it to equal the schema enum.
 - The Antigravity adapter `.agents/rules/pcp.md` now opens with `trigger: always_on` frontmatter. Antigravity loads a workspace rule unconditionally only when it sets that trigger, according to its built-in customization documentation. Without it, the adapter had never been loaded, and Antigravity confirmed that the shared `AGENTS.md` was the only PCP instruction it received. That is why, before `0.3.0`, it registered as Codex. The adapter now reaches Antigravity directly, and both files it loads agree on its identity.
 - The adapter unit test and the reconstruction test require the frontmatter to open the file; both fail if it is removed.
 - An installation from `0.3.1` upgrades by regenerating this one adapter. This is the first release whose upgrade changes adapter text, and pre-upgrade validation now judges older installations' adapters by structure (`0.3.0`), so the upgrade proceeds.

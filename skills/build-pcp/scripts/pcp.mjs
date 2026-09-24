@@ -19675,11 +19675,6 @@ import { lstat as lstat6, mkdir as mkdir2, mkdtemp as mkdtemp2, readFile as read
 import { tmpdir as tmpdir2 } from "node:os";
 import path13 from "node:path";
 
-// src/infrastructure/adoption-assets.ts
-import { lstat as lstat3, readdir, readFile as readFile4 } from "node:fs/promises";
-import path7 from "node:path";
-import { fileURLToPath } from "node:url";
-
 // src/domain/capabilities.ts
 var SUPPORTED_CAPABILITY_IDS = [
   "scratch-space",
@@ -19692,6 +19687,9 @@ function normalizeCapabilityIds(values) {
 }
 
 // src/infrastructure/adoption-assets.ts
+import { lstat as lstat3, readdir, readFile as readFile4 } from "node:fs/promises";
+import path7 from "node:path";
+import { fileURLToPath } from "node:url";
 var moduleDirectory = path7.dirname(fileURLToPath(import.meta.url));
 function candidateTemplateRoots() {
   return [
@@ -23924,6 +23922,36 @@ async function validateRegularFile(root, portablePath2, code2, diagnostics) {
     diagnostics.push({ code: `${code2}.path`, path: portablePath2, message: "Path escapes root." });
     return void 0;
   }
+  let parent = path11.resolve(root);
+  for (const component of portablePath2.split("/").slice(0, -1)) {
+    parent = path11.join(parent, component);
+    try {
+      const metadata = await lstat4(parent);
+      if (!metadata.isDirectory() || metadata.isSymbolicLink()) {
+        diagnostics.push({
+          code: `${code2}.parent-type`,
+          path: portablePath2,
+          message: `Adapter path crosses a non-directory or symbolic-link parent: ${component}.`
+        });
+        return void 0;
+      }
+    } catch (error2) {
+      if (error2.code === "ENOENT") {
+        diagnostics.push({
+          code: `${code2}.read`,
+          path: portablePath2,
+          message: `Adapter parent does not exist: ${component}.`
+        });
+        return void 0;
+      }
+      diagnostics.push({
+        code: `${code2}.parent-read`,
+        path: portablePath2,
+        message: error2 instanceof Error ? error2.message : String(error2)
+      });
+      return void 0;
+    }
+  }
   try {
     const metadata = await lstat4(target);
     if (!metadata.isFile() || metadata.isSymbolicLink()) {
@@ -24932,7 +24960,11 @@ function questionsFor(inspection) {
   if (inspection.state === "managed") return [];
   const capabilityQuestion = {
     id: "capability-selection",
-    prompt: "Select zero or more supported optional capabilities: Concurrent Execution Blocks, spec-driven projects, scratch space, or walkthroughs.",
+    // Derived from the one list the engine and the schema both use. Written out
+    // in prose, this question kept advertising Concurrent Execution Blocks for
+    // two releases after 0.2 removed that capability, so the engine asked for a
+    // selection its own schema rejects.
+    prompt: `Select zero or more supported optional capabilities by ID: ${SUPPORTED_CAPABILITY_IDS.join(", ")}. Use an empty list for a core-only installation.`,
     reason: "PCP installs optional project workflows only through explicit selection.",
     required: true,
     response_shape: "object"

@@ -1,4 +1,4 @@
-import { mkdir, mkdtemp, rm, unlink, writeFile } from 'node:fs/promises';
+import { mkdir, mkdtemp, rm, symlink, unlink, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
 
@@ -155,6 +155,34 @@ describe('platform adapters', () => {
         'adapter.source.read',
         'adapter.manifest.ids',
       ]),
+    );
+  });
+
+  it('rejects an adapter whose parent directory is a symlink outside the project', async () => {
+    const { root, adapters } = await liveAdapterFixture();
+    const outside = await mkdtemp(path.join(tmpdir(), 'pcp-adapter-outside-'));
+    temporaryRoots.push(outside);
+    const antigravity = adapters.find((adapter) => adapter.manifest.adapter_id === 'antigravity');
+    if (antigravity === undefined) throw new Error('Antigravity adapter is missing.');
+    await mkdir(path.join(outside, 'rules'));
+    await writeFile(path.join(outside, 'rules', 'pcp.md'), antigravity.content);
+    await rm(path.join(root, '.agents'), { recursive: true });
+    await symlink(
+      outside,
+      path.join(root, '.agents'),
+      process.platform === 'win32' ? 'junction' : 'dir',
+    );
+
+    const report = await validatePlatformAdapters(
+      root,
+      adapters.map((adapter) => adapter.manifest),
+    );
+    expect(report.valid).toBe(false);
+    expect(report.diagnostics).toContainEqual(
+      expect.objectContaining({
+        code: 'adapter.target.parent-type',
+        path: '.agents/rules/pcp.md',
+      }),
     );
   });
 });

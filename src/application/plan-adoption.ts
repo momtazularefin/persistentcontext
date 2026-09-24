@@ -22,6 +22,7 @@ import {
   type MutationOperation,
 } from '../domain/adoption.js';
 import { supportedAdapterForSourcePath } from '../domain/adapters.js';
+import { SUPPORTED_CAPABILITY_IDS } from '../domain/capabilities.js';
 import { comparePortablePaths, type InspectionResult } from '../domain/inspection.js';
 import {
   documentationPaths,
@@ -121,8 +122,11 @@ function questionsFor(inspection: InspectionResult): AdoptionQuestion[] {
   if (inspection.state === 'managed') return [];
   const capabilityQuestion: AdoptionQuestion = {
     id: 'capability-selection',
-    prompt:
-      'Select zero or more supported optional capabilities: Concurrent Execution Blocks, spec-driven projects, scratch space, or walkthroughs.',
+    // Derived from the one list the engine and the schema both use. Written out
+    // in prose, this question kept advertising Concurrent Execution Blocks for
+    // two releases after 0.2 removed that capability, so the engine asked for a
+    // selection its own schema rejects.
+    prompt: `Select zero or more supported optional capabilities by ID: ${SUPPORTED_CAPABILITY_IDS.join(', ')}. Use an empty list for a core-only installation.`,
     reason: 'PCP installs optional project workflows only through explicit selection.',
     required: true,
     response_shape: 'object',

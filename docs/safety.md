@@ -25,6 +25,7 @@ VCS signing, branch protection, operating-system permissions, backups, credentia
 - Inspection is non-mutating and reports `mutated: false`.
 - Inventory honors ignore rules and nested repository boundaries.
 - PCP records symlinks and junctions but never follows them during inventory or adoption planning.
+- Direct adapter validation rejects a symbolic link or junction at the adapter leaf or any parent directory, so an adapter reached through an out-of-project parent cannot pass as a regular in-project file.
 - Canonical paths must be repository-relative, use forward slashes, avoid traversal, and avoid Windows-reserved or forbidden names.
 - Adoption, event, and workstream inputs must be regular non-symlink files within their size limits.
 - Mutation targets that cross a symlink, nested repository, ignored runtime boundary, or candidate root are rejected.

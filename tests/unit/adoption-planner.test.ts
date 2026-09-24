@@ -1,4 +1,4 @@
-import { mkdtemp, rm, writeFile } from 'node:fs/promises';
+import { mkdtemp, readFile, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -9,6 +9,7 @@ import { parse } from 'yaml';
 import { isPlanMaterial, planAdoption } from '../../src/application/plan-adoption.js';
 import { inspectRepository } from '../../src/application/inspect-repository.js';
 import type { AdoptionDocumentInput, AdoptionInput } from '../../src/domain/adoption.js';
+import { SUPPORTED_CAPABILITY_IDS } from '../../src/domain/capabilities.js';
 
 const fixtureRoot = fileURLToPath(new URL('../fixtures/inspection/', import.meta.url));
 const temporaryRoots: string[] = [];
@@ -190,6 +191,34 @@ describe('State A and State B adoption planning', () => {
         : undefined;
     expect(vcsQuestion?.options?.[0]).toBe('human-commit');
     expect(after.inventory.digest).toBe(before.inventory.digest);
+  });
+
+  it('advertises exactly the capabilities the schema accepts', async () => {
+    // The prompt is prose the engine hands an agent, and nothing tied it to the
+    // schema. It kept offering Concurrent Execution Blocks for two releases after
+    // 0.2 removed that capability, so the engine solicited a selection its own
+    // input schema rejects.
+    const schema = JSON.parse(
+      await readFile(
+        fileURLToPath(new URL('../../schemas/v1/adoption-input.schema.json', import.meta.url)),
+        'utf8',
+      ),
+    ) as { properties: { capabilities: { items: { enum: string[] } } } };
+    const accepted = schema.properties.capabilities.items.enum;
+    expect([...accepted].sort()).toEqual([...SUPPORTED_CAPABILITY_IDS].sort());
+
+    const result = await planAdoption(await temporaryRoot('pcp-capability-prompt-'));
+    const prompt =
+      'questions' in result
+        ? result.questions.find((question) => question.id === 'capability-selection')?.prompt
+        : undefined;
+    expect(prompt).toBeDefined();
+    // Read back the list the prompt actually offers, so an addition the schema
+    // does not accept fails as loudly as a removal it still advertises.
+    const offered = /by ID: ([^.]+)\./u.exec(prompt ?? '')?.[1];
+    expect(offered, 'the prompt lists its capabilities after "by ID: "').toBeDefined();
+    expect((offered ?? '').split(', ').sort()).toEqual([...accepted].sort());
+    expect(prompt).not.toMatch(/concurrent[- ]execution[- ]blocks?/iu);
   });
 
   it('emits grounded State B evidence inputs without inventing semantic content', async () => {

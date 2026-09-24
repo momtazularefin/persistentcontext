@@ -57,6 +57,36 @@ async function validateRegularFile(
     diagnostics.push({ code: `${code}.path`, path: portablePath, message: 'Path escapes root.' });
     return undefined;
   }
+  let parent = path.resolve(root);
+  for (const component of portablePath.split('/').slice(0, -1)) {
+    parent = path.join(parent, component);
+    try {
+      const metadata = await lstat(parent);
+      if (!metadata.isDirectory() || metadata.isSymbolicLink()) {
+        diagnostics.push({
+          code: `${code}.parent-type`,
+          path: portablePath,
+          message: `Adapter path crosses a non-directory or symbolic-link parent: ${component}.`,
+        });
+        return undefined;
+      }
+    } catch (error) {
+      if ((error as NodeJS.ErrnoException).code === 'ENOENT') {
+        diagnostics.push({
+          code: `${code}.read`,
+          path: portablePath,
+          message: `Adapter parent does not exist: ${component}.`,
+        });
+        return undefined;
+      }
+      diagnostics.push({
+        code: `${code}.parent-read`,
+        path: portablePath,
+        message: error instanceof Error ? error.message : String(error),
+      });
+      return undefined;
+    }
+  }
   try {
     const metadata = await lstat(target);
     if (!metadata.isFile() || metadata.isSymbolicLink()) {
