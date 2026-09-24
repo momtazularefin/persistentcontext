@@ -47,7 +47,7 @@ e1e86743e7010a4c8b150493d1efbfb50ba3aab34f30e50bc3e54fab99888c69  templates/core
 fde5765c27259796ea92cd97a4beab37c8a9cba969e363d38ee2cf9e8b027b42  templates/core/.pcp/operations/10-working-agreement.md
 cb36c33f6f4885977526e8e11e5c6572f7f80217fce82559e9a5cddc6c23654a  templates/core/.pcp/operations/20-plan.md
 4704705905a7eb06bfe4ae9d088e2df12a8fe49c1b6bbdfb47a7a63d61c82c63  templates/core/.pcp/operations/30-decisions.md
-c8ddb5f8943315854cd4f5be22197770fd7f15d4c79a4a482446eba99742af70  templates/core/.pcp/pcp.yaml
+76fe34767b4c2f71cf2a7c1c916a76fee58ba5c644fd99614c6438d3f7d76a32  templates/core/.pcp/pcp.yaml
 2f42ce15717117ecb6fc9954300d08d1bbe3ab252f7b002d18c1969c7a776009  templates/core/.pcp/projects/00-index.md
 96243aceb726cd814a161164c78bc8995a36c4529ea6fa5aa4f41ecdde0a7062  templates/core/.pcp/protocol/00-index.md
 cc3786d1704be0877feb1de9d28ab22721e0efaa254737ba29d883d4bff36ade  templates/core/.pcp/protocol/10-context-contract.md
@@ -71,7 +71,7 @@ c8fc3eb74d99203f7a05023682cf50fb0a025418c30eaa7cd183ecc2dcccbc8f  templates/core
 777fff192b3446969c6fb31cf981495dc3b6bcbb9a507aeef1b0490929cc4560  templates/core/.pcp/templates/10-project-record.md
 78aa5426b208e0caa362834922147d192d458ab38a27bc0cfddb5c03f1df8d85  templates/core/.pcp/templates/20-decision-record.md
 a167685ee8af5c145db2fa8e025d02187e2420f707d00de53638d3c6354f5c6f  templates/core/.pcp/tools/00-index.md
-aa79d8aea9f321e422c07f3f499f010c77f72e556637571336de7f27de99eb72  templates/core/.pcp/tools/pcp.mjs
-b875825fafa187aa633498b5a4647ac0fda57e51f8cb60312d694179f0fe7496  templates/core/.pcp/tools/pcp.sha256
+9f0cc7eacfde7026137c932730cda9f4bc123c3216cebbaf1ca3763d5782497d  templates/core/.pcp/tools/pcp.mjs
+728fdfcc2807bef4d105b061ce880e38dbd250fe95e5d3d90eb7cfae5ff51faf  templates/core/.pcp/tools/pcp.sha256
 0b988b9acb2676c0462ab0ce4baed703e82a4539218e6a46006d9d8f8e26907c  templates/core/.pcp/views/00-index.md
 f3532b1a01d560c19d73430cbc4f0ed74d3fe35ef9530407d4fa5be14afd6481  templates/core/.pcp/views/10-status.generated.md

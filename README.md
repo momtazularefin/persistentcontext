@@ -25,9 +25,11 @@ See [Getting started](docs/getting-started.md) for adoption, automatic adapter b
 
 ## Release status
 
-`0.3.2` is a prepared release candidate, not yet published. The update makes the Antigravity adapter an always-on workspace rule; before it, Antigravity never loaded that rule and received PCP only through the shared `AGENTS.md`.
+`0.3.3` is in development on `main` and is not yet released.
 
-[`0.3.1`](https://github.com/momtazularefin/persistentcontext/releases/tag/v0.3.1) is the latest published release. It is a patch on `0.3.0`: full validation no longer demands portability from immutable archived history, and running `upgrade` with an installed engine now names the real cause.
+[`0.3.2`](https://github.com/momtazularefin/persistentcontext/releases/tag/v0.3.2) is the latest published release. It makes the Antigravity adapter an always-on workspace rule; before it, Antigravity never loaded that rule and received PCP only through the shared `AGENTS.md`.
+
+[`0.3.1`](https://github.com/momtazularefin/persistentcontext/releases/tag/v0.3.1) is a patch on `0.3.0`: full validation no longer demands portability from immutable archived history, and running `upgrade` with an installed engine now names the real cause.
 
 [`0.3.0`](https://github.com/momtazularefin/persistentcontext/releases/tag/v0.3.0) stops the shared `AGENTS.md` adapter from telling every product that loads it to register as Codex, makes every ordering that decides identity or event recency independent of the host locale, resolves update discovery against the newest published release rather than the tip of `main`, and narrows the context a sync demands to what PCP governs. See the [changelog](CHANGELOG.md) for the full set.
 

@@ -2,7 +2,7 @@
 
 All notable public protocol changes are documented here from the first release candidate onward.
 
-## Unreleased — 0.3.2 — Antigravity always-on rule
+## 0.3.2 — 2026-09-24 — Antigravity always-on rule
 
 - Adapter validation now rejects a symlink or junction in any parent directory of a generated adapter. Previously a matching adapter file reached through an out-of-project parent could pass direct adapter validation; a regression test covers the boundary.
 - Public release status no longer treats a candidate manifest as proof of GitHub publication. The separate `release/latest-published.json` record identifies the latest confirmed published release, while the candidate manifest remains a source-content identity.

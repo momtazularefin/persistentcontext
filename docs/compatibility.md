@@ -1,6 +1,6 @@
 # Compatibility
 
-This matrix describes the implemented PCP `0.3.2` source contract. The latest published release is `0.3.1`; earlier releases differ where the [changelog](../CHANGELOG.md) says so. It separates verified repository behavior from product-runtime behavior and does not treat an instruction-file convention as certification of an entire editor, model, or mode.
+This matrix describes the PCP `0.3.2` contract, the latest published release; earlier releases differ where the [changelog](../CHANGELOG.md) says so. It separates verified repository behavior from product-runtime behavior and does not treat an instruction-file convention as certification of an entire editor, model, or mode.
 
 ## Runtime and operating systems
 

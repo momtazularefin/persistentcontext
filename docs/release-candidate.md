@@ -6,13 +6,13 @@ Ordering inside the manifest is by UTF-16 code unit, never by locale. ICU collat
 
 ## Which manifests exist
 
-| Manifest                                            | Identifies | Status                                                                         |
-| --------------------------------------------------- | ---------- | ------------------------------------------------------------------------------ |
-| [`release/0.1.0-rc.json`](../release/0.1.0-rc.json) | `v0.1.0`   | Historical release evidence.                                                   |
-| [`release/0.2.0-rc.json`](../release/0.2.0-rc.json) | `v0.2.0`   | Historical release evidence.                                                   |
-| [`release/0.3.0-rc.json`](../release/0.3.0-rc.json) | `v0.3.0`   | Historical release evidence.                                                   |
-| [`release/0.3.1-rc.json`](../release/0.3.1-rc.json) | `v0.3.1`   | Historical release evidence.                                                   |
-| [`release/0.3.2-rc.json`](../release/0.3.2-rc.json) | `v0.3.2`   | Local candidate; human commit, protected CI, tag, and publication are pending. |
+| Manifest                                            | Identifies | Status                                           |
+| --------------------------------------------------- | ---------- | ------------------------------------------------ |
+| [`release/0.1.0-rc.json`](../release/0.1.0-rc.json) | `v0.1.0`   | Historical release evidence.                     |
+| [`release/0.2.0-rc.json`](../release/0.2.0-rc.json) | `v0.2.0`   | Historical release evidence.                     |
+| [`release/0.3.0-rc.json`](../release/0.3.0-rc.json) | `v0.3.0`   | Historical release evidence.                     |
+| [`release/0.3.1-rc.json`](../release/0.3.1-rc.json) | `v0.3.1`   | Historical release evidence.                     |
+| [`release/0.3.2-rc.json`](../release/0.3.2-rc.json) | `v0.3.2`   | Frozen identity of the latest published release. |
 
 Before a release candidate is prepared, `main` may carry an unreleased development version with no matching manifest; `npm run verify:candidate` reports that and passes. Once a candidate manifest exists, the command verifies its exact source identity and fails on drift. Preparing a candidate is a deliberate release-boundary action, not a side effect of every development edit.
 
