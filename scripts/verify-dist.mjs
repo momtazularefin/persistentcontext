@@ -505,7 +505,7 @@ try {
         scopes: ['distribution'],
         workstreams: [],
         summary: 'Verified immutable event recording in the packaged engine.',
-        affected_paths: ['README.md'],
+        affected_paths: [join(adoptionCandidate, 'README.md'), '/opt/pcp-external/missing.md'],
       },
       null,
       2,
@@ -557,6 +557,18 @@ try {
     throw new Error(`Bundled pcp sync preview failed: ${syncPreview.stderr || syncPreview.stdout}`);
   }
   const syncPreviewResult = JSON.parse(syncPreview.stdout);
+  const recordedChange = syncPreviewResult.changes?.find(
+    (change) => change.event_id === recordingResult.event_id,
+  );
+  if (
+    JSON.stringify(recordedChange?.affected_paths) !==
+      JSON.stringify(['README.md', 'file:///opt/pcp-external/missing.md']) ||
+    syncPreviewResult.required_context_paths?.some((reference) => reference.startsWith('file:'))
+  ) {
+    throw new Error(
+      'Packaged path references did not normalize or leaked into required project context.',
+    );
+  }
   if (
     syncPreviewResult.mode !== 'preview' ||
     syncPreviewResult.checkpoint?.state !== 'missing' ||

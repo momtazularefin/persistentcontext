@@ -68,6 +68,26 @@ afterEach(async () => {
 });
 
 describe('pcp sync', () => {
+  it('delivers external references without requiring or reading them as project context', async () => {
+    const root = await createProject();
+    const actor = await registerActor(root, { client: 'codex', machine_label: 'path-test' });
+    const external = 'file:///opt/pcp-external/missing.md';
+    await writeEvent(root, actor.actor_id, eventIds[0], external, [
+      '.pcp/knowledge/10-overview.md',
+    ]);
+    const input = { actor_id: actor.actor_id, execution_id: actor.execution_id };
+    const preview = await synchronizeProject(root, input);
+    expect(preview.changes[0]?.affected_paths).toContain(external);
+    expect(preview.required_context_paths).toEqual([
+      '.pcp/00-index.md',
+      '.pcp/knowledge/10-overview.md',
+    ]);
+    expect(
+      (await synchronizeProject(root, { ...input, acknowledge: preview.sync_digest }))
+        .acknowledgement.accepted,
+    ).toBe(true);
+  });
+
   it('establishes one digest-bound execution baseline and has a concise no-change path', async () => {
     const root = await createProject();
     const registration = await registerActor(root, {

@@ -69,7 +69,7 @@
       "$ref": "#/$defs/rationale"
     },
     "affected_paths": {
-      "$ref": "urn:pcp:schema:v1:common#/$defs/pathArray"
+      "$ref": "urn:pcp:schema:v1:common#/$defs/pathReferenceArray"
     }
   },
   "anyOf": [

@@ -101,14 +101,14 @@ Codes such as `PCP_ADOPTION_LIVE_INVALID`, `PCP_ADOPTION_LIVE_MISMATCH`, `PCP_AD
 - If recovery is retained, leave it intact and preserve the candidate. `recovery_path` gives its absolute location on the current machine; a rare nested failure also includes `recovery_paths` with every retained location. Inspect the reported project state and validation diagnostics before any manual action.
 - If rollback verification failed, treat the project as requiring recovery from retained preimages, protected VCS, or an external backup. Do not rerun adoption over an unexplained partial state.
 
-When no recovery material remains, `recovery_path` is `null`. The path is ephemeral diagnostic output: do not copy it into canonical `.pcp/` documents, continuity events, fixtures, issues, or commits. Retained structural folders use a `pcp-transaction-*` prefix under the operating-system temporary directory; event and workstream transactions use `pcp-event-transaction-*` and `pcp-workstream-transaction-*`.
+When no recovery material remains, `recovery_path` is `null`. The path is ephemeral diagnostic output. If a durable record needs it, record an explicit external reference with its temporary purpose and review the location for private information before publishing. Retained structural folders use a `pcp-transaction-*` prefix under the operating-system temporary directory; event and workstream transactions use `pcp-event-transaction-*` and `pcp-workstream-transaction-*`.
 
 ## Canonical validation
 
 `pcp validate --json` returns path-specific diagnostics. Fix the canonical owner named by each diagnostic:
 
 - schema errors: correct the YAML record against its release schema;
-- `path.*`: replace absolute paths or file URIs with portable repository-relative references;
+- path and link errors require checking the field's role. Use relative paths for internal references and contained mutation targets, and a valid `file://` URI for an external absolute reference. Normalize an internal absolute link to the diagnostic's suggested relative target.
 - `secret.*`: remove and rotate real secrets, then audit VCS and logs;
 - `ownership.*`: correct the manifest or misplaced file rather than broadening ownership blindly;
 - `markdown.*`, `index.*`, or link errors: restore frontmatter, numbering, folder indexes, and root reachability;

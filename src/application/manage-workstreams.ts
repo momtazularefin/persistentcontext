@@ -14,6 +14,7 @@ import {
 } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
+import { normalizeInputPathReferences } from '../domain/input-path-references.js';
 
 import { parseDocument, stringify } from 'yaml';
 
@@ -171,6 +172,11 @@ async function loadWorkstreamInput(
     throw inputFailure(
       `Workstream input cannot be decoded safely: ${error instanceof Error ? error.message : String(error)}`,
     );
+  }
+  try {
+    value = normalizeInputPathReferences(value, projectRoot);
+  } catch (error) {
+    throw inputFailure(error instanceof Error ? error.message : String(error));
   }
   const validation = validateSchema('workstream-operation-input', value);
   if (!validation.valid) {

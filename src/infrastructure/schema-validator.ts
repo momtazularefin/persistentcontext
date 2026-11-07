@@ -1,5 +1,6 @@
 import { Ajv2020, type ErrorObject, type ValidateFunction } from 'ajv/dist/2020.js';
 import addFormatsModule, { type FormatsPlugin } from 'ajv-formats';
+import { parseFileReference } from '../domain/path-references.js';
 
 import {
   SCHEMA_CATALOG,
@@ -57,6 +58,17 @@ export class SchemaRegistry {
     });
     const addFormats = addFormatsModule as unknown as FormatsPlugin;
     addFormats(ajv);
+    ajv.addFormat('pcp-file-reference', {
+      type: 'string',
+      validate: (value: string) => {
+        try {
+          parseFileReference(value);
+          return true;
+        } catch {
+          return false;
+        }
+      },
+    });
 
     for (const schema of SUPPORTING_SCHEMAS) {
       ajv.addSchema(schema, schemaId(schema));

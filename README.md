@@ -25,7 +25,7 @@ See [Getting started](docs/getting-started.md) for adoption, automatic adapter b
 
 ## Release status
 
-`0.3.3` is in development on `main` and is not yet released.
+`0.4.0` is a prepared release candidate, not yet published. It adds explicit external path references while keeping project-internal references relative.
 
 [`0.3.2`](https://github.com/momtazularefin/persistentcontext/releases/tag/v0.3.2) is the latest published release. It makes the Antigravity adapter an always-on workspace rule; before it, Antigravity never loaded that rule and received PCP only through the shared `AGENTS.md`.
 

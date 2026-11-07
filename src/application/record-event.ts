@@ -31,6 +31,7 @@ import type { ActorProfile } from '../domain/registration.js';
 import { ContinuityLockError, withContinuityLock } from '../infrastructure/continuity-lock.js';
 import { validateSchema } from '../infrastructure/schema-validator.js';
 import { compareCodeUnits } from '../domain/ordering.js';
+import { normalizeInputPathReferences } from '../domain/input-path-references.js';
 
 const ACTIVE_EVENT_DIRECTORY = '.pcp/continuity/events';
 const ARCHIVE_EVENT_DIRECTORY = '.pcp/continuity/archive';
@@ -161,6 +162,11 @@ async function loadEventInput(inputPath: string, projectRoot: string): Promise<R
       `Event input cannot be decoded safely: ${error instanceof Error ? error.message : String(error)}`,
     );
   }
+  try {
+    value = normalizeInputPathReferences(value, projectRoot);
+  } catch (error) {
+    throw inputFailure(error instanceof Error ? error.message : String(error));
+  }
   const validation = validateSchema('event-input', value);
   if (!validation.valid) {
     const detail = validation.diagnostics
@@ -227,26 +233,6 @@ async function loadSemanticRecords(root: string): Promise<{
   };
 }
 
-/**
- * Collapses the spellings of one repository path to a single recorded form.
- *
- * The path schema accepts `docs`, `./docs`, and `docs/` alike, and `uniqueItems`
- * cannot see that they name the same thing. Left alone, one event lists a
- * directory twice and every later reader treats the duplicates as two places to
- * look. Normalizing at the recording boundary keeps already-recorded events
- * valid while making new ones unambiguous.
- */
-function normalizeRelativePath(value: string): string {
-  let normalized = value.trim();
-  while (normalized.startsWith('./')) normalized = normalized.slice(2);
-  while (normalized.endsWith('/')) normalized = normalized.slice(0, -1);
-  return normalized.length === 0 ? value.trim() : normalized;
-}
-
-function normalizedAffectedPaths(paths: readonly string[]): string[] {
-  return [...new Set(paths.map(normalizeRelativePath))].sort(compareCodeUnits);
-}
-
 function normalizeEventInput(input: RecordEventInput, eventId: string): ContinuityEvent {
   const payload = {
     schema_version: 1,
@@ -261,7 +247,7 @@ function normalizeEventInput(input: RecordEventInput, eventId: string): Continui
     workstreams: [...input.workstreams].sort(compareCodeUnits),
     summary: input.summary.trim(),
     ...(input.rationale === undefined ? {} : { rationale: input.rationale.trim() }),
-    affected_paths: normalizedAffectedPaths(input.affected_paths),
+    affected_paths: [...new Set(input.affected_paths)].sort(compareCodeUnits),
   } satisfies Omit<ContinuityEvent, 'payload_digest'>;
   return { ...payload, payload_digest: eventPayloadDigest(payload) };
 }

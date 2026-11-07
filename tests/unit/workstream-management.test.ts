@@ -173,6 +173,22 @@ afterEach(async () => {
 });
 
 describe('workstream management', () => {
+  it('normalizes internal absolute and external work-label references', async () => {
+    const root = await createProject();
+    const actor = await registerActor(root, { client: 'codex', machine_label: 'path-test' });
+    const preview = await validateWorkstreamRegistry(root);
+    const state = workstream('external-review', {
+      paths: [path.join(root, 'src'), 'src/', '/opt/pcp-external/review'],
+    });
+    const inputPath = await writeInput(createInput(actor.actor_id, preview.registry_digest, state));
+    await mutateWorkstream(root, 'create', inputPath);
+    const registry = parse(
+      await readFile(path.join(root, '.pcp/state/workstreams.yaml'), 'utf8'),
+    ) as WorkstreamRegistry;
+    expect(registry.workstreams[0]?.paths).toEqual(['file:///opt/pcp-external/review', 'src']);
+    expect((await validateCanonicalLayer(root)).valid).toBe(true);
+  });
+
   it('validates without mutation and returns the exact registry digest', async () => {
     const root = await createProject();
     const before = await projectSnapshot(root);

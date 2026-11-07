@@ -35,7 +35,7 @@ Generated project documentation is only as good as the context available when it
 
 ## What the earlier template got right, and what changed
 
-PCP grew from a portable repository-context template that established the durable ideas: the repository outranks agent memory, exploration is read-only before it is authoritative, knowledge lives in numbered discoverable documents, paths stay relative, and every agent registers before it acts. Those survive in PCP, generalized.
+PCP grew from a portable repository-context template that established durable ideas around repository authority, read-only exploration before adoption, numbered discoverable knowledge, relative paths, and actor registration. PCP preserves those principles with relative internal paths and explicit external absolute references where needed.
 
 Two mechanisms deliberately did not survive, and the distinction matters when reading older material:
 

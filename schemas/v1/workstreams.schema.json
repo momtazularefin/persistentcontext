@@ -36,7 +36,7 @@
           "enum": ["planned", "active", "blocked", "complete", "cancelled"]
         },
         "paths": {
-          "$ref": "urn:pcp:schema:v1:common#/$defs/pathArray"
+          "$ref": "urn:pcp:schema:v1:common#/$defs/pathReferenceArray"
         },
         "areas": {
           "$ref": "urn:pcp:schema:v1:common#/$defs/slugArray"

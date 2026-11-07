@@ -26,7 +26,9 @@ VCS signing, branch protection, operating-system permissions, backups, credentia
 - Inventory honors ignore rules and nested repository boundaries.
 - PCP records symlinks and junctions but never follows them during inventory or adoption planning.
 - Direct adapter validation rejects a symbolic link or junction at the adapter leaf or any parent directory, so an adapter reached through an out-of-project parent cannot pass as a regular in-project file.
-- Canonical paths must be repository-relative, use forward slashes, avoid traversal, and avoid Windows-reserved or forbidden names.
+- Project-internal references use repository-relative forward-slash paths. Reference inputs normalize an absolute location inside the project to that relative form. External absolute references use explicit `file://` URIs and may name Windows drives, UNC shares, or POSIX locations.
+- Canonical document identities, generated source paths, documentation roots, and mutation destinations remain contained project-relative paths. Mutation names also avoid Windows-reserved or forbidden names.
+- Validation and synchronization do not inspect, fetch, or require the availability of an external reference. A reference records a location and grants no permission to read or modify it.
 - Adoption, event, and workstream inputs must be regular non-symlink files within their size limits.
 - Mutation targets that cross a symlink, nested repository, ignored runtime boundary, or candidate root are rejected.
 - Unknown files remain preserved until a reviewed plan explicitly resolves ownership.
@@ -49,7 +51,7 @@ Structural adoption, repair, upgrade, and explicitly confirmed PCP history purge
 11. live canonical and adapter validation; and
 12. reverse exact rollback after any caught failure.
 
-Recovery evidence is retained when rollback or cleanup cannot be proven. Temporary recovery material is removed only after successful live acceptance. Structured mutation failures expose the absolute local `recovery_path` (and `recovery_paths` when nested transactions retain more than one location) only as ephemeral diagnostic output; machine-specific paths are never persisted in canonical state or continuity events.
+Recovery evidence is retained when rollback or cleanup cannot be proven. Temporary recovery material is removed only after successful live acceptance. Structured mutation failures expose the absolute local `recovery_path` (and `recovery_paths` when nested transactions retain more than one location) as ephemeral diagnostic output. Keep recovery material in its reported location until recovery succeeds. When a durable record needs that location, use an explicit external reference and explain its temporary, machine-specific purpose.
 
 An update request authorizes only read-only canonical-source version discovery until the usual upgrade digest is separately approved. After a completed upgrade, history purge requires a new, explicit human choice and its own preview digest. Silence or ambiguous agreement is not confirmation. Purge cannot target current project or protocol truth and does not rewrite Git history.
 
@@ -69,7 +71,7 @@ These digests provide integrity and stale-write evidence. They are not digital s
 
 PCP canonical state must not contain credentials, tokens, private keys, secret values, raw environment files, or private platform identifiers. Record only that a non-secret dependency or credential is required.
 
-Canonical validation detects several high-risk patterns, including private-key blocks, AWS access-key IDs, GitHub tokens, OpenAI-style keys, and common secret assignments. Adoption rejects the same classes in scaffold content. Canonical validation also rejects machine-specific absolute paths and `file://` URIs.
+Canonical validation detects several high-risk patterns, including private-key blocks, AWS access-key IDs, GitHub tokens, OpenAI-style keys, and common secret assignments. Adoption rejects the same classes in scaffold content. Free text may quote absolute paths, and structured external references may use `file://` URIs. These permissions preserve the secret checks. Review external references for private filenames and account details before publishing project context.
 
 The public repository runs a separate private-data scan across source, examples, packaged assets, and generated distribution content. That scan protects this project's publication boundary; it is not a general-purpose secret scanner for arbitrary adopted repositories. Pattern matching can have false negatives and false positives. Use a dedicated secret scanner, hosting protections, and credential rotation as independent controls.
 

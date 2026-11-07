@@ -90,7 +90,7 @@ capabilities:
   - id: naming-portability-and-safety
     source: portable-reference-layer
     outcome: preserved
-    pcp: Canonical files use portable relative paths and exclude secrets and machine-specific state.
+    pcp: Internal references use relative paths, external absolute references use explicit file URIs, and canonical files exclude secrets.
     evidence:
       {
         path: templates/core/.pcp/protocol/50-portability-and-safety.md,
