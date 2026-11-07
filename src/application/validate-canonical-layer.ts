@@ -1,6 +1,7 @@
 import { createHash } from 'node:crypto';
 import { lstat, readdir, readFile, stat } from 'node:fs/promises';
 import path from 'node:path';
+import { isFileReference, normalizePathReference } from '../domain/path-references.js';
 
 import { parseDocument } from 'yaml';
 
@@ -77,8 +78,6 @@ const REQUIRED_CANONICAL_PATHS = [
   'views/00-index.md',
 ] as const;
 const TEXT_FILE_PATTERN = /(?:\.md|\.ya?ml|\.json|\.mjs|\.js|\.ts|\.txt|\.gitignore)$/i;
-const WINDOWS_ABSOLUTE_PATH = /\b[A-Za-z]:[\\/][^\s`"'<>]+/;
-const FILE_URI = /^file:\/\//i;
 const SECRET_PATTERNS: Array<[string, RegExp]> = [
   ['secret.private-key', /-----BEGIN (?:RSA |OPENSSH |EC |DSA |PGP )?PRIVATE KEY-----/],
   ['secret.aws-access-key', /\bAKIA[0-9A-Z]{16}\b/],
@@ -221,6 +220,8 @@ async function validateMarkdownLinks(
   layerRoot: string,
   records: MarkdownRecord[],
   diagnostics: CanonicalDiagnostic[],
+  referenceRoot = projectRoot,
+  plannedPaths: readonly string[] = [],
 ): Promise<Map<string, Set<string>>> {
   const graph = new Map<string, Set<string>>();
   const canonicalMarkdown = new Set(records.map((record) => path.resolve(record.absolute_path)));
@@ -232,14 +233,26 @@ async function validateMarkdownLinks(
       const diagnosticPath = `${record.relative_path}:${link.line}`;
       const rawTarget = link.target;
       if (rawTarget.startsWith('#')) continue;
-      if (FILE_URI.test(rawTarget)) {
-        diagnostics.push(issue('link.file-uri', diagnosticPath, 'file:// links are not portable.'));
-        continue;
-      }
-      if (WINDOWS_ABSOLUTE_PATH.test(rawTarget) || rawTarget.startsWith('/')) {
-        diagnostics.push(
-          issue('link.absolute', diagnosticPath, `Link must be repository-relative: ${rawTarget}`),
-        );
+      if (isFileReference(rawTarget) || /^(?:[A-Za-z]:[\\/]|\/|\\\\)/.test(rawTarget)) {
+        try {
+          const reference = normalizePathReference(projectRoot, rawTarget);
+          if (isFileReference(rawTarget) && isFileReference(reference)) continue;
+          const replacement = isFileReference(reference)
+            ? reference
+            : path.posix.relative(path.posix.dirname(`.pcp/${record.relative_path}`), reference) ||
+              '.';
+          diagnostics.push(
+            issue('link.absolute', diagnosticPath, `Use the normalized reference: ${replacement}`),
+          );
+        } catch (error) {
+          diagnostics.push(
+            issue(
+              'link.invalid-file-reference',
+              diagnosticPath,
+              error instanceof Error ? error.message : String(error),
+            ),
+          );
+        }
         continue;
       }
       if (rawTarget.includes('\\')) {
@@ -283,7 +296,18 @@ async function validateMarkdownLinks(
         continue;
       }
       try {
-        await stat(target);
+        const projectPath = path.relative(projectRoot, target).replaceAll(path.sep, '/');
+        if (
+          !isInside(layerRoot, target) &&
+          plannedPaths.some(
+            (planned) => planned === projectPath || planned.startsWith(`${projectPath}/`),
+          )
+        )
+          continue;
+        const availableTarget = !isInside(layerRoot, target)
+          ? path.resolve(referenceRoot, path.relative(projectRoot, target))
+          : target;
+        await stat(availableTarget);
       } catch {
         diagnostics.push(
           issue('link.missing', diagnosticPath, `Link target does not exist: ${rawTarget}`),
@@ -396,28 +420,31 @@ function validateMarkdownStructure(
   }
 }
 
-function validatePortableYamlStrings(
+function validateYamlReferences(
   value: unknown,
   relativePath: string,
+  projectRoot: string,
   diagnostics: CanonicalDiagnostic[],
   pointer = '',
+  referenceArray = false,
 ): void {
-  if (typeof value === 'string') {
-    if (WINDOWS_ABSOLUTE_PATH.test(value) || /^\/(?:Users|home|etc|var|tmp)\//.test(value)) {
+  if (typeof value === 'string' && referenceArray && isFileReference(value)) {
+    try {
+      const normalized = normalizePathReference(projectRoot, value);
+      if (normalized !== value)
+        diagnostics.push(
+          issue(
+            'path.noncanonical-reference',
+            `${relativePath}#${pointer}`,
+            `Use the normalized reference: ${normalized}`,
+          ),
+        );
+    } catch (error) {
       diagnostics.push(
         issue(
-          'path.absolute',
-          `${relativePath}#${pointer || '/'}`,
-          'Canonical YAML contains an absolute path.',
-        ),
-      );
-    }
-    if (FILE_URI.test(value)) {
-      diagnostics.push(
-        issue(
-          'path.file-uri',
-          `${relativePath}#${pointer || '/'}`,
-          'Canonical YAML contains a file:// URI.',
+          'path.invalid-reference',
+          `${relativePath}#${pointer}`,
+          error instanceof Error ? error.message : String(error),
         ),
       );
     }
@@ -425,29 +452,36 @@ function validatePortableYamlStrings(
   }
   if (Array.isArray(value)) {
     value.forEach((item, index) => {
-      validatePortableYamlStrings(item, relativePath, diagnostics, `${pointer}/${index}`);
+      validateYamlReferences(
+        item,
+        relativePath,
+        projectRoot,
+        diagnostics,
+        `${pointer}/${index}`,
+        referenceArray,
+      );
     });
     return;
   }
   const object = objectValue(value);
   if (object !== undefined) {
     for (const [key, item] of Object.entries(object)) {
-      validatePortableYamlStrings(item, relativePath, diagnostics, `${pointer}/${key}`);
+      validateYamlReferences(
+        item,
+        relativePath,
+        projectRoot,
+        diagnostics,
+        `${pointer}/${key}`,
+        ['affected_paths', 'related_paths', 'paths'].includes(key),
+      );
     }
   }
 }
 
 /**
- * Archived events are immutable history, so portability is not enforced on them.
- *
- * Portability rules exist so that current context works on any machine. Every
- * event is checked in full while it is active: `record` validates the live layer
- * before committing, and an event reaches the archive only by rotating out of the
- * active window. Exempting the archive therefore admits nothing new. What it does
- * is stop full validation from demanding an edit that immutability forbids. An
- * event admitted under a weaker engine could otherwise never be fixed, leaving
- * only a history purge or an edit to the archive or engine as ways out. Integrity,
- * schema, and secret checks still apply to archived events.
+ * Archived events retain their historical reference spellings. Current
+ * normalization rules must not require rewriting immutable payloads. Schema,
+ * integrity, attribution, and secret checks still apply in a full archive audit.
  */
 function isArchivedEvent(relativePath: string): boolean {
   return /^continuity\/archive\/[^/]+\.yaml$/u.test(relativePath);
@@ -458,15 +492,6 @@ function validateTextSafety(
   contents: string,
   diagnostics: CanonicalDiagnostic[],
 ): void {
-  if (!isArchivedEvent(relativePath) && WINDOWS_ABSOLUTE_PATH.test(contents)) {
-    diagnostics.push(
-      issue(
-        'path.absolute-text',
-        relativePath,
-        'Canonical content contains a machine-specific drive path.',
-      ),
-    );
-  }
   for (const [code, pattern] of SECRET_PATTERNS) {
     if (pattern.test(contents)) {
       diagnostics.push(
@@ -676,6 +701,7 @@ async function validateProjectDocumentation(
       );
     }
     for (const relatedPath of stringArray(entry.related_paths) ?? []) {
+      if (isFileReference(relatedPath)) continue;
       try {
         await lstat(path.join(projectRoot, ...relatedPath.split('/')));
       } catch {
@@ -796,7 +822,7 @@ export async function validateCanonicalLayer(
       continue;
     }
     if (!isArchivedEvent(file.relative_path)) {
-      validatePortableYamlStrings(value, file.relative_path, diagnostics);
+      validateYamlReferences(value, file.relative_path, resolvedProjectRoot, diagnostics);
     }
     const result = schemaRegistry.validate(schema, value);
     if (!result.valid) {
@@ -860,6 +886,8 @@ export async function validateCanonicalLayer(
     layerRoot,
     markdownRecords,
     diagnostics,
+    options.project_reference_root,
+    options.planned_project_paths,
   );
   validateMarkdownStructure(layerRoot, markdownRecords, graph, diagnostics);
 

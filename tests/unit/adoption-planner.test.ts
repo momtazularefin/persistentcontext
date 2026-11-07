@@ -166,6 +166,39 @@ async function writeInput(value: AdoptionInput): Promise<string> {
 }
 
 describe('State A and State B adoption planning', () => {
+  it('binds normalized external references into the adoption plan without opening them', async () => {
+    const candidate = path.join(fixtureRoot, 'conventional');
+    const input = adoptionInput({ projectType: 'software', evidencePath: 'package.json' });
+    for (const document of input.documents)
+      document.evidence_paths.push('/opt/pcp-external/manual.md');
+    input.documentation.documents[0]!.related_paths.push('/opt/pcp-external/manual.md');
+    const absolute = structuredClone(input);
+    for (const document of absolute.documents)
+      document.evidence_paths[0] = path.join(candidate, 'package.json');
+    input.documents[0]!.body += '\n[Package](../../package.json)\n';
+    absolute.documents[0]!.body += `\n[Package](${path.join(candidate, 'package.json')})\n`;
+    const left = await planAdoption(candidate, await writeInput(input));
+    const right = await planAdoption(candidate, await writeInput(absolute));
+    if (!isPlanMaterial(left) || !isPlanMaterial(right))
+      throw new Error('Expected adoption plans.');
+    expect(left.preview.plan.plan_digest).toBe(right.preview.plan.plan_digest);
+    const plannedOutcome = structuredClone(input);
+    plannedOutcome.documents[0]!.body += `\n[Outcome](${path.join(candidate, 'docs/README.md')})\n`;
+    expect(isPlanMaterial(await planAdoption(candidate, await writeInput(plannedOutcome)))).toBe(
+      true,
+    );
+    plannedOutcome.documents[0]!.body += `\n[Missing](${path.join(candidate, 'docs/missing.md')})\n`;
+    await expect(planAdoption(candidate, await writeInput(plannedOutcome))).rejects.toMatchObject({
+      code: 'PCP_ADOPTION_STAGE_INVALID',
+    });
+    const externalOnly = structuredClone(input);
+    for (const document of externalOnly.documents)
+      document.evidence_paths = ['/opt/pcp-external/manual.md'];
+    await expect(planAdoption(candidate, await writeInput(externalOnly))).rejects.toMatchObject({
+      code: 'PCP_ADOPTION_INPUT_INVALID',
+    });
+  });
+
   it('returns structured indispensable questions for an empty State A candidate', async () => {
     const candidate = await temporaryRoot('pcp-empty-seed-');
     const before = await inspectRepository(candidate);

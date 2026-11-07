@@ -1,6 +1,7 @@
 import { randomUUID } from 'node:crypto';
 import { lstat, mkdir, open, readFile, readdir, rename, unlink } from 'node:fs/promises';
 import path from 'node:path';
+import { isFileReference } from '../domain/path-references.js';
 
 import { parse, stringify } from 'yaml';
 
@@ -338,6 +339,7 @@ async function loadDocumentPaths(layerRoot: string): Promise<Set<string>> {
  * reader can judge whether the change is relevant to the task in hand.
  */
 function isContextPath(candidate: string, documentPaths: ReadonlySet<string>): boolean {
+  if (isFileReference(candidate)) return false;
   return candidate === '.pcp' || candidate.startsWith('.pcp/') || documentPaths.has(candidate);
 }
 

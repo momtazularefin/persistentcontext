@@ -1,4 +1,37 @@
 import { parse } from 'yaml';
+import path from 'node:path';
+import { isFileReference, normalizePathReference } from '../domain/path-references.js';
+
+// Support angle-bracket destinations and the balanced parentheses commonly
+// found in installed tool directories, as well as ordinary inline links.
+const LINK_DESTINATION = /(!?\[[^\]]*\]\()(<[^>\r\n]*>|(?:[^()\r\n]|\([^()\r\n]*\))+)(\))/g;
+
+function unwrappedTarget(target: string): string {
+  const trimmed = target.trim();
+  return trimmed.startsWith('<') && trimmed.endsWith('>') ? trimmed.slice(1, -1) : trimmed;
+}
+
+export function normalizeMarkdownPathReferences(
+  contents: string,
+  projectRoot: string,
+  documentPath: string,
+): string {
+  return contents.replace(
+    LINK_DESTINATION,
+    (match: string, prefix: string, target: string, suffix: string) => {
+      const reference = unwrappedTarget(target);
+      if (!isFileReference(reference) && !/^(?:[A-Za-z]:[\\/]|\/|\\\\)/.test(reference))
+        return match;
+      const normalized = normalizePathReference(projectRoot, reference);
+      const replacement = isFileReference(normalized)
+        ? normalized
+        : encodeURI(path.posix.relative(path.posix.dirname(documentPath), normalized) || '.')
+            .replaceAll('#', '%23')
+            .replaceAll('?', '%3F');
+      return `${prefix}${replacement.replaceAll('(', '%28').replaceAll(')', '%29')}${suffix}`;
+    },
+  );
+}
 
 export interface MarkdownLink {
   target: string;
@@ -22,9 +55,8 @@ export function parseCanonicalMarkdown(contents: string): ParsedCanonicalMarkdow
   }
 
   const links: MarkdownLink[] = [];
-  const expression = /!?\[[^\]]*\]\(([^)]+)\)/g;
-  for (const link of contents.matchAll(expression)) {
-    const target = link[1]?.trim();
+  for (const link of contents.matchAll(LINK_DESTINATION)) {
+    const target = link[2] === undefined ? undefined : unwrappedTarget(link[2]);
     if (target !== undefined && target.length > 0) {
       links.push({ target, line: lineNumber(contents, link.index) });
     }

@@ -59,6 +59,18 @@ Update discovery resolves the canonical repository's newest published GitHub rel
 
 History reset is an independent lifecycle transaction. With separate explicit human confirmation and digest approval it can remove actor profiles, active and archived events, checkpoints, and identity caches. Current documents remain authoritative, so the operation preserves all protocol, project, outcome, source, policy, and Git history bytes outside those exact continuity targets.
 
+## Relative and absolute references
+
+PCP stores project-internal references as forward-slash paths relative to the project root. Event `affected_paths`, workstream `paths`, documentation `related_paths`, and adoption `evidence_paths` accept absolute input and normalize it before recording or computing a plan digest. An absolute location inside the project becomes relative. A location outside it becomes an explicit `file://` URI, covering Windows drives, UNC shares, and POSIX paths.
+
+Canonical Markdown links use paths relative to the containing document for internal targets. An internal absolute link receives a diagnostic with its relative replacement. External file references remain visible without becoming graph edges or required synchronization context. Validation and synchronization do not read external files or require them to exist on the current machine. Agents evaluate access under the project's ordinary authority before following a reference.
+
+For example, `src/server.ts` is internal, `file:///opt/shared/manual.md` is an external POSIX location, `file:///R:/shared/manual.md` names a Windows drive, and `file://build-host/shared/manual.md` names a UNC share. Encode spaces, `#`, and other filename delimiters in URI form. Ambiguous drive-relative paths and file URIs with queries, fragments, credentials, or encoded separators are rejected. A localhost UNC alias needs an explicit machine hostname or drive location.
+
+Adoption also normalizes absolute links in newly supplied document bodies before staging and digest generation. A repository-grounded baseline must still cite at least one inventoried internal evidence path, even when it includes external supporting references.
+
+Free text may describe or quote absolute locations. Canonical document identities, generated source and digest inputs, documentation roots, and mutation destinations retain their contained relative-path contracts. The documentation registry continues to catalog ordinary documents owned by the project, with external supporting locations recorded in `related_paths` or prose. Existing relative-only installations retain their representations during an upgrade.
+
 ## Predictable durable identity
 
 New durable IDs use `<actor-label>-<machine-label>-<10-character-Crockford-suffix>`. The actor label is the app name: `antigravity`, `codex`, `claude`, `copilot`, or `cursor`; humans use `human`, and a PCP-unknown app chooses one lowercase word. The machine label comes from the system `hostname` value and is normalized to lowercase kebab-case by registration rather than supplied as a descriptive alias. Only the collision-resistant suffix is generated, once, without a shared counter.

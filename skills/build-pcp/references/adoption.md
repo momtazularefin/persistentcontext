@@ -44,7 +44,7 @@ Create a temporary YAML or JSON document outside the candidate that validates ag
 
 - the baseline timestamp, persistence profile, explicit supported capability selection (an empty array means core only), schema-valid primary project state, grounded related-project registry and workstreams, complete project-documentation registry, and explicit VCS policy;
 - exactly the five agent-operational knowledge documents and three operations documents named by the schema;
-- each document's canonical type/status, evidence basis, cited candidate-relative paths, and grounded Markdown body;
+- each document's canonical type/status, evidence basis, cited paths, and grounded Markdown body. Internal evidence paths are candidate-relative, while external absolute supporting locations use explicit `file://` references;
 - every surviving ordinary project document in `documentation.documents`, with its path, owning project, `outcome` or `reference` category, maintenance status, concise summary, and related source/document paths;
 - each primary or related project must record one external `documentation_root` and whether it was selected from an `existing` directory or the `default` `docs/` directory; outcome documents must stay under that root while reference documents such as a root README may remain elsewhere;
 - project-outcome documents to create in `outcome_documents`; State A and any adoption that must establish the default `docs/` root require at least one, while an existing documentation root may reuse its present documents without inventing a new one;
@@ -56,6 +56,8 @@ Create a temporary YAML or JSON document outside the candidate that validates ag
 Use `tracked` unless the candidate's existing ignore policy already covers the complete `.pcp/` layer. The engine rejects a `local` persistence claim that is not actually ignored and rejects tracked adoption into an ignored canonical path.
 
 Use `repository` or `repository-and-user` only with cited paths from the engine inventory. Every State B knowledge document must use one of those repository-grounded bases. Use `user` for explicit current direction and `not-applicable` only when the document says why. Preserve uncertainty; never fill a baseline with guesses or template placeholders.
+
+Reference inputs normalize absolute paths inside the candidate to relative forward-slash paths and external absolute locations to `file://` URIs. External references are supporting locators whose content the engine does not inspect. Repository-grounded documents still require inventoried project evidence. Preserve the project-relative contracts for canonical document identities, documentation roots, scaffold and outcome destinations, coverage targets, and generated sources. Free text may quote an absolute location when its exact value matters.
 
 The inspection result reports documentation candidates, document paths, and a recommended root. Treat that recommendation as evidence, not a filename shortcut: prefer a dedicated established documentation directory that actually contains project documentation. If none exists, set the primary project's root to `docs`, mark it `default`, create an initial useful outcome document there, and include that new path in both `outcome_documents` and `documentation.documents`. The registry must exactly cover all ordinary project documents that survive the projected plan, including root READMEs and capability-created documents. It tracks paths and maintenance cues; it does not relocate ordinary documentation by itself.
 

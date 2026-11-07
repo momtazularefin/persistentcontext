@@ -31,6 +31,7 @@ Load only the references required for the requested lifecycle operation.
 - Use the engine for inventory, hashes, schemas, path boundaries, normalized plans, locks, transactions, rendering, and mechanical validation.
 - Keep agent-operational knowledge in `.pcp/knowledge/**`. Keep project-outcome knowledge in the project's configured external documentation root, reusing an established documentation folder or defaulting to `<project-root>/docs/`.
 - Catalog every ordinary project document in `.pcp/state/documentation.yaml` so agents can find and maintain relevant documentation without moving it into `.pcp/`. Preserve unrelated source, deployment, data, documentation, and assets unless the reviewed plan explicitly creates or translates project-outcome documentation.
+- Keep internal references relative to the project, and use explicit `file://` references for external absolute locations when needed. Reference-input normalization converts internal absolute paths to relative paths. Free text may quote absolute locations. Keep document identities, generated source paths, documentation roots, and mutation targets contained and relative. Validation and sync do not access external references or grant authority to follow them.
 - Treat current explicit user direction and verifiable project state as stronger than stale foreign context.
 
 ## Apply the lifecycle guardrails
@@ -51,4 +52,4 @@ All declared commands are available. Adoption, repair, upgrade, and history purg
 
 ## Report evidence
 
-Summarize the detected state, plan digest, validation result, clean-genesis counts when adopting, and any retained limitation. Do not expose secrets, private context, preimages, or local machine paths.
+Summarize the detected state, plan digest, validation result, clean-genesis counts when adopting, and any retained limitation. Exclude secrets, private context, and preimages from public reports. Share a local path only when the task requires its location, and review external references before publication.

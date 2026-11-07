@@ -10,7 +10,7 @@ const projectRoot = new URL('../../', import.meta.url);
 describe('release identity', () => {
   it('uses the locked public identity', () => {
     expect(PCP_NAME).toBe('Persistent Context Protocol');
-    expect(PCP_RELEASE_STAGE).toBe('deterministic-identity');
+    expect(PCP_RELEASE_STAGE).toBe('explicit-path-references');
     expect(PCP_VERSION).toMatch(/^\d+\.\d+\.\d+(?:-[0-9A-Za-z.-]+)?$/u);
   });
 

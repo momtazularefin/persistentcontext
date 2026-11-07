@@ -1,6 +1,9 @@
 import { lstat, mkdir, mkdtemp, readFile, readdir, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
+import { normalizeInputPathReferences } from '../domain/input-path-references.js';
+import { isFileReference } from '../domain/path-references.js';
+import { normalizeMarkdownPathReferences } from '../infrastructure/canonical-markdown.js';
 
 import { parse, parseDocument, stringify } from 'yaml';
 
@@ -295,10 +298,36 @@ async function loadAdoptionInput(inputPath: string, candidateRoot: string): Prom
       `Invalid adoption input YAML: ${document.errors.map((error) => error.message).join('; ')}`,
     );
   }
-  const value: unknown = document.toJS({ mapAsMap: false });
+  let value: unknown = document.toJS({ mapAsMap: false });
+  try {
+    value = normalizeInputPathReferences(value, candidateRoot);
+  } catch (error) {
+    throw new AdoptionError(
+      'PCP_ADOPTION_INPUT_INVALID',
+      error instanceof Error ? error.message : String(error),
+    );
+  }
   const validation = new SchemaRegistry().validate('adoption-input', value);
   if (!validation.valid) throw schemaFailure(validation.diagnostics);
-  return value as AdoptionInput;
+  const input = value as AdoptionInput;
+  try {
+    for (const document of input.documents) {
+      document.body = normalizeMarkdownPathReferences(
+        document.body,
+        candidateRoot,
+        `.pcp/${document.path}`,
+      );
+    }
+    for (const document of input.outcome_documents) {
+      document.body = normalizeMarkdownPathReferences(document.body, candidateRoot, document.path);
+    }
+  } catch (error) {
+    throw new AdoptionError(
+      'PCP_ADOPTION_INPUT_INVALID',
+      error instanceof Error ? error.message : String(error),
+    );
+  }
+  return input;
 }
 
 function validateDocumentSet(input: AdoptionInput, inspection: InspectionResult): void {
@@ -348,7 +377,7 @@ function validateDocumentSet(input: AdoptionInput, inspection: InspectionResult)
     }
     if (
       (document.basis === 'repository' || document.basis === 'repository-and-user') &&
-      document.evidence_paths.length === 0
+      !document.evidence_paths.some((reference) => !isFileReference(reference))
     ) {
       throw new AdoptionError(
         'PCP_ADOPTION_INPUT_INVALID',
@@ -367,6 +396,7 @@ function validateDocumentSet(input: AdoptionInput, inspection: InspectionResult)
       );
     }
     for (const evidencePath of document.evidence_paths) {
+      if (isFileReference(evidencePath)) continue;
       if (!availableEvidence.has(evidencePath)) {
         throw new AdoptionError(
           'PCP_ADOPTION_EVIDENCE_MISSING',
@@ -510,7 +540,7 @@ function validateOutcomeDocument(
   ]);
   if (
     (document.basis === 'repository' || document.basis === 'repository-and-user') &&
-    document.evidence_paths.length === 0
+    !document.evidence_paths.some((reference) => !isFileReference(reference))
   ) {
     throw new AdoptionError(
       'PCP_ADOPTION_INPUT_INVALID',
@@ -518,6 +548,7 @@ function validateOutcomeDocument(
     );
   }
   for (const evidencePath of document.evidence_paths) {
+    if (isFileReference(evidencePath)) continue;
     if (!availableEvidence.has(evidencePath)) {
       throw new AdoptionError(
         'PCP_ADOPTION_EVIDENCE_MISSING',
@@ -636,6 +667,7 @@ function validateDocumentationRegistry(
       );
     }
     for (const relatedPath of entry.related_paths) {
+      if (isFileReference(relatedPath)) continue;
       if (!futurePaths.has(relatedPath)) {
         throw new AdoptionError(
           'PCP_DOCUMENTATION_RELATED_PATH_MISSING',
@@ -869,6 +901,10 @@ async function stageCanonicalLayer(
     const validation = await validateCanonicalLayer(stageRoot, {
       clean_genesis: true,
       documentation_inventory: 'skip',
+      project_reference_root: root,
+      planned_project_paths: [...input.outcome_documents, ...input.scaffold_files].map(
+        (document) => document.path,
+      ),
     });
     if (!validation.valid) {
       throw new AdoptionError(

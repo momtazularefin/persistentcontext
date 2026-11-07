@@ -1,13 +1,14 @@
 import { appendFile, cp, mkdir, mkdtemp, readFile, rename, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
-import { fileURLToPath } from 'node:url';
+import { fileURLToPath, pathToFileURL } from 'node:url';
 
 import { parse, stringify } from 'yaml';
 import { monotonicFactory } from 'ulid';
 import { afterEach, describe, expect, it } from 'vitest';
 
 import { validateCanonicalLayer } from '../../src/application/validate-canonical-layer.js';
+import { renderCanonicalViews } from '../../src/application/render-canonical-views.js';
 import { eventPayloadDigest } from '../../src/domain/recording.js';
 import { canonicalSourceDigest } from '../../src/infrastructure/canonical-source-digest.js';
 
@@ -209,7 +210,7 @@ describe('installed canonical layer validation', () => {
     expect(diagnosticCodes(report)).toContain('capability.required-path');
   });
 
-  it('rejects machine paths, file URIs, and secret material', async () => {
+  it('accepts external references and quoted paths while still rejecting secret material', async () => {
     const root = await createProject();
     const privateFileUri = ['file:', '///C:/Users/example/private.md'].join('');
     await appendFile(
@@ -219,9 +220,63 @@ describe('installed canonical layer validation', () => {
     );
 
     const codes = diagnosticCodes(await validateCanonicalLayer(root));
-    expect(codes).toContain('link.file-uri');
-    expect(codes).toContain('path.absolute-text');
+    expect(codes).not.toContain('link.file-uri');
+    expect(codes).not.toContain('path.absolute-text');
     expect(codes).toContain('secret.github-token');
+  });
+
+  it('accepts unavailable external file references without checking their existence', async () => {
+    const root = await createProject();
+    await appendFile(
+      path.join(root, '.pcp/knowledge/10-overview.md'),
+      '\n[External manual](file:///opt/pcp-external/missing.md)\nQuoted command: `R:/external/tool run`.\n',
+    );
+    const registry = await readYamlObject(path.join(root, '.pcp/state/documentation.yaml'));
+    registry.documents = [
+      {
+        path: 'docs/manual.md',
+        project_id: 'pending-project',
+        category: 'outcome',
+        status: 'living',
+        summary: 'External dependency.',
+        related_paths: ['file:///opt/pcp-external/missing.md'],
+      },
+    ];
+    await writeFile(path.join(root, 'docs/manual.md'), '# Manual\n');
+    await writeYamlObject(path.join(root, '.pcp/state/documentation.yaml'), registry);
+    await renderCanonicalViews(root);
+    expect(await validateCanonicalLayer(root)).toMatchObject({ valid: true, diagnostics: [] });
+  });
+
+  it('requires internal absolute links and structured references to become relative', async () => {
+    const root = await createProject();
+    const internal = pathToFileURL(path.join(root, '.pcp/knowledge/20-architecture.md')).href;
+    await appendFile(
+      path.join(root, '.pcp/knowledge/10-overview.md'),
+      `\n[Architecture](${internal})\n`,
+    );
+    const report = await validateCanonicalLayer(root);
+    expect(report.diagnostics).toContainEqual(
+      expect.objectContaining({
+        code: 'link.absolute',
+        message: 'Use the normalized reference: 20-architecture.md',
+      }),
+    );
+  });
+
+  it('rejects malformed external links and keeps operational paths relative', async () => {
+    const root = await createProject();
+    await appendFile(
+      path.join(root, '.pcp/knowledge/10-overview.md'),
+      '\n[Invalid](file:///opt/a%2fb)\n',
+    );
+    const projectFile = path.join(root, '.pcp/state/project.yaml');
+    const project = await readYamlObject(projectFile);
+    project.documentation_root = 'file:///opt/pcp-external';
+    await writeYamlObject(projectFile, project);
+    const codes = diagnosticCodes(await validateCanonicalLayer(root));
+    expect(codes).toContain('link.invalid-file-reference');
+    expect(codes.some((code) => code.startsWith('schema.'))).toBe(true);
   });
 
   it('rejects duplicate project identities that are structurally different', async () => {

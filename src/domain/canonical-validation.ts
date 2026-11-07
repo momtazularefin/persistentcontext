@@ -18,6 +18,10 @@ export interface CanonicalValidationOptions {
   archive_content?: 'full' | 'filenames-only';
   legacy_upgrade_source?: '0.1';
   documentation_inventory?: 'full' | 'skip';
+  /** Candidate root supplying existing non-PCP links during an adoption preview. */
+  project_reference_root?: string;
+  /** Project-owned files that the reviewed adoption plan will create. */
+  planned_project_paths?: readonly string[];
   /**
    * How generated adapters are judged. `rendered` compares each adapter's bytes
    * with what the running engine renders. `structure` checks the adapter set,

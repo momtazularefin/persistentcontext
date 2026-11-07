@@ -73,6 +73,8 @@ Reported and observed events require a stable external `change_key`, such as `gi
 
 The command serializes writers, computes a payload digest, and validates live state. Keep at most 64 active events. Before accepting event 65, the same transaction moves the oldest 32 immutable records to the archive. Full explicit validation checks archived payloads; routine work does not.
 
+Event `affected_paths`, workstream `paths`, and documentation `related_paths` use relative forward-slash paths for project-internal locations. Reference inputs normalize an internal absolute path to relative form and an external absolute path to an explicit `file://` URI. Free text may quote absolute paths. Keep canonical document identities, generated source paths, documentation roots, and mutation targets within their relative-path contracts. Validation and sync do not read external references or require their availability. Follow an external reference only under the project's access authority.
+
 ## Rendering and validation
 
 ```text

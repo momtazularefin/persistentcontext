@@ -63,13 +63,6 @@ for (const path of await collectFiles(root)) {
       findings.push(`${projectPath}: contains private pattern ${pattern}`);
     }
   }
-
-  if (/[a-z]:\\(?:users|googledrive|data)\\/iu.test(content)) {
-    findings.push(`${projectPath}: contains a concrete Windows machine path`);
-  }
-  if (/file:\/\/\/[a-z]:/iu.test(content)) {
-    findings.push(`${projectPath}: contains an absolute file URI`);
-  }
 }
 
 if (findings.length > 0) {

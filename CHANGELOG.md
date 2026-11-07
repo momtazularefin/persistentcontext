@@ -2,6 +2,13 @@
 
 All notable public protocol changes are documented here from the first release candidate onward.
 
+## 0.4.0 — Unreleased — explicit external path references
+
+- Project-internal references remain relative forward-slash paths. Reference inputs normalize internal absolute paths to relative form and external absolute paths to explicit `file://` URIs, supporting Windows drive paths, UNC shares, and POSIX paths.
+- Event affected paths, workstream paths, documentation maintenance references, and adoption evidence can retain external locations. Markdown accepts external file references and diagnoses internal absolute links with a relative replacement.
+- Free text may quote absolute paths. Canonical validation retains secret detection while removing blanket path-pattern bans.
+- Canonical document identities, generated sources, documentation roots, and mutation destinations retain contained relative-path contracts. External references are carried without automatic access or availability checks during validation and synchronization.
+
 ## 0.3.2 — 2026-09-24 — Antigravity always-on rule
 
 - Adapter validation now rejects a symlink or junction in any parent directory of a generated adapter. Previously a matching adapter file reached through an out-of-project parent could pass direct adapter validation; a regression test covers the boundary.

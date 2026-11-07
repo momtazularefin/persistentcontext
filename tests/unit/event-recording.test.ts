@@ -191,7 +191,29 @@ describe('continuity event recording', () => {
     expect((await validateCanonicalLayer(root)).valid).toBe(true);
   });
 
-  it('keeps portability on active events but not on immutable archived history', async () => {
+  it('normalizes absolute affected paths before recording and hashing', async () => {
+    const root = await createProject();
+    const actor = await registerActor(root, { client: 'codex', machine_label: 'path-test' });
+    const inputPath = await writeInput(
+      eventInput(actor.actor_id, {
+        affected_paths: [
+          path.join(root, 'src/index.ts'),
+          'src/index.ts',
+          '/opt/pcp-external/reference.md',
+        ],
+        rationale: 'The external tool lives at R:/external/tool.',
+      }),
+    );
+    const result = await recordEvent(root, inputPath);
+    const event = parse(
+      await readFile(path.join(root, result.event_path), 'utf8'),
+    ) as ContinuityEvent;
+    expect(event.affected_paths).toEqual(['file:///opt/pcp-external/reference.md', 'src/index.ts']);
+    expect(event.payload_digest).toBe(result.payload_digest);
+    expect((await validateCanonicalLayer(root)).valid).toBe(true);
+  });
+
+  it('allows quoted absolute paths in active and archived events while retaining secret checks', async () => {
     // An event admitted under a weaker engine cannot be edited once archived. If
     // full validation still demanded portability from it, the layer could never
     // validate again without purging all history or editing the archive, which
@@ -252,10 +274,7 @@ describe('continuity event recording', () => {
     const activeActor = await registerActor(active, { client: 'codex', machine_label: 'c' });
     await writeEvent(active, 'events', archivedId, activeActor.actor_id, drivePath);
     const activeReport = await validateCanonicalLayer(active, { archive_content: 'full' });
-    expect(activeReport.valid).toBe(false);
-    expect(activeReport.diagnostics.map((diagnostic) => diagnostic.code)).toEqual(
-      expect.arrayContaining(['path.absolute-text']),
-    );
+    expect(activeReport.valid).toBe(true);
   });
 
   it('preserves human performance and agent attribution for a reported action', async () => {

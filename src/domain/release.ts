@@ -1,6 +1,6 @@
 export const PCP_NAME = 'Persistent Context Protocol';
-export const PCP_VERSION = '0.3.3';
-export const PCP_RELEASE_STAGE = 'deterministic-identity';
+export const PCP_VERSION = '0.4.0';
+export const PCP_RELEASE_STAGE = 'explicit-path-references';
 export const PCP_UPDATE_PROVIDER = 'github';
 export const PCP_UPDATE_REPOSITORY = 'momtazularefin/persistentcontext';
 export const PCP_UPDATE_CHANNEL = 'main';

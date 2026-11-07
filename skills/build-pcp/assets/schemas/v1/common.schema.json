@@ -48,6 +48,27 @@
       },
       "uniqueItems": true
     },
+    "pathReference": {
+      "oneOf": [
+        {
+          "allOf": [
+            { "$ref": "#/$defs/relativePath" },
+            { "type": "string", "pattern": "^(?![A-Za-z][A-Za-z0-9+.-]*:)" }
+          ]
+        },
+        {
+          "type": "string",
+          "maxLength": 4096,
+          "pattern": "^file://",
+          "format": "pcp-file-reference"
+        }
+      ]
+    },
+    "pathReferenceArray": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/pathReference" },
+      "uniqueItems": true
+    },
     "slugArray": {
       "type": "array",
       "items": {

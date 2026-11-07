@@ -2,8 +2,8 @@
 doc: protocol/40-documentation.md
 type: protocol
 status: static
-version: 1.0.0
-last_updated: 2026-07-12T13:10:00Z
+version: 1.1.0
+last_updated: 2026-11-07T00:00:00Z
 ownership: protocol
 ---
 
@@ -35,7 +35,7 @@ ownership: protocol
 - Keep facts concise, source-grounded, and owned by one canonical document.
 - Update living current state directly, then record a meaningful event when appropriate.
 - Re-cut a static knowledge snapshot explicitly; do not silently make it appear continuously current.
-- Use relative, resolvable links and keep every canonical document reachable from its folder index.
+- Use relative, resolvable links for internal targets and keep every canonical document reachable from its folder index. Use explicit `file://` references for external absolute locations under the portability contract.
 - Do not duplicate full source code, transcripts, secrets, or temporary reasoning in durable documentation.
 - Do not copy project-outcome research or specifications into `.pcp` merely to make them visible to agents; catalog and link the external document instead.
 
