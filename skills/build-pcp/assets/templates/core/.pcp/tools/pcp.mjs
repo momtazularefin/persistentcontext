@@ -19775,7 +19775,7 @@ function normalizePathReference(projectRoot, value) {
       return root.windows ? relative.replaceAll("\\", "/") : relative;
     }
   }
-  const uri = pathToFileURL(target.path, { windows: target.windows }).href;
+  const uri = target.windows && /^[A-Za-z]:\\$/u.test(target.path) ? `file:///${target.path[0]}:/` : pathToFileURL(target.path, { windows: target.windows }).href;
   if (target.windows && !parseFileReference(uri).windows) {
     throw new Error(
       "A localhost UNC reference requires an explicit machine hostname or drive path."

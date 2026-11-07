@@ -26,6 +26,7 @@ describe('path references independent of the host platform', () => {
     ['C:\\work\\project', '/opt/reference/a.md', 'file:///opt/reference/a.md'],
     ['/workspace/project', '//server/share/a b.md', 'file://server/share/a%20b.md'],
     ['/workspace/project', 'file:///D:/', 'file:///D:/'],
+    ['/workspace/project', 'D:\\', 'file:///D:/'],
     ['/workspace/project', '/C:/reference/a.md', 'file:///C%3A/reference/a.md'],
     ['/workspace/project', '/\\server\\share', 'file:///%5Cserver%5Cshare'],
     ['C:\\work\\project', 'file://server/share/', 'file://server/share/'],

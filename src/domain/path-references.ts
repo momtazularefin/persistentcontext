@@ -110,7 +110,12 @@ export function normalizePathReference(projectRoot: string, value: string): stri
       return root.windows ? relative.replaceAll('\\', '/') : relative;
     }
   }
-  const uri = pathToFileURL(target.path, { windows: target.windows }).href;
+  // Node's Windows drive-root serialization adds an extra slash on some POSIX
+  // hosts even with windows:true. Spell this root explicitly across hosts.
+  const uri =
+    target.windows && /^[A-Za-z]:\\$/u.test(target.path)
+      ? `file:///${target.path[0]}:/`
+      : pathToFileURL(target.path, { windows: target.windows }).href;
   if (target.windows && !parseFileReference(uri).windows) {
     throw new Error(
       'A localhost UNC reference requires an explicit machine hostname or drive path.',
