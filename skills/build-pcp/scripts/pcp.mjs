@@ -26762,7 +26762,7 @@ import path17 from "node:path";
 
 // src/domain/release.ts
 var PCP_NAME = "Persistent Context Protocol";
-var PCP_VERSION = "0.4.0";
+var PCP_VERSION = "0.4.1";
 var PCP_RELEASE_STAGE = "explicit-path-references";
 var PCP_UPDATE_PROVIDER = "github";
 var PCP_UPDATE_REPOSITORY = "momtazularefin/persistentcontext";

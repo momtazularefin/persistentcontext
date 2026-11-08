@@ -25,9 +25,11 @@ See [Getting started](docs/getting-started.md) for adoption, automatic adapter b
 
 ## Release status
 
-`0.4.0` is a prepared release candidate, not yet published. It adds explicit external path references while keeping project-internal references relative.
+`0.4.1` is in development on `main` and is not yet released.
 
-[`0.3.2`](https://github.com/momtazularefin/persistentcontext/releases/tag/v0.3.2) is the latest published release. It makes the Antigravity adapter an always-on workspace rule; before it, Antigravity never loaded that rule and received PCP only through the shared `AGENTS.md`.
+[`0.4.0`](https://github.com/momtazularefin/persistentcontext/releases/tag/v0.4.0) is the latest published release. It adds explicit external path references while keeping project-internal references relative.
+
+[`0.3.2`](https://github.com/momtazularefin/persistentcontext/releases/tag/v0.3.2) made the Antigravity adapter an always-on workspace rule; before it, Antigravity never loaded that rule and received PCP only through the shared `AGENTS.md`.
 
 [`0.3.1`](https://github.com/momtazularefin/persistentcontext/releases/tag/v0.3.1) is a patch on `0.3.0`: full validation no longer demands portability from immutable archived history, and running `upgrade` with an installed engine now names the real cause.
 
