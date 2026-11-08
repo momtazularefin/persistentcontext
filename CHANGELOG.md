@@ -2,7 +2,7 @@
 
 All notable public protocol changes are documented here from the first release candidate onward.
 
-## 0.4.0 — Unreleased — explicit external path references
+## 0.4.0 — 2026-11-08 — explicit external path references
 
 - Project-internal references remain relative forward-slash paths. Reference inputs normalize internal absolute paths to relative form and external absolute paths to explicit `file://` URIs, supporting Windows drive paths, UNC shares, and POSIX paths.
 - Event affected paths, workstream paths, documentation maintenance references, and adoption evidence can retain external locations. Markdown accepts external file references and diagnoses internal absolute links with a relative replacement.
